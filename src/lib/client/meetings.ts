@@ -64,7 +64,7 @@ export async function postMeetingFeedback(
   payload: MeetingFeedbackPayload,
 ) {
   return requireSuccess(
-    await httpClient.post(
+    await httpClient.post<MeetingFeedbackItem>(
       `/api/meetings/${encodeURIComponent(meetingId)}/feedback`,
       payload,
     ),
@@ -110,7 +110,7 @@ export async function postMeetingGuest(
 }
 
 export async function deleteMeeting(id: string) {
-  return requireSuccess(
-    await httpClient.delete(`/api/meetings/${encodeURIComponent(id)}`),
+  requireSuccess(
+    await httpClient.delete<void>(`/api/meetings/${encodeURIComponent(id)}`),
   );
 }

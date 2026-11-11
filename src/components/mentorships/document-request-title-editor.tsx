@@ -3,28 +3,41 @@
 import { Plus, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 
+import { newRowKey, withKeys, type Keyed } from "@/lib/keyed-list";
+
+/** One requested document title while it is edited; the key is React's (see keyed-list). */
+export type DocumentTitleRow = Keyed<{ title: string }>;
+
+export function documentTitleRows(titles: readonly string[]) {
+  return withKeys(titles.map((title) => ({ title })));
+}
+
+export function titlesOf(rows: readonly DocumentTitleRow[]) {
+  return rows.map((row) => row.title);
+}
+
 export function DocumentRequestTitleEditor({
-  titles,
+  rows,
   onChange,
   disabled = false,
   showHeading = true,
 }: {
-  titles: string[];
-  onChange: (titles: string[]) => void;
+  rows: readonly DocumentTitleRow[];
+  onChange: (rows: DocumentTitleRow[]) => void;
   disabled?: boolean;
   showHeading?: boolean;
 }) {
   const t = useTranslations("meetingFields.documents");
-  function updateTitle(index: number, value: string) {
-    onChange(titles.map((title, i) => (i === index ? value : title)));
+  function updateTitle(index: number, title: string) {
+    onChange(rows.map((row, i) => (i === index ? { ...row, title } : row)));
   }
 
   function removeTitle(index: number) {
-    onChange(titles.filter((_, i) => i !== index));
+    onChange(rows.filter((_, i) => i !== index));
   }
 
   function addTitle() {
-    onChange([...titles, ""]);
+    onChange([...rows, { key: newRowKey(), title: "" }]);
   }
 
   return (
@@ -36,11 +49,11 @@ export function DocumentRequestTitleEditor({
         </>
       ) : null}
       <div className={showHeading ? "mt-3 space-y-2" : "space-y-2"}>
-        {titles.map((title, index) => (
-          <div key={index} className="flex items-center gap-2">
+        {rows.map((row, index) => (
+          <div key={row.key} className="flex items-center gap-2">
             <input
               type="text"
-              value={title}
+              value={row.title}
               disabled={disabled}
               onChange={(event) => updateTitle(index, event.target.value)}
               placeholder={t("placeholder", { number: index + 1 })}

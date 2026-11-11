@@ -1,9 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { POST } from "@/app/api/meetings/[id]/assistant-share/report-upload/route";
+import { UserRole } from "@/interfaces/session";
 import { createReportUpload } from "@/lib/api/meeting-notes";
 import { requireMentorSession } from "@/lib/server/require-program-access";
+import { guardRefusal } from "@test/fixtures/route-handlers";
+import { appSession } from "@test/fixtures/session";
 
 vi.mock("@/lib/api/meeting-notes", () => ({
   createReportUpload: vi.fn(),
@@ -23,14 +26,14 @@ describe("assistant share report upload API route", () => {
   it("issues a presigned upload URL for the signed-in mentor", async () => {
     vi.mocked(requireMentorSession).mockResolvedValue({
       ok: true,
-      session: {
+      session: appSession({
         userId: "mentor-1",
         email: "leyla@teknokent.demo",
         fullName: "Leyla Aksoy",
         jobTitle: "Mentor",
-        role: "MENTOR",
-      },
-    } as never);
+        role: UserRole.Mentor,
+      }),
+    });
     vi.mocked(createReportUpload).mockResolvedValue({
       data: {
         url: "https://s3.example/report-put",
@@ -51,10 +54,7 @@ describe("assistant share report upload API route", () => {
   });
 
   it("rejects a mentee", async () => {
-    vi.mocked(requireMentorSession).mockResolvedValue({
-      ok: false,
-      response: NextResponse.json({ code: "FORBIDDEN" }, { status: 403 }),
-    });
+    vi.mocked(requireMentorSession).mockResolvedValue(guardRefusal(403));
 
     const response = await POST(new NextRequest("http://localhost/x"), {
       params,

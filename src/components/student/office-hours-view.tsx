@@ -1,10 +1,9 @@
 "use client";
 
 // TEST UI: placeholder until the design team's screen; replace when it arrives.
-
 import { CalendarClock } from "lucide-react";
-import Link from "next/link";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 
 import { PageHeading, StatusChip } from "@/components/admin/admin-ui";
 

@@ -5,8 +5,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { RescheduleMeetingButton } from "@/components/reschedule-meeting-button";
 import { MeetingStatus } from "@/interfaces/meeting";
 import { proposeReschedule } from "@/lib/client/meeting-proposals";
-import { menteeMeetingFixture } from "@test/fixtures/mentee-home";
 import { meetingProposal } from "@test/fixtures/meeting-proposals";
+import { menteeMeetingFixture } from "@test/fixtures/mentee-home";
 import { renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/meeting-proposals", () => ({

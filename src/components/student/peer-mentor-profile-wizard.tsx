@@ -1,18 +1,17 @@
 "use client";
 
 // TEST UI: placeholder until the design team's screen; replace when it arrives.
-
-import Link from "next/link";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 
 import { PageHeading, Panel, QueryNotice } from "@/components/admin/admin-ui";
 import { WeeklyAvailabilityEditor } from "@/components/availability/weekly-availability-editor";
 import { useAppSession } from "@/components/providers/session-provider";
-import { PeerMentorCardView } from "@/components/student/peer-mentor-directory";
 import {
   SubtopicPicker,
   TopicPicker,
 } from "@/components/student/interest-pickers";
+import { PeerMentorCardView } from "@/components/student/peer-mentor-directory";
 import { useMyBadges } from "@/hooks/use-badges";
 import { useInstitutionRecord } from "@/hooks/use-institution-record";
 import {

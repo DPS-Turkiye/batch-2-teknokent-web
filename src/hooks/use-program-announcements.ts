@@ -14,11 +14,11 @@ import {
   getProgramAnnouncements,
   postProgramAnnouncement,
 } from "@/lib/client/program-announcements";
+import { POLL_INTERVAL, polling } from "@/lib/poll";
 import {
   announcementThreads,
   MAX_ANNOUNCEMENT_LENGTH,
 } from "@/lib/program-announcements";
-import { POLL_INTERVAL, polling } from "@/lib/poll";
 
 export const ANNOUNCEMENTS_QUERY_KEY = ["program-announcements"] as const;
 
@@ -92,7 +92,7 @@ export function useCoordinatorAnnouncements(
     draft,
     setDraft: (value: string) =>
       setDraft(value.slice(0, MAX_ANNOUNCEMENT_LENGTH)),
-    canSend: !!active && trimmed.length > 0 && !post.isPending,
+    canSend: Boolean(active) && trimmed.length > 0 && !post.isPending,
     send: () => {
       if (active && trimmed)
         post.mutate({ programId: active.programId, body: trimmed });

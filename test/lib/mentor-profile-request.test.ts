@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { mentorProfile } from "@test/fixtures/mentors";
 import {
   meetingModeForMentor,
   mentorFirstName,
@@ -9,6 +8,7 @@ import {
 } from "@/lib/mentor-profile-request";
 import { writeNeedDraft } from "@/lib/mentor-request-need";
 import { MentorMeetingMode } from "@/types/mentor-request";
+import { mentorProfile } from "@test/fixtures/mentors";
 
 const startup = {
   organizationId: "org-1",

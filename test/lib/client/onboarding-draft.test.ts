@@ -26,7 +26,7 @@ describe("onboarding draft client", () => {
     vi.mocked(httpClient.get).mockResolvedValue({
       status: 204,
       data: "",
-    } as never);
+    });
 
     await expect(fetchOnboardingDraft("id-token")).resolves.toBeNull();
   });
@@ -35,7 +35,7 @@ describe("onboarding draft client", () => {
     vi.mocked(httpClient.get).mockResolvedValue({
       status: 200,
       data: { kind: "signup-wizard", step: "2", payload: { bio: "Kurucu" } },
-    } as never);
+    });
 
     await expect(fetchOnboardingDraft("id-token")).resolves.toEqual({
       kind: "signup-wizard",
@@ -54,7 +54,7 @@ describe("onboarding draft client", () => {
     vi.mocked(httpClient.put).mockResolvedValue({
       status: 200,
       data: { kind: "mentor-onboarding", step: "3", payload: {} },
-    } as never);
+    });
 
     await saveOnboardingDraft("id-token", {
       kind: "mentor-onboarding",
@@ -79,7 +79,7 @@ describe("onboarding draft client", () => {
     vi.mocked(httpClient.delete).mockResolvedValue({
       status: 204,
       data: "",
-    } as never);
+    });
 
     await expect(clearOnboardingDraft("id-token")).resolves.toBeUndefined();
   });

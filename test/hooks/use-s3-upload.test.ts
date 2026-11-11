@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
  * Test for S3 Upload Feature (PR #40)
@@ -19,20 +19,17 @@ describe("S3 Upload Feature", () => {
       url: "https://s3.amazonaws.com/bucket/file-id",
     });
 
-    if (largeContent.length > MAX_BODY_SIZE) {
-      const result = await mockS3Upload(largeContent);
-      expect(result.url).toContain("s3.amazonaws.com");
-      expect(mockS3Upload).toHaveBeenCalled();
-    }
+    expect(largeContent.length).toBeGreaterThan(MAX_BODY_SIZE);
+    const result = await mockS3Upload(largeContent);
+    expect(result.url).toContain("s3.amazonaws.com");
+    expect(mockS3Upload).toHaveBeenCalled();
   });
 
   it("should return inline response for small content", async () => {
     const MAX_BODY_SIZE = 1024 * 1024;
     const smallContent = JSON.stringify({ data: "small content" });
 
-    if (smallContent.length <= MAX_BODY_SIZE) {
-      expect(smallContent.length).toBeLessThanOrEqual(MAX_BODY_SIZE);
-    }
+    expect(smallContent.length).toBeLessThanOrEqual(MAX_BODY_SIZE);
   });
 
   it("should generate S3 URL with proper format", async () => {
@@ -50,11 +47,9 @@ describe("S3 Upload Feature", () => {
       .fn()
       .mockRejectedValue(new Error("S3 Upload failed"));
 
-    try {
-      await mockS3Upload("large content");
-    } catch (error) {
-      expect((error as Error).message).toBe("S3 Upload failed");
-    }
+    await expect(mockS3Upload("large content")).rejects.toThrow(
+      "S3 Upload failed",
+    );
 
     expect(mockS3Upload).toHaveBeenCalled();
   });
@@ -131,15 +126,15 @@ describe("S3 Upload Feature", () => {
       return { progress: (uploadedSize / totalSize) * 100 };
     });
 
-    while (uploadedSize < totalSize) {
+    const chunkCount = Math.ceil(totalSize / chunkSize);
+    for (let chunk = 0; chunk < chunkCount; chunk++) {
       const progress = await mockUploadChunk();
       expect(progress.progress).toBeGreaterThanOrEqual(0);
       expect(progress.progress).toBeLessThanOrEqual(100);
-
-      if (uploadedSize >= totalSize) break;
     }
 
-    expect(mockUploadChunk.mock.calls.length).toBeGreaterThan(0);
+    expect(uploadedSize).toBe(totalSize);
+    expect(mockUploadChunk).toHaveBeenCalledTimes(chunkCount);
   });
 
   it("should validate file before S3 upload", async () => {

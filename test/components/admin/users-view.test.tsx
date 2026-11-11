@@ -3,14 +3,16 @@ import { describe, expect, it, vi } from "vitest";
 
 import { UsersView } from "@/components/admin/users-view";
 import type { AdminOverview, AdminUser } from "@/interfaces/admin-overview";
+import { UserAccountStatus, UserRole } from "@/interfaces/session";
+import { UserTab } from "@/types/admin-users";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 const coordinator = (overrides: Partial<AdminUser>): AdminUser => ({
   id: "c1",
   email: "ayla@tekno.co",
   fullName: "Ayla Bekler",
-  role: "COORDINATOR",
-  status: "APPROVED",
+  role: UserRole.Coordinator,
+  status: UserAccountStatus.Approved,
   organizationId: null,
   organizationName: null,
   jobTitle: null,
@@ -47,14 +49,14 @@ vi.mock("@/hooks/use-admin-overview", () => ({
 }));
 
 function rowOf(name: string) {
-  return screen
-    .getByText(name)
-    .closest('div[class*="border-[#f0f2f4]"]') as HTMLElement;
+  const row = screen.getByText(name).closest('div[class*="border-[#f0f2f4]"]');
+  if (!(row instanceof HTMLElement)) throw new Error(`No row for ${name}`);
+  return row;
 }
 
 describe("UsersView", () => {
   it("has an Akademisyenler tab that shows the institution's academicians", async () => {
-    renderWithQueryClient(<UsersView tab="academics" />);
+    renderWithQueryClient(<UsersView tab={UserTab.Academics} />);
 
     expect(
       screen.getByRole("link", { name: /Akademisyenler/ }),
@@ -65,7 +67,7 @@ describe("UsersView", () => {
   });
 
   it("marks an added coordinator who has not set a password yet", () => {
-    renderWithQueryClient(<UsersView tab="coordinators" />);
+    renderWithQueryClient(<UsersView tab={UserTab.Coordinators} />);
 
     expect(
       within(rowOf("Ayla Bekler")).getByText("Şifre belirlenmedi"),
@@ -79,7 +81,7 @@ describe("UsersView", () => {
   it("reads in English", () => {
     renderWithQueryClient(
       <InLocale locale="en">
-        <UsersView tab="coordinators" />
+        <UsersView tab={UserTab.Coordinators} />
       </InLocale>,
     );
 

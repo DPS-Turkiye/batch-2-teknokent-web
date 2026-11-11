@@ -5,6 +5,13 @@ export enum MentorRequestStep {
   MentorSelect = 4,
 }
 
+export const MENTOR_REQUEST_STEPS = [
+  MentorRequestStep.Need,
+  MentorRequestStep.Expectation,
+  MentorRequestStep.Info,
+  MentorRequestStep.MentorSelect,
+] as const;
+
 export enum MentorRequestUrgency {
   ThisWeek = "THIS_WEEK",
   NextTwoWeeks = "NEXT_TWO_WEEKS",

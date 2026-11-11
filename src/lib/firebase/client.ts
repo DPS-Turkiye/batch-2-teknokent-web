@@ -18,14 +18,18 @@ function firebaseOptions(): FirebaseOptions {
     throw new Error("Firebase bağlantı ayarları yapılandırılmalıdır.");
   }
 
-  return {
-    apiKey,
-    authDomain,
-    projectId,
-    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  };
+  const options: FirebaseOptions = { apiKey, authDomain, projectId };
+  // The optional settings are left out when unset rather than passed as undefined.
+  const appId = process.env.NEXT_PUBLIC_FIREBASE_APP_ID;
+  const messagingSenderId =
+    process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID;
+  const storageBucket = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
+  if (appId !== undefined) options.appId = appId;
+  if (messagingSenderId !== undefined) {
+    options.messagingSenderId = messagingSenderId;
+  }
+  if (storageBucket !== undefined) options.storageBucket = storageBucket;
+  return options;
 }
 
 export function firebaseApp(): FirebaseApp {

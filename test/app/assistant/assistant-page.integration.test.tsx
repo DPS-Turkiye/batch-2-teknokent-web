@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import AssistantPage from "@/app/assistant/page";
 import { useMeetings } from "@/hooks/use-meetings";
+import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import {
   getAssistantShareApiUrl,
   getBotApiUrl,
@@ -14,6 +15,7 @@ import {
 } from "@/lib/const";
 import { httpClient } from "@/lib/http-client";
 import { createAxiosResponse } from "@test/fixtures/health";
+import { successQuery } from "@test/mocks/query-results";
 import { InLocale } from "@test/test-utils";
 
 vi.mock("@/components/hoc/app-shell", () => ({
@@ -24,6 +26,12 @@ vi.mock("@/components/hoc/app-shell", () => ({
 
 vi.mock("@/components/providers/session-provider", () => ({
   useAppSession: () => null,
+}));
+
+// Rendered outside the App Router, so the page's search params come from here.
+vi.mock("next/navigation", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("next/navigation")>()),
+  useSearchParams: () => new URLSearchParams(),
 }));
 
 vi.mock("@/hooks/use-meetings", () => ({
@@ -40,22 +48,20 @@ vi.mock("@/lib/http-client", () => ({
   },
 }));
 
-const defaultMeetings = {
-  data: [
-    {
-      id: "meeting-1",
-      organizationId: "org-1",
-      scheduledAt: "2026-09-01T10:00:00Z",
-      durationMinutes: 45,
-      agenda: "Sprint review",
-      status: "SCHEDULED",
-    },
-  ],
-  isLoading: false,
-  isError: false,
-  isPending: false,
-  isSuccess: true,
-  refetch: vi.fn(),
+const refetchMeetings = vi.fn();
+
+/** The mentor's meetings as useMeetings answers them, sharing one refetch spy. */
+function meetingsQuery(meetings: MeetingItem[]) {
+  return { ...successQuery(meetings), refetch: refetchMeetings };
+}
+
+const sprintReview: MeetingItem = {
+  id: "meeting-1",
+  organizationId: "org-1",
+  scheduledAt: "2026-09-01T10:00:00Z",
+  durationMinutes: 45,
+  agenda: "Sprint review",
+  status: MeetingStatus.Scheduled,
 };
 
 describe("AssistantPage integration", () => {
@@ -63,7 +69,7 @@ describe("AssistantPage integration", () => {
     vi.clearAllMocks();
     localStorage.clear();
     sessionStorage.clear();
-    vi.mocked(useMeetings).mockReturnValue(defaultMeetings as never);
+    vi.mocked(useMeetings).mockReturnValue(meetingsQuery([sprintReview]));
     vi.mocked(httpClient.get).mockResolvedValue(
       createAxiosResponse({ segments: [] }, 200),
     );
@@ -104,7 +110,7 @@ describe("AssistantPage integration", () => {
           201,
         );
       }
-      throw new Error(`Unexpected POST URL: ${String(url)}`);
+      throw new Error(`Unexpected POST URL: ${url}`);
     });
 
     render(<AssistantPage />);
@@ -176,7 +182,7 @@ describe("AssistantPage integration", () => {
         );
       }
 
-      throw new Error(`Unexpected POST URL: ${String(url)}`);
+      throw new Error(`Unexpected POST URL: ${url}`);
     });
 
     vi.mocked(httpClient.delete).mockResolvedValue(
@@ -234,7 +240,7 @@ describe("AssistantPage integration", () => {
           201,
         );
       }
-      throw new Error(`Unexpected POST URL: ${String(url)}`);
+      throw new Error(`Unexpected POST URL: ${url}`);
     });
     vi.mocked(httpClient.delete).mockResolvedValue(
       createAxiosResponse({}, 204),
@@ -274,7 +280,7 @@ describe("AssistantPage integration", () => {
   it("stores the stop in the meeting row so a reopened assistant stops polling", async () => {
     const user = userEvent.setup();
     const startedAt = new Date(Date.now() - 5 * 60_000).toISOString();
-    const liveMeeting = {
+    const liveMeeting: MeetingItem = {
       id: "meeting-1",
       organizationId: "org-1",
       scheduledAt: startedAt,
@@ -283,16 +289,13 @@ describe("AssistantPage integration", () => {
       meetLink: "https://meet.google.com/abc-defg-hij",
       transcribeRequested: true,
       botDispatchedAt: startedAt,
-      status: "SCHEDULED",
+      status: MeetingStatus.Scheduled,
     };
 
-    vi.mocked(useMeetings).mockReturnValue({
-      ...defaultMeetings,
-      data: [liveMeeting],
-    } as never);
+    vi.mocked(useMeetings).mockReturnValue(meetingsQuery([liveMeeting]));
 
     vi.mocked(httpClient.get).mockImplementation(async (url: string) => {
-      if (String(url).includes("assistant-share")) {
+      if (url.includes("assistant-share")) {
         return createAxiosResponse(
           { meetingId: "meeting-1", transcript: null, report: null },
           200,
@@ -314,13 +317,12 @@ describe("AssistantPage integration", () => {
         transcriptBotDispatched: true,
       });
     });
-    expect(defaultMeetings.refetch).toHaveBeenCalled();
+    expect(refetchMeetings).toHaveBeenCalled();
 
     first.unmount();
-    vi.mocked(useMeetings).mockReturnValue({
-      ...defaultMeetings,
-      data: [{ ...liveMeeting, status: "COMPLETED" }],
-    } as never);
+    vi.mocked(useMeetings).mockReturnValue(
+      meetingsQuery([{ ...liveMeeting, status: MeetingStatus.Completed }]),
+    );
     render(<AssistantPage />);
 
     expect((await screen.findAllByText("Bitti")).length).toBeGreaterThan(0);
@@ -333,8 +335,7 @@ describe("AssistantPage integration", () => {
       vi
         .mocked(httpClient.get)
         .mock.calls.filter(
-          ([url]) =>
-            String(url) === getTranscriptApiUrl("google_meet", "abc-defg-hij"),
+          ([url]) => url === getTranscriptApiUrl("google_meet", "abc-defg-hij"),
         ).length;
     const before = transcriptCalls();
     vi.useFakeTimers();
@@ -348,9 +349,8 @@ describe("AssistantPage integration", () => {
     const user = userEvent.setup();
     const startedAt = new Date(Date.now() - 5 * 60_000).toISOString();
 
-    vi.mocked(useMeetings).mockReturnValue({
-      ...defaultMeetings,
-      data: [
+    vi.mocked(useMeetings).mockReturnValue(
+      meetingsQuery([
         {
           id: "meeting-1",
           organizationId: "org-1",
@@ -360,13 +360,13 @@ describe("AssistantPage integration", () => {
           meetLink: "https://meet.google.com/abc-defg-hij",
           transcribeRequested: true,
           botDispatchedAt: startedAt,
-          status: "SCHEDULED",
+          status: MeetingStatus.Scheduled,
         },
-      ],
-    } as never);
+      ]),
+    );
 
     vi.mocked(httpClient.get).mockImplementation(async (url: string) => {
-      if (String(url).includes("assistant-share")) {
+      if (url.includes("assistant-share")) {
         return createAxiosResponse(
           { meetingId: "meeting-1", transcript: null, report: null },
           200,
@@ -392,9 +392,8 @@ describe("AssistantPage integration", () => {
   });
 
   it("restores a saved transcript after the mentor opens the assistant again", async () => {
-    vi.mocked(useMeetings).mockReturnValue({
-      ...defaultMeetings,
-      data: [
+    vi.mocked(useMeetings).mockReturnValue(
+      meetingsQuery([
         {
           id: "meeting-1",
           organizationId: "org-1",
@@ -404,10 +403,10 @@ describe("AssistantPage integration", () => {
           agenda: "Mentorluk — Ürün roadmap",
           meetLink: "https://meet.google.com/aaa-bbbb-ccc",
           transcribeRequested: true,
-          status: "COMPLETED",
+          status: MeetingStatus.Completed,
         },
-      ],
-    } as never);
+      ]),
+    );
 
     vi.mocked(httpClient.get).mockImplementation(async (url: string) => {
       if (url === getAssistantShareApiUrl("meeting-1")) {
@@ -457,9 +456,8 @@ describe("AssistantPage integration", () => {
       { id: "s1", speaker: "Ayşe", text: "Merhaba", at: "00:10" },
     ];
 
-    vi.mocked(useMeetings).mockReturnValue({
-      ...defaultMeetings,
-      data: [
+    vi.mocked(useMeetings).mockReturnValue(
+      meetingsQuery([
         {
           id: "meeting-1",
           organizationId: "org-1",
@@ -468,13 +466,13 @@ describe("AssistantPage integration", () => {
           agenda: "Sprint review",
           meetLink: "https://meet.google.com/abc-defg-hij",
           transcribeRequested: true,
-          status: "SCHEDULED",
+          status: MeetingStatus.Scheduled,
         },
-      ],
-    } as never);
+      ]),
+    );
 
     vi.mocked(httpClient.get).mockImplementation(async (url: string) => {
-      if (String(url).includes("assistant-share")) {
+      if (url.includes("assistant-share")) {
         return createAxiosResponse(
           { meetingId: "meeting-1", transcript: null, report: null },
           200,
@@ -513,7 +511,7 @@ describe("AssistantPage integration", () => {
           200,
         );
       }
-      throw new Error(`Unexpected POST URL: ${String(url)}`);
+      throw new Error(`Unexpected POST URL: ${url}`);
     });
     vi.mocked(httpClient.delete).mockResolvedValue(
       createAxiosResponse({}, 204),

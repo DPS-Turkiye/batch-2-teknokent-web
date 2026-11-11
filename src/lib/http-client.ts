@@ -1,6 +1,6 @@
 import axios, { AxiosError } from "axios";
 
-import { ClientApiError } from "@/lib/client/api";
+import { ClientApiError, ClientErrorCode } from "@/lib/client/api";
 
 /**
  * Most calls are small JSON round trips through the app's own route handlers.
@@ -30,18 +30,21 @@ export const httpClient = axios.create({
  */
 httpClient.interceptors.response.use(undefined, (error: unknown) => {
   if (error instanceof AxiosError) {
-    if (error.code === AxiosError.ECONNABORTED || error.code === "ETIMEDOUT") {
+    if (
+      error.code === AxiosError.ECONNABORTED ||
+      error.code === AxiosError.ETIMEDOUT
+    ) {
       throw new ClientApiError(
         "İstek zaman aşımına uğradı. Bağlantını kontrol edip tekrar dene.",
         0,
-        "TIMEOUT",
+        ClientErrorCode.Timeout,
       );
     }
     if (error.code === AxiosError.ERR_NETWORK) {
       throw new ClientApiError(
         "Sunucuya ulaşılamadı. Bağlantını kontrol edip tekrar dene.",
         0,
-        "NETWORK",
+        ClientErrorCode.Network,
       );
     }
   }

@@ -1,14 +1,17 @@
 "use client";
+
 import { useTranslations } from "next-intl";
+
+import { OnboardingTone } from "@/components/onboarding/onboarding-tone";
 import {
   OnboardingCard,
   OnboardingChips,
   OnboardingConsent,
 } from "@/components/onboarding/onboarding-ui";
-import { OnboardingTone } from "@/components/onboarding/onboarding-tone";
 import { StartupFields } from "@/components/signup/steps/startup-fields";
 import { useSignupProgramChoice } from "@/hooks/use-signup-program-choice";
 import type { SignupWizard } from "@/hooks/use-signup-wizard";
+
 const TONE = OnboardingTone.Mentee;
 export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
   const copy = useTranslations("signupSteps");

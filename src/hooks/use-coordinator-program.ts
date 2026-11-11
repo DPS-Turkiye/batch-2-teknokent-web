@@ -4,7 +4,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { useToast } from "@/stores/toast-store";
 import { ADMIN_OVERVIEW_QUERY_KEY } from "@/hooks/use-admin-overview";
 import { COORDINATOR_PROGRAMS_QUERY_KEY } from "@/hooks/use-coordinator-programs";
 import type {
@@ -12,28 +11,29 @@ import type {
   CoordinatorRef,
   ProgramEligibleEmail,
 } from "@/interfaces/coordinator-program";
+import { ToastTone } from "@/interfaces/toast";
 import {
   addProgramCoordinator,
   addProgramEligibleEmails,
   getCoordinatorProgram,
-  launchCoordinatorProgram,
-  getProgramEligibleEmails,
-  removeProgramEligibleEmail,
   getProgramCoordinatorCandidates,
+  getProgramEligibleEmails,
+  launchCoordinatorProgram,
   removeProgramCoordinator,
+  removeProgramEligibleEmail,
   setCoordinatorProgramArchived,
   updateCoordinatorProgram,
 } from "@/lib/client/coordinator-programs";
 import {
   detailsInput,
   parseEmailList,
-  type ProgramSettingsDraft,
-  SettingsSection,
   settingsDraftError,
   settingsDraftOf,
+  SettingsSection,
+  type ProgramSettingsDraft,
 } from "@/lib/coordinator-program-detail";
 import { errorMessage } from "@/lib/utils";
-import { ToastTone } from "@/interfaces/toast";
+import { useToast } from "@/stores/toast-store";
 
 export const coordinatorProgramQueryKey = (programId: string) =>
   ["coordinator-program", programId] as const;

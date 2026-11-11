@@ -4,7 +4,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocale, useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
+import { REGULAR_MENTORSHIPS_QUERY_KEY } from "@/components/mentorships/regular-mentorships-tab";
 import { useSession } from "@/components/providers/session-provider";
+import { useMentorAvailabilitySettings } from "@/hooks/use-mentor-profile";
 import {
   mentorshipRequestsQueryKey,
   useMentorshipRequests,
@@ -12,35 +14,33 @@ import {
 import { usePrograms } from "@/hooks/use-programs";
 import type { MeetingItem } from "@/interfaces/meeting";
 import {
-  Weekday,
   WEEKDAY_ORDER,
   type MentorAvailabilityRule,
   type MentorAvailabilitySlot,
+  type Weekday,
 } from "@/interfaces/mentor";
 import {
   MentorshipRequestStatus,
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
+import { CalendarFilter, startOfWeek, weekDays } from "@/lib/calendar";
 import {
+  deleteMeeting,
   getMeetings,
   postMeeting,
   postMeetingGuest,
-  deleteMeeting,
 } from "@/lib/client/meetings";
-import { getRegularMentorships } from "@/lib/client/mentorships";
 import {
   createAvailabilityRule,
   deleteAvailabilityRule,
   getAvailabilityRules,
   getMentorAvailability,
 } from "@/lib/client/mentor-profile";
+import { getRegularMentorships } from "@/lib/client/mentorships";
 import { programsMentorHasJoined } from "@/lib/meeting-targets";
-import { useMentorAvailabilitySettings } from "@/hooks/use-mentor-profile";
 import { exceptionLabel, exceptionsInRange } from "@/lib/mentor-availability";
 import { weeklyAvailabilityRows } from "@/lib/mentor-profile-overview";
-import { CalendarFilter, startOfWeek, weekDays } from "@/lib/calendar";
-import { REGULAR_MENTORSHIPS_QUERY_KEY } from "@/components/mentorships/regular-mentorships-tab";
 
 /** The grid runs 09:00–18:00, matching the design. */
 export const CALENDAR_HOURS = Array.from({ length: 10 }, (_, i) => 9 + i);
@@ -212,8 +212,8 @@ export function useMentorCalendar() {
     () =>
       exceptionsInRange(
         settingsQuery.data?.exceptions ?? [],
-        days[0],
-        days[days.length - 1],
+        days[0] ?? new Date(),
+        days.at(-1) ?? new Date(),
       ).map((exception) => exceptionLabel(exception, locale)),
     [settingsQuery.data?.exceptions, days, locale],
   );
@@ -227,14 +227,14 @@ export function useMentorCalendar() {
     weekExceptionLabels,
     addMeeting: (input: {
       mentorshipRequestId?: string;
-      programId?: string;
+      programId?: string | undefined;
       organizationId?: string;
       scheduledAt: string;
       durationMinutes: number;
       agenda: string;
       meetLink?: string;
-      transcribeRequested?: boolean;
-      requestedDocuments?: string[];
+      transcribeRequested?: boolean | undefined;
+      requestedDocuments?: string[] | undefined;
     }) => createMeeting.mutateAsync({ ...input, status: "SCHEDULED" }),
     inviteGuest: (
       meetingId: string,

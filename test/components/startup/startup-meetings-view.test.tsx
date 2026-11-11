@@ -13,6 +13,7 @@ import {
   groupMeetingsByTopic,
   StartupMeetingView,
 } from "@/lib/startup-meetings";
+import { itemAt } from "@test/fixtures/list-assertions";
 import {
   detailsFixture,
   meetingFixture,
@@ -138,12 +139,12 @@ describe("StartupMeetingsView", () => {
   });
 
   it("shows the topic stack dialog when a topic is selected", () => {
-    const topics = groupMeetingsByTopic(
-      [meeting],
-      new Date("2026-09-11T12:00:00Z"),
+    const topic = itemAt(
+      groupMeetingsByTopic([meeting], new Date("2026-09-11T12:00:00Z")),
+      0,
     );
     vi.mocked(useStartupMeetings).mockReturnValue(
-      state({ selectedTopic: topics[0] }),
+      state({ selectedTopic: topic }),
     );
 
     renderWithQueryClient(<StartupMeetingsView />);

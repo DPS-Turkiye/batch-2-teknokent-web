@@ -4,13 +4,8 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { useCoordinatorPrograms } from "@/hooks/use-coordinator-programs";
-import {
-  ALL_PROGRAM_TYPES,
-  matchesProgramType,
-  type ProgramTypeFilter,
-} from "@/lib/program-types";
 import { useCoordinatorNotes } from "@/hooks/use-coordinator-notes";
+import { useCoordinatorPrograms } from "@/hooks/use-coordinator-programs";
 import { useMentorshipMeetingProposals } from "@/hooks/use-meeting-proposals";
 import {
   getCoordinatorMentorship,
@@ -28,6 +23,11 @@ import {
   sortMentorships,
   topicOptions,
 } from "@/lib/coordinator-mentorships";
+import {
+  ALL_PROGRAM_TYPES,
+  matchesProgramType,
+  type ProgramTypeFilter,
+} from "@/lib/program-types";
 
 export const COORDINATOR_MENTORSHIPS_QUERY_KEY = [
   "coordinator-mentorships",

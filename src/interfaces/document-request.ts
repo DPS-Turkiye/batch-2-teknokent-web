@@ -26,7 +26,7 @@ export type DocumentRequestItem = {
 };
 
 export type DocumentRequestScope = {
-  mentorshipRequestId?: string;
-  meetingId?: string;
-  mentorshipId?: string;
+  mentorshipRequestId?: string | undefined;
+  meetingId?: string | undefined;
+  mentorshipId?: string | undefined;
 };

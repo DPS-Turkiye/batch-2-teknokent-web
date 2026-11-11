@@ -18,8 +18,8 @@ import {
 } from "@/hooks/use-coordinator-program";
 import { useProgramNavigation } from "@/hooks/use-program-navigation";
 import {
-  type CoordinatorProgramDetail,
   ProgramLifecycle,
+  type CoordinatorProgramDetail,
 } from "@/interfaces/coordinator-program";
 import { ProgramType } from "@/interfaces/program";
 import {
@@ -184,7 +184,7 @@ function SettingsBody({
         <CoordinatorsSection
           programId={programId}
           detail={detail}
-          editable={navigation.admin && !archived}
+          editable={navigation.admin ? !archived : false}
         />
 
         {detail.program.type === ProgramType.PeerMentoring ? (

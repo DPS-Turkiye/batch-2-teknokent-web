@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { AssistantShareKind } from "@/interfaces/meeting-note";
 import { publishAssistantShareBodySchema } from "@/lib/notes-schemas";
 
 describe("publishAssistantShareBodySchema", () => {
@@ -74,7 +75,7 @@ describe("publishAssistantShareBodySchema", () => {
 
     expect(parsed.success).toBe(true);
     if (!parsed.success) return;
-    if (parsed.data.kind !== "REPORT") return;
+    if (parsed.data.kind !== AssistantShareKind.Report) return;
     expect(parsed.data.report.title).toBe("");
     expect(parsed.data.report.summary).toBe("");
     expect(parsed.data.report.actionItems[0]?.task).toBe("Demo hazırla");

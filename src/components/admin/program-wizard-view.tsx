@@ -1,8 +1,8 @@
 "use client";
 
 import { Check, ChevronRight } from "lucide-react";
-import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
+import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { ProgramTypeChip } from "@/components/coordinator/program-type-chip";
@@ -21,6 +21,8 @@ type Wizard = ReturnType<typeof useAdminProgramWizard>;
 export function ProgramWizardView() {
   const t = useTranslations("adminProgramWizard");
   const wizard = useAdminProgramWizard();
+  const nextStep = WIZARD_STEPS[wizard.stepIndex + 1];
+  const nextStepLabel = nextStep ? t(`steps.${nextStep}.label`) : "";
 
   return (
     <div className="space-y-6">
@@ -146,11 +148,7 @@ export function ProgramWizardView() {
                   onClick={wizard.next}
                   className="rounded-full bg-[#22262b] px-5 py-[11px] text-[13.5px] font-medium text-white"
                 >
-                  {t("continue", {
-                    step: t(
-                      `steps.${WIZARD_STEPS[wizard.stepIndex + 1]}.label`,
-                    ),
-                  })}
+                  {t("continue", { step: nextStepLabel })}
                 </button>
               )}
             </div>

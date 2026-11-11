@@ -1,4 +1,3 @@
-import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 
 import { MeetingStatus } from "@/interfaces/meeting";
@@ -7,24 +6,19 @@ import {
   canReschedule,
   defaultProposalStart,
   introStep,
-  StepState,
   lastDeclined,
   openProposal,
   proposalWhenLabel,
+  StepState,
   type ProposalTexts,
 } from "@/lib/meeting-proposals";
-import en from "@/messages/en.json";
-import tr from "@/messages/tr.json";
-import { menteeMeetingFixture } from "@test/fixtures/mentee-home";
 import { meetingProposal } from "@test/fixtures/meeting-proposals";
+import { menteeMeetingFixture } from "@test/fixtures/mentee-home";
+import { translatorIn } from "@test/translators";
 
 function texts(locale: "tr" | "en"): ProposalTexts {
   return {
-    t: createTranslator({
-      locale,
-      messages: locale === "en" ? en : tr,
-      namespace: "meetingProposals",
-    }),
+    t: translatorIn(locale, "meetingProposals"),
     locale,
   };
 }

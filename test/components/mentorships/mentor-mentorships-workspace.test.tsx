@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MentorMentorshipsWorkspace } from "@/components/mentorships/mentor-mentorships-workspace";
 import { useMeetings } from "@/hooks/use-meetings";
-import { MeetingStatus } from "@/interfaces/meeting";
+import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import {
   MentorshipRequestStatus,
   type MentorshipRequest,
@@ -12,6 +12,7 @@ import {
 import { updateMeeting } from "@/lib/client/meetings";
 import { logMentorshipMeeting } from "@/lib/client/mentor-requests";
 import { upcomingPreferenceDays } from "@/lib/mentor-availability-days";
+import { successQuery } from "@test/mocks/query-results";
 import { freezeDate, InLocale, renderWithQueryClient } from "@test/test-utils";
 
 afterEach(() => {
@@ -39,7 +40,7 @@ vi.mock("@/lib/client/mentor-requests", () => ({
   logMentorshipMeeting: vi.fn(),
   getMentorRequestsPage: vi.fn(
     async ({ tab }: { tab: keyof typeof pagesByTab }) => {
-      const content = pagesByTab[tab] ?? [];
+      const content = pagesByTab[tab];
       return {
         content,
         page: 0,
@@ -138,11 +139,7 @@ describe("MentorMentorshipsWorkspace", () => {
     mockPage("active", []);
     mockPage("requests", []);
     mockPage("history", []);
-    vi.mocked(useMeetings).mockReturnValue({
-      data: [],
-      isLoading: false,
-      error: null,
-    } as never);
+    vi.mocked(useMeetings).mockReturnValue(successQuery<MeetingItem[]>([]));
   });
 
   it("hides capacity and create actions, and keeps completed mentorships on Geçmiş", async () => {
@@ -167,8 +164,8 @@ describe("MentorMentorshipsWorkspace", () => {
         status: MentorshipRequestStatus.Withdrawn,
       }),
     ]);
-    vi.mocked(useMeetings).mockReturnValue({
-      data: [
+    vi.mocked(useMeetings).mockReturnValue(
+      successQuery<MeetingItem[]>([
         {
           id: "open-meeting",
           organizationId: "org-1",
@@ -187,10 +184,8 @@ describe("MentorMentorshipsWorkspace", () => {
           durationMinutes: 45,
           status: MeetingStatus.Completed,
         },
-      ],
-      isLoading: false,
-      error: null,
-    } as never);
+      ]),
+    );
 
     renderWithQueryClient(<MentorMentorshipsWorkspace />);
 
@@ -242,8 +237,8 @@ describe("MentorMentorshipsWorkspace", () => {
       mockRequests([
         request({ id: "req-1", status: MentorshipRequestStatus.Accepted }),
       ]);
-      vi.mocked(useMeetings).mockReturnValue({
-        data: [
+      vi.mocked(useMeetings).mockReturnValue(
+        successQuery<MeetingItem[]>([
           {
             id: "meeting-1",
             organizationId: "org-1",
@@ -254,10 +249,8 @@ describe("MentorMentorshipsWorkspace", () => {
             meetLink: "https://meet.google.com/abc-defg-hij",
             status: MeetingStatus.Scheduled,
           },
-        ],
-        isLoading: false,
-        error: null,
-      } as never);
+        ]),
+      );
     });
     vi.mocked(logMentorshipMeeting).mockResolvedValue({
       id: "meeting-1",
@@ -429,8 +422,8 @@ describe("MentorMentorshipsWorkspace", () => {
     mockRequests([
       request({ id: "req-1", status: MentorshipRequestStatus.Accepted }),
     ]);
-    vi.mocked(useMeetings).mockReturnValue({
-      data: [
+    vi.mocked(useMeetings).mockReturnValue(
+      successQuery<MeetingItem[]>([
         {
           id: "meeting-open",
           organizationId: "org-1",
@@ -438,13 +431,10 @@ describe("MentorMentorshipsWorkspace", () => {
           mentorshipRequestId: "req-1",
           scheduledAt: "2099-08-30T11:00:00.000Z",
           durationMinutes: 45,
-          meetLink: null,
           status: MeetingStatus.Scheduled,
         },
-      ],
-      isLoading: false,
-      error: null,
-    } as never);
+      ]),
+    );
     vi.mocked(updateMeeting).mockResolvedValue({
       id: "meeting-open",
       organizationId: "org-1",
@@ -518,8 +508,8 @@ describe("MentorMentorshipsWorkspace", () => {
     mockRequests([
       request({ id: "req-1", status: MentorshipRequestStatus.Accepted }),
     ]);
-    vi.mocked(useMeetings).mockReturnValue({
-      data: [
+    vi.mocked(useMeetings).mockReturnValue(
+      successQuery<MeetingItem[]>([
         {
           id: "meeting-open",
           organizationId: "org-1",
@@ -527,13 +517,10 @@ describe("MentorMentorshipsWorkspace", () => {
           mentorshipRequestId: "req-1",
           scheduledAt: "2099-08-30T11:00:00.000Z",
           durationMinutes: 45,
-          meetLink: null,
           status: MeetingStatus.Scheduled,
         },
-      ],
-      isLoading: false,
-      error: null,
-    } as never);
+      ]),
+    );
     vi.mocked(updateMeeting).mockResolvedValue({
       id: "meeting-open",
       organizationId: "org-1",
@@ -572,8 +559,8 @@ describe("MentorMentorshipsWorkspace", () => {
     mockRequests([
       request({ id: "req-1", status: MentorshipRequestStatus.Accepted }),
     ]);
-    vi.mocked(useMeetings).mockReturnValue({
-      data: [
+    vi.mocked(useMeetings).mockReturnValue(
+      successQuery<MeetingItem[]>([
         {
           id: "meeting-1",
           organizationId: "org-1",
@@ -585,10 +572,8 @@ describe("MentorMentorshipsWorkspace", () => {
           transcribeRequested: false,
           status: MeetingStatus.Scheduled,
         },
-      ],
-      isLoading: false,
-      error: null,
-    } as never);
+      ]),
+    );
     vi.mocked(updateMeeting).mockResolvedValue({
       id: "meeting-1",
       organizationId: "org-1",

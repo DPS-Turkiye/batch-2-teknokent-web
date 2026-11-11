@@ -9,18 +9,18 @@ import type { OrganizationMember } from "@/interfaces/organization-member";
 import type { Program } from "@/interfaces/program";
 import type { RegularMentorship } from "@/interfaces/regular-mentorship";
 import type { StartupDocument } from "@/interfaces/startup-document";
+import { mentorRequestStartupHref } from "@/lib/mentorship-workspace";
 import {
   MOBILE_CALENDAR,
   MOBILE_STARTUPS,
   mobileChatHref,
   mobileClock,
-  type MobileTexts,
   webHref,
+  type MobileTexts,
 } from "@/lib/mobile";
 import { meetingDayAndTime } from "@/lib/mobile-home";
 import { endOf, programNameFor, upcomingFor } from "@/lib/mobile-mentor-home";
 import { formatLongDate, initials } from "@/lib/utils";
-import { mentorRequestStartupHref } from "@/lib/mentorship-workspace";
 
 export enum StartupHealth {
   Active = "active",
@@ -70,7 +70,7 @@ function daysSinceLastMeeting(
     .filter(
       (meeting) =>
         meeting.organizationId === organizationId &&
-        String(meeting.status).toUpperCase() !== MeetingStatus.Cancelled &&
+        meeting.status !== MeetingStatus.Cancelled &&
         endOf(meeting) <= now.getTime(),
     )
     .map((meeting) => endOf(meeting));
@@ -161,30 +161,38 @@ export function pastStartupCards(
   { t, locale }: MobileTexts,
 ): StartupCard[] {
   const seen = new Set<string>();
-  return mentorships
-    .filter(
-      (mentorship) =>
-        PAST_MENTORSHIP_STATUSES.has(mentorship.status.toUpperCase()) &&
-        !activeIds.has(mentorship.organizationId),
-    )
-    .filter((mentorship) => {
-      if (seen.has(mentorship.organizationId)) return false;
-      seen.add(mentorship.organizationId);
-      return true;
-    })
-    .map((mentorship) => ({
-      id: mentorship.organizationId,
-      name: mentorship.organizationName,
-      initials: initials(mentorship.organizationName),
-      program: null,
-      health: StartupHealth.Past,
-      nextLine: mentorship.endDate
-        ? t("startups.endedOn", {
-            date: formatLongDate(mentorship.endDate, locale),
-          })
-        : t("startups.ended"),
-      href: startupHref(mentorship.organizationId),
-    }));
+  return (
+    mentorships
+      .filter(
+        (mentorship) =>
+          PAST_MENTORSHIP_STATUSES.has(mentorship.status.toUpperCase()) &&
+          !activeIds.has(mentorship.organizationId),
+      )
+      .filter((mentorship) => {
+        if (seen.has(mentorship.organizationId)) return false;
+        seen.add(mentorship.organizationId);
+        return true;
+      })
+      // A student's personal team is never shown as a startup.
+      .flatMap((mentorship) =>
+        mentorship.organizationName === null
+          ? []
+          : [{ ...mentorship, organizationName: mentorship.organizationName }],
+      )
+      .map((mentorship) => ({
+        id: mentorship.organizationId,
+        name: mentorship.organizationName,
+        initials: initials(mentorship.organizationName),
+        program: null,
+        health: StartupHealth.Past,
+        nextLine: mentorship.endDate
+          ? t("startups.endedOn", {
+              date: formatLongDate(mentorship.endDate, locale),
+            })
+          : t("startups.ended"),
+        href: startupHref(mentorship.organizationId),
+      }))
+  );
 }
 
 export type StartupDetail = {
@@ -243,7 +251,7 @@ export function startupDetail(input: {
     ? input.meetings.filter(
         (meeting) =>
           meeting.organizationId === input.organizationId &&
-          String(meeting.status).toUpperCase() !== MeetingStatus.Cancelled &&
+          meeting.status !== MeetingStatus.Cancelled &&
           meeting.scheduledAt <= next.scheduledAt,
       ).length
     : 0;

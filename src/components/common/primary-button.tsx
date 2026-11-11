@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 export function PrimaryButton({
   children,
@@ -10,7 +10,7 @@ export function PrimaryButton({
   type = "button",
 }: {
   children: ReactNode;
-  href?: string;
+  href?: string | undefined;
   onClick?: () => void;
   disabled?: boolean;
   className?: string;

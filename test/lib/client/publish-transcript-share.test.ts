@@ -1,14 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { httpClient } from "@/lib/http-client";
+import { AMPLIFY_SAFE_JSON_CHARS } from "@/lib/amplify-safe-body";
 import {
   getAssistantShare,
   publishReportShare,
   publishTranscriptShare,
   type TranscriptUploadUrl,
 } from "@/lib/client/meeting-notes";
-import { AMPLIFY_SAFE_JSON_CHARS } from "@/lib/amplify-safe-body";
 import { getAssistantShareApiUrl } from "@/lib/const";
+import { httpClient } from "@/lib/http-client";
 import type { MeetingReport, TranscriptLine } from "@/types/assistant";
 
 vi.mock("@/lib/http-client", () => ({
@@ -48,11 +48,11 @@ describe("publishTranscriptShare", () => {
 
   it("uploads to S3 then publishes the key", async () => {
     vi.mocked(httpClient.post)
-      .mockResolvedValueOnce({ status: 200, data: transcriptUpload() } as never)
+      .mockResolvedValueOnce({ status: 200, data: transcriptUpload() })
       .mockResolvedValueOnce({
         status: 200,
         data: { meetingId: "meeting-1" },
-      } as never);
+      });
     const put = vi.fn().mockResolvedValue({ ok: true });
     vi.stubGlobal("fetch", put);
 
@@ -82,7 +82,7 @@ describe("publishTranscriptShare", () => {
       .mockResolvedValueOnce({
         status: 200,
         data: { meetingId: "meeting-1" },
-      } as never);
+      });
 
     await publishTranscriptShare("meeting-1", [line("Merhaba")]);
 
@@ -129,11 +129,11 @@ describe("publishReportShare", () => {
 
   it("uploads to S3 then publishes the key", async () => {
     vi.mocked(httpClient.post)
-      .mockResolvedValueOnce({ status: 200, data: reportUpload() } as never)
+      .mockResolvedValueOnce({ status: 200, data: reportUpload() })
       .mockResolvedValueOnce({
         status: 200,
         data: { meetingId: "meeting-1" },
-      } as never);
+      });
     const put = vi.fn().mockResolvedValue({ ok: true });
     vi.stubGlobal("fetch", put);
 
@@ -163,7 +163,7 @@ describe("publishReportShare", () => {
       .mockResolvedValueOnce({
         status: 200,
         data: { meetingId: "meeting-1" },
-      } as never);
+      });
 
     await publishReportShare("meeting-1", report("Kısa özet"));
 
@@ -195,13 +195,13 @@ describe("getAssistantShare", () => {
         reportUrl: "https://s3.example/report",
         reportPublishedAt: "2026-09-01T10:00:00Z",
       },
-    } as never);
+    });
     vi.stubGlobal(
       "fetch",
       vi.fn(async (url: string) => ({
         ok: true,
         json: async () =>
-          String(url).includes("transcript")
+          url.includes("transcript")
             ? [line("Merhaba")]
             : { title: "Rapor", summary: "Özet" },
       })),

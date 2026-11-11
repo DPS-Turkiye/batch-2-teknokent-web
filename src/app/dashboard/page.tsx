@@ -2,8 +2,8 @@
 
 import { useTranslations } from "next-intl";
 
-import { AppShell } from "@/components/hoc/app-shell";
 import { MyProgramsPanel } from "@/components/dashboard/my-programs-panel";
+import { AppShell } from "@/components/hoc/app-shell";
 import { MeetingProposalCards } from "@/components/meeting-proposal-cards";
 import { ActiveMentorships } from "@/components/mentee-home/active-mentorships";
 import { MeetingNotes } from "@/components/mentee-home/meeting-notes";
@@ -32,11 +32,11 @@ export default function DashboardPage() {
               })
             : data.greeting}
         </h1>
-        {data.isFallback && (
+        {data.isFallback ? (
           <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
             {t("loadFailed")}
           </p>
-        )}
+        ) : null}
         <NextMeetingHero meeting={data.nextMeeting} loading={data.isLoading} />
         <MeetingProposalCards />
         {data.isLoadingTop ? null : (

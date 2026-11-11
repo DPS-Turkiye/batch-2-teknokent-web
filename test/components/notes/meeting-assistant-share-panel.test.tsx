@@ -4,24 +4,23 @@ import { describe, expect, it, vi } from "vitest";
 import { MeetingAssistantSharePanel } from "@/components/notes/meeting-assistant-share-panel";
 import { useAssistantShare } from "@/hooks/use-meeting-notes";
 import type { MeetingAssistantShare } from "@/interfaces/meeting-note";
+import { successQuery } from "@test/mocks/query-results";
 
 vi.mock("@/hooks/use-meeting-notes", () => ({
   useAssistantShare: vi.fn(),
 }));
 
 function share(overrides: Partial<MeetingAssistantShare> = {}) {
-  vi.mocked(useAssistantShare).mockReturnValue({
-    data: {
+  vi.mocked(useAssistantShare).mockReturnValue(
+    successQuery<MeetingAssistantShare>({
       meetingId: "meeting-1",
       transcript: null,
       transcriptPublishedAt: null,
       report: null,
       reportPublishedAt: null,
       ...overrides,
-    },
-    isLoading: false,
-    isError: false,
-  } as never);
+    }),
+  );
 }
 
 describe("MeetingAssistantSharePanel", () => {

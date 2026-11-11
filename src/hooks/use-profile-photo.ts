@@ -1,14 +1,14 @@
 "use client";
 
-import { useTranslations } from "next-intl";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 
-import { useToast } from "@/stores/toast-store";
 import { useDocumentUrl } from "@/hooks/use-startup-documents";
 import { DocumentKind } from "@/interfaces/startup-document";
+import { ToastTone } from "@/interfaces/toast";
 import { listOwnDocuments, uploadDocument } from "@/lib/client/documents";
 import { currentAvatar, profilePhotoError } from "@/lib/personal-profile";
-import { ToastTone } from "@/interfaces/toast";
+import { useToast } from "@/stores/toast-store";
 
 export const OWN_DOCUMENTS_QUERY_KEY = ["own-documents"] as const;
 

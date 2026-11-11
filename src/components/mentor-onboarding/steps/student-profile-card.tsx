@@ -3,14 +3,14 @@
 import { useTranslations } from "next-intl";
 
 import {
+  ONBOARDING_TONES,
+  OnboardingTone,
+} from "@/components/onboarding/onboarding-tone";
+import {
   OnboardingCard,
   OnboardingChips,
   onboardingInputClass,
 } from "@/components/onboarding/onboarding-ui";
-import {
-  ONBOARDING_TONES,
-  OnboardingTone,
-} from "@/components/onboarding/onboarding-tone";
 import type { StudentOnboardingDraft } from "@/interfaces/mentor-onboarding";
 import { STUDENT_LEVELS } from "@/lib/student-topics";
 

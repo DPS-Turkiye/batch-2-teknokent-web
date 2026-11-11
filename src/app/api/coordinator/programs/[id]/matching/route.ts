@@ -1,16 +1,24 @@
+import { z } from "zod";
+
 import { createMatch, fetchMatching } from "@/lib/api/coordinator-programs";
 import {
   apiErrorResponse,
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { readJsonBody } from "@/lib/server/request-body";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
+
+const createMatchSchema = z.object({
+  organizationId: z.string(),
+  mentorId: z.string(),
+});
 
 type Params = { params: Promise<{ id: string }> };
 
 export async function GET(_request: Request, { params }: Params) {
   try {
-    const auth = await requireCoordinatorSession();
+    const auth = await requireCoordinatorOrAdminSession();
     if (!auth.ok) return auth.response;
     const { id } = await params;
     return backendResponse(await fetchMatching(auth.session.userId, id));
@@ -23,15 +31,13 @@ export async function GET(_request: Request, { params }: Params) {
 
 export async function POST(request: Request, { params }: Params) {
   try {
-    const auth = await requireCoordinatorSession();
+    const auth = await requireCoordinatorOrAdminSession();
     if (!auth.ok) return auth.response;
     const { id } = await params;
-    const body = await request.json();
+    const body = await readJsonBody(request, createMatchSchema);
+    if (!body.ok) return body.response;
     return backendResponse(
-      await createMatch(auth.session.userId, id, {
-        organizationId: String(body.organizationId ?? ""),
-        mentorId: String(body.mentorId ?? ""),
-      }),
+      await createMatch(auth.session.userId, id, body.data),
     );
   } catch (error) {
     return apiErrorResponse(error, {

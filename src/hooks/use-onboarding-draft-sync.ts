@@ -63,13 +63,16 @@ export function useOnboardingDraftSync(options: {
   }, [kind]);
 
   useEffect(() => {
-    let cancelled = false;
+    // Aborted when the effect is cleaned up. Read through a call, since a flag (or a property) checked
+    // before an await would still read as narrowed after it.
+    const cancellation = new AbortController();
+    const isCancelled = () => cancellation.signal.aborted;
     void (async () => {
       try {
         const idToken = await currentIdToken();
-        if (!idToken || cancelled) return;
+        if (!idToken || isCancelled()) return;
         const saved = await fetchOnboardingDraft(idToken);
-        if (cancelled || !saved || saved.kind !== kind) return;
+        if (isCancelled() || saved?.kind !== kind) return;
         const dirty =
           fingerprint(stepRef.current, payloadRef.current) !==
           baselineRef.current;
@@ -78,12 +81,10 @@ export function useOnboardingDraftSync(options: {
       } catch {
         // Stay on the empty local draft; the next save creates the row.
       } finally {
-        if (!cancelled) setReady(true);
+        if (!isCancelled()) setReady(true);
       }
     })();
-    return () => {
-      cancelled = true;
-    };
+    return () => cancellation.abort();
   }, [kind]);
 
   useEffect(() => {

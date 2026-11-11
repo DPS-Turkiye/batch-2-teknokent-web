@@ -6,6 +6,6 @@ export interface TaskAssignee {
 export interface AssignMentorshipTaskInput {
   ownerId: string;
   title: string;
-  description?: string;
-  dueDate?: string;
+  description?: string | undefined;
+  dueDate?: string | undefined;
 }

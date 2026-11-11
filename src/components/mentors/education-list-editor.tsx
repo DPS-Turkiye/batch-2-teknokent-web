@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 
 import type { MentorEducationInput } from "@/interfaces/mentor";
+import type { Keyed } from "@/lib/keyed-list";
 
 // TEST UI: placeholder until the design team's screen; replace when it arrives.
 /** A mentor's schools as editable rows; used at signup and on the mentor's own profile page. */
@@ -15,7 +16,7 @@ export function EducationListEditor({
   inputClass,
   labelClass,
 }: {
-  items: readonly MentorEducationInput[];
+  items: readonly Keyed<MentorEducationInput>[];
   canAdd: boolean;
   onAdd: () => void;
   onChange: (
@@ -38,7 +39,7 @@ export function EducationListEditor({
     <div className="flex flex-col gap-3">
       {items.map((item, index) => (
         <div
-          key={index}
+          key={item.key}
           className="flex flex-col gap-2 rounded-lg border border-[#e4e7ea] p-3"
         >
           <div className="grid gap-2 sm:grid-cols-3">

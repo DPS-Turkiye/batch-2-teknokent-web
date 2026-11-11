@@ -1,9 +1,9 @@
 "use client";
 
-import { useLocale, useTranslations } from "next-intl";
-import { Suspense, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle2, FileUp, Upload } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 
 import { Avatar } from "@/components/common/avatar";
 import { Badge } from "@/components/common/badge";
@@ -11,9 +11,9 @@ import { PrimaryButton } from "@/components/common/primary-button";
 import { SecondaryButton } from "@/components/common/secondary-button";
 import { AppShell } from "@/components/hoc/app-shell";
 import { SlotDayTimePicker } from "@/components/mentor-request/slot-day-time-picker";
+import { ConversationThread } from "@/components/mentorship/conversation-thread";
 import { DocumentRequestChecklist } from "@/components/mentorships/document-request-checklist";
 import { RequestDetailsPanel } from "@/components/mentorships/request-details-panel";
-import { ConversationThread } from "@/components/mentorship/conversation-thread";
 import { useSession } from "@/components/providers/session-provider";
 import {
   useAcceptProposedSlot,
@@ -34,9 +34,10 @@ import {
 import { UserRole } from "@/interfaces/session";
 import { logMentorshipMeeting } from "@/lib/client/mentor-requests";
 import {
-  MENTORSHIP_MEETING_DURATION_MINUTES,
   DOCUMENT_UPLOAD_ACCEPT,
+  MENTORSHIP_MEETING_DURATION_MINUTES,
 } from "@/lib/const";
+import { isEnumValue } from "@/lib/enum";
 import {
   parseProposedSlotsFromMessage,
   preferredSlotKey,
@@ -88,7 +89,10 @@ function RequestStatusContent() {
   const params = useSearchParams();
   const { session } = useSession();
   const requestsQuery = useMentorshipRequests(UserRole.Mentee);
-  const requestedStatus = params.get("state") as MentorshipRequestStatus | null;
+  const state = params.get("state");
+  const requestedStatus = isEnumValue(MentorshipRequestStatus, state)
+    ? state
+    : null;
   const explicitId = params.get("request") ?? params.get("id");
   // Only an explicit id, or the status this page was sent to find, picks a
   // request. Falling back to the first one opened a request nobody chose.
@@ -296,12 +300,12 @@ function RequestStatusContent() {
                     </p>
                   ) : (
                     <div className="mt-4 grid gap-2">
-                      {proposedSlots.map((slot, index) => {
-                        const key = preferredSlotKey(slot) || slot.label;
+                      {proposedSlots.map((slot) => {
+                        const key = preferredSlotKey(slot);
                         const selected = key === selectedProposalKey;
                         return (
                           <button
-                            key={`${key}-${index}`}
+                            key={key}
                             type="button"
                             aria-pressed={selected}
                             onClick={() => setSelectedProposalKey(key)}

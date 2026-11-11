@@ -1,6 +1,6 @@
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 /** Back button, centred title and an optional action, for screens outside the tab bar. */

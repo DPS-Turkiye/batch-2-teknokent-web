@@ -1,29 +1,31 @@
 "use client";
 
 import {
-  type KeyboardEvent,
-  type PointerEvent,
-  type RefObject,
   useCallback,
   useEffect,
   useRef,
   useState,
+  type KeyboardEvent,
+  type PointerEvent,
+  type RefObject,
 } from "react";
 
-import { LANDING_STEP_MS } from "@/lib/const/landing";
 import { useLandingContent } from "@/hooks/use-landing-content";
+import { LANDING_STEP_MS } from "@/lib/const/landing";
 
 function prefersReducedMotion() {
   return (
     typeof window !== "undefined" &&
-    window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true
+    "matchMedia" in window &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
   );
 }
 
 function hasFinePointer() {
   return (
     typeof window !== "undefined" &&
-    window.matchMedia?.("(pointer: fine)").matches === true
+    "matchMedia" in window &&
+    window.matchMedia("(pointer: fine)").matches
   );
 }
 
@@ -152,6 +154,7 @@ export function useLandingSteps(count: number) {
     }
     const observer = new IntersectionObserver(
       ([entry]) => {
+        if (!entry) return;
         setVisible(entry.isIntersecting);
         if (entry.isIntersecting) setCycle((value) => value + 1);
       },

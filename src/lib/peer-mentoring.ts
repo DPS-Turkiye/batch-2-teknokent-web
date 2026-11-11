@@ -2,7 +2,7 @@ import type { ComponentProps } from "react";
 
 import type { StatusChip } from "@/components/admin/admin-ui";
 import { AppointmentSide } from "@/interfaces/appointment";
-import { type BadgeAward, BadgeCode, BadgeStatus } from "@/interfaces/badges";
+import { BadgeCode, BadgeStatus, type BadgeAward } from "@/interfaces/badges";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import {
   PeerMentorGateState,

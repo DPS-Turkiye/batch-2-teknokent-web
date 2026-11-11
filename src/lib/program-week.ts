@@ -3,6 +3,7 @@ import type {
   ProgramPlanWeekInput,
   ProgramThisWeek,
 } from "@/interfaces/program-week";
+import { newRowKey } from "@/lib/keyed-list";
 import { calendarDay, formatDayMonth } from "@/lib/utils";
 
 /** What the "Bu hafta" card shows. */
@@ -77,6 +78,8 @@ export function programTotalWeeks(
 
 /** A week under edit: list fields are typed one item per line. */
 export type WeekDraft = {
+  /** React's key for the row (see keyed-list); never sent. */
+  key: string;
   week: number;
   title: string;
   topics: string;
@@ -87,6 +90,7 @@ export type WeekDraft = {
 
 export function weekDraftOf(week: ProgramPlanWeek): WeekDraft {
   return {
+    key: newRowKey(),
     week: week.week,
     title: week.title,
     topics: week.topics.join("\n"),

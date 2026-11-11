@@ -1,7 +1,7 @@
 "use client";
 
-import { toCvParseResult } from "@/hooks/use-cv-parse";
 import { useCvFile } from "@/hooks/use-cv-file";
+import { toCvParseResult } from "@/hooks/use-cv-parse";
 import type { UserProfileInput } from "@/interfaces/user-profile";
 import { readCv } from "@/lib/client/profile-analysis";
 import { applyCvParse } from "@/lib/cv-suggestions";

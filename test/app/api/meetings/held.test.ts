@@ -2,9 +2,10 @@ import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DELETE, POST } from "@/app/api/meetings/[id]/held/route";
-import { type AppSession, UserRole } from "@/interfaces/session";
+import { UserRole } from "@/interfaces/session";
 import { setMeetingHeld } from "@/lib/api/meetings";
 import { getSessionUser } from "@/lib/session";
+import { appSession } from "@test/fixtures/session";
 
 vi.mock("@/lib/api/meetings", () => ({ setMeetingHeld: vi.fn() }));
 vi.mock("@/lib/session", () => ({ getSessionUser: vi.fn() }));
@@ -16,10 +17,12 @@ const request = () =>
   });
 
 function signIn(role: UserRole) {
-  vi.mocked(getSessionUser).mockResolvedValue({
-    userId: "mentor-1",
-    role,
-  } as AppSession);
+  vi.mocked(getSessionUser).mockResolvedValue(
+    appSession({
+      userId: "mentor-1",
+      role,
+    }),
+  );
 }
 
 describe("/api/meetings/[id]/held", () => {
@@ -29,7 +32,7 @@ describe("/api/meetings/[id]/held", () => {
       data: { id: "m-1" },
       headers: {},
       status: 200,
-    } as Awaited<ReturnType<typeof setMeetingHeld>>);
+    });
   });
 
   it("confirms and undoes as the signed-in mentor", async () => {

@@ -14,8 +14,20 @@ import {
   useSlotBooking,
   useWithdrawMentorRequest,
 } from "@/hooks/use-mentorship-requests";
-import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
+import { MeetingStatus } from "@/interfaces/meeting";
+import type { MentorAvailabilitySlot } from "@/interfaces/mentor";
+import {
+  MentorshipRequestStatus,
+  type MentorshipRequest,
+} from "@/interfaces/mentorship-request";
 import { logMentorshipMeeting } from "@/lib/client/mentor-requests";
+import { mentorProfile } from "@test/fixtures/mentors";
+import { mentorshipRequest } from "@test/fixtures/mentorship-requests";
+import {
+  idleMutation,
+  idleQuery,
+  successQuery,
+} from "@test/mocks/query-results";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 const push = vi.fn();
@@ -69,78 +81,77 @@ vi.mock("@/hooks/use-mentorship-requests", () => ({
   useAcceptProposedSlot: vi.fn(),
 }));
 
-const requestFixture = {
+const requestFixture = mentorshipRequest({
   id: "request-1",
   requesterId: "requester-1",
-  organizationId: "org-1",
   organizationName: "GreenLoop",
-  mentorId: "mentor-1",
   mentorName: "Leyla Aksoy",
   supportArea: "İş modeli ve strateji",
   summary: "fs",
   requesterMessage: "sfs",
   status: MentorshipRequestStatus.MoreInfoRequested,
-  mentorMessage: null,
-  rejectionReason: null,
   createdAt: "2026-08-17T09:49:54.374504Z",
-  messages: [],
-  recommendationSnapshot: null,
-};
+});
+
+/** The open request, loaded, with `changes` applied to the fixture. */
+function showRequest(changes: Partial<MentorshipRequest> = {}) {
+  vi.mocked(useMentorshipRequest).mockReturnValue(
+    successQuery({ ...requestFixture, ...changes }),
+  );
+}
+
+/** The mentee's request list, loaded. */
+function showRequestList(requests: MentorshipRequest[]) {
+  vi.mocked(useMentorshipRequests).mockReturnValue(successQuery(requests));
+}
+
+function showAvailability(slots: MentorAvailabilitySlot[]) {
+  vi.mocked(useMentorAvailability).mockReturnValue(successQuery(slots));
+}
+
+type ReplyForm = ReturnType<typeof useReplyForm>;
+type SlotBooking = ReturnType<typeof useSlotBooking>;
+type Withdraw = ReturnType<typeof useWithdrawMentorRequest>;
+type FileUpload = ReturnType<typeof useRequestFileUpload>;
+type AcceptProposal = ReturnType<typeof useAcceptProposedSlot>;
 
 describe("RequestStatusPage", () => {
-  const setReply = vi.fn();
-  const sendReply = vi.fn();
-  const bookSlot = vi.fn();
-  const mutateAsync = vi.fn();
-  const uploadFile = vi.fn();
-  const acceptProposal = vi.fn();
+  const setReply = vi.fn<ReplyForm["setReply"]>();
+  const sendReply = vi.fn<ReplyForm["sendReply"]>();
+  const bookSlot = vi.fn<SlotBooking["bookSlot"]>();
+  const mutateAsync = vi.fn<Withdraw["mutateAsync"]>();
+  const uploadFile = vi.fn<FileUpload["mutateAsync"]>();
+  const acceptProposal = vi.fn<AcceptProposal["mutateAsync"]>();
 
   beforeEach(() => {
     vi.clearAllMocks();
     searchParams.current = new URLSearchParams("request=request-1");
-    vi.mocked(useMentorshipRequests).mockReturnValue({
-      data: [requestFixture],
-      error: null,
-      isLoading: false,
-    } as unknown as ReturnType<typeof useMentorshipRequests>);
-    vi.mocked(useMentorshipRequest).mockReturnValue({
-      data: requestFixture,
-      error: null,
-    } as unknown as ReturnType<typeof useMentorshipRequest>);
-    vi.mocked(useMentorAvailability).mockReturnValue({
-      data: [],
-      isLoading: false,
-    } as unknown as ReturnType<typeof useMentorAvailability>);
-    vi.mocked(useAlternativeMentors).mockReturnValue({
-      data: [],
-    } as unknown as ReturnType<typeof useAlternativeMentors>);
+    showRequestList([requestFixture]);
+    showRequest();
+    showAvailability([]);
+    vi.mocked(useAlternativeMentors).mockReturnValue(successQuery([]));
     vi.mocked(useReplyForm).mockReturnValue({
       reply: "",
       setReply,
       sendReply,
       isSending: false,
       error: null,
-    } as unknown as ReturnType<typeof useReplyForm>);
+    });
     vi.mocked(useSlotBooking).mockReturnValue({
       scheduledSlotId: null,
       bookSlot,
       isBooking: false,
       error: null,
-    } as unknown as ReturnType<typeof useSlotBooking>);
-    vi.mocked(useWithdrawMentorRequest).mockReturnValue({
-      mutateAsync,
-      isPending: false,
-    } as unknown as ReturnType<typeof useWithdrawMentorRequest>);
-    vi.mocked(useRequestFileUpload).mockReturnValue({
-      data: undefined,
-      error: null,
-      isPending: false,
-      mutateAsync: uploadFile,
-    } as unknown as ReturnType<typeof useRequestFileUpload>);
-    vi.mocked(useAcceptProposedSlot).mockReturnValue({
-      mutateAsync: acceptProposal,
-      isPending: false,
-    } as unknown as ReturnType<typeof useAcceptProposedSlot>);
+    });
+    vi.mocked(useWithdrawMentorRequest).mockReturnValue(
+      idleMutation({ mutateAsync }),
+    );
+    vi.mocked(useRequestFileUpload).mockReturnValue(
+      idleMutation({ mutateAsync: uploadFile }),
+    );
+    vi.mocked(useAcceptProposedSlot).mockReturnValue(
+      idleMutation({ mutateAsync: acceptProposal }),
+    );
   });
 
   it("shows request details and hides status filter chips", () => {
@@ -191,7 +202,7 @@ describe("RequestStatusPage", () => {
       sendReply,
       isSending: false,
       error: null,
-    } as unknown as ReturnType<typeof useReplyForm>);
+    });
 
     const user = userEvent.setup();
     renderWithQueryClient(<RequestStatusPage />);
@@ -201,21 +212,15 @@ describe("RequestStatusPage", () => {
   });
 
   it("books a real availability slot when accepted", async () => {
-    vi.mocked(useMentorshipRequest).mockReturnValue({
-      data: { ...requestFixture, status: MentorshipRequestStatus.Accepted },
-      error: null,
-    } as unknown as ReturnType<typeof useMentorshipRequest>);
-    vi.mocked(useMentorAvailability).mockReturnValue({
-      data: [
-        {
-          id: "slot-1",
-          startsAt: "2026-08-26T08:00:00.000Z",
-          durationMinutes: 60,
-          booked: false,
-        },
-      ],
-      isLoading: false,
-    } as unknown as ReturnType<typeof useMentorAvailability>);
+    showRequest({ status: MentorshipRequestStatus.Accepted });
+    showAvailability([
+      {
+        id: "slot-1",
+        startsAt: "2026-08-26T08:00:00.000Z",
+        durationMinutes: 60,
+        booked: false,
+      },
+    ]);
 
     const user = userEvent.setup();
     renderWithQueryClient(<RequestStatusPage />);
@@ -225,16 +230,13 @@ describe("RequestStatusPage", () => {
   });
 
   it("shows the already-scheduled state instead of the slot picker", () => {
-    vi.mocked(useMentorshipRequest).mockReturnValue({
-      data: { ...requestFixture, status: MentorshipRequestStatus.Accepted },
-      error: null,
-    } as unknown as ReturnType<typeof useMentorshipRequest>);
+    showRequest({ status: MentorshipRequestStatus.Accepted });
     vi.mocked(useSlotBooking).mockReturnValue({
       scheduledSlotId: "slot-1",
       bookSlot,
       isBooking: false,
       error: null,
-    } as unknown as ReturnType<typeof useSlotBooking>);
+    });
 
     renderWithQueryClient(<RequestStatusPage />);
 
@@ -242,10 +244,7 @@ describe("RequestStatusPage", () => {
   });
 
   it("shows the mentor conversation thread when accepted", async () => {
-    vi.mocked(useMentorshipRequest).mockReturnValue({
-      data: { ...requestFixture, status: MentorshipRequestStatus.Accepted },
-      error: null,
-    } as unknown as ReturnType<typeof useMentorshipRequest>);
+    showRequest({ status: MentorshipRequestStatus.Accepted });
 
     const user = userEvent.setup();
     renderWithQueryClient(<RequestStatusPage />);
@@ -259,10 +258,7 @@ describe("RequestStatusPage", () => {
   });
 
   it("uploads a mentorship file from the accepted conversation", async () => {
-    vi.mocked(useMentorshipRequest).mockReturnValue({
-      data: { ...requestFixture, status: MentorshipRequestStatus.Accepted },
-      error: null,
-    } as unknown as ReturnType<typeof useMentorshipRequest>);
+    showRequest({ status: MentorshipRequestStatus.Accepted });
     const user = userEvent.setup();
     renderWithQueryClient(<RequestStatusPage />);
 
@@ -275,25 +271,22 @@ describe("RequestStatusPage", () => {
   });
 
   it("shows alternative mentors when declined", () => {
-    vi.mocked(useMentorshipRequest).mockReturnValue({
-      data: {
-        ...requestFixture,
-        status: MentorshipRequestStatus.Declined,
-        rejectionReason: "Uygun zaman yok",
-      },
-      error: null,
-    } as unknown as ReturnType<typeof useMentorshipRequest>);
-    vi.mocked(useAlternativeMentors).mockReturnValue({
-      data: [
+    showRequest({
+      status: MentorshipRequestStatus.Declined,
+      rejectionReason: "Uygun zaman yok",
+    });
+    vi.mocked(useAlternativeMentors).mockReturnValue(
+      successQuery([
         {
+          ...mentorProfile,
           id: "mentor-2",
           initials: "AK",
           fullName: "Aslıhan Koç",
           professionalTitle: "Program Danışmanı",
           company: "Teknokent",
         },
-      ],
-    } as unknown as ReturnType<typeof useAlternativeMentors>);
+      ]),
+    );
 
     renderWithQueryClient(<RequestStatusPage />);
 
@@ -307,10 +300,7 @@ describe("RequestStatusPage", () => {
   });
 
   it("withdraws a pending request", async () => {
-    vi.mocked(useMentorshipRequest).mockReturnValue({
-      data: { ...requestFixture, status: MentorshipRequestStatus.Pending },
-      error: null,
-    } as unknown as ReturnType<typeof useMentorshipRequest>);
+    showRequest({ status: MentorshipRequestStatus.Pending });
 
     const user = userEvent.setup();
     renderWithQueryClient(<RequestStatusPage />);
@@ -326,16 +316,18 @@ describe("RequestStatusPage", () => {
     });
     vi.mocked(logMentorshipMeeting).mockResolvedValue({
       id: "meeting-1",
-    } as never);
-    vi.mocked(useMentorshipRequest).mockReturnValue({
-      data: {
-        ...requestFixture,
-        status: MentorshipRequestStatus.CounterProposed,
-        mentorMessage:
-          "Mentörün önerdiği saatler: 12 Eylül Cumartesi · 15:00\nproposedSlots:2026-09-12T15:00",
-      },
-      error: null,
-    } as unknown as ReturnType<typeof useMentorshipRequest>);
+      organizationId: "org-1",
+      mentorId: "mentor-1",
+      mentorshipRequestId: "request-1",
+      scheduledAt: "2026-09-12T12:00:00.000Z",
+      durationMinutes: 45,
+      status: MeetingStatus.Scheduled,
+    });
+    showRequest({
+      status: MentorshipRequestStatus.CounterProposed,
+      mentorMessage:
+        "Mentörün önerdiği saatler: 12 Eylül Cumartesi · 15:00\nproposedSlots:2026-09-12T15:00",
+    });
 
     const user = userEvent.setup();
     renderWithQueryClient(<RequestStatusPage />);
@@ -361,10 +353,8 @@ describe("RequestStatusPage", () => {
 
   it("asks the mentee to pick a request when the link names none", () => {
     searchParams.current = new URLSearchParams();
-    vi.mocked(useMentorshipRequest).mockReturnValue({
-      data: undefined,
-      error: null,
-    } as unknown as ReturnType<typeof useMentorshipRequest>);
+    // With no request picked, the request query is disabled.
+    vi.mocked(useMentorshipRequest).mockReturnValue(idleQuery());
 
     renderWithQueryClient(<RequestStatusPage />);
 
@@ -387,11 +377,9 @@ describe("RequestStatusPage", () => {
     searchParams.current = new URLSearchParams(
       `state=${MentorshipRequestStatus.Accepted}`,
     );
-    vi.mocked(useMentorshipRequests).mockReturnValue({
-      data: [{ ...requestFixture, status: MentorshipRequestStatus.Accepted }],
-      error: null,
-      isLoading: false,
-    } as unknown as ReturnType<typeof useMentorshipRequests>);
+    showRequestList([
+      { ...requestFixture, status: MentorshipRequestStatus.Accepted },
+    ]);
 
     renderWithQueryClient(<RequestStatusPage />);
 

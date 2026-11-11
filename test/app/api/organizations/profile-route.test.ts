@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GET, PUT } from "@/app/api/organizations/profile/route";
-import { fetchOrganization, updateOrganization } from "@/lib/api/organization";
 import { UserRole, type AppSession } from "@/interfaces/session";
+import { fetchOrganization, updateOrganization } from "@/lib/api/organization";
 import { getSessionUser } from "@/lib/session";
 
 vi.mock("@/lib/api/organization", () => ({

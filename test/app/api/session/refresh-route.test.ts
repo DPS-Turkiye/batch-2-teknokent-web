@@ -3,15 +3,16 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { POST } from "@/app/api/session/refresh/route";
 import {
-  type AppSession,
-  type BackendUser,
   UserAccountStatus,
   UserRole,
+  type BackendUser,
 } from "@/interfaces/session";
 import { Workspace } from "@/interfaces/workspace";
 import { fetchSignedInUser } from "@/lib/api/auth";
 import { HttpMethod } from "@/lib/http-method";
 import { getSessionUser, refreshSessionUser } from "@/lib/session";
+import { backendResponse } from "@test/fixtures/route-handlers";
+import { appSession, backendUser } from "@test/fixtures/session";
 
 vi.mock("@/lib/api/auth", () => ({ fetchSignedInUser: vi.fn() }));
 vi.mock("@/lib/session", () => ({
@@ -19,7 +20,7 @@ vi.mock("@/lib/session", () => ({
   refreshSessionUser: vi.fn(),
 }));
 
-const SESSION = {
+const SESSION = appSession({
   userId: "student-1",
   email: "mehmet@odtu.test",
   fullName: "Mehmet Kaya",
@@ -27,7 +28,7 @@ const SESSION = {
   role: UserRole.Mentee,
   permissions: [UserRole.Mentee],
   activeWorkspace: Workspace.OdtuStudent,
-} as AppSession;
+});
 
 function request(token: string | null = "firebase-token") {
   return new NextRequest(new URL("/api/session/refresh", "http://localhost"), {
@@ -36,25 +37,24 @@ function request(token: string | null = "firebase-token") {
   });
 }
 
-function backendUser(overrides: Partial<BackendUser> = {}) {
-  return {
-    data: {
+/** What /api/auth/me answers for Mehmet, the signed-in student. */
+function signedInUser(overrides: Partial<BackendUser> = {}) {
+  return backendResponse(
+    backendUser({
       id: "student-1",
       email: "mehmet@odtu.test",
       fullName: "Mehmet Kaya",
       role: UserRole.Mentee,
       status: UserAccountStatus.Approved,
       ...overrides,
-    } as BackendUser,
-    headers: {},
-    status: 200,
-  };
+    }),
+  );
 }
 
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(getSessionUser).mockResolvedValue(SESSION);
-  vi.mocked(fetchSignedInUser).mockResolvedValue(backendUser());
+  vi.mocked(fetchSignedInUser).mockResolvedValue(signedInUser());
   vi.mocked(refreshSessionUser).mockResolvedValue({
     ...SESSION,
     permissions: [UserRole.Mentee, UserRole.Mentor],
@@ -83,11 +83,11 @@ describe("POST /api/session/refresh", () => {
 
   it("never swaps the session to another account or one no longer approved", async () => {
     vi.mocked(fetchSignedInUser).mockResolvedValueOnce(
-      backendUser({ id: "someone-else" }),
+      signedInUser({ id: "someone-else" }),
     );
     expect((await POST(request())).status).toBe(403);
     vi.mocked(fetchSignedInUser).mockResolvedValueOnce(
-      backendUser({ status: UserAccountStatus.Pending }),
+      signedInUser({ status: UserAccountStatus.Pending }),
     );
     expect((await POST(request())).status).toBe(403);
     expect(refreshSessionUser).not.toHaveBeenCalled();

@@ -4,14 +4,21 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useRef, useState } from "react";
 
+import {
+  DocumentRequestTitleEditor,
+  documentTitleRows,
+  normalizeDocumentTitles,
+  titlesOf,
+  type DocumentTitleRow,
+} from "@/components/mentorships/document-request-title-editor";
 import { useAppSession } from "@/components/providers/session-provider";
 import { useOpenDocument } from "@/hooks/use-startup-documents";
-import { UserRole } from "@/interfaces/session";
-import { DocumentKind } from "@/interfaces/startup-document";
 import type {
   DocumentRequestItem,
   DocumentRequestScope,
 } from "@/interfaces/document-request";
+import { UserRole } from "@/interfaces/session";
+import { DocumentKind } from "@/interfaces/startup-document";
 import {
   attachDocumentRequestUpload,
   deleteDocumentRequestUpload,
@@ -20,10 +27,6 @@ import {
 } from "@/lib/client/document-requests";
 import { uploadDocument } from "@/lib/client/documents";
 import { DOCUMENT_UPLOAD_ACCEPT } from "@/lib/const";
-import {
-  DocumentRequestTitleEditor,
-  normalizeDocumentTitles,
-} from "@/components/mentorships/document-request-title-editor";
 
 export const DOCUMENT_REQUESTS_QUERY_KEY = ["document-requests"] as const;
 
@@ -92,7 +95,7 @@ export function DocumentRequestChecklist({
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [editing, setEditing] = useState(false);
-  const [draftTitles, setDraftTitles] = useState<string[]>([]);
+  const [draftTitles, setDraftTitles] = useState<DocumentTitleRow[]>([]);
   const [activeItemId, setActiveItemId] = useState<string | null>(null);
   const [error, setError] = useState("");
 
@@ -180,7 +183,9 @@ export function DocumentRequestChecklist({
             type="button"
             onClick={() => {
               setDraftTitles(
-                items.length > 0 ? items.map((item) => item.title) : [""],
+                documentTitleRows(
+                  items.length > 0 ? items.map((item) => item.title) : [""],
+                ),
               );
               setEditing(true);
               setError("");
@@ -195,7 +200,7 @@ export function DocumentRequestChecklist({
       {editing ? (
         <div className="mt-3">
           <DocumentRequestTitleEditor
-            titles={draftTitles}
+            rows={draftTitles}
             onChange={setDraftTitles}
             disabled={saveMutation.isPending}
             showHeading={false}
@@ -216,7 +221,9 @@ export function DocumentRequestChecklist({
               type="button"
               disabled={saveMutation.isPending}
               onClick={() =>
-                saveMutation.mutate(normalizeDocumentTitles(draftTitles))
+                saveMutation.mutate(
+                  normalizeDocumentTitles(titlesOf(draftTitles)),
+                )
               }
               className="rounded-lg bg-[var(--ms-accent,#e86f22)] px-3 py-2 text-sm font-medium text-white hover:bg-[var(--ms-accent-hover,#ce5e19)] disabled:opacity-60"
             >

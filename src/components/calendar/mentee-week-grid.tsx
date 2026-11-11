@@ -5,11 +5,11 @@ import { useLocale, useTranslations } from "next-intl";
 import type { MeetingItem } from "@/interfaces/meeting";
 import { shortWeekday } from "@/lib/calendar";
 import {
-  type CalendarEntry,
   CalendarEntryKind,
   DAY_HEADER_HEIGHT,
-  layoutDay,
   HOUR_ROW_HEIGHT,
+  layoutDay,
+  type CalendarEntry,
 } from "@/lib/mentee-calendar";
 
 const EVENT_STYLES: Record<CalendarEntryKind, string> = {
@@ -82,7 +82,7 @@ export function MenteeWeekGrid({
                 />
               ))}
 
-              {layoutDay(entriesByDay[index]).map(
+              {layoutDay(entriesByDay[index] ?? []).map(
                 ({ entry, top, height, lane, lanes }) => {
                   const className = `absolute overflow-hidden rounded-[6px] px-2 py-1.5 text-left text-[11px] leading-[15px] ${EVENT_STYLES[entry.kind]}`;
                   const style = {

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { UpdateMentorProfilePayload } from "@/interfaces/mentor";
 import {
   createAvailabilitySlot,
   deleteAvailabilitySlot,
@@ -18,6 +19,21 @@ vi.mock("@/lib/http-client", () => ({
   },
 }));
 
+const payload: UpdateMentorProfilePayload = {
+  professionalTitle: "Mentor",
+  company: "Acme",
+  availabilityLabel: "Bu hafta müsait",
+  responseTimeLabel: "~24 saat",
+  meetingMode: "Online",
+  communicationPreference: "Mesajlaşma açık",
+  mentoringStyle: "Yapılandırılmış",
+  fitLabel: "Yüksek",
+  experienceLevel: "Kıdemli",
+  sectorExperience: "SaaS",
+  startupStages: "Seed",
+  specialties: ["Büyüme"],
+};
+
 describe("mentor profile client", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -27,7 +43,7 @@ describe("mentor profile client", () => {
     vi.mocked(httpClient.get).mockResolvedValue({
       status: 200,
       data: { fullName: "Leyla Aksoy" },
-    } as never);
+    });
 
     await getMentorProfile();
 
@@ -38,22 +54,7 @@ describe("mentor profile client", () => {
     vi.mocked(httpClient.put).mockResolvedValue({
       status: 200,
       data: {},
-    } as never);
-
-    const payload = {
-      professionalTitle: "Mentor",
-      company: "Acme",
-      availabilityLabel: "Bu hafta müsait",
-      responseTimeLabel: "~24 saat",
-      meetingMode: "Online",
-      communicationPreference: "Mesajlaşma açık",
-      mentoringStyle: "Yapılandırılmış",
-      fitLabel: "Yüksek",
-      experienceLevel: "Kıdemli",
-      sectorExperience: "SaaS",
-      startupStages: "Seed",
-      specialties: ["Büyüme"],
-    };
+    });
 
     await updateMentorProfile(payload);
 
@@ -68,18 +69,13 @@ describe("mentor profile client", () => {
     vi.mocked(httpClient.put).mockResolvedValue({
       status: 200,
       data: {},
-    } as never);
+    });
 
-    await updateMentorProfile(
-      { specialties: [] } as unknown as Parameters<
-        typeof updateMentorProfile
-      >[0],
-      "id-token",
-    );
+    await updateMentorProfile(payload, "id-token");
 
     expect(httpClient.put).toHaveBeenCalledWith(
       "/api/mentor-profile",
-      { specialties: [] },
+      payload,
       { headers: { Authorization: "Bearer id-token" } },
     );
   });
@@ -88,7 +84,7 @@ describe("mentor profile client", () => {
     vi.mocked(httpClient.get).mockResolvedValue({
       status: 200,
       data: [],
-    } as never);
+    });
 
     await getMentorAvailability();
 
@@ -101,7 +97,7 @@ describe("mentor profile client", () => {
     vi.mocked(httpClient.post).mockResolvedValue({
       status: 201,
       data: {},
-    } as never);
+    });
 
     await createAvailabilitySlot({
       startsAt: "2026-08-25T10:00:00.000Z",
@@ -118,7 +114,7 @@ describe("mentor profile client", () => {
     vi.mocked(httpClient.delete).mockResolvedValue({
       status: 204,
       data: "",
-    } as never);
+    });
 
     await deleteAvailabilitySlot("slot-1");
 

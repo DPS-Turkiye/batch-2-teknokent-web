@@ -640,7 +640,7 @@ describe("AppShell mobile drawer", () => {
 
     const drawer = closeButton.closest("aside");
     expect(drawer).not.toBeNull();
-    const drawerNav = within(drawer as HTMLElement).getByRole("navigation");
+    const drawerNav = within(drawer!).getByRole("navigation");
 
     expect(
       within(drawerNav).getByRole("link", { name: /Anasayfa/ }),
@@ -685,7 +685,7 @@ describe("AppShell mobile drawer", () => {
     await user.click(screen.getByRole("button", { name: "Menüyü aç" }));
     const drawer = screen
       .getByRole("button", { name: "Menüyü kapat" })
-      .closest("aside") as HTMLElement;
+      .closest("aside")!;
 
     await user.click(within(drawer).getByRole("link", { name: /Takvim/ }));
 
@@ -707,7 +707,7 @@ describe("AppShell mobile drawer", () => {
     await user.click(screen.getByRole("button", { name: "Menüyü aç" }));
     const drawer = screen
       .getByRole("button", { name: "Menüyü kapat" })
-      .closest("aside") as HTMLElement;
+      .closest("aside")!;
     const drawerNav = within(drawer).getByRole("navigation");
 
     expect(within(drawerNav).getAllByRole("link")).toHaveLength(4);

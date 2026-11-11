@@ -1,15 +1,15 @@
 "use client";
 
-import Image from "next/image";
 import { useTranslations } from "next-intl";
+import Image from "next/image";
 
 import { VerifyEmailView } from "@/components/auth/verify-email-view";
+import { OtgLoginButton } from "@/components/login/otg-login-button";
 import { BottomSheet } from "@/components/mobile/bottom-sheet";
 import {
   MobileButton,
   MobileButtonLink,
 } from "@/components/mobile/mobile-button";
-import { OtgLoginButton } from "@/components/login/otg-login-button";
 import { MobileLoginSheet, useMobileLogin } from "@/hooks/use-mobile-login";
 import { MobileButtonVariant } from "@/interfaces/mobile";
 import { SIGNUP_ON_WEB_HREF } from "@/lib/mobile";

@@ -2,9 +2,9 @@ import {
   MeetingStatus as CalendarStatus,
   type MeetingItem,
 } from "@/interfaces/meeting";
+import { TRANSCRIPT_BOT_LEAD_MS } from "@/lib/const";
 import { formatSlotDateTime } from "@/lib/format";
 import { parseMeetingUrl, sameMeetingUrl } from "@/lib/meeting-url";
-import { TRANSCRIPT_BOT_LEAD_MS } from "@/lib/const";
 import {
   MeetingPlatform,
   MeetingStatus,
@@ -12,8 +12,7 @@ import {
 } from "@/types/assistant";
 
 export function isAssistantCalendarMeeting(item: MeetingItem): boolean {
-  const status = String(item.status).toUpperCase();
-  if (status === CalendarStatus.Cancelled) return false;
+  if (item.status === CalendarStatus.Cancelled) return false;
   return Boolean(
     item.meetLink?.trim() || item.transcribeRequested || item.botDispatchedAt,
   );
@@ -23,9 +22,8 @@ export function assistantStatusFor(
   item: MeetingItem,
   now = Date.now(),
 ): MeetingStatus {
-  const cal = String(item.status).toUpperCase();
-  if (cal === CalendarStatus.Completed) return MeetingStatus.Completed;
-  if (cal === CalendarStatus.Cancelled) return MeetingStatus.Failed;
+  if (item.status === CalendarStatus.Completed) return MeetingStatus.Completed;
+  if (item.status === CalendarStatus.Cancelled) return MeetingStatus.Failed;
   const start = Date.parse(item.scheduledAt);
   const end = start + item.durationMinutes * 60_000;
   if (Number.isNaN(start)) return MeetingStatus.Scheduled;

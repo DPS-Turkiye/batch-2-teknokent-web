@@ -1,6 +1,6 @@
 import { fireEvent, screen, within } from "@testing-library/react";
-import { usePathname } from "next/navigation";
 import userEvent from "@testing-library/user-event";
+import { usePathname } from "next/navigation";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ProgramOverviewView } from "@/components/coordinator/program-overview-view";
@@ -652,7 +652,7 @@ describe("coordinator program detail", () => {
       program: {
         ...detail.program,
         lifecycle: ProgramLifecycle.Completed,
-        status: "COMPLETED",
+        status: ProgramStatus.Completed,
       },
     });
     const user = userEvent.setup();

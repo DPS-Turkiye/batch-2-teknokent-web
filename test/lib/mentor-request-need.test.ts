@@ -1,4 +1,3 @@
-import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -19,7 +18,7 @@ import {
   toggleNeedGoal,
   writeNeedDraft,
 } from "@/lib/mentor-request-need";
-import en from "@/messages/en.json";
+import { translatorIn } from "@test/translators";
 
 describe("mentor-request-need", () => {
   it("maps Figma topics onto existing support areas", () => {
@@ -115,13 +114,7 @@ describe("mentor-request-need", () => {
   });
 
   it("shows the preset texts in English but saves the Turkish ones", () => {
-    const english = needLabels(
-      createTranslator({
-        locale: "en",
-        messages: en,
-        namespace: "mentorRequest",
-      }),
-    );
+    const english = needLabels(translatorIn("en", "mentorRequest"));
     const need = {
       topicId: "product",
       otherSummary: "",

@@ -1,9 +1,9 @@
 import Link from "next/link";
 
+import { LanguageSwitch } from "@/components/common/language-switch";
 import { cx } from "@/components/landing/landing-styles";
 import { useLandingScroll } from "@/hooks/use-landing";
 import { useLandingContent } from "@/hooks/use-landing-content";
-import { LanguageSwitch } from "@/components/common/language-switch";
 import type { LandingLink } from "@/types/landing";
 
 export function LandingLogo({ withTag = false }: { withTag?: boolean }) {

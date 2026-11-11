@@ -4,23 +4,22 @@ import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useMemo } from "react";
 
 import { useSession } from "@/components/providers/session-provider";
+import {
+  useActionItemsForRequests,
+  useOrganizationActionItems,
+} from "@/hooks/use-action-items";
+import { useDismissedHomeTasks } from "@/hooks/use-dismissed-home-tasks";
+import { useMyMeetingProposalsQuery } from "@/hooks/use-meeting-proposals";
+import { useMeetings } from "@/hooks/use-meetings";
+import { useMeetingsAwaitingFeedback } from "@/hooks/use-meetings-awaiting-feedback";
+import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
+import { useOpenTodoCounts } from "@/hooks/use-startup-meeting-notes";
 import type { MeetingItem } from "@/interfaces/meeting";
 import {
   MentorshipRequestStatus,
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
-import { useMeetings } from "@/hooks/use-meetings";
-import { useMyMeetingProposalsQuery } from "@/hooks/use-meeting-proposals";
-import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
-import {
-  useOrganizationActionItems,
-  useActionItemsForRequests,
-} from "@/hooks/use-action-items";
-import { useDismissedHomeTasks } from "@/hooks/use-dismissed-home-tasks";
-import { useMeetingsAwaitingFeedback } from "@/hooks/use-meetings-awaiting-feedback";
-import { useOpenTodoCounts } from "@/hooks/use-startup-meeting-notes";
-import { isOpenActionItem } from "@/lib/mentor-dashboard";
 import {
   DASHBOARD_FALLBACK_MEETINGS,
   DASHBOARD_FALLBACK_REQUESTS,
@@ -30,13 +29,14 @@ import {
   requestNeedsMenteeAction,
   sentRequestState,
 } from "@/lib/mentee-home";
-import { dayPart } from "@/lib/utils";
+import { isOpenActionItem } from "@/lib/mentor-dashboard";
 import {
   requestHasConfirmedMeeting,
   requestHasOpenMeeting,
 } from "@/lib/mentorship-workspace";
 import { heldMeetingsNewestFirst } from "@/lib/startup-meetings";
 import { pickUpcomingMeetings } from "@/lib/upcoming-meetings";
+import { dayPart } from "@/lib/utils";
 
 const NOTE_MEETING_LIMIT = 3;
 
@@ -64,7 +64,7 @@ export function useDashboardData() {
     }
   }, [meetingsQuery.error, requestsQuery.error]);
 
-  const hasError = Boolean(meetingsQuery.error || requestsQuery.error);
+  const hasError = meetingsQuery.error !== null || requestsQuery.error !== null;
   const meetings =
     meetingsQuery.data ?? (hasError ? DASHBOARD_FALLBACK_MEETINGS : []);
   const requests =

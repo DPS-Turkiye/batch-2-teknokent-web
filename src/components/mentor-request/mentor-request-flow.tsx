@@ -1,12 +1,12 @@
 ﻿"use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useSyncExternalStore } from "react";
 
-import { AppShell } from "@/components/hoc/app-shell";
 import { PrimaryButton } from "@/components/common/primary-button";
 import { SecondaryButton } from "@/components/common/secondary-button";
+import { AppShell } from "@/components/hoc/app-shell";
 import { MentorPickStep } from "@/components/mentor-request/mentor-pick-step";
 import { NeedGoalStep } from "@/components/mentor-request/need-goal-step";
 import { NeedSituationStep } from "@/components/mentor-request/need-situation-step";
@@ -17,6 +17,7 @@ import { useMentorRequest } from "@/hooks/use-mentor-request";
 import { useNeedChoices } from "@/hooks/use-need-choices";
 import type { MentorProfile } from "@/interfaces/mentor";
 import type { StartupContext } from "@/interfaces/startup";
+import { isOneOf } from "@/lib/enum";
 import {
   canContinueGoalStep,
   canContinueNeedStep,
@@ -28,8 +29,8 @@ import {
   needTitleForSummary,
   readNeedDraft,
   startupContextLine,
-  summaryForNeed,
   subscribeNeedDraft,
+  summaryForNeed,
   supportAreaForNeedTopic,
   toggleNeedGoal,
   writeNeedDraft,
@@ -47,7 +48,10 @@ import {
   mentorsForPickFilter,
   type MentorPickFilterId,
 } from "@/lib/mentor-request-pick";
-import { MentorRequestStep } from "@/types/mentor-request";
+import {
+  MENTOR_REQUEST_STEPS,
+  MentorRequestStep,
+} from "@/types/mentor-request";
 
 export function MentorRequestFlow({
   mentors: initialMentors,
@@ -56,9 +60,9 @@ export function MentorRequestFlow({
   startupLoadError,
 }: {
   mentors: MentorProfile[];
-  mentorLoadError?: string;
+  mentorLoadError?: string | undefined;
   startup: StartupContext;
-  startupLoadError?: string;
+  startupLoadError?: string | undefined;
 }) {
   const t = useTranslations("mentorRequest");
   const router = useRouter();
@@ -72,16 +76,11 @@ export function MentorRequestFlow({
     recommendedMentors,
     prepareRecommendations,
   } = useMentorRequest(initialMentors, excludedMentor);
-  const [step, setStep] = useState<MentorRequestStep>(() => {
-    if (
-      Number.isInteger(requestedStep) &&
-      requestedStep >= MentorRequestStep.Need &&
-      requestedStep <= MentorRequestStep.MentorSelect
-    ) {
-      return requestedStep as MentorRequestStep;
-    }
-    return MentorRequestStep.Need;
-  });
+  const [step, setStep] = useState<MentorRequestStep>(() =>
+    isOneOf(MENTOR_REQUEST_STEPS, requestedStep)
+      ? requestedStep
+      : MentorRequestStep.Need,
+  );
   const storedNeedDraft = useSyncExternalStore(
     subscribeNeedDraft,
     readNeedDraft,
@@ -123,12 +122,8 @@ export function MentorRequestFlow({
   const [mentorPickFilter, setMentorPickFilter] = useState<MentorPickFilterId>(
     DEFAULT_MENTOR_PICK_FILTER,
   );
-  const isNeedWizardStep =
-    !pickingMentor &&
-    (step === MentorRequestStep.Need ||
-      step === MentorRequestStep.Expectation ||
-      step === MentorRequestStep.Info ||
-      step === MentorRequestStep.MentorSelect);
+  // Every step belongs to the need wizard; only the mentor pick leaves it.
+  const isNeedWizardStep = !pickingMentor;
   const listedMentors = mentorsForPickFilter(
     mentorPickFilter,
     recommendedMentors,
@@ -184,7 +179,7 @@ export function MentorRequestFlow({
 
   async function advanceStep() {
     if (step !== MentorRequestStep.MentorSelect) {
-      setStep((value) => (value + 1) as MentorRequestStep);
+      setStep((value) => value + 1);
       return;
     }
 
@@ -212,7 +207,7 @@ export function MentorRequestFlow({
       setPickingMentor(false);
       return;
     }
-    setStep((value) => (value - 1) as MentorRequestStep);
+    setStep((value) => value - 1);
   }
 
   return (

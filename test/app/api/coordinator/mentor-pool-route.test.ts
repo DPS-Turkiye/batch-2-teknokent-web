@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { POST as renew } from "@/app/api/coordinator/programs/[id]/mentor-invites/[inviteId]/renew/route";
@@ -7,9 +6,11 @@ import { POST as decide } from "@/app/api/coordinator/programs/[id]/mentors/[men
 import { GET as review } from "@/app/api/coordinator/programs/[id]/mentors/[mentorId]/review/route";
 import { DELETE as withdraw } from "@/app/api/coordinator/programs/[id]/mentors/[mentorId]/route";
 import { GET, POST } from "@/app/api/coordinator/programs/[id]/mentors/route";
-import { type AppSession, UserRole } from "@/interfaces/session";
+import { UserRole } from "@/interfaces/session";
 import * as api from "@/lib/api/coordinator-programs";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
+import { answerEachWith, guardRefusal } from "@test/fixtures/route-handlers";
+import { appSession } from "@test/fixtures/session";
 
 vi.mock("@/lib/api/coordinator-programs", () => ({
   fetchMentorPool: vi.fn(),
@@ -21,10 +22,9 @@ vi.mock("@/lib/api/coordinator-programs", () => ({
   cancelMentorInvite: vi.fn(),
 }));
 vi.mock("@/lib/server/require-coordinator", () => ({
-  requireCoordinatorSession: vi.fn(),
+  requireCoordinatorOrAdminSession: vi.fn(),
 }));
 
-const ok = { data: [], headers: {}, status: 200 } as never;
 const program = { params: Promise.resolve({ id: "program-1" }) };
 const mentor = {
   params: Promise.resolve({ id: "program-1", mentorId: "mentor-1" }),
@@ -35,20 +35,20 @@ const invite = {
 const request = (method: string, value?: unknown) =>
   new Request("http://localhost", {
     method,
-    body: value === undefined ? undefined : JSON.stringify(value),
+    body: value === undefined ? null : JSON.stringify(value),
   });
 
 describe("coordinator mentor pool routes", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(requireCoordinatorSession).mockResolvedValue({
+    vi.mocked(requireCoordinatorOrAdminSession).mockResolvedValue({
       ok: true,
-      session: {
+      session: appSession({
         userId: "coordinator-1",
         role: UserRole.Coordinator,
-      } as AppSession,
+      }),
     });
-    for (const fn of Object.values(api)) vi.mocked(fn).mockResolvedValue(ok);
+    answerEachWith(Object.values(api));
   });
 
   it("reads the pool and invites as the signed-in coordinator", async () => {
@@ -66,20 +66,26 @@ describe("coordinator mentor pool routes", () => {
     );
   });
 
-  it("reviews and decides only a strict true as approval", async () => {
+  it("reviews and passes the decision on as sent", async () => {
     await review(request("GET"), mentor);
     expect(api.fetchMentorReview).toHaveBeenCalledWith(
       "coordinator-1",
       "program-1",
       "mentor-1",
     );
-    await decide(request("POST", { accepted: "yes" }), mentor);
+    await decide(request("POST", { accepted: false }), mentor);
     expect(api.decideProgramMentor).toHaveBeenCalledWith(
       "coordinator-1",
       "program-1",
       "mentor-1",
       false,
     );
+  });
+
+  it("refuses a decision that is not a boolean", async () => {
+    const response = await decide(request("POST", { accepted: "yes" }), mentor);
+    expect(response.status).toBe(400);
+    expect(api.decideProgramMentor).not.toHaveBeenCalled();
   });
 
   it("renews, cancels and withdraws invites", async () => {
@@ -104,10 +110,9 @@ describe("coordinator mentor pool routes", () => {
   });
 
   it("stops at the session check", async () => {
-    vi.mocked(requireCoordinatorSession).mockResolvedValue({
-      ok: false,
-      response: NextResponse.json({ code: "FORBIDDEN" }, { status: 403 }),
-    });
+    vi.mocked(requireCoordinatorOrAdminSession).mockResolvedValue(
+      guardRefusal(403),
+    );
     const response = await POST(request("POST", { email: "a@b.co" }), program);
     expect(response.status).toBe(403);
     expect(api.inviteProgramMentor).not.toHaveBeenCalled();

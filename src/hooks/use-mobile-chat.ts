@@ -7,14 +7,14 @@ import { useEffect, useMemo, useState } from "react";
 import { useSession } from "@/components/providers/session-provider";
 import { COORDINATOR_CONVERSATIONS_QUERY_KEY } from "@/hooks/use-coordinator-messages";
 import { useMeetings } from "@/hooks/use-meetings";
-import { messagingRoleFor } from "@/hooks/use-mobile-messages";
-import { useMobileTexts } from "@/hooks/use-mobile-texts";
-import { ANNOUNCEMENTS_QUERY_KEY } from "@/hooks/use-program-announcements";
-import { PROGRAMS_QUERY_KEY } from "@/hooks/use-programs";
 import {
   mentorshipRequestsQueryKey,
   useRequestFileUpload,
 } from "@/hooks/use-mentorship-requests";
+import { messagingRoleFor } from "@/hooks/use-mobile-messages";
+import { useMobileTexts } from "@/hooks/use-mobile-texts";
+import { ANNOUNCEMENTS_QUERY_KEY } from "@/hooks/use-program-announcements";
+import { PROGRAMS_QUERY_KEY } from "@/hooks/use-programs";
 import { MobileConversationKind } from "@/interfaces/mobile";
 import { UserRole } from "@/interfaces/session";
 import {
@@ -37,6 +37,7 @@ import {
   pickRequestMeeting,
 } from "@/lib/mentorship-workspace";
 import { MOBILE_CALENDAR, MOBILE_MESSAGES } from "@/lib/mobile";
+import { programNameFor } from "@/lib/mobile-mentor-home";
 import {
   announcementChatItems,
   mentorshipChatItems,
@@ -47,10 +48,9 @@ import {
   programChatItems,
   threadTopics,
 } from "@/lib/mobile-messages";
-import { programNameFor } from "@/lib/mobile-mentor-home";
+import { POLL_INTERVAL, polling } from "@/lib/poll";
 import { announcementThreads } from "@/lib/program-announcements";
 import { initials } from "@/lib/utils";
-import { POLL_INTERVAL, polling } from "@/lib/poll";
 
 export const MAX_CHAT_MESSAGE_LENGTH = 4000;
 
@@ -214,13 +214,17 @@ export function useMobileChat(kind: MobileConversationKind, id: string) {
       };
     }
     if (isProgram && program) {
+      const name = program.programName ?? t("messages.programTag");
       return {
-        name: program.programName,
-        initials: initials(program.programName),
+        name,
+        initials: initials(name),
         isStartup: false,
-        subtitle: t("messages.coordinatorSubtitle", {
-          name: program.coordinatorName,
-        }),
+        // No running coordinator: say nothing rather than "Koordinatör · null".
+        subtitle: program.coordinatorName
+          ? t("messages.coordinatorSubtitle", {
+              name: program.coordinatorName,
+            })
+          : "",
       };
     }
     return null;
@@ -328,7 +332,7 @@ export function useMobileChat(kind: MobileConversationKind, id: string) {
       void programMessages.refetch();
       void announcements.refetch();
     },
-    sendError: Boolean(send.error || upload.error),
+    sendError: send.error !== null || upload.error !== null,
     setDraft,
     strip,
     submit,

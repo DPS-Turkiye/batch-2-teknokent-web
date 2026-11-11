@@ -1,7 +1,6 @@
-import "server-only";
-
 import { getIronSession, type SessionOptions } from "iron-session";
 import { cookies } from "next/headers";
+import "server-only";
 
 import type {
   OfficeHoursSessionData,

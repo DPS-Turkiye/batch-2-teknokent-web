@@ -1,12 +1,11 @@
-import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 
+import { MentorshipStatus } from "@/interfaces/coordinator-mentorship";
 import {
-  type MatchCandidate,
   MatchNeedSource,
+  type MatchCandidate,
   type WaitingTeam,
 } from "@/interfaces/program-matching";
-import { MentorshipStatus } from "@/interfaces/coordinator-mentorship";
 import {
   filterPool,
   findMatch,
@@ -15,19 +14,10 @@ import {
   teamMeta,
   waitingLabel,
 } from "@/lib/program-matching";
-import en from "@/messages/en.json";
-import tr from "@/messages/tr.json";
+import { translatorIn } from "@test/translators";
 
-const t = createTranslator({
-  locale: "tr",
-  messages: tr,
-  namespace: "programMatching",
-});
-const tEn = createTranslator({
-  locale: "en",
-  messages: en,
-  namespace: "programMatching",
-});
+const t = translatorIn("tr", "programMatching");
+const tEn = translatorIn("en", "programMatching");
 
 const candidate: MatchCandidate = {
   mentorId: "nihan",

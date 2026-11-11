@@ -4,7 +4,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { useToast } from "@/stores/toast-store";
 import { useInstitutionRecord } from "@/hooks/use-institution-record";
 import { STUDENT_HOME_QUERY_KEY } from "@/hooks/use-student-home";
 import {
@@ -13,6 +12,7 @@ import {
 } from "@/hooks/use-student-profile-completion";
 import type { PeerTopicCategory } from "@/interfaces/peer-mentoring";
 import type { StudentProfileCompletion } from "@/interfaces/student-profile-completion";
+import { ToastTone } from "@/interfaces/toast";
 import { ClientApiError } from "@/lib/client/api";
 import {
   getProfileCompletionCategories,
@@ -24,7 +24,7 @@ import {
   toggleInterestSubtopic,
   toggleInterestTopic,
 } from "@/lib/student-interests";
-import { ToastTone } from "@/interfaces/toast";
+import { useToast } from "@/stores/toast-store";
 
 /**
  * Profilim › Kurumsal Bilgiler. The backend answers 404 when no institution vouches for the

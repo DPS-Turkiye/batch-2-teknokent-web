@@ -3,9 +3,9 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
 import { Toaster } from "@/components/common/toaster";
+import { ToastTone } from "@/interfaces/toast";
 import { useToast } from "@/stores/toast-store";
 import { InLocale } from "@test/test-utils";
-import { ToastTone } from "@/interfaces/toast";
 
 function ToastTrigger({ withAction = false }: { withAction?: boolean }) {
   const { showToast } = useToast();

@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { z } from "zod";
 
 import { decideProgramInvitation } from "@/lib/api/programs";
 import {
@@ -6,7 +7,10 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import { readJsonBody } from "@/lib/server/request-body";
 import { requireMentorSession } from "@/lib/server/require-program-access";
+
+const decisionSchema = z.object({ accepted: z.boolean() });
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -15,15 +19,16 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const auth = await requireMentorSession();
     if (!auth.ok) return auth.response;
     const { id } = await context.params;
-    const body = (await request.json()) as { accepted?: boolean };
-    if (typeof body.accepted !== "boolean") {
-      return NextResponse.json(
-        { code: "INVALID_REQUEST", message: await apiText("decisionRequired") },
-        { status: 400 },
-      );
-    }
+    const body = await readJsonBody(request, decisionSchema, {
+      invalidMessage: "decisionRequired",
+    });
+    if (!body.ok) return body.response;
     return backendResponse(
-      await decideProgramInvitation(auth.session.userId, id, body.accepted),
+      await decideProgramInvitation(
+        auth.session.userId,
+        id,
+        body.data.accepted,
+      ),
     );
   } catch (error) {
     return apiErrorResponse(error, {

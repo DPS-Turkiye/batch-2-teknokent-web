@@ -1,12 +1,12 @@
 "use client";
 
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useCallback, useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useToast } from "@/stores/toast-store";
 
-import { ClientApiError } from "@/lib/client/api";
 import { ToastTone } from "@/interfaces/toast";
+import { ClientApiError } from "@/lib/client/api";
+import { useToast } from "@/stores/toast-store";
 
 // Shared by the personal and startup sections on /profile, so both are
 // implemented and tested once: load a record, edit it as a draft, save it back.
@@ -65,9 +65,10 @@ export function useEditableProfile<TLoaded, TDraft extends object>({
   );
   const serverFieldErrors =
     saveError instanceof ClientApiError ? saveError.fieldErrors : {};
-  const fieldErrors = { ...serverFieldErrors, ...clientFieldErrors } as Partial<
-    Record<keyof TDraft, string>
-  >;
+  const fieldErrors: Partial<Record<keyof TDraft, string>> = {
+    ...serverFieldErrors,
+    ...clientFieldErrors,
+  };
 
   // A save confirmation that never clears reads as stale the moment the user
   // edits again, so the next change retires it.

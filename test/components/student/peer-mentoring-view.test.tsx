@@ -9,6 +9,7 @@ import {
   PeerTopicCategory,
 } from "@/interfaces/peer-mentoring";
 import { getPeerMentors } from "@/lib/client/peer-mentoring";
+import { itemAt } from "@test/fixtures/list-assertions";
 import {
   addPeerMentoringRequestFixture,
   peerMentoringRequestsFixture,
@@ -85,7 +86,7 @@ beforeEach(() => {
 
 async function mentorCard(name: string) {
   const heading = await screen.findByRole("heading", { name });
-  return heading.closest("article") as HTMLElement;
+  return heading.closest("article")!;
 }
 
 describe("PeerMentoringView › Mentorluk Al", () => {
@@ -115,10 +116,9 @@ describe("PeerMentoringView › Mentorluk Al", () => {
       PeerTopicCategory.TechnicalDigital,
       PeerTopicCategory.CampusLife,
     ];
-    const [deniz, ...others] = peerMentorsFixture({
-      category: null,
-      query: "",
-    });
+    const mentors = peerMentorsFixture({ category: null, query: "" });
+    const deniz = itemAt(mentors, 0);
+    const others = mentors.slice(1);
     vi.mocked(getPeerMentors).mockResolvedValueOnce([
       {
         ...deniz,

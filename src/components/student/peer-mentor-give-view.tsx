@@ -1,9 +1,8 @@
 "use client";
 
 // TEST UI: placeholder until the design team's screen; replace when it arrives.
-
-import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
+import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { EmptyNote, Panel, QueryNotice } from "@/components/admin/admin-ui";
@@ -18,8 +17,8 @@ import {
 } from "@/hooks/use-peer-mentor-give";
 import { BadgeStatus } from "@/interfaces/badges";
 import {
-  type PeerMentoringRequest,
   PeerMentorGateState,
+  type PeerMentoringRequest,
 } from "@/interfaces/peer-mentoring";
 import { formatDateTime } from "@/lib/utils";
 

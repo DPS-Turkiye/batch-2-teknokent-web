@@ -1,7 +1,7 @@
 "use client";
 
-import type { UserProfile, UserProfileInput } from "@/interfaces/user-profile";
 import { useEditableProfile } from "@/hooks/use-editable-profile";
+import type { UserProfile, UserProfileInput } from "@/interfaces/user-profile";
 import { getUserProfile, saveUserProfile } from "@/lib/client/user-profile";
 import { validatePersonalProfile } from "@/lib/profile-validation";
 

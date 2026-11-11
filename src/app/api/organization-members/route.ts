@@ -1,6 +1,5 @@
 import type { NextRequest } from "next/server";
-
-import type { OrganizationMemberInput } from "@/interfaces/organization-member";
+import { z } from "zod";
 
 import {
   createOrganizationMember,
@@ -11,7 +10,14 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import { readJsonBody } from "@/lib/server/request-body";
 import { getSessionIds } from "@/lib/session";
+
+const memberSchema = z.object({
+  fullName: z.string(),
+  email: z.string(),
+  jobTitle: z.string().optional(),
+});
 
 export async function GET() {
   try {
@@ -27,14 +33,10 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const { organizationId, userId } = await getSessionIds();
-    const { fullName, email, jobTitle } =
-      (await request.json()) as OrganizationMemberInput;
+    const body = await readJsonBody(request, memberSchema);
+    if (!body.ok) return body.response;
     return backendResponse(
-      await createOrganizationMember(organizationId, userId, {
-        fullName,
-        email,
-        jobTitle,
-      }),
+      await createOrganizationMember(organizationId, userId, body.data),
     );
   } catch (error) {
     return apiErrorResponse(error, {

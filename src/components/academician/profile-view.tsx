@@ -1,13 +1,12 @@
 "use client";
 
 // TEST UI: placeholder until the design team's screen; replace when it arrives.
-
 import { useTranslations } from "next-intl";
 
-import { PageHeading, SolidButton } from "@/components/admin/admin-ui";
 import { SampleDataNotice } from "@/components/academician/sample-data-notice";
 import { WorkspaceQueryState } from "@/components/academician/workspace-query-state";
 import { fieldClass, labelClass } from "@/components/academician/workspace-ui";
+import { PageHeading, SolidButton } from "@/components/admin/admin-ui";
 import { InstitutionRecordCard } from "@/components/institution/institution-record-card";
 import { useAcademicianProfile } from "@/hooks/use-academician-profile";
 

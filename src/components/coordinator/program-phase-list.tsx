@@ -11,9 +11,10 @@ import {
   X,
 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { type ReactNode, useState } from "react";
+import { useState, type ReactNode } from "react";
 
 import type { PhaseDraft } from "@/lib/coordinator-program-detail";
+import { occurrenceKeys } from "@/lib/keyed-list";
 import {
   joinOutputs,
   missingDate,
@@ -51,7 +52,7 @@ export function PhaseTimeline({
   end: string | null;
   middle: ReactNode;
   /** Colours each segment by where its phase stands today; without it the segments fade left to right. */
-  statusOf?: (phase: PhaseDraft) => PhaseStatus;
+  statusOf?: ((phase: PhaseDraft) => PhaseStatus) | undefined;
 }) {
   const t = useTranslations("programPhases");
   const locale = useLocale();
@@ -68,40 +69,43 @@ export function PhaseTimeline({
         <span>{end ? formatShortDate(end, locale) : ""}</span>
       </figcaption>
       <ol className="mt-2.5 flex gap-1">
-        {segments.map((segment, index) => (
-          <li
-            key={segment.key}
-            className="min-w-0"
-            style={{ flex: `${segment.weight} 0 0` }}
-          >
-            <span
-              aria-hidden
-              className={`block h-2.5 rounded-full ${
-                segment.missing
-                  ? "border-[1.5px] border-dashed border-[#b7791f]"
-                  : statusOf
-                    ? SEGMENT_FILL[statusOf(phases[index])]
-                    : "bg-[#22262b]"
-              }`}
-              style={
-                segment.missing || statusOf
-                  ? undefined
-                  : { opacity: Math.max(0.4, 1 - index * 0.15) }
-              }
-            />
-            <span
-              className={`mt-1.5 block truncate text-[11px] ${
-                segment.missing
-                  ? "font-medium text-[#b7791f]"
-                  : statusOf
-                    ? SEGMENT_LABEL[statusOf(phases[index])]
-                    : "font-medium text-[#676e78]"
-              }`}
+        {segments.map((segment, index) => {
+          const phase = phases[index];
+          return (
+            <li
+              key={segment.key}
+              className="min-w-0"
+              style={{ flex: `${segment.weight} 0 0` }}
             >
-              {segment.missing ? "?" : segment.name}
-            </span>
-          </li>
-        ))}
+              <span
+                aria-hidden
+                className={`block h-2.5 rounded-full ${
+                  segment.missing
+                    ? "border-[1.5px] border-dashed border-[#b7791f]"
+                    : statusOf && phase
+                      ? SEGMENT_FILL[statusOf(phase)]
+                      : "bg-[#22262b]"
+                }`}
+                style={
+                  segment.missing || statusOf
+                    ? undefined
+                    : { opacity: Math.max(0.4, 1 - index * 0.15) }
+                }
+              />
+              <span
+                className={`mt-1.5 block truncate text-[11px] ${
+                  segment.missing
+                    ? "font-medium text-[#b7791f]"
+                    : statusOf && phase
+                      ? SEGMENT_LABEL[statusOf(phase)]
+                      : "font-medium text-[#676e78]"
+                }`}
+              >
+                {segment.missing ? "?" : segment.name}
+              </span>
+            </li>
+          );
+        })}
       </ol>
     </figure>
   );
@@ -203,14 +207,14 @@ export function Grip({ label }: { label: string }) {
   );
 }
 
-function ClosedPhase<T extends PhaseDraft>({
+function ClosedPhase({
   phase,
   index,
   flagged,
   chip,
   onToggle,
 }: {
-  phase: T;
+  phase: PhaseDraft;
   index: number;
   flagged: boolean;
   chip: ReactNode;
@@ -400,6 +404,7 @@ export function OutputTokens({
   const t = useTranslations("programPhases");
   const [text, setText] = useState("");
   const tokens = outputTokens(value);
+  const tokenKeys = occurrenceKeys(tokens);
   const add = () => {
     const token = text.trim();
     if (token) onChange(joinOutputs([...tokens, token]));
@@ -416,7 +421,7 @@ export function OutputTokens({
       <div className="mt-1.5 flex flex-wrap items-center gap-1.5 rounded-[22px] border border-[#e9ecef] px-2.5 py-[7px] focus-within:border-[#22262b]">
         {tokens.map((token, index) => (
           <span
-            key={`${token}-${index}`}
+            key={tokenKeys[index]}
             className="inline-flex items-center gap-1.5 rounded-full bg-[#f5f6f8] py-1 pr-2 pl-2.5 text-[12.5px] font-medium text-[#22262b]"
           >
             {token}

@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ProgramMentorsView } from "@/components/coordinator/program-mentors-view";
-import { type MentorPoolRow, MentorPoolStatus } from "@/interfaces/mentor-pool";
+import { MentorPoolStatus, type MentorPoolRow } from "@/interfaces/mentor-pool";
 import {
   cancelMentorInvite,
   decideProgramMentor,
@@ -15,6 +15,12 @@ import {
 } from "@/lib/client/coordinator-programs";
 import { coordinatorProgramDetail } from "@test/fixtures/coordinator-programs";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
+
+// Rendered outside the App Router, the real usePathname returns null.
+vi.mock("next/navigation", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("next/navigation")>()),
+  usePathname: () => "/coordinator/programs/program-1",
+}));
 
 vi.mock("@/lib/client/coordinator-programs", () => ({
   getCoordinatorProgram: vi.fn(),

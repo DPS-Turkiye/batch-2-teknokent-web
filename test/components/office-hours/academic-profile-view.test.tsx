@@ -3,7 +3,11 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AcademicProfileView } from "@/components/office-hours/academic-profile-view";
-import { Weekday } from "@/interfaces/mentor";
+import {
+  Weekday,
+  type MentorAvailabilityRule,
+  type MentorAvailabilitySettings,
+} from "@/interfaces/mentor";
 import { getOfficeHoursAvailability } from "@/lib/client/office-hours";
 import { renderWithQueryClient } from "@test/test-utils";
 
@@ -12,14 +16,16 @@ vi.mock("@/lib/client/office-hours", () => ({
   updateOfficeHoursAvailability: vi.fn(),
 }));
 
-function settings(rules: unknown[] = []) {
+function settings(
+  rules: MentorAvailabilityRule[] = [],
+): MentorAvailabilitySettings {
   return {
     rules,
     exceptions: [],
     menteeCapacity: null,
     defaultMeetingDurationMinutes: 45,
     meetingBufferMinutes: 15,
-  } as never;
+  };
 }
 
 describe("AcademicProfileView", () => {

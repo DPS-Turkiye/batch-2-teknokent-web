@@ -7,7 +7,7 @@ import { useToast, useToastStore } from "@/stores/toast-store";
 describe("toast store", () => {
   afterEach(() => vi.useRealTimers());
 
-  it("keeps the four newest toasts and drops each after five seconds", () => {
+  it("keeps the four newest toasts and drops each after five seconds", async () => {
     vi.useFakeTimers();
     const { showToast } = useToastStore.getState().actions;
 
@@ -17,9 +17,9 @@ describe("toast store", () => {
     expect(
       useToastStore.getState().toasts.map((toast) => toast.message),
     ).toEqual(["2", "3", "4", "5"]);
-    expect(useToastStore.getState().toasts[0].tone).toBe(ToastTone.Info);
+    expect(useToastStore.getState().toasts.at(0)?.tone).toBe(ToastTone.Info);
 
-    act(() => vi.advanceTimersByTime(5_000));
+    await act(() => vi.advanceTimersByTime(5_000));
     expect(useToastStore.getState().toasts).toEqual([]);
   });
 

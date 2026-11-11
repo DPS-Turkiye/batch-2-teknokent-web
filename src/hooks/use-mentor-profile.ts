@@ -1,32 +1,34 @@
 "use client";
 
-import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { useToast } from "@/stores/toast-store";
-import { clientText } from "@/i18n/client-texts";
+import { useState } from "react";
 
+import { useWeeklyAvailabilityForm } from "@/hooks/use-weekly-availability-form";
+import { clientText } from "@/i18n/client-texts";
 import {
   MAX_EDUCATIONS,
+  MentorLanguage,
   type MeetingFrequency,
   type MentorEducationInput,
   type MentorExperienceInput,
-  MentorLanguage,
   type MentorProfile,
   type PrepFileRequirement,
   type UpdateMentorAvailabilitySettingsPayload,
   type UpdateMentorProfilePayload,
 } from "@/interfaces/mentor";
+import type { StudentOnboardingDraft } from "@/interfaces/mentor-onboarding";
+import { ToastTone } from "@/interfaces/toast";
 import {
   createAvailabilitySlot,
   deleteAvailabilitySlot,
+  getAvailabilitySettings,
   getMentorAvailability,
   getMentorProfile,
-  updateMentorProfile,
-  getAvailabilitySettings,
   updateAvailabilitySettings,
+  updateMentorProfile,
 } from "@/lib/client/mentor-profile";
-import { useWeeklyAvailabilityForm } from "@/hooks/use-weekly-availability-form";
+import { withKey, withKeys, withoutKeys, type Keyed } from "@/lib/keyed-list";
 import {
   applyMentorCv,
   fillStudies,
@@ -36,9 +38,8 @@ import {
   toStudentDraft,
   toStudentProfilePayload,
 } from "@/lib/mentor-onboarding";
-import type { StudentOnboardingDraft } from "@/interfaces/mentor-onboarding";
 import { errorMessage, toDateTimeLocalValue } from "@/lib/utils";
-import { ToastTone } from "@/interfaces/toast";
+import { useToast } from "@/stores/toast-store";
 
 export const MENTOR_PROFILE_QUERY_KEY = ["mentor-profile"] as const;
 export const MENTOR_AVAILABILITY_QUERY_KEY = [
@@ -122,9 +123,14 @@ export function useDeleteAvailabilitySlot() {
 }
 
 // A student mentor's studies are edited beside the form, so mentors who are not students never send them.
-type MentorProfileForm = Required<
-  Omit<UpdateMentorProfilePayload, "studentProfile">
->;
+// Past roles and schools carry React keys while they are edited (see keyed-list); handleSave takes them off.
+type MentorProfileForm = Omit<
+  Required<Omit<UpdateMentorProfilePayload, "studentProfile">>,
+  "experiences" | "educations"
+> & {
+  experiences: Keyed<MentorExperienceInput>[];
+  educations: Keyed<MentorEducationInput>[];
+};
 
 function toEditablePayload(profile: MentorProfile): MentorProfileForm {
   return {
@@ -141,17 +147,21 @@ function toEditablePayload(profile: MentorProfile): MentorProfileForm {
     startupStages: profile.startupStages,
     specialties: profile.specialties,
     menteeCapacity: profile.menteeCapacity ?? null,
-    experiences: (profile.experiences ?? []).map((experience) => ({
-      title: experience.title,
-      organization: experience.organization ?? "",
-      period: experience.period ?? "",
-      summary: experience.summary ?? "",
-    })),
-    educations: (profile.educations ?? []).map((education) => ({
-      school: education.school,
-      degree: education.degree ?? "",
-      period: education.period ?? "",
-    })),
+    experiences: withKeys(
+      (profile.experiences ?? []).map((experience) => ({
+        title: experience.title,
+        organization: experience.organization ?? "",
+        period: experience.period ?? "",
+        summary: experience.summary ?? "",
+      })),
+    ),
+    educations: withKeys(
+      (profile.educations ?? []).map((education) => ({
+        school: education.school,
+        degree: education.degree ?? "",
+        period: education.period ?? "",
+      })),
+    ),
     about: profile.about ?? "",
     meetingFrequency: profile.meetingFrequency ?? null,
     prepFileRequirement: profile.prepFileRequirement ?? null,
@@ -175,11 +185,18 @@ const EMPTY_EXPERIENCE: MentorExperienceInput = {
 };
 
 function isBlankSchool(school: MentorEducationInput) {
-  return Object.values(school).every((value) => !value.trim());
+  return [school.school, school.degree, school.period].every(
+    (value) => !value.trim(),
+  );
 }
 
 function isBlankExperience(experience: MentorExperienceInput) {
-  return Object.values(experience).every((value) => !value.trim());
+  return [
+    experience.title,
+    experience.organization,
+    experience.period,
+    experience.summary,
+  ].every((value) => !value.trim());
 }
 
 function studentDraftOf(profile: MentorProfile) {
@@ -307,7 +324,7 @@ export function useMentorProfileForm(profile: MentorProfile) {
         ? previous
         : {
             ...previous,
-            experiences: [...previous.experiences, EMPTY_EXPERIENCE],
+            experiences: [...previous.experiences, withKey(EMPTY_EXPERIENCE)],
           },
     );
   };
@@ -342,7 +359,7 @@ export function useMentorProfileForm(profile: MentorProfile) {
             ...previous,
             educations: [
               ...previous.educations,
-              { school: "", degree: "", period: "" },
+              withKey({ school: "", degree: "", period: "" }),
             ],
           },
     );
@@ -406,10 +423,14 @@ export function useMentorProfileForm(profile: MentorProfile) {
     try {
       await updateProfileMutation.mutateAsync({
         ...form,
-        experiences: form.experiences.filter(
-          (experience) => !isBlankExperience(experience),
+        experiences: withoutKeys(
+          form.experiences.filter(
+            (experience) => !isBlankExperience(experience),
+          ),
         ),
-        educations: form.educations.filter((school) => !isBlankSchool(school)),
+        educations: withoutKeys(
+          form.educations.filter((school) => !isBlankSchool(school)),
+        ),
         ...(student
           ? { studentProfile: toStudentProfilePayload(student) }
           : {}),

@@ -10,8 +10,9 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
-import { getSessionIds } from "@/lib/session";
 import { readBearerToken } from "@/lib/server/bearer-token";
+import { jsonObjectSchema, readJsonBody } from "@/lib/server/request-body";
+import { getSessionIds } from "@/lib/session";
 
 export async function GET() {
   try {
@@ -27,7 +28,9 @@ export async function GET() {
 export async function PUT(request: NextRequest) {
   try {
     const idToken = readBearerToken(request);
-    const payload = (await request.json()) as Record<string, unknown>;
+    const body = await readJsonBody(request, jsonObjectSchema);
+    if (!body.ok) return body.response;
+    const payload = body.data;
 
     if (idToken) {
       // Onboarding runs before approval, so there is no session cookie yet.
