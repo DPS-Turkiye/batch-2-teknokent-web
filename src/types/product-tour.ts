@@ -25,7 +25,7 @@ export enum TourAnchor {
   RequestDrawerAccept = "request-drawer-accept",
 }
 
-/** One message group per step under `productTour.steps`. */
+/** One message group per step under `iaTour.steps`. */
 export enum TourStepKey {
   OfficeHours = "officeHours",
   PickAcademician = "pickAcademician",

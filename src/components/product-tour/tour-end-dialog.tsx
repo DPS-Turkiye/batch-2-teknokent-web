@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { useId } from "react";
 
 import { ModalDialog } from "@/components/common/modal-dialog";
-import { TourPrimaryButton } from "@/components/product-tour/tour-buttons";
+import { Button } from "@/components/ia/button";
 import {
   TOUR_DIALOG_CLASS,
   TOUR_OVERLAY_CLASS,
@@ -21,7 +21,7 @@ export function TourEndDialog({
   onClose: () => void;
   onExit: () => void;
 }) {
-  const t = useTranslations("productTour");
+  const t = useTranslations("iaTour");
   const titleId = useId();
   return (
     <ModalDialog
@@ -31,23 +31,18 @@ export function TourEndDialog({
       panelClassName={TOUR_DIALOG_CLASS}
     >
       <div className="space-y-2">
-        <h2
-          id={titleId}
-          className="text-2xl leading-8 font-bold tracking-[-0.24px] text-[#1c2026]"
-        >
+        <h2 id={titleId} className="type-h2 text-text-primary">
           {t("end.title")}
         </h2>
-        <p className="text-sm leading-[22px] text-[#575f69]">
+        <p className="type-body text-text-secondary">
           {t(`roles.${role}.end.body`)}
         </p>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="max-w-[220px] text-xs leading-4 text-[#6e7681]">
+        <p className="max-w-[220px] type-caption text-text-muted">
           {t(`roles.${role}.end.replayHint`)}
         </p>
-        <TourPrimaryButton onClick={onExit}>
-          {t(`roles.${role}.end.exit`)}
-        </TourPrimaryButton>
+        <Button onClick={onExit}>{t(`roles.${role}.end.exit`)}</Button>
       </div>
     </ModalDialog>
   );

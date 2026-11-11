@@ -1,32 +1,31 @@
 import { getRequestConfig } from "next-intl/server";
 import { cookies, headers } from "next/headers";
 
+import { IA_MESSAGES, type IaMessages } from "@/i18n/ia-messages";
 import { AccountType } from "@/interfaces/account-type";
 import { mergeMessages } from "@/lib/account-type";
 import { Locale, LOCALE_COOKIE, resolveLocale } from "@/lib/i18n";
 import { getAccountType } from "@/lib/server/account-type";
 
-import type trProductTour from "../messages/product-tour/tr.json";
 import type trProfileTools from "../messages/profile-tools/tr.json";
 import type trMessages from "../messages/tr.json";
 
 type BaseMessages = typeof trMessages & {
   profileTools: typeof trProfileTools;
-  productTour: typeof trProductTour;
-};
+} & IaMessages;
 
 async function baseMessages(locale: Locale): Promise<BaseMessages> {
   if (locale === Locale.En) {
     return {
       ...(await import("../messages/en.json")).default,
       profileTools: (await import("../messages/profile-tools/en.json")).default,
-      productTour: (await import("../messages/product-tour/en.json")).default,
+      ...IA_MESSAGES[Locale.En],
     };
   }
   return {
     ...(await import("../messages/tr.json")).default,
     profileTools: (await import("../messages/profile-tools/tr.json")).default,
-    productTour: (await import("../messages/product-tour/tr.json")).default,
+    ...IA_MESSAGES[Locale.Tr],
   };
 }
 

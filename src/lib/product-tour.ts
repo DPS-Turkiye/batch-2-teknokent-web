@@ -339,7 +339,7 @@ export function panesAround(
 type Illustration = { src: string; width: number; height: number };
 
 const FIRST_APPOINTMENT: Illustration = {
-  src: "/product-tour/first-appointment.webp",
+  src: "/ia/tour/first-appointment.webp",
   width: 456,
   height: 304,
 };
@@ -349,7 +349,7 @@ export const TOUR_ILLUSTRATIONS: Readonly<Record<TourRole, Illustration>> = {
   [TourRole.Student]: FIRST_APPOINTMENT,
   [TourRole.IskurStudent]: FIRST_APPOINTMENT,
   [TourRole.Academician]: {
-    src: "/product-tour/office-hours-ready.webp",
+    src: "/ia/tour/office-hours-ready.webp",
     width: 286,
     height: 190,
   },

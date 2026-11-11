@@ -5,10 +5,9 @@ import type {
   NestedKeyOf,
 } from "next-intl";
 
+import { IA_MESSAGES } from "@/i18n/ia-messages";
 import { Locale } from "@/lib/i18n";
 import en from "@/messages/en.json";
-import tourEn from "@/messages/product-tour/en.json";
-import tourTr from "@/messages/product-tour/tr.json";
 import toolsEn from "@/messages/profile-tools/en.json";
 import toolsTr from "@/messages/profile-tools/tr.json";
 import tr from "@/messages/tr.json";
@@ -28,8 +27,8 @@ export function asLocale(locale: TestLocale): Locale {
 /** Every message the app's request config hands the provider in this language (src/i18n/request.ts). */
 export function appMessages(locale: TestLocale): Messages {
   return asLocale(locale) === Locale.En
-    ? { ...en, profileTools: toolsEn, productTour: tourEn }
-    : { ...tr, profileTools: toolsTr, productTour: tourTr };
+    ? { ...en, profileTools: toolsEn, ...IA_MESSAGES[Locale.En] }
+    : { ...tr, profileTools: toolsTr, ...IA_MESSAGES[Locale.Tr] };
 }
 
 export type MessageNamespace = NamespaceKeys<Messages, NestedKeyOf<Messages>>;

@@ -1,5 +1,5 @@
+import type { IaMessages } from "@/i18n/ia-messages";
 import type { Locale } from "@/lib/i18n";
-import type productTour from "@/messages/product-tour/tr.json";
 import type profileTools from "@/messages/profile-tools/tr.json";
 import type messages from "@/messages/tr.json";
 
@@ -9,7 +9,6 @@ declare module "next-intl" {
     Locale: Locale;
     Messages: typeof messages & {
       profileTools: typeof profileTools;
-      productTour: typeof productTour;
-    };
+    } & IaMessages;
   }
 }
