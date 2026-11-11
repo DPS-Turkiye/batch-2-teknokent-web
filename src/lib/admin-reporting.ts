@@ -12,6 +12,7 @@ import { MeetingStatus } from "@/interfaces/meeting";
 import { ProgramStatus } from "@/interfaces/program";
 import { countsInProgram, needsAttention } from "@/lib/admin-model";
 import { addDays, isoDay, startOfWeek } from "@/lib/coordinator-calendar";
+import { formatDateRange } from "@/lib/format";
 import {
   matchesProgramType,
   type ProgramTypeFilter,
@@ -378,10 +379,11 @@ export function activityCounts(
 
 /** "9–15 Kas" for the week starting on `week`. */
 export function weekLabel(week: Date, locale: string) {
-  return new Intl.DateTimeFormat(locale, {
-    day: "numeric",
-    month: "short",
-  }).formatRange(week, addDays(week, 6));
+  return formatDateRange(
+    new Intl.DateTimeFormat(locale, { day: "numeric", month: "short" }),
+    week,
+    addDays(week, 6),
+  );
 }
 
 /** "%75" in Turkish, "75%" in English. */

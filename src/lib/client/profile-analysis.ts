@@ -1,23 +1,15 @@
-import { clientText } from "@/i18n/client-texts";
 import {
   ProfileAnalysisType,
   type ProfileAnalysis,
   type ProfileOcrMode,
 } from "@/interfaces/profile-analysis";
 import { requireSuccess } from "@/lib/client/api";
+import { bearerHeader } from "@/lib/client/bearer";
 import { getPublicBackendUrl } from "@/lib/const";
-import { currentIdToken } from "@/lib/firebase/auth";
 import { httpClient, UPLOAD_TIMEOUT_MS } from "@/lib/http-client";
 
 async function uploadConfig() {
-  const token = await currentIdToken();
-  if (!token) {
-    throw new Error(clientText("sessionExpired"));
-  }
-  return {
-    headers: { Authorization: `Bearer ${token}` },
-    timeout: UPLOAD_TIMEOUT_MS,
-  };
+  return { headers: await bearerHeader(), timeout: UPLOAD_TIMEOUT_MS };
 }
 
 export async function getLatestProfileAnalysis(appUserId?: string) {

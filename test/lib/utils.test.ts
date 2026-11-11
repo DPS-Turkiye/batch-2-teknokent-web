@@ -11,6 +11,7 @@ import {
   httpUrlOrNull,
   isAdminArea,
   isUuid,
+  splitFullName,
 } from "@/lib/utils";
 
 describe("dayPart", () => {
@@ -111,5 +112,19 @@ describe("distinctBy", () => {
       { key: "b", item: "b" },
       { key: "a", item: "a" },
     ]);
+  });
+});
+
+describe("splitFullName", () => {
+  it("keeps the last word as the surname", () => {
+    expect(splitFullName("  Ayşe Nur   Yılmaz ")).toEqual({
+      firstName: "Ayşe Nur",
+      lastName: "Yılmaz",
+    });
+  });
+
+  it("takes a single word as the first name", () => {
+    expect(splitFullName("Ayşe")).toEqual({ firstName: "Ayşe", lastName: "" });
+    expect(splitFullName("")).toEqual({ firstName: "", lastName: "" });
   });
 });

@@ -22,34 +22,54 @@ type RequestCase = [
 
 const cases: RequestCase[] = [
   [
-    "lists every user when no filter is given",
-    () => fetchUsers(),
-    { method: "GET", url: "/api/users", params: {} },
+    "lists every user for the admin asking, when no filter is given",
+    () => fetchUsers("admin-1"),
+    { method: "GET", url: "/api/users", params: { actorId: "admin-1" } },
   ],
   [
     "filters users by role and status",
     () =>
-      fetchUsers({ role: UserRole.Mentor, status: UserAccountStatus.Pending }),
+      fetchUsers("admin-1", {
+        role: UserRole.Mentor,
+        status: UserAccountStatus.Pending,
+      }),
     {
       method: "GET",
       url: "/api/users",
-      params: { role: UserRole.Mentor, status: UserAccountStatus.Pending },
+      params: {
+        actorId: "admin-1",
+        role: UserRole.Mentor,
+        status: UserAccountStatus.Pending,
+      },
     },
   ],
   [
-    "reads one user at the encoded path with the default timeout",
-    () => fetchUser("user/1"),
-    { method: "GET", url: "/api/users/user%2F1" },
+    "reads one user at the encoded path as the viewer, with the default timeout",
+    () => fetchUser("user/1", "viewer-1"),
+    {
+      method: "GET",
+      url: "/api/users/user%2F1",
+      params: { actorId: "viewer-1" },
+    },
   ],
   [
     "reads one user with a shorter timeout when the caller asks for one",
-    () => fetchUser("user/1", 3000),
-    { method: "GET", url: "/api/users/user%2F1", timeout: 3000 },
+    () => fetchUser("user/1", "viewer-1", 3000),
+    {
+      method: "GET",
+      url: "/api/users/user%2F1",
+      params: { actorId: "viewer-1" },
+      timeout: 3000,
+    },
   ],
   [
     "keeps the default timeout for a zero timeout",
-    () => fetchUser("user/1", 0),
-    { method: "GET", url: "/api/users/user%2F1" },
+    () => fetchUser("user/1", "viewer-1", 0),
+    {
+      method: "GET",
+      url: "/api/users/user%2F1",
+      params: { actorId: "viewer-1" },
+    },
   ],
   [
     "approves or rejects an account with the actor in the body",

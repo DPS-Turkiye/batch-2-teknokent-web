@@ -13,6 +13,7 @@ import {
   getTranscriptApiUrl,
   TRANSCRIPT_POLL_MS,
 } from "@/lib/const";
+import { currentIdToken } from "@/lib/firebase/auth";
 import { httpClient } from "@/lib/http-client";
 import { createAxiosResponse } from "@test/fixtures/health";
 import { successQuery } from "@test/mocks/query-results";
@@ -37,6 +38,10 @@ vi.mock("next/navigation", async (importOriginal) => ({
 vi.mock("@/hooks/use-meetings", () => ({
   useMeetings: vi.fn(),
 }));
+
+vi.mock("@/lib/firebase/auth", () => ({ currentIdToken: vi.fn() }));
+
+const signedIn = { headers: { Authorization: "Bearer firebase-token" } };
 
 vi.mock("@/lib/http-client", () => ({
   UPLOAD_TIMEOUT_MS: 120_000,
@@ -70,6 +75,7 @@ describe("AssistantPage integration", () => {
     localStorage.clear();
     sessionStorage.clear();
     vi.mocked(useMeetings).mockReturnValue(meetingsQuery([sprintReview]));
+    vi.mocked(currentIdToken).mockResolvedValue("firebase-token");
     vi.mocked(httpClient.get).mockResolvedValue(
       createAxiosResponse({ segments: [] }, 200),
     );
@@ -122,9 +128,11 @@ describe("AssistantPage integration", () => {
     await user.click(screen.getByRole("button", { name: "Bot ekle" }));
 
     await waitFor(() => {
-      expect(httpClient.post).toHaveBeenCalledWith(getBotApiUrl(), {
-        meetingUrl: "https://meet.google.com/abc-defg-hij",
-      });
+      expect(httpClient.post).toHaveBeenCalledWith(
+        getBotApiUrl(),
+        { meetingUrl: "https://meet.google.com/abc-defg-hij" },
+        signedIn,
+      );
     });
 
     expect(screen.getAllByText("Yeni Test Toplantisi").length).toBeGreaterThan(
@@ -134,6 +142,7 @@ describe("AssistantPage integration", () => {
     await waitFor(() => {
       expect(httpClient.get).toHaveBeenCalledWith(
         getTranscriptApiUrl("google_meet", "abc-defg-hij"),
+        signedIn,
       );
     });
   });
@@ -208,14 +217,15 @@ describe("AssistantPage integration", () => {
     await waitFor(() => {
       expect(httpClient.delete).toHaveBeenCalledWith(
         getStopBotApiUrl("google_meet", "abc-defg-hij"),
+        signedIn,
       );
     });
 
     await waitFor(() => {
       expect(httpClient.post).toHaveBeenCalledWith(
         getMeetingReportApiUrl("google_meet", "abc-defg-hij"),
-        { segments },
-        { timeout: 120_000 },
+        undefined,
+        { timeout: 120_000, ...signedIn },
       );
     });
 
@@ -265,11 +275,13 @@ describe("AssistantPage integration", () => {
     await waitFor(() => {
       expect(httpClient.delete).toHaveBeenCalledWith(
         getStopBotApiUrl("google_meet", "abc-defg-hij"),
+        signedIn,
       );
     });
 
     expect(httpClient.post).not.toHaveBeenCalledWith(
       getMeetingReportApiUrl("google_meet", "abc-defg-hij"),
+      undefined,
       expect.anything(),
     );
     expect(
@@ -530,8 +542,8 @@ describe("AssistantPage integration", () => {
     await waitFor(() => {
       expect(httpClient.post).toHaveBeenCalledWith(
         getMeetingReportApiUrl("google_meet", "abc-defg-hij"),
-        { segments },
-        { timeout: 120_000 },
+        undefined,
+        { timeout: 120_000, ...signedIn },
       );
     });
     expect(httpClient.post).not.toHaveBeenCalledWith(
@@ -543,6 +555,11 @@ describe("AssistantPage integration", () => {
     expect(screen.queryByText("00:10")).not.toBeInTheDocument();
     await user.clear(textInput);
     await user.type(textInput, "Düzenlenmiş merhaba");
+    // The report is built from the provider's transcript, so an edit doesn't make it stale.
+    expect(screen.getByRole("button", { name: "Raporu gönder" })).toBeEnabled();
+    expect(
+      screen.getByText(/transkriptte yaptığın düzenlemeler rapora yansımaz/),
+    ).toBeInTheDocument();
     await user.click(
       screen.getByRole("button", { name: "Transkripti gönder" }),
     );

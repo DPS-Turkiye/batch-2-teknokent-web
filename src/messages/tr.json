@@ -144,6 +144,8 @@
     "code": "Davet kodu",
     "submit": "Ekibe katıl",
     "noCode": "Davet kodun yok mu?",
+    "otgAccount": "ODTÜ TEKNOKENT Girişimcilik hesabınla katılıyorsun:",
+    "otgSwitch": "Başka bir hesapla katıl",
     "backToLogin": "Giriş ekranına dön"
   },
   "verifyEmail": {
@@ -3296,6 +3298,7 @@
     "sendTranscriptHint": "Menteenin not defterinin altına gönder",
     "sendTranscript": "Transkripti gönder",
     "sendReport": "Raporu gönder",
+    "reportFromRecording": "Rapor toplantının kaydından üretilir; transkriptte yaptığın düzenlemeler rapora yansımaz.",
     "stop": "Asistanı durdur",
     "stopHint": "Transkripti görmek ve rapor oluşturmak için <b>Asistanı durdur</b> düğmesine basın. Asistan durunca transkript kilitlenir ve rapor otomatik üretilir.",
     "transcript": "Transkript",
@@ -3307,7 +3310,6 @@
     "line": "Transkript satırı",
     "deleteLine": "Satırı sil",
     "report": "Toplantı raporu",
-    "reportStale": "Transkript değişti. Raporu güncellemek için tekrar üret.",
     "generating": "Üretiliyor…",
     "generate": "Rapor üret",
     "reportEmpty": "Transkripti kilitlemek ve raporu otomatik üretmek için Asistanı durdur düğmesine basın. Menteenin not defterinin altına düşmesi için gönderin.",
@@ -5746,6 +5748,8 @@
     "platformAndMeetingIdRequired": "Platform ve toplantı kimliği gerekli.",
     "reportRequestInvalid": "Rapor isteği geçersiz.",
     "reportServiceUnavailable": "Toplantı raporu hizmetine ulaşılamıyor.",
+    "assistantMeetingForbidden": "Bu toplantının asistanını yalnızca toplantının katılımcıları kullanabilir.",
+    "assistantMeetingNotFound": "Bu bağlantıya ait bir görüşme bulunamadı. Asistan yalnızca takvimdeki görüşmeler için kullanılabilir.",
     "messagesLoadFailed": "Mesajlar yüklenemedi.",
     "conversationStartFailed": "Konuşma başlatılamadı.",
     "messageSendFailed": "Mesaj gönderilemedi.",

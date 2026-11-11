@@ -4,10 +4,12 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
+import { PersonLink } from "@/components/common/person-link";
 import { StartupNameLink } from "@/components/common/startup-name-link";
 import { AppShell } from "@/components/hoc/app-shell";
 import { useAppSession } from "@/components/providers/session-provider";
 import { useIndividualProgram } from "@/hooks/use-individual-program";
+import { useMemberProfileLinks } from "@/hooks/use-member-profile-links";
 import { useProgramDetail } from "@/hooks/use-programs";
 import { UserRole } from "@/interfaces/session";
 import { PROGRAM_CARD_CLASS } from "@/lib/const/programs";
@@ -23,6 +25,7 @@ export function ProgramDetailView() {
   const homeHref =
     session?.role === UserRole.Mentor ? "/mentor-dashboard" : "/dashboard";
   const query = useProgramDetail(params.id);
+  const canOpenMember = useMemberProfileLinks();
   const student = useIndividualProgram();
   // Only the student's own individual program has participants instead of startups.
   const participants = student.individual && student.programId === params.id;
@@ -167,11 +170,10 @@ export function ProgramDetailView() {
                           <ul className="mt-3 space-y-1.5">
                             {startup.members.map((member) => (
                               <li key={member.id}>
-                                <Link
-                                  href={programPersonHref({
-                                    userId: member.id,
-                                  })}
-                                  className="flex items-center gap-2.5 rounded-lg px-1 py-1 hover:bg-[#f7f8f9]"
+                                <PersonLink
+                                  userId={member.id}
+                                  linked={canOpenMember(startup.id)}
+                                  className="flex items-center gap-2.5 rounded-lg px-1 py-1"
                                 >
                                   <span className="grid size-8 place-items-center rounded-full bg-[#f2f4f6] text-[10px] font-medium text-[#676e78]">
                                     {initials(member.fullName)}
@@ -189,7 +191,7 @@ export function ProgramDetailView() {
                                         .join(" · ") || t("memberFallback")}
                                     </span>
                                   </span>
-                                </Link>
+                                </PersonLink>
                               </li>
                             ))}
                           </ul>
