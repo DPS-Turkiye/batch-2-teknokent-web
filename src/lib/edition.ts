@@ -6,7 +6,8 @@ import { isEnumValue } from "@/lib/enum";
  * backend closes the matching /api paths, so these lists only keep the screens out of sight.
  */
 const OWN_PATH_PREFIXES: Record<Edition, readonly string[]> = {
-  [Edition.Teknokent]: ["/m", "/assistant", "/auth/otg"],
+  // /invite is invite-code sign-up into a startup team, which the ODTÜ deployment closes on the backend too.
+  [Edition.Teknokent]: ["/m", "/assistant", "/auth/otg", "/invite"],
   [Edition.Odtu]: [
     "/student",
     "/academician",
