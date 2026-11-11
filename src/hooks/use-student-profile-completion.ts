@@ -21,6 +21,8 @@ import {
   completionStepState,
   completionSummary,
   PROFILE_COMPLETION_STEPS,
+  stepAfter,
+  stepBefore,
   welcomeFacts,
 } from "@/lib/profile-completion";
 import {
@@ -90,8 +92,11 @@ export function useStudentProfileCompletion() {
   };
   const record = institution.record;
   const fullName = record?.fullName ?? "";
-  const next = () =>
-    setStep((current) => Math.min(ProfileCompletionStep.Goal, current + 1));
+  // A failed save belongs to the step it happened on; moving away clears it.
+  const goTo = (target: ProfileCompletionStep) => {
+    save.reset();
+    setStep(target);
+  };
   return {
     step,
     steps: PROFILE_COMPLETION_STEPS.map((item) => ({
@@ -145,14 +150,11 @@ export function useStudentProfileCompletion() {
     toggleTopic,
     toggleSubtopic,
     setGoal: (goal: string) => change((current) => ({ ...current, goal })),
-    back: () =>
-      setStep((current) =>
-        Math.max(ProfileCompletionStep.Welcome, current - 1),
-      ),
+    back: () => goTo(stepBefore(step)),
     /** The footer's main button: the next step, or saving on the last one. */
     advance: () => {
       if (step === ProfileCompletionStep.Goal) finish();
-      else next();
+      else goTo(stepAfter(step));
     },
     skip: () => finish(true),
   };

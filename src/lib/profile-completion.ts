@@ -13,6 +13,20 @@ export const PROFILE_COMPLETION_STEPS = [
   ProfileCompletionStep.Goal,
 ] as const;
 
+/** The step after `step`, or `step` itself on the last one. */
+export function stepAfter(step: ProfileCompletionStep): ProfileCompletionStep {
+  return (
+    PROFILE_COMPLETION_STEPS[PROFILE_COMPLETION_STEPS.indexOf(step) + 1] ?? step
+  );
+}
+
+/** The step before `step`, or `step` itself on the first one. */
+export function stepBefore(step: ProfileCompletionStep): ProfileCompletionStep {
+  return (
+    PROFILE_COMPLETION_STEPS[PROFILE_COMPLETION_STEPS.indexOf(step) - 1] ?? step
+  );
+}
+
 const ICONS = "/ia/profile";
 
 /** The icon on each support-topic card (Figma "Profil Tamamlama — 2"). */

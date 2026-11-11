@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 
 import { Button, ButtonVariant } from "@/components/ia/button";
 import { CompletionStepper } from "@/components/student/profile-completion/completion-stepper";
@@ -24,6 +24,14 @@ export function StudentProfileCompletionView() {
 function CompletionWizard() {
   const t = useTranslations("iaProfile");
   const form = useStudentProfileCompletion();
+  const stepRef = useRef<HTMLDivElement>(null);
+  const shownStep = useRef(form.step);
+  // Next/Geri keep focus on the footer otherwise; land keyboard and screen-reader users on the new step.
+  useEffect(() => {
+    if (shownStep.current === form.step) return;
+    shownStep.current = form.step;
+    stepRef.current?.focus();
+  }, [form.step]);
 
   if (form.isLoading) {
     return <Notice role="status">{t("loading")}</Notice>;
@@ -77,27 +85,30 @@ function CompletionWizard() {
           disabled={form.isSaving}
           className="flex min-w-0 flex-1 flex-col gap-6"
         >
-          <legend className="sr-only">
-            {t(`stepNames.${form.step}.title`)}
-          </legend>
-          {form.step === ProfileCompletionStep.Welcome ? (
-            <WelcomeStep welcome={form.welcome} photo={form.photo} />
-          ) : form.step === ProfileCompletionStep.Topics ? (
-            <TopicsStep
-              categories={form.categories}
-              groups={form.subtopicGroups}
-              topics={draft.topics}
-              subtopics={draft.subtopics}
-              onToggleTopic={form.toggleTopic}
-              onToggleSubtopic={form.toggleSubtopic}
-            />
-          ) : (
-            <GoalStep
-              goal={draft.goal}
-              summary={form.summary}
-              onGoalChange={form.setGoal}
-            />
-          )}
+          <div
+            ref={stepRef}
+            tabIndex={-1}
+            className="flex flex-col gap-6 outline-none"
+          >
+            {form.step === ProfileCompletionStep.Welcome ? (
+              <WelcomeStep welcome={form.welcome} photo={form.photo} />
+            ) : form.step === ProfileCompletionStep.Topics ? (
+              <TopicsStep
+                categories={form.categories}
+                groups={form.subtopicGroups}
+                topics={draft.topics}
+                subtopics={draft.subtopics}
+                onToggleTopic={form.toggleTopic}
+                onToggleSubtopic={form.toggleSubtopic}
+              />
+            ) : (
+              <GoalStep
+                goal={draft.goal}
+                summary={form.summary}
+                onGoalChange={form.setGoal}
+              />
+            )}
+          </div>
           {form.saveError ? (
             <p
               role="alert"

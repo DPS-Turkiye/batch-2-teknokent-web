@@ -12,6 +12,8 @@ import {
   completionSummary,
   PEER_TOPIC_ICONS,
   PROFILE_COMPLETION_STEPS,
+  stepAfter,
+  stepBefore,
   titledName,
   welcomeFacts,
 } from "@/lib/profile-completion";
@@ -29,6 +31,23 @@ describe("completionStepState", () => {
       CompletionStepState.Current,
       CompletionStepState.Upcoming,
     ]);
+  });
+});
+
+describe("stepAfter / stepBefore", () => {
+  it("moves one step and stops at either end", () => {
+    expect(stepAfter(ProfileCompletionStep.Welcome)).toBe(
+      ProfileCompletionStep.Topics,
+    );
+    expect(stepAfter(ProfileCompletionStep.Goal)).toBe(
+      ProfileCompletionStep.Goal,
+    );
+    expect(stepBefore(ProfileCompletionStep.Goal)).toBe(
+      ProfileCompletionStep.Topics,
+    );
+    expect(stepBefore(ProfileCompletionStep.Welcome)).toBe(
+      ProfileCompletionStep.Welcome,
+    );
   });
 });
 

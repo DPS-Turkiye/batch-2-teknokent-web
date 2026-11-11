@@ -44,7 +44,7 @@ export function TopicsStep({
               return (
                 <label
                   key={item.id}
-                  className={`flex cursor-pointer items-center gap-3 rounded-[16px] border bg-background-surface p-4 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-border-selected ${
+                  className={`flex cursor-pointer items-center gap-3 rounded-[16px] border bg-background-surface p-4 has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-border-selected ${
                     checked
                       ? "border-border-selected"
                       : "border-border-default hover:bg-background-subtle"
@@ -115,7 +115,7 @@ export function TopicsStep({
                   return (
                     <label
                       key={sub.id}
-                      className={`inline-flex h-9 cursor-pointer items-center gap-1 rounded-full border px-3 type-label focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-border-selected ${
+                      className={`inline-flex h-9 cursor-pointer items-center gap-1 rounded-full border px-3 type-label has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-border-selected ${
                         checked
                           ? "border-border-selected bg-background-selected text-text-accent"
                           : "border-border-default bg-background-surface text-text-primary hover:bg-background-subtle"

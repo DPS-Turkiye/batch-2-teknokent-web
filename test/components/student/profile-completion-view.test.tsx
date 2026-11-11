@@ -278,6 +278,30 @@ describe("profile completion wizard", () => {
     expect(await screen.findByText(/Profilin tamamlandı/)).toBeVisible();
   });
 
+  it("moves focus to the new step when going forward", async () => {
+    const user = await open();
+    await user.click(continueButton());
+    const heading = screen.getByRole("heading", {
+      name: "Hangi konularda destek almak istersin?",
+    });
+    expect(heading.closest("[tabindex='-1']")).toHaveFocus();
+  });
+
+  it("clears a save failure when the student goes back a step", async () => {
+    vi.mocked(saveStudentProfileCompletion).mockRejectedValueOnce(
+      new Error("failed"),
+    );
+    const user = await open();
+    await user.click(continueButton());
+    await user.click(continueButton());
+    await user.click(screen.getByRole("button", { name: "Profili Tamamla" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Profilin kaydedilemedi",
+    );
+    await user.click(screen.getByRole("button", { name: "Geri" }));
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
   it("supports English", async () => {
     renderWithQueryClient(
       <InLocale locale="en">

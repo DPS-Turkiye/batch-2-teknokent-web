@@ -175,7 +175,7 @@ function PhotoCard({ photo }: { photo: Completion["photo"] }) {
         )}
         <div className="flex min-w-0 flex-col items-start gap-2">
           <label
-            className={`${buttonClasses(ButtonVariant.Secondary, ButtonSize.Small)} cursor-pointer focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-border-selected ${
+            className={`${buttonClasses(ButtonVariant.Secondary, ButtonSize.Small)} cursor-pointer has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-border-selected ${
               photo.isUploading ? "pointer-events-none opacity-60" : ""
             }`}
           >
