@@ -5,6 +5,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { RoleFrame } from "@/components/common/role-frame";
 import { Edition } from "@/interfaces/edition";
 import { IdentityKind, UserRole, type AppSession } from "@/interfaces/session";
+import { Workspace } from "@/interfaces/workspace";
+import { IaAccent } from "@/types/ia-theme";
 import { itemAt } from "@test/fixtures/list-assertions";
 import { renderWithQueryClient } from "@test/test-utils";
 
@@ -112,13 +114,15 @@ describe("RoleFrame desktop nav between lg and xl", () => {
       </RoleFrame>,
     );
     const link = screen.getByRole("link", { name: "Anasayfa" });
-    expect(link).toHaveClass("whitespace-nowrap", "px-3", "xl:px-[18px]");
+    expect(link).toHaveAttribute("data-tour", "nav-home");
+    expect(link).toHaveClass("whitespace-nowrap", "px-3", "xl:px-4");
     expect(link.querySelector("[aria-hidden]")).toHaveClass(
       "hidden",
       "xl:block",
     );
     const soon = screen.getByText("Kullanıcılar").closest("[aria-disabled]");
-    expect(soon).toHaveClass("whitespace-nowrap", "px-3", "xl:px-[18px]");
+    expect(soon).toHaveClass("whitespace-nowrap", "px-3", "xl:px-4");
+    expect(soon).toHaveAttribute("data-tour", "nav-users");
     const account = document.querySelector<HTMLElement>(
       'button[aria-haspopup="menu"]',
     )!;
@@ -173,5 +177,50 @@ describe("RoleFrame workspace switch", () => {
       document.querySelector<HTMLElement>('button[aria-haspopup="menu"]')!,
     );
     expect(screen.queryByRole("menuitemradio")).toBeNull();
+  });
+});
+
+describe("RoleFrame theme", () => {
+  const student: AppSession = {
+    userId: "s-1",
+    email: "ayse@odtu-dev.invalid",
+    fullName: "Ayşe Yılmaz",
+    jobTitle: "",
+    role: UserRole.Mentee,
+    permissions: [UserRole.Mentee],
+    institutionKinds: [IdentityKind.Student],
+  };
+
+  it("paints the student workspace in ODTÜ red and staff frames in ink", () => {
+    current = student;
+    const { container, unmount } = renderWithQueryClient(
+      <RoleFrame
+        workspace={Workspace.OdtuStudent}
+        homeHref="/student"
+        menuLabel="studentMenu"
+        nav={[]}
+      >
+        <p>Student</p>
+      </RoleFrame>,
+    );
+    expect(container.querySelector("[data-ia-accent]")).toHaveAttribute(
+      "data-ia-accent",
+      IaAccent.Odtu,
+    );
+    unmount();
+
+    current = admin;
+    const staff = renderWithQueryClient(
+      <RoleFrame
+        allowedRoles={[UserRole.Admin]}
+        homeHref="/admin"
+        menuLabel="adminMenu"
+        nav={[]}
+      >
+        <p>Admin</p>
+      </RoleFrame>,
+    );
+    expect(staff.container.querySelector("[data-ia-accent]")).toBeNull();
+    expect(screen.getByText("Admin", { selector: "p" })).toBeInTheDocument();
   });
 });

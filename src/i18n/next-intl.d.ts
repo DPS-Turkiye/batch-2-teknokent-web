@@ -1,3 +1,4 @@
+import type { IaMessages } from "@/i18n/ia-messages";
 import type { Locale } from "@/lib/i18n";
 import type profileTools from "@/messages/profile-tools/tr.json";
 import type messages from "@/messages/tr.json";
@@ -6,6 +7,8 @@ import type messages from "@/messages/tr.json";
 declare module "next-intl" {
   interface AppConfig {
     Locale: Locale;
-    Messages: typeof messages & { profileTools: typeof profileTools };
+    Messages: typeof messages & {
+      profileTools: typeof profileTools;
+    } & IaMessages;
   }
 }
