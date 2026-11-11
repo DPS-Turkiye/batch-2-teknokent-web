@@ -5,7 +5,9 @@ import { useSearchParams } from "next/navigation";
 
 import {
   isOtgLoginEnabled,
+  OTG_FAILURE_PARAM,
   OtgLoginFailure,
+  otgLoginFailure,
   otgStartHref,
 } from "@/lib/otg-login";
 
@@ -15,7 +17,7 @@ import {
  */
 export function useOtgLogin(next: string | null) {
   const copy = useTranslations("otgLogin");
-  const failure = useSearchParams().get("otg");
+  const failure = otgLoginFailure(useSearchParams().get(OTG_FAILURE_PARAM));
 
   return {
     available: isOtgLoginEnabled(),
