@@ -57,4 +57,3 @@ export function splitAppointments(appointments: Appointment[], now: Date) {
   };
 }
 
-export const HOME_UPCOMING_LIMIT = 3;

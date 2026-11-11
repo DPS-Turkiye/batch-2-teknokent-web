@@ -100,6 +100,18 @@ export function monthGridCells(monthDate: Date): MonthCell[] {
   return cells;
 }
 
+/** A date badge's two lines: "10" and "KAS" / "NOV" (the month upper-cased in the locale). */
+export function dateBadgeParts(iso: string, locale: string) {
+  const date = new Date(iso);
+  return {
+    day: String(date.getDate()),
+    month: new Intl.DateTimeFormat(locale, { month: "short" })
+      .format(date)
+      .replace(".", "")
+      .toLocaleUpperCase(locale),
+  };
+}
+
 /** "Ekim 2026" / "October 2026" */
 export function monthLabel(date: Date, locale: string) {
   return new Intl.DateTimeFormat(locale, {
