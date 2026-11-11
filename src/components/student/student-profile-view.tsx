@@ -163,12 +163,9 @@ function InterestsCard() {
                   {interests.chosen.map((item) => (
                     <Chip key={item.id}>{topicLabel(item.id)}</Chip>
                   ))}
-                  {interests.chosen
-                    .flatMap((item) => item.subtopics)
-                    .filter((sub) => saved.subtopics.includes(sub.id))
-                    .map((sub) => (
-                      <Chip key={sub.id}>{tSub(sub.labelKey)}</Chip>
-                    ))}
+                  {interests.savedSubtopics.map((sub) => (
+                    <Chip key={sub.id}>{tSub(sub.labelKey)}</Chip>
+                  ))}
                 </ul>
               </dd>
             </div>
@@ -199,7 +196,6 @@ function InstitutionCard({
   institution: ReturnType<typeof useStudentInstitution>;
 }) {
   const t = useTranslations("iaStudent.profile.institution");
-  const tLevel = useTranslations("studyLevel");
   const record = institution.record;
   return (
     <section
@@ -246,19 +242,7 @@ function InstitutionCard({
           <Row label={t("fullName")} value={record.fullName} />
           <Row label={t("email")} value={record.email} />
           <Row label={t("department")} value={record.departmentName} />
-          <Row
-            label={t("classYear")}
-            value={
-              [
-                record.classYear
-                  ? t("classYearValue", { year: record.classYear })
-                  : null,
-                record.programLevel ? tLevel(record.programLevel) : null,
-              ]
-                .filter(Boolean)
-                .join(" · ") || null
-            }
-          />
+          <Row label={t("classYear")} value={institution.classLine} />
         </dl>
       ) : null}
     </section>
@@ -299,7 +283,7 @@ function PhotoCard({ name }: { name: string | null }) {
         />
         <div className="flex flex-col gap-2">
           <label
-            className={`inline-flex h-9 w-fit cursor-pointer items-center rounded-button-sm bg-action-secondary-bg px-3 type-button-sm text-action-secondary-fg ${
+            className={`inline-flex h-9 w-fit cursor-pointer items-center rounded-button-sm bg-action-secondary-bg px-3 type-button-sm text-action-secondary-fg focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-border-selected ${
               photo.isUploading ? "pointer-events-none opacity-50" : ""
             }`}
           >

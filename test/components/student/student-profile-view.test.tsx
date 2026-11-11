@@ -19,25 +19,29 @@ import {
 } from "@/lib/client/student-profile-completion";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
-vi.mock("@/lib/client/badges", () => ({
-  getMyAchievements: vi.fn(async () => []),
-  getMyBadges: vi.fn(async () => [
-    {
-      id: "award-1",
-      code: "PEER_MENTOR",
-      kind: "GATE",
-      programId: "program-1",
-      programName: "İŞKUR Akran Mentörlüğü",
-      status: "ACTIVE",
-      source: "COORDINATOR",
-      awardedAt: "2026-11-08T10:00:00Z",
-      expiresAt: null,
-      revokedAt: null,
-      reason: null,
-    },
-  ]),
-  getUserBadges: vi.fn(async () => []),
-}));
+vi.mock("@/lib/client/badges", async () => {
+  const { BadgeCode, BadgeKind, BadgeSource, BadgeStatus } =
+    await import("@/interfaces/badges");
+  return {
+    getMyAchievements: vi.fn(async () => []),
+    getMyBadges: vi.fn(async () => [
+      {
+        id: "award-1",
+        code: BadgeCode.PeerMentor,
+        kind: BadgeKind.Gate,
+        programId: "program-1",
+        programName: "İŞKUR Akran Mentörlüğü",
+        status: BadgeStatus.Active,
+        source: BadgeSource.Coordinator,
+        awardedAt: "2026-11-08T10:00:00Z",
+        expiresAt: null,
+        revokedAt: null,
+        reason: null,
+      },
+    ]),
+    getUserBadges: vi.fn(async () => []),
+  };
+});
 const upload = vi.fn();
 vi.mock("@/hooks/use-profile-photo", () => ({
   useProfilePhoto: () => ({ photoUrl: null, isUploading: false, upload }),
