@@ -8,15 +8,12 @@ import { QueryNotice } from "@/components/admin/admin-ui";
 import { WeeklyAvailabilityEditor } from "@/components/availability/weekly-availability-editor";
 import { Button, ButtonSize, ButtonVariant } from "@/components/ia/button";
 import { Card } from "@/components/ia/card";
-import { StatusBadge, StatusTone } from "@/components/ia/status-badge";
 import {
-  HourglassIcon,
   InfoCard,
   InitialsAvatar,
   JourneySteps,
-  panelId,
-  REQUEST_STATUS_TONE,
-  tabId,
+  RequestStatusBadge,
+  TabPanel,
   Tag,
   TagTone,
   UnderlineTabs,
@@ -28,7 +25,6 @@ import {
   usePeerMentorProfile,
   usePeerMentorTrainingEntry,
 } from "@/hooks/use-peer-mentor-give";
-import { BadgeStatus } from "@/interfaces/badges";
 import {
   PeerMentorGateState,
   type PeerMentoringRequest,
@@ -48,7 +44,7 @@ const JOURNEY = [
   PeerMentorJourneyStep.Published,
 ] as const;
 
-/** Akran Mentörlüğü › Mentorluk Ver, by where the student stands with the Akran Mentoru badge (Figma 85:296, 85:454). */
+/** Akran Mentörlüğü › Mentorluk Ver, by where the student stands with the Akran Mentoru badge. */
 export function PeerMentorGiveView() {
   const t = useTranslations("iaIskur.give");
   const gate = usePeerMentorGate();
@@ -94,10 +90,9 @@ export function PeerMentorGiveView() {
     );
   }
   if (gate.state === PeerMentorGateState.Revoked) {
-    const expired = gate.gateAward?.status === BadgeStatus.Expired;
     return (
       <Featured
-        title={expired ? t("revoked.expiredTitle") : t("revoked.title")}
+        title={gate.expired ? t("revoked.expiredTitle") : t("revoked.title")}
         body={t("revoked.body")}
       >
         {gate.gateAward?.reason ? (
@@ -196,9 +191,9 @@ function Journey({
       aside={
         <JourneySteps
           heading={t("heading")}
-          current={current}
+          currentKey={current}
           steps={JOURNEY.map((step) => ({
-            key: String(step),
+            key: step,
             title: t(`${step}.title`),
             hint: step === current ? t("youAreHere") : t(`${step}.hint`),
           }))}
@@ -245,8 +240,7 @@ function EarnedView({ sessionBehind }: { sessionBehind: boolean }) {
 function PublishedView({ profile }: { profile: PeerMentorProfile }) {
   const t = useTranslations("iaIskur.give");
   const view = usePeerGivePublished(profile.menteeCapacity);
-  const { received, decision } = view;
-  const loaded = received.query.data !== undefined;
+  const { received, decision, loaded } = view;
 
   return (
     <div className="space-y-7">
@@ -271,63 +265,79 @@ function PublishedView({ profile }: { profile: PeerMentorProfile }) {
         ]}
       />
       <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
-        <div
-          role="tabpanel"
-          id={panelId(TABS_ID, view.tab)}
-          aria-labelledby={tabId(TABS_ID, view.tab)}
-          className="min-w-0 flex-1 space-y-4"
-        >
-          {view.tab === PeerGiveTab.Requests ||
-          view.tab === PeerGiveTab.Mentees ? (
+        <div className="min-w-0 flex-1">
+          <TabPanel
+            idPrefix={TABS_ID}
+            id={PeerGiveTab.Requests}
+            selected={view.tab === PeerGiveTab.Requests}
+          >
             <QueryNotice
               isLoading={received.query.isLoading}
               error={received.query.error}
             />
-          ) : null}
-          {view.tab === PeerGiveTab.Requests && loaded ? (
-            <RequestList
-              requests={received.waiting}
-              empty={t("requests.empty")}
-              renderActions={(request, index) => (
-                <div className="flex gap-3">
-                  <Button
-                    variant={ButtonVariant.Secondary}
-                    fullWidth
-                    className="flex-1"
-                    disabled={decision.pendingId === request.id}
-                    onClick={() => decision.decline(request.id)}
-                  >
-                    {t("requests.decline")}
-                  </Button>
-                  <span
-                    className="flex flex-1"
-                    data-tour={index === 0 ? "peer-request-accept" : undefined}
-                  >
+            {loaded ? (
+              <RequestList
+                requests={received.waiting}
+                empty={t("requests.empty")}
+                renderActions={(request, index) => (
+                  <div className="flex gap-3">
                     <Button
+                      variant={ButtonVariant.Secondary}
                       fullWidth
+                      className="flex-1"
                       disabled={decision.pendingId === request.id}
-                      onClick={() => decision.accept(request.id)}
+                      onClick={() => decision.decline(request.id)}
                     >
-                      {t("requests.accept")}
+                      {t("requests.decline")}
                     </Button>
-                  </span>
-                </div>
-              )}
-            />
-          ) : null}
-          {view.tab === PeerGiveTab.Mentees && loaded ? (
-            <RequestList
-              requests={received.mentees}
-              empty={t("mentees.empty")}
-            />
-          ) : null}
-          {view.tab === PeerGiveTab.Availability ? <AvailabilityPanel /> : null}
-          {view.tab === PeerGiveTab.Profile ? (
+                    <span
+                      className="flex flex-1"
+                      data-tour={
+                        index === 0 ? "peer-request-accept" : undefined
+                      }
+                    >
+                      <Button
+                        fullWidth
+                        disabled={decision.pendingId === request.id}
+                        onClick={() => decision.accept(request.id)}
+                      >
+                        {t("requests.accept")}
+                      </Button>
+                    </span>
+                  </div>
+                )}
+              />
+            ) : null}
+          </TabPanel>
+          <TabPanel
+            idPrefix={TABS_ID}
+            id={PeerGiveTab.Mentees}
+            selected={view.tab === PeerGiveTab.Mentees}
+          >
+            {loaded ? (
+              <RequestList
+                requests={received.mentees}
+                empty={t("mentees.empty")}
+              />
+            ) : null}
+          </TabPanel>
+          <TabPanel
+            idPrefix={TABS_ID}
+            id={PeerGiveTab.Availability}
+            selected={view.tab === PeerGiveTab.Availability}
+          >
+            <AvailabilityPanel />
+          </TabPanel>
+          <TabPanel
+            idPrefix={TABS_ID}
+            id={PeerGiveTab.Profile}
+            selected={view.tab === PeerGiveTab.Profile}
+          >
             <ProfilePanel profile={profile} />
-          ) : null}
+          </TabPanel>
         </div>
         <aside className="flex w-full flex-col gap-6 lg:w-[400px] lg:shrink-0">
-          <CapacityCard capacity={view.capacity} />
+          {view.capacity ? <CapacityCard capacity={view.capacity} /> : null}
           <ProfileSummaryCard profile={profile} />
         </aside>
       </div>
@@ -372,10 +382,8 @@ function RequestCard({
   children?: ReactNode;
 }) {
   const t = useTranslations("iaIskur.give.requests");
-  const tStatus = useTranslations("iaIskur.requestStatus");
   const tTopic = useTranslations("peerTopics");
   const locale = useLocale();
-  const tone = REQUEST_STATUS_TONE[request.status];
   return (
     <article
       aria-label={request.mentee.fullName}
@@ -391,12 +399,7 @@ function RequestCard({
             {t("sentAt", { date: formatDateTime(request.createdAt, locale) })}
           </p>
         </div>
-        <StatusBadge
-          tone={tone}
-          icon={tone === StatusTone.Warning ? <HourglassIcon /> : undefined}
-        >
-          {tStatus(request.status)}
-        </StatusBadge>
+        <RequestStatusBadge status={request.status} />
       </div>
       <p className="type-body break-words text-text-primary">
         {t("quote", { message: request.message })}
@@ -433,7 +436,11 @@ function CapacityCard({ capacity }: { capacity: PeerMentorCapacity }) {
           aria-label={t("title")}
           aria-valuemin={0}
           aria-valuemax={capacity.capacity}
-          aria-valuenow={capacity.used}
+          aria-valuenow={capacity.filled}
+          aria-valuetext={t("valueText", {
+            used: capacity.used,
+            capacity: capacity.capacity,
+          })}
           className="h-2 overflow-hidden rounded-full bg-background-muted"
         >
           <div

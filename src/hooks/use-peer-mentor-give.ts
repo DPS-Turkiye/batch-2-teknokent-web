@@ -20,6 +20,7 @@ import {
 import { PEER_MENTOR_CATEGORIES_QUERY_KEY } from "@/hooks/use-student-profile-completion";
 import { STUDENT_TRAINING_QUERY_KEY } from "@/hooks/use-student-training";
 import { useWeeklyAvailabilityForm } from "@/hooks/use-weekly-availability-form";
+import { BadgeStatus } from "@/interfaces/badges";
 import type {
   MentorAvailabilitySettings,
   UpdateMentorAvailabilitySettingsPayload,
@@ -103,6 +104,7 @@ export function usePeerMentorGate() {
   return {
     state,
     gateAward,
+    expired: gateAward?.status === BadgeStatus.Expired,
     isLoading: badges.isLoading || institution.isLoading,
     sessionBehind,
   };
@@ -206,12 +208,17 @@ export function usePeerGivePublished(menteeCapacity: number | null) {
   const [tab, setTab] = useState(PeerGiveTab.Requests);
   const received = useReceivedPeerRequests();
   const decision = usePeerRequestDecision();
+  const loaded = received.query.data !== undefined;
   return {
     tab,
     setTab,
     received,
     decision,
-    capacity: peerMentorCapacity(received.mentees.length, menteeCapacity),
+    loaded,
+    // Until the requests load the mentee count is unknown, so the card waits instead of showing 0.
+    capacity: loaded
+      ? peerMentorCapacity(received.mentees.length, menteeCapacity)
+      : null,
   };
 }
 

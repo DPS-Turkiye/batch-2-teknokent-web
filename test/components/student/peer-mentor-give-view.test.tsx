@@ -297,8 +297,8 @@ describe("PeerMentorGiveView", () => {
     const capacity = screen.getByRole("region", { name: "Kapasiten" });
     expect(within(capacity).getByText("/ 3 mentee")).toBeVisible();
     expect(within(capacity).getByRole("progressbar")).toHaveAttribute(
-      "aria-valuenow",
-      "1",
+      "aria-valuetext",
+      "1 / 3 mentee",
     );
     expect(
       screen.getByRole("link", { name: "Profili Düzenle" }),
@@ -327,7 +327,9 @@ describe("PeerMentorGiveView", () => {
       }),
     );
 
-    await user.click(screen.getByRole("tab", { name: /Menteelerim/ }));
+    screen.getByRole("tab", { name: /Mentorluk Talepleri/ }).focus();
+    await user.keyboard("{ArrowRight}");
+    expect(screen.getByRole("tab", { name: /Menteelerim/ })).toHaveFocus();
     const mentees = screen.getByRole("tabpanel", { name: /Menteelerim/ });
     expect(
       within(mentees).getByRole("article", { name: "Mehmet Kaya" }),
@@ -337,7 +339,10 @@ describe("PeerMentorGiveView", () => {
       within(mentees).queryByRole("button", { name: "Kabul Et" }),
     ).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole("tab", { name: "Mentor Profilim" }));
+    await user.keyboard("{End}");
+    expect(
+      screen.getByRole("tab", { name: "Mentor Profilim" }),
+    ).toHaveAttribute("aria-selected", "true");
     expect(
       screen.getByText("Staj ve CV konusunda yardımcı olurum."),
     ).toBeVisible();

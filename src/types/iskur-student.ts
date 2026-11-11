@@ -1,4 +1,4 @@
-/** Mentorluk Ver's tabs once the peer mentor's profile is published (Figma 85:454). */
+/** Mentorluk Ver's tabs once the peer mentor's profile is published. */
 export enum PeerGiveTab {
   Requests = "requests",
   Mentees = "mentees",
@@ -18,8 +18,8 @@ export enum PeerCapacityNote {
 
 /** "Mentor olma adımları", in order; the Mentorluk Ver screens mark where the student is. */
 export enum PeerMentorJourneyStep {
-  EarnBadge,
-  BadgeVerified,
-  CreateProfile,
-  Published,
+  EarnBadge = "earnBadge",
+  BadgeVerified = "badgeVerified",
+  CreateProfile = "createProfile",
+  Published = "published",
 }

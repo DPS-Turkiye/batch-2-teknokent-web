@@ -22,19 +22,19 @@
     "journey": {
       "heading": "Mentor olma adımları",
       "youAreHere": "Şu an buradasın",
-      "0": {
+      "earnBadge": {
         "title": "Rozetini Al",
         "hint": "Eğitimi tamamla"
       },
-      "1": {
+      "badgeVerified": {
         "title": "Rozet Doğrulandı",
         "hint": "Eğitimi tamamlayınca sistem doğrular"
       },
-      "2": {
+      "createProfile": {
         "title": "Mentor Profilini Oluştur",
         "hint": "Konular, deneyim ve müsaitlik"
       },
-      "3": {
+      "published": {
         "title": "Profil Yayında",
         "hint": "Öğrenciler seni keşfedebilir"
       }
@@ -91,7 +91,8 @@
         "open": "Yeni talepleri kabul edebilirsin.",
         "lastPlace": "Bir talebi kabul edersen kapasiten dolacak. Yeni talepler kapasite açılana kadar sana gelmez.",
         "full": "Kapasiten dolu. Yeni talepler kapasite açılana kadar sana gelmez."
-      }
+      },
+      "valueText": "{used} / {capacity} mentee"
     },
     "profileCard": {
       "title": "Mentor profilin",

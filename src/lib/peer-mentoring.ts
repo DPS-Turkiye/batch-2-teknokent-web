@@ -91,12 +91,17 @@ export function sharedInterests(
 export type PeerMentorCapacity = {
   used: number;
   capacity: number | null;
-  /** Bar fill, 0–100. */
+  /** `used` held at the capacity, for the bar (a lowered capacity can leave more mentees than places). */
+  filled: number;
+  /** Bar fill, 0–100; only a full capacity shows 100. */
   percent: number;
   note: PeerCapacityNote;
 };
 
-/** The "Kapasiten" card: accepted mentees against the mentor's capacity (none set means no limit). */
+/**
+ * The "Kapasiten" card: accepted mentees against the mentor's capacity. No capacity (null, or a non-positive value the
+ * backend should never send) means no limit.
+ */
 export function peerMentorCapacity(
   mentees: number,
   capacity: number | null,
@@ -105,10 +110,12 @@ export function peerMentorCapacity(
     return {
       used: mentees,
       capacity: null,
+      filled: mentees,
       percent: 0,
       note: PeerCapacityNote.Unset,
     };
   }
+  const filled = Math.min(mentees, capacity);
   const note =
     mentees >= capacity
       ? PeerCapacityNote.Full
@@ -118,7 +125,8 @@ export function peerMentorCapacity(
   return {
     used: mentees,
     capacity,
-    percent: Math.min(100, Math.round((mentees / capacity) * 100)),
+    filled,
+    percent: Math.floor((filled / capacity) * 100),
     note,
   };
 }

@@ -1,28 +1,47 @@
+import { useTranslations } from "next-intl";
 import Image from "next/image";
-import type { ReactNode } from "react";
+import { useRef, type KeyboardEvent, type ReactNode } from "react";
 
-import { StatusTone } from "@/components/ia/status-badge";
-import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
+import { StatusBadge, StatusTone } from "@/components/ia/status-badge";
+import type { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
+import { PEER_REQUEST_STATUS_TONE } from "@/lib/peer-mentoring";
 
 /*
- * Pieces of the IA Revizyon kit (Figma 78:3) that the İŞKUR screens need and `components/ia` does not have yet:
- * underline tabs with a count, the vertical "Mentor olma adımları" list, the info card, the initials avatar and the
- * 32px tag. They use the kit's tokens, so they can move into `components/ia` unchanged.
+ * Pieces the İŞKUR screens need that `components/ia` does not have yet: underline tabs with a count, the vertical
+ * "Mentor olma adımları" list, the info card, the initials avatar, the 32px tag and the request status badge. They use
+ * the kit's tokens, so they can move into `components/ia` unchanged.
  */
 
-/** A request's status as the mentor sees it; a waiting request never shares Accepted's tone. */
-export const REQUEST_STATUS_TONE: Record<MentorshipRequestStatus, StatusTone> =
-  {
-    [MentorshipRequestStatus.Pending]: StatusTone.Warning,
-    [MentorshipRequestStatus.MoreInfoRequested]: StatusTone.Info,
-    [MentorshipRequestStatus.CounterProposed]: StatusTone.Info,
-    [MentorshipRequestStatus.Accepted]: StatusTone.Success,
-    [MentorshipRequestStatus.Declined]: StatusTone.Error,
-    [MentorshipRequestStatus.Withdrawn]: StatusTone.Neutral,
-  };
+/** The kit tone for each of the older status-chip tones, so request statuses keep one table (PEER_REQUEST_STATUS_TONE). */
+const KIT_TONE = {
+  green: StatusTone.Success,
+  amber: StatusTone.Warning,
+  red: StatusTone.Error,
+  neutral: StatusTone.Neutral,
+  blue: StatusTone.Info,
+  orange: StatusTone.Warning,
+} as const;
 
-export function HourglassIcon() {
-  return <Image src="/ia/iskur/hourglass.svg" alt="" width={16} height={16} />;
+/** A peer request's status, with the hourglass while it waits. */
+export function RequestStatusBadge({
+  status,
+}: {
+  status: MentorshipRequestStatus;
+}) {
+  const t = useTranslations("iaIskur.requestStatus");
+  const tone = KIT_TONE[PEER_REQUEST_STATUS_TONE[status]];
+  return (
+    <StatusBadge
+      tone={tone}
+      icon={
+        tone === StatusTone.Warning ? (
+          <Image src="/ia/iskur/hourglass.svg" alt="" width={16} height={16} />
+        ) : undefined
+      }
+    >
+      {t(status)}
+    </StatusBadge>
+  );
 }
 
 export enum TagTone {
@@ -37,7 +56,7 @@ const TAG_TONES: Record<TagTone, string> = {
   [TagTone.Accent]: "bg-background-selected text-text-accent",
 };
 
-/** A category or expertise label (Figma "Tag", 32px). */
+/** A category or expertise label (32px). */
 export function Tag({
   tone = TagTone.Neutral,
   children,
@@ -79,7 +98,11 @@ export function panelId(prefix: string, id: string) {
   return `${prefix}-panel-${id}`;
 }
 
-/** Underline tabs (Figma "Tab", 44px) with an optional count; each panel is labelled by its tab. */
+/**
+ * Underline tabs (44px) with an optional count, following the WAI-ARIA tabs pattern: one tab in the tab order, arrow
+ * keys and Home/End move between tabs. The panels stay rendered (hidden when inactive), so every `aria-controls`
+ * points at a real panel.
+ */
 export function UnderlineTabs<T extends string>({
   label,
   tabs,
@@ -93,24 +116,53 @@ export function UnderlineTabs<T extends string>({
   onSelect: (id: T) => void;
   idPrefix: string;
 }) {
+  const buttons = useRef(new Map<T, HTMLButtonElement>());
+  const move = (event: KeyboardEvent, index: number) => {
+    const last = tabs.length - 1;
+    const target =
+      event.key === "ArrowRight"
+        ? index === last
+          ? 0
+          : index + 1
+        : event.key === "ArrowLeft"
+          ? index === 0
+            ? last
+            : index - 1
+          : event.key === "Home"
+            ? 0
+            : event.key === "End"
+              ? last
+              : null;
+    const tab = target === null ? undefined : tabs[target];
+    if (!tab) return;
+    event.preventDefault();
+    onSelect(tab.id);
+    buttons.current.get(tab.id)?.focus();
+  };
   return (
     <div
       role="tablist"
       aria-label={label}
       className="flex gap-1 overflow-x-auto border-b border-border-subtle"
     >
-      {tabs.map((tab) => {
+      {tabs.map((tab, index) => {
         const active = tab.id === selected;
         return (
           <button
             key={tab.id}
+            ref={(element) => {
+              if (element) buttons.current.set(tab.id, element);
+              else buttons.current.delete(tab.id);
+            }}
             id={tabId(idPrefix, tab.id)}
             type="button"
             role="tab"
             aria-selected={active}
             aria-controls={panelId(idPrefix, tab.id)}
+            tabIndex={active ? 0 : -1}
             onClick={() => onSelect(tab.id)}
-            className={`flex min-w-max flex-1 flex-col items-center ${
+            onKeyDown={(event) => move(event, index)}
+            className={`flex min-w-max flex-1 flex-col items-center rounded-t-lg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-border-selected ${
               active ? "text-text-accent" : "text-text-secondary"
             }`}
           >
@@ -137,24 +189,50 @@ export function UnderlineTabs<T extends string>({
   );
 }
 
+/** One tab's panel; inactive panels stay mounted but hidden, so their state (an unsaved draft) survives a switch. */
+export function TabPanel({
+  idPrefix,
+  id,
+  selected,
+  children,
+}: {
+  idPrefix: string;
+  id: string;
+  selected: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      role="tabpanel"
+      id={panelId(idPrefix, id)}
+      aria-labelledby={tabId(idPrefix, id)}
+      hidden={!selected}
+      tabIndex={0}
+      className="space-y-4 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-border-selected"
+    >
+      {children}
+    </div>
+  );
+}
+
 export type JourneyStep = { key: string; title: string; hint: string };
 
-/** "Mentor olma adımları": a vertical numbered list in a card, the current step filled (Figma 85:404). */
+/** "Mentor olma adımları": a vertical numbered list in a card, the current step filled. */
 export function JourneySteps({
   heading,
   steps,
-  current,
+  currentKey,
 }: {
   heading: string;
   steps: readonly JourneyStep[];
-  current: number;
+  currentKey: string;
 }) {
   return (
     <div className="w-full rounded-[20px] bg-background-surface p-6 lg:w-[440px] lg:shrink-0">
       <p className="type-overline text-text-muted uppercase">{heading}</p>
       <ol aria-label={heading}>
         {steps.map((step, index) => {
-          const active = index === current;
+          const active = step.key === currentKey;
           return (
             <li
               key={step.key}

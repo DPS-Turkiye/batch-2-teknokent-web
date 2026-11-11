@@ -22,19 +22,19 @@
     "journey": {
       "heading": "Steps to becoming a mentor",
       "youAreHere": "You are here",
-      "0": {
+      "earnBadge": {
         "title": "Earn your badge",
         "hint": "Complete the training"
       },
-      "1": {
+      "badgeVerified": {
         "title": "Badge verified",
         "hint": "Verified when you finish the training"
       },
-      "2": {
+      "createProfile": {
         "title": "Create your mentor profile",
         "hint": "Topics, experience and availability"
       },
-      "3": {
+      "published": {
         "title": "Profile published",
         "hint": "Students can discover you"
       }
@@ -91,7 +91,8 @@
         "open": "You can accept new requests.",
         "lastPlace": "Accepting one more request fills your capacity. New requests won't reach you until a place opens.",
         "full": "Your capacity is full. New requests won't reach you until a place opens."
-      }
+      },
+      "valueText": "{used} of {capacity} mentees"
     },
     "profileCard": {
       "title": "Your mentor profile",
