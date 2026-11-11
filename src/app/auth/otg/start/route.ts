@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
 import { InstitutionProvider } from "@/interfaces/institution-login";
 import { startInstitutionLogin } from "@/lib/api/institution-login";

@@ -58,23 +58,32 @@ export type MeetingAssistantShare = {
   reportPublishedAt: string | null;
 };
 
+/** What a mentor shares from the meeting assistant; the backend's share kinds, plus a provider transcript fetched first. */
+export enum AssistantShareKind {
+  Transcript = "TRANSCRIPT",
+  ProviderTranscript = "PROVIDER_TRANSCRIPT",
+  TranscriptS3 = "TRANSCRIPT_S3",
+  Report = "REPORT",
+  ReportS3 = "REPORT_S3",
+}
+
 export type PublishAssistantSharePayload =
   | {
-      kind: "TRANSCRIPT";
+      kind: AssistantShareKind.Transcript;
       transcript: TranscriptLine[];
     }
   | {
-      kind: "PROVIDER_TRANSCRIPT";
+      kind: AssistantShareKind.ProviderTranscript;
       platform: string;
       nativeMeetingId: string;
     }
   | {
-      kind: "TRANSCRIPT_S3";
+      kind: AssistantShareKind.TranscriptS3;
     }
   | {
-      kind: "REPORT";
+      kind: AssistantShareKind.Report;
       report: MeetingReport;
     }
   | {
-      kind: "REPORT_S3";
+      kind: AssistantShareKind.ReportS3;
     };

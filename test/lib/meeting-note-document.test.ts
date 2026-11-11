@@ -7,6 +7,7 @@ import {
   bindMeetingNoteDocument,
   formatMeetingNoteContributors,
 } from "@/lib/meeting-note-document";
+import { itemAt } from "@test/fixtures/list-assertions";
 
 function encodedState(doc: Y.Doc) {
   return bytesToBase64(Y.encodeStateAsUpdate(doc));
@@ -28,12 +29,12 @@ describe("meeting note document bridge", () => {
 
     doc.getText("note").insert(0, "Sprint");
 
-    const [update, fullState] = publish.mock.calls[0];
+    const [update, fullState] = itemAt(publish.mock.calls, 0);
     expect(fullState).toBe(false);
 
     const mirror = new Y.Doc();
     Y.applyUpdate(mirror, base64ToBytes(update));
-    expect(mirror.getText("note").toString()).toBe("Sprint");
+    expect(mirror.getText("note").toJSON()).toBe("Sprint");
   });
 
   it("applies remote updates without relaying them back", () => {
@@ -45,7 +46,7 @@ describe("meeting note document bridge", () => {
     other.getText("note").insert(0, "Ortak not");
     bridge.applyRemoteUpdate(encodedState(other));
 
-    expect(doc.getText("note").toString()).toBe("Ortak not");
+    expect(doc.getText("note").toJSON()).toBe("Ortak not");
     expect(publish).not.toHaveBeenCalledWith(expect.any(String), false);
   });
 
@@ -58,12 +59,12 @@ describe("meeting note document bridge", () => {
     publish.mockClear();
     vi.advanceTimersByTime(3000);
 
-    const [update, fullState] = publish.mock.calls[0];
+    const [update, fullState] = itemAt(publish.mock.calls, 0);
     expect(fullState).toBe(true);
 
     const mirror = new Y.Doc();
     Y.applyUpdate(mirror, base64ToBytes(update));
-    expect(mirror.getText("note").toString()).toBe("Sprint");
+    expect(mirror.getText("note").toJSON()).toBe("Sprint");
   });
 
   it("keeps Redis fresh after a remote edit as well", () => {

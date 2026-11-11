@@ -46,6 +46,27 @@ describe("ProgramThreadList", () => {
     await user.click(screen.getByRole("button", { name: /METU Stars 2026/ }));
     expect(onSelect).toHaveBeenCalledWith("conversation-1");
   });
+
+  it("leaves out the coordinator line when the program has no running coordinator", () => {
+    render(
+      <ProgramThreadList
+        threads={programThreadsStub({
+          threads: [
+            coordinatorConversation({
+              coordinatorId: null,
+              coordinatorName: null,
+            }),
+          ],
+        })}
+        accent={ACCENT}
+        onSelect={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText("METU Stars 2026")).toBeInTheDocument();
+    expect(screen.queryByText(/Koordinatör ·/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/null/)).not.toBeInTheDocument();
+  });
 });
 
 describe("ProgramThreadPane", () => {

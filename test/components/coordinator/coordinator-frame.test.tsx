@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { CoordinatorFrame } from "@/components/coordinator/coordinator-frame";
-import { type AppSession, UserRole } from "@/interfaces/session";
+import { UserRole, type AppSession } from "@/interfaces/session";
 import { InLocale } from "@test/test-utils";
 
 const mockSession = vi.fn<() => AppSession | null>();
@@ -27,9 +27,9 @@ function session(role: UserRole): AppSession {
     userId: "user-1",
     email: "elif@tekno.test",
     fullName: "Elif Demir",
-    jobTitle: null,
+    jobTitle: "",
     role,
-  } as AppSession;
+  };
 }
 
 describe("CoordinatorFrame", () => {

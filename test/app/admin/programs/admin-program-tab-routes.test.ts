@@ -1,6 +1,5 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
-
 import { renderHook } from "@testing-library/react";
 import { usePathname } from "next/navigation";
 import { describe, expect, it, vi } from "vitest";
@@ -49,13 +48,15 @@ describe("admin program tabs", () => {
         .filter((href): href is string => href !== null)
         .map(result.current.resolveHref);
 
-      for (const href of hrefs) {
-        expect(
-          href === ADMIN_PROGRAM || href.startsWith(`${ADMIN_PROGRAM}/`),
-          href,
-        ).toBe(true);
-        expect(existsSync(pageFileOf(href)), href).toBe(true);
-      }
+      const outsideAdmin = hrefs.filter(
+        (href) =>
+          href !== ADMIN_PROGRAM && !href.startsWith(`${ADMIN_PROGRAM}/`),
+      );
+      const withoutPage = hrefs.filter((href) => !existsSync(pageFileOf(href)));
+
+      expect(hrefs.length).toBeGreaterThan(0);
+      expect(outsideAdmin).toEqual([]);
+      expect(withoutPage).toEqual([]);
     },
   );
 });

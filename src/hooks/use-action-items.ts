@@ -7,8 +7,8 @@ import type { ActionItem } from "@/interfaces/action-item";
 import {
   changeActionItemStatus,
   getActionItems,
-  getOrganizationActionItems,
   getActionItemsForRequests,
+  getOrganizationActionItems,
 } from "@/lib/client/action-items";
 
 export const ACTION_ITEMS_QUERY_KEY = ["action-items"] as const;
@@ -43,7 +43,7 @@ export function useActionItemsForRequests(requestIds: string[]) {
 export function useActionItems(requestId: string | undefined) {
   return useQuery({
     queryKey: actionItemsQueryKey(requestId ?? ""),
-    queryFn: () => getActionItems(requestId as string),
+    queryFn: () => getActionItems(requestId!),
     enabled: Boolean(requestId),
   });
 }

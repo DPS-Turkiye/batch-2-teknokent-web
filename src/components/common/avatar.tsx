@@ -1,4 +1,5 @@
 import { useTranslations } from "next-intl";
+
 /** A person's photo when they have one, otherwise their initials; `className` sets size and text. */
 export function PhotoAvatar({
   initials,

@@ -7,6 +7,7 @@ import {
   MentorshipRequestStatus,
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
+import { idleQuery, successQuery } from "@test/mocks/query-results";
 import { renderWithQueryClient } from "@test/test-utils";
 
 const { searchParams } = vi.hoisted(() => ({
@@ -60,11 +61,11 @@ const baseRequest: MentorshipRequest = {
   plannedSessionCount: 3,
 };
 
+/** The request loaded, or, with none, the disabled query a missing id leaves. */
 function mockRequest(request: MentorshipRequest | undefined) {
-  vi.mocked(useMentorshipRequest).mockReturnValue({
-    data: request,
-    error: null,
-  } as unknown as ReturnType<typeof useMentorshipRequest>);
+  vi.mocked(useMentorshipRequest).mockReturnValue(
+    request ? successQuery(request) : idleQuery(),
+  );
 }
 
 describe("MenteeRequestDetailPage", () => {

@@ -2,9 +2,8 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { useState, type FormEvent } from "react";
+import { useState, type SubmitEvent } from "react";
 
-import { useToast } from "@/stores/toast-store";
 import {
   MAX_PROPOSED_TIMES,
   OfficeHoursRequestAction,
@@ -12,16 +11,17 @@ import {
   type OfficeHoursRequest,
 } from "@/interfaces/academician-office-hours";
 import { AppointmentStatus } from "@/interfaces/appointment";
-import {
-  answerAcademicianRequest,
-  getAcademicianRequests,
-} from "@/lib/client/academician-office-hours";
+import { ToastTone } from "@/interfaces/toast";
 import {
   ACADEMICIAN_OFFICE_HOURS_QUERY_KEY,
   rangeMinutes,
   turkeyTimeRange,
 } from "@/lib/academician-office-hours";
-import { ToastTone } from "@/interfaces/toast";
+import {
+  answerAcademicianRequest,
+  getAcademicianRequests,
+} from "@/lib/client/academician-office-hours";
+import { useToast } from "@/stores/toast-store";
 
 export const ACADEMICIAN_REQUESTS_QUERY_KEY = [
   ...ACADEMICIAN_OFFICE_HOURS_QUERY_KEY,
@@ -95,7 +95,7 @@ export function useAcademicianRequests() {
     setForm({ id: request.id, action });
     setPickedTime(
       request.requestedTimes.length === 1
-        ? request.requestedTimes[0].startsAt
+        ? (request.requestedTimes[0]?.startsAt ?? "")
         : "",
     );
     setReason("");
@@ -117,7 +117,9 @@ export function useAcademicianRequests() {
       case OfficeHoursRequestAction.Decline:
         return { action: form.action, reason: reason.trim() || null };
       case OfficeHoursRequestAction.ProposeTimes: {
-        const minutes = rangeMinutes(request.requestedTimes[0]);
+        const requested = request.requestedTimes[0];
+        if (!requested) return t("needTime");
+        const minutes = rangeMinutes(requested);
         const times = proposedTimes
           .filter(Boolean)
           .map((local) => turkeyTimeRange(local, minutes));
@@ -136,7 +138,7 @@ export function useAcademicianRequests() {
     }
   };
 
-  const submit = (request: OfficeHoursRequest) => (event: FormEvent) => {
+  const submit = (request: OfficeHoursRequest) => (event: SubmitEvent) => {
     event.preventDefault();
     const reply = replyFor(request);
     if (typeof reply === "string") {

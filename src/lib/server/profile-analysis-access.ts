@@ -1,8 +1,9 @@
 import "server-only";
+
 import { UserRole } from "@/interfaces/session";
+import { hasPermission } from "@/lib/permissions";
 import { SessionRequiredError } from "@/lib/server/session-error";
 import { getSessionUser } from "@/lib/session";
-import { hasPermission } from "@/lib/permissions";
 
 export async function requireProfileAnalysisSession() {
   const session = await getSessionUser();

@@ -1,4 +1,3 @@
-import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -14,29 +13,24 @@ import {
   goalPercent,
   healthFilterOptions,
   lastMeetingLabel,
+  mentorLoadLabel,
   MentorshipHealthFilter,
   MentorshipSort,
-  mentorLoadLabel,
   nextMeetingLabel,
   notesSummary,
   sortMentorships,
   topicOptions,
   type MentorshipTexts,
 } from "@/lib/coordinator-mentorships";
-import en from "@/messages/en.json";
-import tr from "@/messages/tr.json";
 import {
   coordinatorMentorship,
   coordinatorMentorshipDetail,
 } from "@test/fixtures/coordinator-mentorships";
+import { translatorIn } from "@test/translators";
 
 function texts(locale: "tr" | "en"): MentorshipTexts {
   return {
-    t: createTranslator({
-      locale,
-      messages: locale === "en" ? en : tr,
-      namespace: "coordinatorMentorships",
-    }),
+    t: translatorIn(locale, "coordinatorMentorships"),
     locale,
   };
 }

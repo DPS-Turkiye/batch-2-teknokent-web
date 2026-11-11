@@ -8,6 +8,7 @@ import {
   MentorshipRequestMessageType,
   MentorshipRequestStatus,
   type MentorshipRequest,
+  type RequestMessage,
 } from "@/interfaces/mentorship-request";
 
 function request(
@@ -28,6 +29,20 @@ function request(
     messages: [],
     recommendationSnapshot: null,
     ...overrides,
+  };
+}
+
+function message(
+  messageType: MentorshipRequestMessageType,
+  body: string,
+): RequestMessage {
+  return {
+    id: `message-${body}`,
+    authorId: "author-1",
+    authorName: "Leyla Aksoy",
+    messageType,
+    body,
+    createdAt: "2026-08-17T10:00:00Z",
   };
 }
 
@@ -62,14 +77,11 @@ describe("MentorDecisionModal", () => {
         {...baseProps()}
         request={request({
           messages: [
-            {
-              messageType: MentorshipRequestMessageType.MentorQuestion,
-              body: "Bütçeniz nedir?",
-            },
-            {
-              messageType: MentorshipRequestMessageType.MenteeReply,
-              body: "50.000 TL",
-            },
+            message(
+              MentorshipRequestMessageType.MentorQuestion,
+              "Bütçeniz nedir?",
+            ),
+            message(MentorshipRequestMessageType.MenteeReply, "50.000 TL"),
           ],
         })}
       />,

@@ -3,8 +3,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   isIdle,
   isPolledQuery,
-  polling,
   POLL_INTERVAL,
+  polling,
   recordActivity,
   whenVisible,
 } from "@/lib/poll";

@@ -4,20 +4,15 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import MentorComparisonPage from "@/app/mentors/compare/page";
 import { mentorProfileHref } from "@/lib/mentor-profile-request";
 import { mentorProfile } from "@test/fixtures/mentors";
+import type { MessageNamespace, TestLocale } from "@test/i18n";
 
-const page = vi.hoisted(() => ({ locale: "tr" as "tr" | "en" }));
+const page = vi.hoisted((): { locale: TestLocale } => ({ locale: "tr" }));
 
 vi.mock("next-intl/server", async () => {
-  const { createTranslator } = await import("next-intl");
-  const { default: tr } = await import("@/messages/tr.json");
-  const { default: en } = await import("@/messages/en.json");
+  const { translatorIn } = await import("@test/translators");
   return {
-    getTranslations: async (namespace: string) =>
-      createTranslator({
-        locale: page.locale,
-        messages: page.locale === "en" ? en : tr,
-        namespace: namespace as never,
-      }),
+    getTranslations: async (namespace: MessageNamespace) =>
+      translatorIn(page.locale, namespace),
   };
 });
 

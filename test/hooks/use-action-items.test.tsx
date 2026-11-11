@@ -4,8 +4,8 @@ import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useActionItemsForRequests } from "@/hooks/use-action-items";
-import type { ActionItem } from "@/interfaces/action-item";
 import { getActionItemsForRequests } from "@/lib/client/action-items";
+import { menteeActionItemFixture } from "@test/fixtures/mentee-home";
 import { createTestQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/action-items", () => ({
@@ -23,7 +23,7 @@ function wrapper({ children }: { children: ReactNode }) {
 }
 
 function item(id: string, requestId: string) {
-  return { id, mentorshipRequestId: requestId } as ActionItem;
+  return menteeActionItemFixture({ id, mentorshipRequestId: requestId });
 }
 
 describe("useActionItemsForRequests", () => {

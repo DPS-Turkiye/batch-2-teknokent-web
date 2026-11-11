@@ -33,7 +33,7 @@ describe("/api/organization-members/pending", () => {
       status: 200,
       data: [{ id: "p1", fullName: "Ece Kaya" }],
       headers: {},
-    } as never);
+    });
 
     const response = await GET();
 
@@ -49,7 +49,7 @@ describe("/api/organization-members/pending", () => {
       status: 204,
       data: "",
       headers: {},
-    } as never);
+    });
 
     const response = await DELETE(
       new NextRequest("http://localhost/api/organization-members/pending/p1", {
@@ -67,7 +67,7 @@ describe("/api/organization-members/pending", () => {
       status: 403,
       data: { message: "Yalnızca kurucu çıkarabilir." },
       headers: {},
-    } as never);
+    });
 
     const response = await DELETE(
       new NextRequest("http://localhost/api/organization-members/pending/p1", {

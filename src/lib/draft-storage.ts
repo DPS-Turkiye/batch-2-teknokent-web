@@ -6,7 +6,7 @@
 export function stripFileHandles<T>(value: T): T {
   try {
     return JSON.parse(
-      JSON.stringify(value, (_, entry) =>
+      JSON.stringify(value, (_, entry: unknown) =>
         typeof File !== "undefined" && entry instanceof File
           ? undefined
           : entry,

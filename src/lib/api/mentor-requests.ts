@@ -1,6 +1,7 @@
 import "server-only";
 
 import { UserRole } from "@/interfaces/session";
+import { isEnumValue } from "@/lib/enum";
 import { HttpMethod } from "@/lib/http-method";
 import { backendRequest } from "@/lib/server/backend-client";
 
@@ -27,9 +28,7 @@ const ACTIONS_WITH_REQUESTER = new Set<MentorRequestAction>([
 export function isMentorRequestAction(
   value: string,
 ): value is MentorRequestAction {
-  return Object.values(MentorRequestAction).includes(
-    value as MentorRequestAction,
-  );
+  return isEnumValue(MentorRequestAction, value);
 }
 
 export function fetchMentorRequests(options: {
@@ -95,11 +94,11 @@ export function createMentorRequest(
 
 export function mutateMentorRequest(options: {
   action: MentorRequestAction;
-  data?: Record<string, unknown>;
+  data?: Record<string, unknown> | undefined;
   id: string;
   method: HttpMethod;
   requesterId: string;
-  mentorId?: string;
+  mentorId?: string | undefined;
 }) {
   let data = options.data;
   if (data && ACTIONS_WITH_REQUESTER.has(options.action)) {

@@ -1,6 +1,7 @@
-import type { ProgramPlanWeek } from "@/interfaces/program-week";
 import type { CoordinatorMentorship } from "@/interfaces/coordinator-mentorship";
 import type { ProgramStatus, ProgramType } from "@/interfaces/program";
+import type { ProgramPlanWeek } from "@/interfaces/program-week";
+
 export enum ProgramLifecycle {
   Draft = "DRAFT",
   Upcoming = "UPCOMING",
@@ -148,13 +149,13 @@ export type UpdateProgramDetailsInput = {
   meetingNoteRequired: boolean;
   autoMatchSuggestions: boolean;
   /** Omitted keeps the saved value. */
-  defaultMentorCapacity?: number;
-  communicationGapDays?: number;
-  bottleneckFlagDays?: number;
+  defaultMentorCapacity?: number | undefined;
+  communicationGapDays?: number | undefined;
+  bottleneckFlagDays?: number | undefined;
   /** An empty string clears the domain. */
-  eligibleEmailDomain?: string | null;
-  rosterOnly?: boolean;
-  individualMentees?: boolean;
+  eligibleEmailDomain?: string | null | undefined;
+  rosterOnly?: boolean | undefined;
+  individualMentees?: boolean | undefined;
 };
 
 export type ProgramPhaseInput = {
@@ -170,7 +171,8 @@ export type ProposedPhase = ProgramPhaseInput;
 /** Phases and a week-by-week plan read from a syllabus; nothing is saved until the coordinator confirms them. */
 export type SyllabusPhases = {
   phases: ProposedPhase[];
-  weeks: ProgramPlanWeek[];
+  /** Missing from a backend that predates the week plan. */
+  weeks?: ProgramPlanWeek[];
   pageCount: number;
 };
 
@@ -213,12 +215,12 @@ export type CreateProgramInput = {
   startDate: string | null;
   endDate: string | null;
   coordinatorIds: string[];
-  defaultMentorCapacity?: number;
-  meetingFrequencyDays?: number;
-  communicationGapDays?: number;
-  bottleneckFlagDays?: number;
-  teams?: TeamInviteInput[];
-  phases?: ProgramPhaseInput[];
+  defaultMentorCapacity?: number | undefined;
+  meetingFrequencyDays?: number | undefined;
+  communicationGapDays?: number | undefined;
+  bottleneckFlagDays?: number | undefined;
+  teams?: TeamInviteInput[] | undefined;
+  phases?: ProgramPhaseInput[] | undefined;
   syllabusDocumentId?: string | null;
 };
 

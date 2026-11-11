@@ -1,4 +1,4 @@
-import { NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
 
 import { listStoredDocuments, uploadStoredDocument } from "@/lib/api/documents";
 import {
@@ -6,8 +6,8 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
-import { getSessionIds } from "@/lib/session";
 import { readBearerToken } from "@/lib/server/bearer-token";
+import { getSessionIds } from "@/lib/session";
 
 /**
  * Read-only list still proxies. Upload prefers a direct browser→backend call

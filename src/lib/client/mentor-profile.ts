@@ -1,9 +1,9 @@
 import type {
   MentorAvailabilityRule,
-  MentorAvailabilitySlot,
   MentorAvailabilitySettings,
-  UpdateMentorAvailabilitySettingsPayload,
+  MentorAvailabilitySlot,
   MentorProfile,
+  UpdateMentorAvailabilitySettingsPayload,
   UpdateMentorProfilePayload,
 } from "@/interfaces/mentor";
 import { requireSuccess } from "@/lib/client/api";
@@ -72,8 +72,8 @@ export async function createAvailabilityRule(payload: {
 }
 
 export async function deleteAvailabilityRule(ruleId: string) {
-  return requireSuccess(
-    await httpClient.delete(
+  requireSuccess(
+    await httpClient.delete<void>(
       `/api/mentor-profile/availability-rules/${encodeURIComponent(ruleId)}`,
     ),
   );
@@ -100,8 +100,8 @@ export async function createAvailabilitySlot(payload: {
 }
 
 export async function deleteAvailabilitySlot(slotId: string) {
-  return requireSuccess(
-    await httpClient.delete(
+  requireSuccess(
+    await httpClient.delete<void>(
       `/api/mentor-profile/availability/${encodeURIComponent(slotId)}`,
     ),
   );

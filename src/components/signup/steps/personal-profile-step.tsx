@@ -1,5 +1,11 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
+import {
+  ONBOARDING_TONES,
+  OnboardingTone,
+} from "@/components/onboarding/onboarding-tone";
 import {
   OnboardingCard,
   OnboardingChips,
@@ -8,10 +14,6 @@ import {
   OnboardingFileField,
   onboardingInputClass,
 } from "@/components/onboarding/onboarding-ui";
-import {
-  ONBOARDING_TONES,
-  OnboardingTone,
-} from "@/components/onboarding/onboarding-tone";
 import { useCvParse } from "@/hooks/use-cv-parse";
 import type { SignupWizard } from "@/hooks/use-signup-wizard";
 import { useStoredDocuments } from "@/hooks/use-stored-documents";
@@ -20,8 +22,8 @@ import {
   ContactPreference,
   type UploadedFile,
 } from "@/interfaces/signup";
+import { DocumentKind } from "@/interfaces/startup-document";
 import { applyCvParse } from "@/lib/cv-suggestions";
-import { useTranslations } from "next-intl";
 
 const TONE = OnboardingTone.Mentee;
 const inputClass = `${onboardingInputClass} ${ONBOARDING_TONES[TONE].focus}`;
@@ -34,7 +36,7 @@ export function PersonalProfileStep({ wizard }: { wizard: SignupWizard }) {
   const { draft, updatePersonal, toggleContactPreference } = wizard;
   const { personal } = draft;
   const cvParse = useCvParse();
-  const storedCv = useStoredDocuments().byKind("cv");
+  const storedCv = useStoredDocuments().byKind(DocumentKind.Cv);
 
   function onCvSelected(file: UploadedFile | null) {
     updatePersonal("cv", file);

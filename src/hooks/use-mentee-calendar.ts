@@ -19,6 +19,7 @@ import {
 } from "@/lib/calendar";
 import { ClientApiError } from "@/lib/client/api";
 import { getStartupProcess } from "@/lib/client/startup-process";
+import { formatDateRange } from "@/lib/format";
 import {
   CalendarEntryKind,
   deliverableEntries,
@@ -30,7 +31,6 @@ import {
   upcomingEntries,
   weekSummary,
 } from "@/lib/mentee-calendar";
-import { formatDateRange } from "@/lib/format";
 
 const UPCOMING_LIMIT = 3;
 const PREP_LIMIT = 3;
@@ -129,6 +129,7 @@ export function useMenteeCalendar(importedMeetings: MeetingItem[] = []) {
     });
   }
 
+  const firstDay = days[0];
   const lastDay = days[days.length - 1];
   // No startup means no process (the proxy answers 401); anything else is a real failure.
   const processFailed =
@@ -150,8 +151,8 @@ export function useMenteeCalendar(importedMeetings: MeetingItem[] = []) {
         month: "long",
         year: "numeric",
       }),
-      days[0],
-      lastDay,
+      firstDay ?? lastDay ?? new Date(),
+      lastDay ?? new Date(),
     ),
     previous: () => moveWeek(-1),
     next: () => moveWeek(1),

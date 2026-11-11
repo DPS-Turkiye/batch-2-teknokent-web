@@ -4,8 +4,8 @@ import type {
   CoordinatorAgendaItem,
   CoordinatorNextMeeting,
 } from "@/interfaces/coordinator-overview";
-import { relativeDayLabel } from "@/lib/utils";
 import { formatDateRange } from "@/lib/format";
+import { relativeDayLabel } from "@/lib/utils";
 
 export enum AgendaWindow {
   Today = "TODAY",

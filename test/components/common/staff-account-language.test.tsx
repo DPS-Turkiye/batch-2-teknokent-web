@@ -1,12 +1,14 @@
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, expect, it, vi } from "vitest";
+
 import { AdminFrame } from "@/components/admin/admin-frame";
 import { CoordinatorFrame } from "@/components/coordinator/coordinator-frame";
 import { UserRole } from "@/interfaces/session";
 import { saveLanguage } from "@/lib/client/auth";
 import { Locale, LOCALE_COOKIE } from "@/lib/i18n";
 import { renderWithQueryClient } from "@test/test-utils";
+
 let role = UserRole.Admin;
 const refresh = vi.fn();
 vi.mock("next/navigation", () => ({

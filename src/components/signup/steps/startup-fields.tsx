@@ -1,20 +1,23 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
+import {
+  ONBOARDING_TONES,
+  OnboardingTone,
+} from "@/components/onboarding/onboarding-tone";
 import {
   OnboardingCard,
   OnboardingChips,
   OnboardingCounter,
   OnboardingField,
   OnboardingImagePicker,
+  onboardingInputClass,
   OnboardingListRow,
   OnboardingNote,
   OnboardingTextAction,
-  onboardingInputClass,
 } from "@/components/onboarding/onboarding-ui";
-import {
-  ONBOARDING_TONES,
-  OnboardingTone,
-} from "@/components/onboarding/onboarding-tone";
+import { useOptionLabel } from "@/hooks/use-option-label";
 import type { StartupDraftForm } from "@/hooks/use-startup-draft";
 import { useTeamMemberForm } from "@/hooks/use-team-member-form";
 import {
@@ -24,8 +27,6 @@ import {
   TAGLINE_MAX_LENGTH,
 } from "@/interfaces/signup";
 import { initials } from "@/lib/utils";
-import { useOptionLabel } from "@/hooks/use-option-label";
-import { useTranslations } from "next-intl";
 
 const TONE = OnboardingTone.Mentee;
 const theme = ONBOARDING_TONES[TONE];
@@ -187,7 +188,7 @@ export function StartupFields({ form }: { form: StartupDraftForm }) {
         </OnboardingListRow>
         {startup.teamMembers.map((member, index) => (
           <OnboardingListRow
-            key={`${member.fullName}-${index}`}
+            key={member.key}
             actionLabel={copy("remove")}
             actionAriaLabel={copy("removeMember", { name: member.fullName })}
             onAction={() => removeTeamMember(index)}

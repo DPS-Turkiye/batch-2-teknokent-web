@@ -1,12 +1,12 @@
 import { z } from "zod";
 
 import { clientText } from "@/i18n/client-texts";
-
 import {
   StartupFundingStage,
   type StartupProfileInput,
 } from "@/interfaces/organization";
 import type { UserProfileInput } from "@/interfaces/user-profile";
+import { isEnumValue } from "@/lib/enum";
 import { phoneNumberError } from "@/lib/phone";
 
 type FieldErrors<T extends object> = Partial<Record<keyof T, string>>;
@@ -19,9 +19,7 @@ export function toFoundedYear(value: string) {
 
 /** The funding stage a select sends back; its empty option clears it. */
 export function toFundingStage(value: string) {
-  return (
-    Object.values(StartupFundingStage).find((stage) => stage === value) ?? null
-  );
+  return isEnumValue(StartupFundingStage, value) ? value : null;
 }
 
 type ProfileField = Parameters<typeof fieldLabel>[0];

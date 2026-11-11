@@ -15,6 +15,7 @@ import {
 } from "@/interfaces/mentor";
 import { ProgramStatus } from "@/interfaces/program";
 import { updateMentorProfile } from "@/lib/client/mentor-profile";
+import { withKey } from "@/lib/keyed-list";
 import { toMentorCvResult } from "@/lib/mentor-cv";
 import { mentorProfile } from "@test/fixtures/mentors";
 import { createTestQueryClient } from "@test/test-utils";
@@ -38,7 +39,7 @@ function wrapper({ children }: { children: ReactNode }) {
   );
 }
 
-const baseForm = {
+const baseForm: Parameters<typeof mentorProfileFormError>[0] = {
   professionalTitle: "Mentor",
   company: "Looply",
   availabilityLabel: "",
@@ -51,6 +52,7 @@ const baseForm = {
   sectorExperience: "",
   startupStages: "",
   specialties: [],
+  offerings: [],
   menteeCapacity: null,
   experiences: [],
   educations: [],
@@ -70,7 +72,12 @@ describe("mentorProfileFormError", () => {
   });
 
   it("needs a title on every past role that has anything filled in", () => {
-    const role = { title: "", organization: "Looply", period: "", summary: "" };
+    const role = withKey({
+      title: "",
+      organization: "Looply",
+      period: "",
+      summary: "",
+    });
     expect(mentorProfileFormError({ ...baseForm, experiences: [role] })).toBe(
       "Her deneyim için bir ünvan gir.",
     );
@@ -141,7 +148,7 @@ describe("useMentorProfileForm meeting preferences, languages and program roles"
     expect(result.current.programRole("p1")).toBe("Design mentor");
     await act(() => result.current.handleSave());
 
-    expect(vi.mocked(updateMentorProfile).mock.calls[0][0]).toMatchObject({
+    expect(vi.mocked(updateMentorProfile).mock.calls[0]?.[0]).toMatchObject({
       languages: [MentorLanguage.Turkish, MentorLanguage.English],
       meetingFrequency: MeetingFrequency.Biweekly,
       prepFileRequirement: PrepFileRequirement.Required,
@@ -173,7 +180,13 @@ describe("useMentorProfileForm capacity and past roles", () => {
 
     expect(result.current.form.menteeCapacity).toBe(6);
     expect(result.current.form.experiences).toEqual([
-      { title: "Mentor", organization: "", period: "", summary: "" },
+      {
+        key: expect.any(String),
+        title: "Mentor",
+        organization: "",
+        period: "",
+        summary: "",
+      },
     ]);
   });
 
@@ -192,7 +205,7 @@ describe("useMentorProfileForm capacity and past roles", () => {
     await act(() => result.current.handleSave());
 
     await waitFor(() => expect(updateMentorProfile).toHaveBeenCalled());
-    expect(vi.mocked(updateMentorProfile).mock.calls[0][0]).toMatchObject({
+    expect(vi.mocked(updateMentorProfile).mock.calls[0]?.[0]).toMatchObject({
       menteeCapacity: 5,
       experiences: [
         { title: "Head of Product", organization: "", period: "", summary: "" },
@@ -244,7 +257,12 @@ describe("useMentorProfileForm schools", () => {
     );
 
     expect(result.current.form.educations).toEqual([
-      { school: "ODTÜ", degree: "", period: "2022 – 2026" },
+      {
+        key: expect.any(String),
+        school: "ODTÜ",
+        degree: "",
+        period: "2022 – 2026",
+      },
     ]);
     act(() => {
       result.current.updateEducation(0, "degree", "Lisans, Fizik");
@@ -252,11 +270,12 @@ describe("useMentorProfileForm schools", () => {
     });
     await act(() => result.current.handleSave());
 
-    expect(vi.mocked(updateMentorProfile).mock.calls[0][0]).toMatchObject({
-      educations: [
-        { school: "ODTÜ", degree: "Lisans, Fizik", period: "2022 – 2026" },
-      ],
-    });
+    // toEqual, not toMatchObject: the rows' React keys must not reach the backend.
+    expect(
+      vi.mocked(updateMentorProfile).mock.calls[0]?.[0].educations,
+    ).toEqual([
+      { school: "ODTÜ", degree: "Lisans, Fizik", period: "2022 – 2026" },
+    ]);
   });
 
   it("does not save a school row without the school's name", async () => {
@@ -308,7 +327,7 @@ describe("useMentorProfileForm student studies", () => {
     });
     await act(() => result.current.handleSave());
 
-    expect(vi.mocked(updateMentorProfile).mock.calls[0][0]).toMatchObject({
+    expect(vi.mocked(updateMentorProfile).mock.calls[0]?.[0]).toMatchObject({
       studentProfile: {
         department: "Bilgisayar Mühendisliği",
         studyYear: "4. sınıf",
@@ -328,9 +347,10 @@ describe("useMentorProfileForm student studies", () => {
     expect(result.current.student).toBeNull();
     await act(() => result.current.handleSave());
 
-    expect(vi.mocked(updateMentorProfile).mock.calls[0][0]).not.toHaveProperty(
-      "studentProfile",
-    );
+    expect(updateMentorProfile).toHaveBeenCalledOnce();
+    expect(
+      vi.mocked(updateMentorProfile).mock.calls[0]?.[0],
+    ).not.toHaveProperty("studentProfile");
   });
 
   it("fills the studies from the CV the mentor asked for", () => {

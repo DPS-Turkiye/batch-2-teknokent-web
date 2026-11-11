@@ -37,7 +37,7 @@ describe("startup document routes", () => {
       status: 200,
       data: { id: "doc-1" },
       headers: {},
-    } as never);
+    });
 
     const response = await shareDocument(
       new NextRequest(`${url}/shares`, {
@@ -60,7 +60,7 @@ describe("startup document routes", () => {
       status: 200,
       data: { id: "doc-1" },
       headers: {},
-    } as never);
+    });
 
     await unshareDocument(new NextRequest(`${url}/shares/mentor-1`), {
       params: Promise.resolve({ id: "doc-1", mentorId: "mentor-1" }),
@@ -78,7 +78,7 @@ describe("startup document routes", () => {
       status: 204,
       data: null,
       headers: {},
-    } as never);
+    });
 
     const response = await deleteDocument(new NextRequest(url), {
       params: Promise.resolve({ id: "doc-1" }),
@@ -93,7 +93,7 @@ describe("startup document routes", () => {
       status: 400,
       data: { message: "Only the uploader or the founder can delete" },
       headers: {},
-    } as never);
+    });
 
     const response = await deleteDocument(new NextRequest(url), {
       params: Promise.resolve({ id: "doc-1" }),

@@ -23,21 +23,27 @@ export function accountTypeOfSession(session: AppSession): AccountType {
   return accountTypeOfWorkspace(activeWorkspaceOf(session));
 }
 
-type Messages = { [key: string]: string | Messages };
+/** A message file's value: a text, a list (of texts or of nested messages), or a nested group. */
+type MessageValue = string | readonly MessageValue[] | Messages;
+type Messages = { readonly [key: string]: MessageValue };
+
+function isMessageGroup(value: MessageValue | undefined): value is Messages {
+  return typeof value === "object" && !Array.isArray(value);
+}
 
 /**
  * The base messages with the overlay's texts laid over them, key by key.
- * The overlay only holds the texts that differ for an account type.
+ * The overlay only holds the texts that differ for an account type; a list it names replaces the base list whole.
  */
 export function mergeMessages<T extends Messages>(
   base: T,
   overlay: Messages,
 ): T {
-  const merged: Messages = { ...base };
+  const merged: Record<string, MessageValue> = { ...base };
   for (const [key, value] of Object.entries(overlay)) {
     const current = merged[key];
     merged[key] =
-      typeof value === "object" && typeof current === "object"
+      isMessageGroup(value) && isMessageGroup(current)
         ? mergeMessages(current, value)
         : value;
   }

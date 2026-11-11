@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 
 import { MaskIcon } from "@/components/mobile/mask-icon";
 import type { MobileTab, MobileTabLink } from "@/interfaces/mobile";
@@ -10,7 +10,7 @@ export function MobileTabBar({
   badges = {},
 }: {
   tabs: MobileTabLink[];
-  activeTab?: MobileTab;
+  activeTab?: MobileTab | undefined;
   badges?: Partial<Record<MobileTab, number>>;
 }) {
   const t = useTranslations("mobile.shell");

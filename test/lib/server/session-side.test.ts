@@ -4,14 +4,15 @@ import { UserRole, type AppSession } from "@/interfaces/session";
 import { sessionSide } from "@/lib/server/session-side";
 
 function account(role: UserRole, permissions?: UserRole[]): AppSession {
-  return {
+  const session: AppSession = {
     userId: "u-1",
     email: "u@menton.test",
     fullName: "U",
     jobTitle: "x",
     role,
-    permissions,
   };
+  if (permissions !== undefined) session.permissions = permissions;
+  return session;
 }
 
 describe("sessionSide", () => {

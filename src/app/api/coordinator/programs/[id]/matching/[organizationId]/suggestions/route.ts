@@ -4,14 +4,14 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string; organizationId: string }> },
 ) {
   try {
-    const auth = await requireCoordinatorSession();
+    const auth = await requireCoordinatorOrAdminSession();
     if (!auth.ok) return auth.response;
     const { id, organizationId } = await params;
     return backendResponse(

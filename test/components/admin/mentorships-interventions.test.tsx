@@ -5,6 +5,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MentorshipsView } from "@/components/admin/mentorships-view";
 import type { AdminIntervention } from "@/interfaces/admin-intervention";
 import type { AdminOverview } from "@/interfaces/admin-overview";
+import { MentorshipTab } from "@/types/admin-mentorships";
+import {
+  adminMentorship,
+  adminProgram,
+  adminStartup,
+} from "@test/fixtures/admin-programs";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 const harness = vi.hoisted(() => ({
@@ -29,68 +35,31 @@ vi.mock("@/hooks/use-admin-interventions", () => ({
   useResolveIntervention: () => ({ mutateAsync: vi.fn(), isPending: false }),
 }));
 
-const overview = {
+const overview: AdminOverview = {
   programs: [
-    {
-      id: "program-1",
-      name: "ODTÜ Stars 2026",
-      status: "ACTIVE",
-      createdAt: "2026-01-01T00:00:00Z",
+    adminProgram({
       coordinatorId: "coord-1",
       coordinatorName: "Deniz Acar",
       startupCount: 2,
-      acceptedMentorCount: 0,
-      pendingMentorCount: 0,
-      startups: [
-        {
-          id: "org-1",
-          name: "Lumen",
-          sector: null,
-          programId: "program-1",
-          programName: "ODTÜ Stars 2026",
-        },
-        {
-          id: "org-2",
-          name: "Nova",
-          sector: null,
-          programId: "program-1",
-          programName: "ODTÜ Stars 2026",
-        },
-      ],
-      mentors: [],
-    },
+      startups: [adminStartup(), adminStartup({ id: "org-2", name: "Nova" })],
+    }),
   ],
   users: [],
   mentorships: [
-    {
-      id: "m-1",
-      mentorId: "mentor-1",
-      mentorName: "Ayşe Demir",
-      organizationId: "org-1",
-      organizationName: "Lumen",
-      status: "ACTIVE",
-      startDate: "2026-01-01",
-      endDate: null,
-      progressPercent: 0,
-      daysSinceMeeting: 18,
-    },
-    {
+    adminMentorship({ daysSinceMeeting: 18 }),
+    adminMentorship({
       id: "m-2",
       mentorId: "mentor-2",
       mentorName: "Kerem Tan",
       organizationId: "org-2",
       organizationName: "Nova",
-      status: "ACTIVE",
-      startDate: "2026-01-01",
-      endDate: null,
-      progressPercent: 0,
       daysSinceMeeting: 20,
-    },
+    }),
   ],
   requests: [],
   bottlenecks: [],
   meetingsLast8Weeks: 0,
-} satisfies AdminOverview;
+};
 
 const unread = {
   id: "follow-1",
@@ -112,7 +81,9 @@ describe("Mentorship interventions", () => {
   });
 
   it("keeps an open unread follow-up out of Kritik and in the tracking filters", async () => {
-    renderWithQueryClient(<MentorshipsView tab="interventions" />);
+    renderWithQueryClient(
+      <MentorshipsView tab={MentorshipTab.Interventions} />,
+    );
 
     expect(screen.getByText("Ayşe Demir ↔ Lumen")).toBeInTheDocument();
     expect(screen.getByText("Kerem Tan ↔ Nova")).toBeInTheDocument();
@@ -139,7 +110,7 @@ describe("Mentorship interventions", () => {
   it("reads in English, drawer included", async () => {
     renderWithQueryClient(
       <InLocale locale="en">
-        <MentorshipsView tab="interventions" />
+        <MentorshipsView tab={MentorshipTab.Interventions} />
       </InLocale>,
     );
 
@@ -160,7 +131,9 @@ describe("Mentorship interventions", () => {
 
   it("drops a read follow-up from the unanswered filter and opens its drawer", async () => {
     harness.follow = [{ ...unread, readAt: "2026-09-26T11:00:00Z" }];
-    renderWithQueryClient(<MentorshipsView tab="interventions" />);
+    renderWithQueryClient(
+      <MentorshipsView tab={MentorshipTab.Interventions} />,
+    );
 
     await userEvent.click(
       screen.getByRole("button", { name: /^Koordinatör yanıtı yok/ }),

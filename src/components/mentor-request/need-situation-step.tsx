@@ -20,7 +20,7 @@ export function NeedSituationStep({
   noneSummary: string;
   onSelectSituation: (id: MentorRequestNeedSituationId) => void;
   onNoneSummaryChange: (value: string) => void;
-  onSelectStep?: (index: number) => void;
+  onSelectStep?: ((index: number) => void) | undefined;
 }) {
   const t = useTranslations("mentorRequest");
   return (

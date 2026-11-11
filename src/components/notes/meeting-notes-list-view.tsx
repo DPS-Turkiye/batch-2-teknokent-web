@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 
 import { AppShell } from "@/components/hoc/app-shell";
 import { StartupMeetingsView } from "@/components/startup/startup-meetings-view";

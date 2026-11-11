@@ -1,12 +1,13 @@
 import { describe, expect, it } from "vitest";
 
+import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import {
   googleCalendarAddUrl,
   icalFileContents,
   parseICalText,
   type CalendarEventText,
 } from "@/lib/calendar-sync";
-import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
+import { expectLength } from "@test/fixtures/list-assertions";
 
 function meeting(overrides: Partial<MeetingItem> = {}): MeetingItem {
   return {
@@ -47,7 +48,8 @@ describe("icalFileContents", () => {
   });
 
   it("falls back to the given title and describes the meeting with its link", () => {
-    const ics = icalFileContents(meeting({ agenda: undefined }), text);
+    const { agenda: _agenda, ...untitled } = meeting();
+    const ics = icalFileContents(untitled, text);
     expect(ics).toContain("SUMMARY:Mentorluk Görüşmesi");
     expect(ics).toContain(
       "DESCRIPTION:Teknokent Mentorluk Görüşmesi. Link: https://meet.example.com/abc",
@@ -70,7 +72,7 @@ describe("parseICalText", () => {
 
     const events = parseICalText(ics);
 
-    expect(events).toHaveLength(1);
+    expectLength(events, 1);
     expect(events[0].agenda).toBe("Dış Toplantı");
     expect(events[0].scheduledAt).toBe("2026-09-10T09:00:00.000Z");
     expect(events[0].durationMinutes).toBe(30);
@@ -113,6 +115,6 @@ describe("parseICalText", () => {
       "END:VEVENT",
     ].join("\r\n");
 
-    expect(parseICalText(ics)[0].durationMinutes).toBe(45);
+    expect(parseICalText(ics)[0]?.durationMinutes).toBe(45);
   });
 });

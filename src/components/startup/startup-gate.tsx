@@ -1,8 +1,8 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 import { startupPrimaryActionClass } from "@/components/startup/startup-page-frame";

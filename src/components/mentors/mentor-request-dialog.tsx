@@ -1,8 +1,8 @@
 "use client";
 
+import { X } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
-import { X } from "lucide-react";
 
 import { PrimaryButton } from "@/components/common/primary-button";
 import { SecondaryButton } from "@/components/common/secondary-button";
@@ -271,6 +271,7 @@ export function MentorRequestDialog({
               <div className="mt-2 grid gap-2">
                 {preferredSlots.map((slot, index) => (
                   <div
+                    // eslint-disable-next-line react/no-array-index-key -- a fixed set of preference slots: a slot's position is its identity
                     key={index}
                     className="flex flex-wrap items-center gap-2 text-xs text-[#676e78]"
                   >

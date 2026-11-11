@@ -1,20 +1,19 @@
 "use client";
 
 // TEST UI: placeholder until the design team's screen; replace when it arrives.
-
 import { useLocale, useTranslations } from "next-intl";
 
-import { PageHeading, SolidButton } from "@/components/admin/admin-ui";
 import { SampleDataNotice } from "@/components/academician/sample-data-notice";
+import { WorkspaceQueryState } from "@/components/academician/workspace-query-state";
 import {
   EmptyLine,
+  fieldClass,
+  labelClass,
   WorkspaceList,
   WorkspaceRow,
   WorkspaceSection,
-  fieldClass,
-  labelClass,
 } from "@/components/academician/workspace-ui";
-import { WorkspaceQueryState } from "@/components/academician/workspace-query-state";
+import { PageHeading, SolidButton } from "@/components/admin/admin-ui";
 import { WeeklyAvailabilityEditor } from "@/components/availability/weekly-availability-editor";
 import { useAcademicianCalendar } from "@/hooks/use-academician-calendar";
 import { formatTimeRange } from "@/lib/utils";

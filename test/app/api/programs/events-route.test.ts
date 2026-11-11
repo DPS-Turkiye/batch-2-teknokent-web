@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GET } from "@/app/api/programs/events/route";
 import { fetchMemberProgramEvents } from "@/lib/api/programs";
+import { SessionRequiredError } from "@/lib/server/session-error";
 import { getSessionIds } from "@/lib/session";
 
 vi.mock("@/lib/api/programs", () => ({
@@ -20,12 +21,15 @@ describe("GET /api/programs/events", () => {
   });
 
   it("asks for the session user's program events in the given range", async () => {
-    vi.mocked(getSessionIds).mockResolvedValue({ userId: "mentee-1" });
+    vi.mocked(getSessionIds).mockResolvedValue({
+      userId: "mentee-1",
+      organizationId: "",
+    });
     vi.mocked(fetchMemberProgramEvents).mockResolvedValue({
       status: 200,
       data: [],
       headers: {},
-    } as never);
+    });
 
     const response = await GET(
       request("from=2026-09-21T00:00:00.000Z&to=2026-09-28T00:00:00.000Z"),
@@ -39,7 +43,7 @@ describe("GET /api/programs/events", () => {
   });
 
   it("refuses a visitor without a session", async () => {
-    vi.mocked(getSessionIds).mockResolvedValue({});
+    vi.mocked(getSessionIds).mockRejectedValue(new SessionRequiredError());
 
     const response = await GET(request("from=a&to=b"));
 

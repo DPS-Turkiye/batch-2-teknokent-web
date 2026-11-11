@@ -4,8 +4,7 @@ import {
   MentorshipRequestStatus,
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
-import type { MeetingStatusMeta } from "@/types/assistant";
-import { MeetingStatus } from "@/types/assistant";
+import { MeetingStatus, type MeetingStatusMeta } from "@/types/assistant";
 import { MentorshipWorkspaceTab } from "@/types/mentorship";
 
 export const DEFAULT_APP_URL = "http://localhost:3000";

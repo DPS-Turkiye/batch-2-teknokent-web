@@ -1,21 +1,24 @@
 "use client";
 
 import { ChevronRight } from "lucide-react";
-import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
+import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { QueryNotice, StatusChip } from "@/components/admin/admin-ui";
 import { ProgramGlyph } from "@/components/coordinator/program-glyph";
-import { ProgramTypeChip } from "@/components/coordinator/program-type-chip";
-import { useProgramNavigation } from "@/hooks/use-program-navigation";
 import { ProgramTabRedirect } from "@/components/coordinator/program-tab-redirect";
+import { ProgramTypeChip } from "@/components/coordinator/program-type-chip";
 import {
   useCoordinatorProgram,
   useLaunchProgram,
 } from "@/hooks/use-coordinator-program";
-import type { CoordinatorProgramDetail } from "@/interfaces/coordinator-program";
-import { ProgramLifecycle } from "@/interfaces/coordinator-program";
+import { useProgramNavigation } from "@/hooks/use-program-navigation";
+import {
+  ProgramLifecycle,
+  type CoordinatorProgramDetail,
+} from "@/interfaces/coordinator-program";
+import { ProgramType } from "@/interfaces/program";
 import {
   hasTabContent,
   isActiveTab,
@@ -23,10 +26,9 @@ import {
   misplacedTabHref,
   participantTabs,
   programHeaderLine,
-  ProgramTab,
   programTabs,
+  type ProgramTab,
 } from "@/lib/coordinator-program-detail";
-import { ProgramType } from "@/interfaces/program";
 
 const LIFECYCLE_TONES: Record<ProgramLifecycle, "green" | "blue" | "neutral"> =
   {
@@ -264,7 +266,7 @@ function ParticipantTabs({
   return (
     <nav aria-label={t("tabs.PARTICIPANTS")} className="flex flex-wrap gap-2">
       {participantTabs(detail, programId).map((item) => {
-        const active = item.id === (tab as string);
+        const active = item.id === tab;
         const content = (
           <>
             {t(`participantTabs.${item.id}`)}

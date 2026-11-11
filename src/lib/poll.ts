@@ -35,7 +35,9 @@ export function polling(ms: number) {
   };
 }
 
-export function isPolledQuery(query: { meta?: Record<string, unknown> }) {
+export function isPolledQuery(query: {
+  meta?: Record<string, unknown> | undefined;
+}) {
   return query.meta?.polled === true;
 }
 

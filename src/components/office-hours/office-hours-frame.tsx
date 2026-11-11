@@ -22,15 +22,15 @@ export function OfficeHoursFrame({
             <span className="font-normal text-[#676e78]">· {productName}</span>
           </p>
           <div className="flex items-center gap-4 text-sm text-[#4a5059]">
-            {profile && (
+            {profile ? (
               <Link
                 href={profile.href}
                 className="font-medium text-[#e86f22] hover:underline"
               >
                 {profile.label}
               </Link>
-            )}
-            {userName && <p>{userName}</p>}
+            ) : null}
+            {userName ? <p>{userName}</p> : null}
           </div>
         </div>
       </header>

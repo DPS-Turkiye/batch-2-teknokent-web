@@ -24,7 +24,7 @@ export function resolveLocale(
   if (isLocale(saved)) return saved;
   const preferred = (acceptLanguage ?? "")
     .split(",")
-    .map((part) => part.split(";")[0].trim().slice(0, 2).toLowerCase())
+    .map((part) => part.split(";")[0]?.trim().slice(0, 2).toLowerCase() ?? "")
     .find(isLocale);
   return preferred ?? Locale.Tr;
 }

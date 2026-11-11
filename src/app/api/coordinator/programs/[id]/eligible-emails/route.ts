@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import {
   addProgramEligibleEmails,
   fetchProgramEligibleEmails,
@@ -7,13 +9,16 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { readJsonBody } from "@/lib/server/request-body";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
+
+const eligibleEmailsSchema = z.object({ emails: z.array(z.string()) });
 
 type Params = { params: Promise<{ id: string }> };
 
 export async function GET(_request: Request, { params }: Params) {
   try {
-    const auth = await requireCoordinatorSession();
+    const auth = await requireCoordinatorOrAdminSession();
     if (!auth.ok) return auth.response;
     const { id } = await params;
     return backendResponse(
@@ -28,13 +33,13 @@ export async function GET(_request: Request, { params }: Params) {
 
 export async function POST(request: Request, { params }: Params) {
   try {
-    const auth = await requireCoordinatorSession();
+    const auth = await requireCoordinatorOrAdminSession();
     if (!auth.ok) return auth.response;
     const { id } = await params;
-    const body = await request.json();
-    const emails = Array.isArray(body.emails) ? body.emails.map(String) : [];
+    const body = await readJsonBody(request, eligibleEmailsSchema);
+    if (!body.ok) return body.response;
     return backendResponse(
-      await addProgramEligibleEmails(auth.session.userId, id, emails),
+      await addProgramEligibleEmails(auth.session.userId, id, body.data.emails),
     );
   } catch (error) {
     return apiErrorResponse(error, {

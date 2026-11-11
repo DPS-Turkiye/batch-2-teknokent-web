@@ -9,10 +9,11 @@ import {
   MAX_EDUCATIONS,
   MeetingFrequency,
   type MentorEducationInput,
-  Weekday,
+  type Weekday,
 } from "@/interfaces/mentor";
 import {
   EMPTY_STUDENT_DRAFT,
+  emptyWeek,
   IntroPhase,
   MAX_EXPERIENCES,
   MAX_MENTOR_TOPICS,
@@ -21,7 +22,6 @@ import {
   MENTOR_TOPIC_OPTIONS,
   MentorOnboardingStep,
   PLACEHOLDER_PARSED_PROFILE,
-  emptyWeek,
   type MentorOnboardingDraft,
   type ParsedExperience,
   type ParsedProfile,
@@ -29,22 +29,26 @@ import {
   type WeeklySlot,
 } from "@/interfaces/mentor-onboarding";
 import type { OnboardingDraftRecord } from "@/interfaces/onboarding-draft";
+import { ProfileAnalysisType } from "@/interfaces/profile-analysis";
 import type { ProgramName } from "@/interfaces/program";
 import { STARTUP_STAGE_OPTIONS, type UploadedFile } from "@/interfaces/signup";
+import { DocumentKind } from "@/interfaces/startup-document";
 import { uploadDocument } from "@/lib/client/documents";
-import {
-  chooseMentorPrograms,
-  getMentorPrograms,
-} from "@/lib/client/mentor-programs";
-import { getProgramNames } from "@/lib/client/programs";
 import {
   updateAvailabilitySettings,
   updateMentorProfile,
 } from "@/lib/client/mentor-profile";
+import {
+  chooseMentorPrograms,
+  getMentorPrograms,
+} from "@/lib/client/mentor-programs";
 import { parseStoredCv } from "@/lib/client/profile-analysis";
+import { getProgramNames } from "@/lib/client/programs";
 import { getUserProfile, saveUserProfile } from "@/lib/client/user-profile";
 import { dropDetachedFile } from "@/lib/draft-storage";
+import { isOneOf } from "@/lib/enum";
 import { currentIdToken, describeAuthError } from "@/lib/firebase/auth";
+import { withKey, withKeys, withoutKeys, type Keyed } from "@/lib/keyed-list";
 import {
   fillOnboardingProfile,
   fillStudies,
@@ -169,22 +173,30 @@ export function useMentorOnboarding(
   }, []);
 
   const onRestore = useCallback((saved: OnboardingDraftRecord) => {
+    if (!saved.payload || typeof saved.payload !== "object") return;
     const payload = saved.payload as Partial<MentorOnboardingDraft> & {
       introPhase?: IntroPhase;
     };
-    if (!payload || typeof payload !== "object") return;
     const photo = dropDetachedFile(payload.photo ?? null);
     const cv = dropDetachedFile(payload.cv ?? null);
-    setDraft((current) => ({
-      ...current,
-      ...payload,
+    setDraft((current) => {
       // A draft saved before a profile field existed still gets its default.
-      profile: { ...current.profile, ...payload.profile },
-      week: { ...current.week, ...payload.week },
-      photo: photo.value,
-      cv: cv.value,
-      consent: false,
-    }));
+      const profile = { ...current.profile, ...payload.profile };
+      return {
+        ...current,
+        ...payload,
+        // Saved rows have no keys (and keys from another page load could collide), so each gets a fresh one.
+        profile: {
+          ...profile,
+          history: withKeys(profile.history),
+          education: withKeys(profile.education),
+        },
+        week: { ...current.week, ...payload.week },
+        photo: photo.value,
+        cv: cv.value,
+        consent: false,
+      };
+    });
     // A CV that already reached the server is not lost, only its browser handle is.
     setDroppedFiles(photo.dropped + (payload.cvStoredName ? 0 : cv.dropped));
     setCvUploaded(Boolean(payload.cvStoredName));
@@ -193,12 +205,21 @@ export function useMentorOnboarding(
         ? IntroPhase.Review
         : IntroPhase.Upload,
     );
-    const nextStep = Number(saved.step) as MentorOnboardingStep;
-    if (MENTOR_STEP_ORDER.includes(nextStep)) setStep(nextStep);
+    const nextStep = Number(saved.step);
+    if (isOneOf(MENTOR_STEP_ORDER, nextStep)) setStep(nextStep);
   }, []);
 
+  // The saved draft keeps its shape: the rows' React keys stay in the browser.
   const remotePayload = useMemo(
-    () => ({ ...draft, introPhase: phase }),
+    () => ({
+      ...draft,
+      profile: {
+        ...draft.profile,
+        history: withoutKeys(draft.profile.history),
+        education: withoutKeys(draft.profile.education),
+      },
+      introPhase: phase,
+    }),
     [draft, phase],
   );
   const { saveNow, clearRemote } = useOnboardingDraftSync({
@@ -241,11 +262,17 @@ export function useMentorOnboarding(
       setPhase(IntroPhase.Parsing);
       try {
         const idToken = await requireToken();
-        const stored = await uploadDocument(file.file, "cv", idToken);
+        const stored = await uploadDocument(
+          file.file,
+          DocumentKind.Cv,
+          idToken,
+        );
         setCvUploaded(true);
         setDraft((current) => ({ ...current, cvStoredName: file.name }));
         try {
-          const cv = toMentorCvResult(await parseStoredCv(stored.id, "mentor"));
+          const cv = toMentorCvResult(
+            await parseStoredCv(stored.id, ProfileAnalysisType.Mentor),
+          );
           setDraft((current) => {
             const names =
               current.firstName.trim() || !cv.fullName
@@ -289,7 +316,12 @@ export function useMentorOnboarding(
               ...current.profile,
               history: [
                 ...current.profile.history,
-                { title: "", organization: "", period: "", summary: "" },
+                withKey({
+                  title: "",
+                  organization: "",
+                  period: "",
+                  summary: "",
+                }),
               ],
             },
           },
@@ -302,8 +334,9 @@ export function useMentorOnboarding(
         ...current,
         profile: {
           ...current.profile,
+          // The editor hands back the role's fields; the row keeps its key.
           history: current.profile.history.map((role, i) =>
-            i === index ? value : role,
+            i === index ? { ...value, key: role.key } : role,
           ),
         },
       })),
@@ -322,7 +355,11 @@ export function useMentorOnboarding(
   }, []);
 
   const updateEducations = useCallback(
-    (change: (schools: MentorEducationInput[]) => MentorEducationInput[]) =>
+    (
+      change: (
+        schools: Keyed<MentorEducationInput>[],
+      ) => Keyed<MentorEducationInput>[],
+    ) =>
       setDraft((current) => ({
         ...current,
         profile: {
@@ -337,7 +374,7 @@ export function useMentorOnboarding(
       updateEducations((schools) =>
         schools.length >= MAX_EDUCATIONS
           ? schools
-          : [...schools, { school: "", degree: "", period: "" }],
+          : [...schools, withKey({ school: "", degree: "", period: "" })],
       ),
     [updateEducations],
   );
@@ -501,9 +538,9 @@ export function useMentorOnboarding(
         idToken,
       );
       if (draft.photo?.file)
-        await uploadDocument(draft.photo.file, "avatar", idToken);
+        await uploadDocument(draft.photo.file, DocumentKind.Avatar, idToken);
       if (draft.cv?.file && !cvUploaded)
-        await uploadDocument(draft.cv.file, "cv", idToken);
+        await uploadDocument(draft.cv.file, DocumentKind.Cv, idToken);
       await clearRemote();
       setSubmittedAt(new Date());
     } catch (error) {

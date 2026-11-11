@@ -213,9 +213,9 @@ export function MentorDecisionModal(props: Props) {
                 <div className="space-y-2">
                   <p className="font-semibold text-zinc-800">Mesaj Geçmişi:</p>
                   <div className="space-y-2 rounded-xl border border-zinc-200 bg-white p-3">
-                    {request.messages.map((item, index) => (
+                    {request.messages.map((item) => (
                       <div
-                        key={`${item.messageType}-${index}`}
+                        key={item.id}
                         className={`rounded-lg border p-2 text-xs ${
                           item.messageType ===
                           MentorshipRequestMessageType.MentorQuestion

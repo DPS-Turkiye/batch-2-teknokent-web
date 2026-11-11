@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { announcementThreads } from "@/lib/program-announcements";
+import { expectLength } from "@test/fixtures/list-assertions";
 import { programAnnouncement } from "@test/fixtures/program-announcements";
 
 describe("program announcement helpers", () => {
@@ -19,6 +20,7 @@ describe("program announcement helpers", () => {
       "METU Stars 2026",
       "Bilkent Cyberpark",
     ]);
+    expectLength(threads, 2);
     expect(threads[0].latest?.id).toBe("a3");
     expect(threads[0].announcements.map((item) => item.id)).toEqual([
       "a3",

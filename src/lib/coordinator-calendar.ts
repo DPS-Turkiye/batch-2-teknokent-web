@@ -7,13 +7,13 @@ import type {
   CoordinatorCalendarItem,
 } from "@/interfaces/coordinator-calendar";
 import { CoordinatorAgendaKind } from "@/interfaces/coordinator-overview";
-import {
-  type MeetingProposal,
-  MeetingProposalStatus,
-} from "@/interfaces/meeting-proposal";
 import { ProgramEventKind } from "@/interfaces/coordinator-program";
-import { formatDayMonth } from "@/lib/utils";
+import {
+  MeetingProposalStatus,
+  type MeetingProposal,
+} from "@/interfaces/meeting-proposal";
 import { formatDateRange } from "@/lib/format";
+import { formatDayMonth } from "@/lib/utils";
 
 export enum CalendarView {
   Week = "WEEK",
@@ -73,7 +73,9 @@ export function viewDays(view: CalendarView, anchor: Date) {
 
 export function viewRange(view: CalendarView, anchor: Date) {
   const days = viewDays(view, anchor);
-  return { from: isoDay(days[0]), to: isoDay(days[days.length - 1]) };
+  const start = days[0] ?? anchor;
+  const end = days[days.length - 1] ?? anchor;
+  return { from: isoDay(start), to: isoDay(end) };
 }
 
 /** "14–20 Eylül 2026", "28 Eylül – 4 Ekim 2026" or "Eylül 2026". */
@@ -85,14 +87,16 @@ export function rangeLabel(view: CalendarView, anchor: Date, locale: string) {
     }).format(anchor);
   }
   const days = viewDays(view, anchor);
+  const start = days[0] ?? anchor;
+  const end = days[6] ?? days[days.length - 1] ?? anchor;
   return formatDateRange(
     new Intl.DateTimeFormat(locale, {
       day: "numeric",
       month: "long",
       year: "numeric",
     }),
-    days[0],
-    days[6],
+    start,
+    end,
   );
 }
 
@@ -186,7 +190,7 @@ export function conflictSummary(
 ) {
   const meetings = conflict.meetingIds
     .map((id) => items.find((item) => item.id === id))
-    .filter((item): item is CoordinatorCalendarItem => !!item);
+    .filter((item): item is CoordinatorCalendarItem => Boolean(item));
   const names = meetings.map(
     (item) =>
       `${item.organizationName ?? item.title} (${timeLabel(item.startsAt, locale)})`,
@@ -288,7 +292,9 @@ export function proposalItems(
 ): CoordinatorCalendarItem[] {
   return proposals
     .filter(
-      (proposal) =>
+      // A proposal outside any program (a mentor and a team on their own) has no place here.
+      (proposal): proposal is MeetingProposal & { programId: string } =>
+        proposal.programId !== null &&
         proposal.status === MeetingProposalStatus.Pending &&
         isoDay(new Date(proposal.scheduledAt)) >= range.from &&
         isoDay(new Date(proposal.scheduledAt)) <= range.to,

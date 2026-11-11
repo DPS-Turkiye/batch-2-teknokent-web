@@ -4,7 +4,7 @@ import { useLocale, useTranslations } from "next-intl";
 
 import { useTeamHistory } from "@/hooks/use-team-history";
 import { UserAccountStatus } from "@/interfaces/session";
-import { type TeamHistoryStay, TeamExitReason } from "@/interfaces/team-change";
+import { TeamExitReason, type TeamHistoryStay } from "@/interfaces/team-change";
 import { formatShortDate } from "@/lib/utils";
 
 /** "Takım geçmişi" for admins and coordinators: every startup the person was in. */

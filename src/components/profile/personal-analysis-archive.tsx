@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+
 import { ProfileAnalysisSummary } from "@/components/profile/profile-analysis-summary";
 import { usePersonalAnalysisArchive } from "@/hooks/use-personal-analysis-archive";
 

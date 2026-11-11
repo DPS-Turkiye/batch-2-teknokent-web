@@ -4,7 +4,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocale, useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
-import { useToast } from "@/stores/toast-store";
 import { useIndividualProgram } from "@/hooks/use-individual-program";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
 import { useOrganizationMembers } from "@/hooks/use-organization-members";
@@ -17,6 +16,7 @@ import type { DocumentRequestItem } from "@/interfaces/document-request";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
 import { DocumentKind } from "@/interfaces/startup-document";
+import { ToastTone } from "@/interfaces/toast";
 import { attachDocumentRequestUpload } from "@/lib/client/document-requests";
 import { uploadDocument } from "@/lib/client/documents";
 import {
@@ -33,7 +33,7 @@ import {
   StartupFileFilter,
 } from "@/lib/startup-files";
 import { errorMessage } from "@/lib/utils";
-import { ToastTone } from "@/interfaces/toast";
+import { useToast } from "@/stores/toast-store";
 
 export const STARTUP_DOCUMENT_REQUESTS_QUERY_KEY = [
   "startup-document-requests",
@@ -237,7 +237,7 @@ export function useStartupFiles() {
     uploadForRequest: (item: DocumentRequestItem, file: File) =>
       answerRequest.mutate({ item, file }),
     uploadingRequestId: answerRequest.isPending
-      ? answerRequest.variables?.item.id
+      ? answerRequest.variables.item.id
       : undefined,
   };
 }

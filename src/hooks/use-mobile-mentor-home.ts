@@ -57,7 +57,7 @@ export function useMobileMentorHome() {
     ...view,
     firstName: session?.fullName.trim().split(/\s+/)[0] ?? "",
     hasUnreadNotifications: unreadCount > 0,
-    isError: Boolean(requests.error || meetings.error),
+    isError: requests.error !== null || meetings.error !== null,
     isLoading: requests.isLoading || meetings.isLoading,
     isOnline,
     retry: () => queryClient.invalidateQueries(),

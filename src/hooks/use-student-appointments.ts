@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+
 import { AppointmentStatus } from "@/interfaces/appointment";
 import { splitAppointments } from "@/lib/appointments";
 import { getStudentAppointments } from "@/lib/client/student-appointments";

@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { type MeetingItem, MeetingStatus } from "@/interfaces/meeting";
+import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import {
-  type MentorshipRequest,
   MentorshipRequestStatus,
+  type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
 import { activeMentorships } from "@/lib/startup-overview";
+import { expectLength } from "@test/fixtures/list-assertions";
 
 const NOW = new Date("2026-08-28T09:00:00Z");
 
@@ -103,7 +104,7 @@ describe("activeMentorships", () => {
       NOW,
     );
 
-    expect(rows).toHaveLength(1);
+    expectLength(rows, 1);
     expect(rows[0].nextMeetingAt).toBeNull();
   });
 

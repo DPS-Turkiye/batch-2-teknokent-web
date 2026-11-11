@@ -4,17 +4,17 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { useToast } from "@/stores/toast-store";
 import {
   PEER_TOPIC_CATEGORIES,
   type PeerTopicCategory,
 } from "@/interfaces/peer-mentoring";
+import { ToastTone } from "@/interfaces/toast";
 import {
   getProgramPeerCategories,
   replaceProgramPeerCategories,
 } from "@/lib/client/program-peer-categories";
 import { errorMessage } from "@/lib/utils";
-import { ToastTone } from "@/interfaces/toast";
+import { useToast } from "@/stores/toast-store";
 
 export const programPeerCategoriesQueryKey = (programId: string) =>
   ["program-peer-categories", programId] as const;

@@ -1,8 +1,8 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
 import { useEffect, useRef } from "react";
 
 import {
@@ -95,7 +95,7 @@ export function MobileChatView({
   const lastItemId = chat.items.at(-1)?.id;
 
   useEffect(() => {
-    bottom.current?.scrollIntoView?.({ block: "end" });
+    bottom.current?.scrollIntoView({ block: "end" });
   }, [lastItemId]);
 
   return (

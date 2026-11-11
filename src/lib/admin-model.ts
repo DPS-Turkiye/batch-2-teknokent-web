@@ -4,6 +4,7 @@ import type {
   AdminProgram,
   AdminStartup,
 } from "@/interfaces/admin-overview";
+import { MentorshipStatus } from "@/interfaces/coordinator-mentorship";
 import { ProgramMentorStatus, ProgramStatus } from "@/interfaces/program";
 import { UserAccountStatus, UserRole } from "@/interfaces/session";
 
@@ -18,17 +19,19 @@ export function approvedCoordinatorsOf(data: AdminOverview) {
 }
 
 export function mentorsOf(data: AdminOverview) {
-  return data.users.filter((user) => user.role === "MENTOR");
+  return data.users.filter((user) => user.role === UserRole.Mentor);
 }
 
 export function pendingMentors(data: AdminOverview) {
-  return mentorsOf(data).filter((user) => user.status === "PENDING");
+  return mentorsOf(data).filter(
+    (user) => user.status === UserAccountStatus.Pending,
+  );
 }
 
 export function pendingMemberships(data: AdminOverview) {
   return data.programs.flatMap((program) =>
     program.mentors
-      .filter((mentor) => mentor.status === "PENDING")
+      .filter((mentor) => mentor.status === ProgramMentorStatus.Pending)
       .map((mentor) => ({ ...mentor, programName: program.name })),
   );
 }
@@ -71,7 +74,8 @@ export function activeMentorshipFor(
     (item) =>
       item.organizationId === startup.id &&
       countsInProgram(item, startup.programId) &&
-      (item.status === "ACTIVE" || item.status === "PLANNED"),
+      (item.status === MentorshipStatus.Active ||
+        item.status === MentorshipStatus.Planned),
   );
 }
 
@@ -87,7 +91,7 @@ export function daysSince(startDate: string, now = new Date()) {
 }
 
 export function needsAttention(item: AdminMentorship, now = new Date()) {
-  if (item.status !== "ACTIVE") return false;
+  if (item.status !== MentorshipStatus.Active) return false;
   if (item.daysSinceMeeting == null)
     return daysSince(item.startDate, now) >= 14;
   return item.daysSinceMeeting >= 14;
@@ -149,4 +153,13 @@ export function programsForMentor(data: AdminOverview, userId: string) {
   return data.programs.filter((program) =>
     program.mentors.some((mentor) => mentor.mentorId === userId),
   );
+}
+
+/** The admin user list opened on the program's coordinator, or the whole list when it has none. */
+export function coordinatorUsersHref(
+  program: Pick<AdminProgram, "coordinatorId"> | null | undefined,
+) {
+  return program?.coordinatorId
+    ? `/admin/users?user=${encodeURIComponent(program.coordinatorId)}`
+    : "/admin/users";
 }

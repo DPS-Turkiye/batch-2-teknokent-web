@@ -5,11 +5,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { Toaster } from "@/components/common/toaster";
 import { useAvailabilitySettingsForm } from "@/hooks/use-mentor-profile";
-import { type MentorAvailabilitySettings, Weekday } from "@/interfaces/mentor";
+import { Weekday, type MentorAvailabilitySettings } from "@/interfaces/mentor";
 import {
   getAvailabilitySettings,
   updateAvailabilitySettings,
 } from "@/lib/client/mentor-profile";
+import { itemAt } from "@test/fixtures/list-assertions";
 import { createTestQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/mentor-profile", () => ({
@@ -109,7 +110,7 @@ describe("useAvailabilitySettingsForm", () => {
     const { result } = await renderLoaded(onSaved);
 
     act(() => result.current.addRange(Weekday.Tuesday));
-    const added = tuesdayRanges(result)[1];
+    const added = itemAt(tuesdayRanges(result), 1);
     act(() => result.current.updateRange(added.key, "startTime", "12:00"));
     await act(async () => {
       await result.current.save();

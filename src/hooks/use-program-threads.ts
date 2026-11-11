@@ -34,7 +34,7 @@ export function useProgramThreads(linkedId: string | null = null) {
   const messages = useQuery({
     queryKey: [...COORDINATOR_CONVERSATIONS_QUERY_KEY, "messages", openId],
     queryFn: () => getCoordinatorMessages(openId ?? ""),
-    enabled: !!openId,
+    enabled: Boolean(openId),
     ...polling(POLL_INTERVAL.messages),
   });
 
@@ -75,7 +75,7 @@ export function useProgramThreads(linkedId: string | null = null) {
     messagesLoading: messages.isLoading,
     draft,
     setDraft: (value: string) => setDraft(value.slice(0, MAX_MESSAGE_LENGTH)),
-    canSend: !!active && trimmed.length > 0 && !send.isPending,
+    canSend: Boolean(active) && trimmed.length > 0 && !send.isPending,
     send: () => {
       if (active && trimmed) send.mutate({ id: active.id, body: trimmed });
     },

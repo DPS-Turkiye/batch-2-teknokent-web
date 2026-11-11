@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useEffect, useRef } from "react";
 
 import {
   MeetingFiles,
@@ -53,6 +53,7 @@ export function MeetingTopicStackDialog({
       if (items.length === 0) return;
       const first = items[0];
       const last = items[items.length - 1];
+      if (!first || !last) return;
       if (event.shiftKey && document.activeElement === first) {
         event.preventDefault();
         last.focus();

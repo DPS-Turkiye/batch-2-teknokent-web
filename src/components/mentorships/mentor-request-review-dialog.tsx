@@ -1,15 +1,17 @@
 "use client";
 
-import { useState } from "react";
 import { X } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
+import { useState } from "react";
 
-import { TranscribeRequestedField } from "@/components/meetings/transcribe-requested-field";
 import { PrimaryButton } from "@/components/common/primary-button";
 import { SecondaryButton } from "@/components/common/secondary-button";
+import { TranscribeRequestedField } from "@/components/meetings/transcribe-requested-field";
 import {
   DocumentRequestTitleEditor,
   normalizeDocumentTitles,
+  titlesOf,
+  type DocumentTitleRow,
 } from "@/components/mentorships/document-request-title-editor";
 import { RequestDetailsPanel } from "@/components/mentorships/request-details-panel";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
@@ -71,7 +73,10 @@ export function MentorRequestReviewDialog({
   const [selectedKey, setSelectedKey] = useState("");
   const [meetLink, setMeetLink] = useState("");
   const [transcribeRequested, setTranscribeRequested] = useState(false);
-  const [documentTitles, setDocumentTitles] = useState<string[]>([]);
+  const [documentTitleRows, setDocumentTitleRows] = useState<
+    DocumentTitleRow[]
+  >([]);
+  const documentTitles = titlesOf(documentTitleRows);
   const [question, setQuestion] = useState("");
   const [proposedSlots, setProposedSlots] = useState<PreferredSlot[]>([
     emptyPreferredSlot(),
@@ -143,12 +148,12 @@ export function MentorRequestReviewDialog({
             <p className="mt-2 text-sm text-[#676e78]">{t("noPreferred")}</p>
           ) : (
             <div className="mt-3 grid gap-2">
-              {slots.map((slot, index) => {
+              {slots.map((slot) => {
                 const key = preferredSlotKey(slot) || slot.label;
                 const selectedSlot = mode === "accept" && key === selectedKey;
                 return (
                   <button
-                    key={`${slot.label}-${index}`}
+                    key={key}
                     type="button"
                     aria-pressed={selectedSlot}
                     disabled={mode !== "accept"}
@@ -191,6 +196,7 @@ export function MentorRequestReviewDialog({
             <div className="mt-4 grid gap-2">
               {proposedSlots.map((slot, index) => (
                 <div
+                  // eslint-disable-next-line react/no-array-index-key -- proposed slots are only ever appended, so a slot's position is its identity
                   key={index}
                   className="flex flex-wrap items-center gap-2 text-xs text-[#676e78]"
                 >
@@ -285,8 +291,8 @@ export function MentorRequestReviewDialog({
         ) : null}
 
         <DocumentRequestTitleEditor
-          titles={documentTitles}
-          onChange={setDocumentTitles}
+          rows={documentTitleRows}
+          onChange={setDocumentTitleRows}
           disabled={isPending}
         />
 

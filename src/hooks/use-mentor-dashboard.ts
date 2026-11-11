@@ -4,11 +4,11 @@ import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 
 import { useAppSession } from "@/components/providers/session-provider";
-import { useDecision } from "@/hooks/use-decision";
-import { useMeetings } from "@/hooks/use-meetings";
-import { useMyMeetingProposalsQuery } from "@/hooks/use-meeting-proposals";
-import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
 import { useActionItemsForRequests } from "@/hooks/use-action-items";
+import { useDecision } from "@/hooks/use-decision";
+import { useMyMeetingProposalsQuery } from "@/hooks/use-meeting-proposals";
+import { useMeetings } from "@/hooks/use-meetings";
+import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
 import type { ActionItem } from "@/interfaces/action-item";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
@@ -91,7 +91,7 @@ export function useMentorDashboard() {
 
   return {
     firstName:
-      session?.fullName?.trim().split(/\s+/)[0] || t("firstNameFallback"),
+      session?.fullName.trim().split(/\s+/)[0] || t("firstNameFallback"),
     greeting: tCommon(`greeting.${dayPart()}`),
     nextMeeting: upcomingMeetings[0],
     todayActions: mentorTodayActions(awaitingReview, openActionItems, { t }),

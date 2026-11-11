@@ -1,4 +1,3 @@
-import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 
 import { ProgramLifecycle } from "@/interfaces/coordinator-program";
@@ -15,20 +14,10 @@ import {
 } from "@/lib/coordinator-programs";
 import { ALL_PROGRAM_TYPES } from "@/lib/program-types";
 import { coordinatorProgram, phase } from "@test/fixtures/coordinator-programs";
+import { translatorIn } from "@test/translators";
 
-import en from "@/messages/en.json";
-import tr from "@/messages/tr.json";
-
-const t = createTranslator({
-  locale: "tr",
-  messages: tr,
-  namespace: "coordinatorPrograms",
-});
-const tEn = createTranslator({
-  locale: "en",
-  messages: en,
-  namespace: "coordinatorPrograms",
-});
+const t = translatorIn("tr", "coordinatorPrograms");
+const tEn = translatorIn("en", "coordinatorPrograms");
 
 const active = coordinatorProgram({ id: "a", name: "METU Stars 2026" });
 const upcoming = coordinatorProgram({
@@ -40,7 +29,7 @@ const completed = coordinatorProgram({
   id: "c",
   name: "METU Stars 2025",
   lifecycle: ProgramLifecycle.Completed,
-  status: "COMPLETED",
+  status: ProgramStatus.Completed,
 });
 const draft = coordinatorProgram({
   id: "d",
@@ -109,13 +98,14 @@ describe("coordinator program helpers", () => {
   });
 
   it("marks phases before the current one as done", () => {
+    const matching = phase("p2", "Eşleşme", 1);
     const phases = [
       phase("p1", "Başvuru", 0),
-      phase("p2", "Eşleşme", 1),
+      matching,
       phase("p3", "Demo Day", 2),
     ];
     const states = phaseStates(
-      coordinatorProgram({ phases, currentPhase: phases[1] }),
+      coordinatorProgram({ phases, currentPhase: matching }),
     ).map(({ state }) => state);
     expect(states).toEqual([
       PhaseState.Done,

@@ -4,10 +4,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MentorProgramInvitations } from "@/components/dashboard/mentor-program-invitations";
 import {
-  type Program,
   ProgramMentorInvitedBy,
   ProgramMentorStatus,
   ProgramStatus,
+  type Program,
+  type ProgramInvitation,
 } from "@/interfaces/program";
 import {
   decideProgramInvitation,
@@ -26,7 +27,7 @@ vi.mock("@/lib/client/programs", () => ({
   decideProgramInvitation: vi.fn(),
 }));
 
-const invitation = {
+const invitation: ProgramInvitation = {
   programId: "program-1",
   programName: "METU BİGG 2026",
   coordinatorId: "coordinator-1",
@@ -80,7 +81,7 @@ describe("MentorProgramInvitations", () => {
     vi.mocked(getProgramInvitations).mockResolvedValue([invitation]);
     vi.mocked(decideProgramInvitation).mockResolvedValue({
       ...invitation,
-    } as never);
+    });
     const user = userEvent.setup();
     renderWithQueryClient(<MentorProgramInvitations />);
 
@@ -98,7 +99,7 @@ describe("MentorProgramInvitations", () => {
 
   it("declines an invitation", async () => {
     vi.mocked(getProgramInvitations).mockResolvedValue([invitation]);
-    vi.mocked(decideProgramInvitation).mockResolvedValue({} as never);
+    vi.mocked(decideProgramInvitation).mockResolvedValue(invitation);
     const user = userEvent.setup();
     renderWithQueryClient(<MentorProgramInvitations />);
 

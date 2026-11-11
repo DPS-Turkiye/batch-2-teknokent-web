@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
 import { fetchProgramMeetingFeedback } from "@/lib/api/program-report";
 import {
@@ -6,7 +6,7 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 import { ISO_DAY_PATTERN } from "@/lib/utils";
 
 const MEETING_FEEDBACK_PAGE_SIZE = 20;
@@ -19,7 +19,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const auth = await requireCoordinatorSession();
+    const auth = await requireCoordinatorOrAdminSession();
     if (!auth.ok) return auth.response;
     const { id } = await params;
     const from = request.nextUrl.searchParams.get("from");

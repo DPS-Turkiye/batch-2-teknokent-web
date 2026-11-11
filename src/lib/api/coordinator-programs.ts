@@ -4,17 +4,17 @@ import type {
   CoordinatorProgram,
   CoordinatorProgramDetail,
   CoordinatorRef,
-  CreateProgramInput,
-  ProgramEligibleEmail,
   CreateProgramEventInput,
+  CreateProgramInput,
+  ExtractSyllabusPhasesInput,
+  ProgramEligibleEmail,
   ProgramEvent,
   ProgramPhaseInput,
   ProgramTeam,
   ProgramTeamDetail,
+  SyllabusPhases,
   TeamInviteInput,
   UpdateProgramDetailsInput,
-  ExtractSyllabusPhasesInput,
-  SyllabusPhases,
 } from "@/interfaces/coordinator-program";
 import type { MentorPoolReview, MentorPoolRow } from "@/interfaces/mentor-pool";
 import type {

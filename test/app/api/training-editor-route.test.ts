@@ -5,6 +5,7 @@ import { GET, PUT } from "@/app/api/coordinator/programs/[id]/training/route";
 import { UserRole, type AppSession } from "@/interfaces/session";
 import { fetchTrainingForEditor, saveTraining } from "@/lib/api/training";
 import { getSessionUser } from "@/lib/session";
+import { answerEachWith } from "@test/fixtures/route-handlers";
 
 vi.mock("next-intl/server", () => ({
   getTranslations: async () => (key: string) => key,
@@ -27,16 +28,8 @@ const as = (role: UserRole): AppSession => ({
 describe("training editor route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(fetchTrainingForEditor).mockResolvedValue({
-      status: 200,
-      data: {},
-      headers: {},
-    } as never);
-    vi.mocked(saveTraining).mockResolvedValue({
-      status: 200,
-      data: {},
-      headers: {},
-    } as never);
+    answerEachWith([fetchTrainingForEditor]);
+    answerEachWith([saveTraining]);
   });
 
   it("is for coordinators and admins, acting as themselves", async () => {

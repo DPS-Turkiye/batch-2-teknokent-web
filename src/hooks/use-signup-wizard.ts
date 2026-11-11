@@ -2,17 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import {
-  BIO_MAX_LENGTH,
-  ContactPreference,
-  MAX_SUPPORT_AREAS,
-  SIGNUP_STEP_ORDER,
-  SignupStep,
-  StartupDocumentKind,
-  TAGLINE_MAX_LENGTH,
-  type PersonalProfileDraft,
-  type SignupDraft,
-} from "@/interfaces/signup";
 import { useOnboardingDraftSync } from "@/hooks/use-onboarding-draft-sync";
 import {
   emptySignupDraft,
@@ -20,7 +9,21 @@ import {
   useStartupDraftEditors,
 } from "@/hooks/use-startup-draft";
 import type { OnboardingDraftRecord } from "@/interfaces/onboarding-draft";
+import {
+  BIO_MAX_LENGTH,
+  MAX_SUPPORT_AREAS,
+  SIGNUP_STEP_ORDER,
+  SignupStep,
+  StartupDocumentKind,
+  TAGLINE_MAX_LENGTH,
+  type ContactPreference,
+  type PersonalProfileDraft,
+  type SignupDraft,
+  type UploadedFile,
+} from "@/interfaces/signup";
 import { dropDetachedFile } from "@/lib/draft-storage";
+import { isEnumValue, isOneOf } from "@/lib/enum";
+import { withKeys, withoutKeys } from "@/lib/keyed-list";
 import { scrollToTop } from "@/lib/utils";
 
 const DRAFT_KIND = "signup-wizard" as const;
@@ -39,16 +42,29 @@ function restoreFromPayload(saved: unknown): {
 
   let dropped = cv.dropped + logo.dropped;
   const documents: SignupDraft["documents"] = {};
-  for (const [kind, uploaded] of Object.entries(parsed.documents ?? {})) {
-    const kept = dropDetachedFile(uploaded ?? null);
+  // The saved payload is not validated, so a stored file may be null.
+  const storedDocuments: Record<string, UploadedFile | null> =
+    parsed.documents ?? {};
+  for (const [kind, uploaded] of Object.entries(storedDocuments)) {
+    const kept = dropDetachedFile(uploaded);
     dropped += kept.dropped;
-    if (kept.value) documents[kind as StartupDocumentKind] = kept.value;
+    if (kept.value && isEnumValue(StartupDocumentKind, kind)) {
+      documents[kind] = kept.value;
+    }
   }
 
   return {
     draft: {
       personal: { ...base.personal, ...parsed.personal, cv: cv.value },
-      startup: { ...base.startup, ...parsed.startup, logo: logo.value },
+      startup: {
+        ...base.startup,
+        ...parsed.startup,
+        // Saved rows have no keys (and keys from another page load could collide), so each gets a fresh one.
+        teamMembers: withKeys(
+          parsed.startup?.teamMembers ?? base.startup.teamMembers,
+        ),
+        logo: logo.value,
+      },
       documents,
       mvpUrl: parsed.mvpUrl ?? "",
       consent: false,
@@ -72,14 +88,25 @@ export function useSignupWizard(
     const restored = restoreFromPayload(saved.payload);
     setDraft(restored.draft);
     setDroppedFiles(restored.droppedFiles);
-    const nextStep = Number(saved.step) as SignupStep;
-    if (SIGNUP_STEP_ORDER.includes(nextStep)) setStep(nextStep);
+    const nextStep = Number(saved.step);
+    if (isOneOf(SIGNUP_STEP_ORDER, nextStep)) setStep(nextStep);
   }, []);
 
+  // The saved draft keeps its shape: the rows' React keys stay in the browser.
+  const remotePayload = useMemo(
+    () => ({
+      ...draft,
+      startup: {
+        ...draft.startup,
+        teamMembers: withoutKeys(draft.startup.teamMembers),
+      },
+    }),
+    [draft],
+  );
   const { saveNow, clearRemote } = useOnboardingDraftSync({
     kind: DRAFT_KIND,
     step,
-    payload: draft,
+    payload: remotePayload,
     onRestore,
   });
 
@@ -176,7 +203,7 @@ export function useSignupWizard(
     if (step === SignupStep.StartupProfile) {
       const { name, tagline, programId, startupLater } = draft.startup;
       return Boolean(
-        programId && (startupLater || (name.trim() && tagline.trim())),
+        programId && (startupLater === true || (name.trim() && tagline.trim())),
       );
     }
     if (step === SignupStep.Review) return draft.consent;

@@ -11,6 +11,7 @@ import {
   MentorshipRequestStatus,
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
+import { loadingQuery, successQuery } from "@test/mocks/query-results";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/components/mentor-dashboard/assign-task-button", () => ({
@@ -115,29 +116,46 @@ function actionItem(overrides: Partial<ActionItem> = {}): ActionItem {
   };
 }
 
-const submitDecision = vi.fn<(mode?: MentorDecisionMode) => Promise<boolean>>();
-const selectRequest = vi.fn();
-const closeDecision = vi.fn();
+type Dashboard = ReturnType<typeof useMentorDashboard>;
+type Decision = Dashboard["decision"];
 
-function decisionState(selectedRequest: MentorshipRequest | null = null) {
+const submitDecision = vi.fn<Decision["submitDecision"]>();
+const selectRequest = vi.fn<Decision["selectRequest"]>();
+const closeDecision = vi.fn<Decision["closeDecision"]>();
+
+function decisionState(
+  selectedRequest: MentorshipRequest | null = null,
+): Decision {
   return {
     selectedRequest,
+    decisionMode: null,
+    decisionMessage: "",
+    actionError: "",
+    showAvailabilityStep: false,
+    selectedSlots: [],
+    isLoadingSlots: false,
+    isPending: false,
     selectRequest,
+    setDecisionMode: vi.fn<Decision["setDecisionMode"]>(),
+    setDecisionMessage: vi.fn<Decision["setDecisionMessage"]>(),
     closeDecision,
     submitDecision,
-    isPending: false,
   };
 }
 
-function mockDashboard(overrides: Record<string, unknown> = {}) {
-  const value = {
+function mockDashboard(overrides: Partial<Dashboard> = {}) {
+  const pending = [request()];
+  const accepted = [
+    request({ id: "request-2", status: MentorshipRequestStatus.Accepted }),
+  ];
+  // As the hook derives it, the next meeting is the first upcoming one.
+  const upcomingMeetings = overrides.upcomingMeetings ?? [meeting()];
+  const value: Dashboard = {
     firstName: "Nihan",
     greeting: "İyi akşamlar",
-    pending: [request()],
-    accepted: [
-      request({ id: "request-2", status: MentorshipRequestStatus.Accepted }),
-    ],
-    upcomingMeetings: [meeting()],
+    pending,
+    accepted,
+    upcomingMeetings,
     weekMeetingCount: 1,
     mentorships: [
       {
@@ -155,11 +173,11 @@ function mockDashboard(overrides: Record<string, unknown> = {}) {
         ratio: { done: 2, total: 5 },
       },
     ],
-    nextMeeting: meeting(),
+    nextMeeting: upcomingMeetings[0],
     todayActions: [
       {
         id: "meeting-past",
-        icon: "star" as const,
+        icon: "star",
         startup: "Döngü",
         detail: "UX Flow Review · değerlendirme bekliyor",
         chip: null,
@@ -168,7 +186,7 @@ function mockDashboard(overrides: Record<string, unknown> = {}) {
       },
       {
         id: "action-1",
-        icon: "paper" as const,
+        icon: "paper",
         startup: "Döngü",
         detail: "Revize prototip",
         chip: "Gecikti",
@@ -186,14 +204,12 @@ function mockDashboard(overrides: Record<string, unknown> = {}) {
     ],
     isLoadingActionItems: false,
     isLoadingTop: false,
-    requestsQuery: { isLoading: false },
-    meetingsQuery: { isLoading: false },
+    requestsQuery: successQuery([...pending, ...accepted]),
+    meetingsQuery: successQuery([meeting()]),
     decision: decisionState(),
     ...overrides,
   };
-  vi.mocked(useMentorDashboard).mockReturnValue(
-    value as unknown as ReturnType<typeof useMentorDashboard>,
-  );
+  vi.mocked(useMentorDashboard).mockReturnValue(value);
   return value;
 }
 
@@ -273,7 +289,7 @@ describe("MentorDashboardView", () => {
 
     const card = screen.getByText("UX Research Review").closest("article");
     expect(card).not.toBeNull();
-    expect(within(card as HTMLElement).getByText(/45 dk/)).toBeInTheDocument();
+    expect(within(card!).getByText(/45 dk/)).toBeInTheDocument();
   });
 
   it("notes when no meeting is upcoming", () => {
@@ -287,8 +303,8 @@ describe("MentorDashboardView", () => {
 
   it("shows a loading note while requests and meetings load", () => {
     mockDashboard({
-      requestsQuery: { isLoading: true },
-      meetingsQuery: { isLoading: true },
+      requestsQuery: loadingQuery(),
+      meetingsQuery: loadingQuery(),
     });
     renderWithQueryClient(<MentorDashboardView />);
 
@@ -521,7 +537,7 @@ describe("MentorDashboardView", () => {
   });
 
   it("leaves the banner out when no meeting is coming up", () => {
-    mockDashboard({ nextMeeting: undefined });
+    mockDashboard({ upcomingMeetings: [] });
     renderWithQueryClient(<MentorDashboardView />);
 
     expect(

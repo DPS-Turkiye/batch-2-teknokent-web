@@ -1,14 +1,14 @@
 "use client";
 
-import Link from "next/link";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 
+import { DocumentsStep } from "@/components/signup/steps/documents-step";
+import { StartupFields } from "@/components/signup/steps/startup-fields";
 import {
   startupPrimaryActionClass,
   startupSecondaryActionClass,
 } from "@/components/startup/startup-page-frame";
-import { DocumentsStep } from "@/components/signup/steps/documents-step";
-import { StartupFields } from "@/components/signup/steps/startup-fields";
 import {
   StartupCreateStep,
   useStartupCreate,

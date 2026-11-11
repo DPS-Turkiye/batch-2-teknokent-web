@@ -1,6 +1,5 @@
-import "server-only";
-
 import { NextResponse, type NextRequest } from "next/server";
+import "server-only";
 
 import { LtiLaunchError } from "@/interfaces/office-hours";
 import { LtiRequestError } from "@/lib/api/lti";

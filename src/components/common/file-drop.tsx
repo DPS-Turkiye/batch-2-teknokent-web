@@ -1,8 +1,8 @@
 "use client";
 
-import { useTranslations } from "next-intl";
 import { FileText, Upload, X } from "lucide-react";
-import { ChangeEvent, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
+import { useRef, useState, type ChangeEvent } from "react";
 
 import type { UploadedFile } from "@/interfaces/signup";
 import { DOCUMENT_MAX_BYTES } from "@/lib/const";
@@ -115,7 +115,7 @@ export function FileDrop({
       onDragOver={(event) => event.preventDefault()}
       onDrop={(event) => {
         event.preventDefault();
-        takeFile(event.dataTransfer.files?.[0]);
+        takeFile(event.dataTransfer.files[0]);
       }}
       className="rounded-xl border border-dashed border-[#d6dade] bg-white px-4 py-6 text-center"
     >

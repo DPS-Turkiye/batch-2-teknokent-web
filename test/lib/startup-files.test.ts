@@ -1,4 +1,3 @@
-import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 
 import type {
@@ -15,17 +14,12 @@ import {
   StartupFileStatus,
   type StartupFilesTexts,
 } from "@/lib/startup-files";
-import en from "@/messages/en.json";
-import tr from "@/messages/tr.json";
 import { documentFixture } from "@test/fixtures/startup-files";
+import { translatorIn } from "@test/translators";
 
 function filesTexts(locale: "tr" | "en"): StartupFilesTexts {
   return {
-    t: createTranslator({
-      locale,
-      messages: locale === "en" ? en : tr,
-      namespace: "startupFiles",
-    }),
+    t: translatorIn(locale, "startupFiles"),
     locale,
   };
 }
@@ -100,7 +94,7 @@ describe("buildStartupFileRows", () => {
       texts,
     });
 
-    expect(rows[0].status).toBe(StartupFileStatus.Reviewed);
+    expect(rows[0]?.status).toBe(StartupFileStatus.Reviewed);
   });
 
   it("waits on a program request nothing was uploaded for", () => {

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { MeetingStatus } from "@/interfaces/meeting";
 import {
   getMeetingFeedback,
   getRatedMeetingIds,
@@ -7,7 +8,6 @@ import {
   updateMeeting,
 } from "@/lib/client/meetings";
 import { httpClient } from "@/lib/http-client";
-import { MeetingStatus } from "@/interfaces/meeting";
 import { createMentorResponse } from "@test/fixtures/mentors";
 
 vi.mock("@/lib/http-client", () => ({

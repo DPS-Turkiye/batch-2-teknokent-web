@@ -1,14 +1,29 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+  type Mock,
+} from "vitest";
+
+function wait(ms: number) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
 
 describe("Rate Limit Retry - API Integration", () => {
-  let fetchMock: ReturnType<typeof vi.fn>;
+  let fetchMock: Mock<typeof fetch>;
 
   beforeEach(() => {
-    fetchMock = vi.fn();
-    global.fetch = fetchMock as unknown as typeof fetch;
+    fetchMock = vi.fn<typeof fetch>();
+    vi.stubGlobal("fetch", fetchMock);
   });
 
   afterEach(() => {
+    vi.unstubAllGlobals();
     vi.restoreAllMocks();
   });
 
@@ -39,7 +54,7 @@ describe("Rate Limit Retry - API Integration", () => {
         }
         if (i < maxRetries - 1) {
           const delay = Math.pow(2, i) * 100; // 100ms, 200ms, 400ms for tests
-          await new Promise((resolve) => setTimeout(resolve, delay));
+          await wait(delay);
         }
       }
       return new Response(JSON.stringify({ error: "Max retries exceeded" }), {
@@ -61,11 +76,9 @@ describe("Rate Limit Retry - API Integration", () => {
     const timeoutError = new Error("Request timeout");
     fetchMock.mockRejectedValue(timeoutError);
 
-    try {
-      await fetchMock("/api/assistant/query");
-    } catch (error) {
-      expect((error as Error).message).toBe("Request timeout");
-    }
+    await expect(fetchMock("/api/assistant/query")).rejects.toThrow(
+      "Request timeout",
+    );
 
     expect(fetchMock).toHaveBeenCalled();
   });
@@ -89,11 +102,7 @@ describe("Rate Limit Retry - API Integration", () => {
       throw new Error("Max retries exceeded");
     };
 
-    try {
-      await retryLogic();
-    } catch (error) {
-      expect((error as Error).message).toBe("Max retries exceeded");
-    }
+    await expect(retryLogic()).rejects.toThrow("Max retries exceeded");
 
     expect(attempts).toBe(maxRetries);
   });
@@ -153,13 +162,16 @@ describe("Rate Limit Retry - API Integration", () => {
           // In real scenario use: await sleep(retryAfter * 1000)
           // For tests, use a fraction of time
           const delay = (retryAfter * 1000) / 100;
-          await new Promise((resolve) => setTimeout(resolve, delay));
+          await wait(delay);
         }
       }
-      return response;
+      throw new Error("Max retries exceeded");
     };
 
-    const result = await retryWithCustomDelay(() => fetchMock(), 2);
+    const result = await retryWithCustomDelay(
+      () => fetchMock("/api/assistant/query"),
+      2,
+    );
 
     expect(result.status).toBe(200);
     expect(fetchMock).toHaveBeenCalledTimes(2);
@@ -245,7 +257,7 @@ describe("Rate Limit Retry - API Integration", () => {
       throw new Error("Max retries exceeded");
     };
 
-    const result = await trackRetries(() => fetchMock());
+    const result = await trackRetries(() => fetchMock("/api/assistant/query"));
 
     expect(result.metadata.attempts).toBe(2);
     expect(result.metadata.lastRetryTime).toBeDefined();

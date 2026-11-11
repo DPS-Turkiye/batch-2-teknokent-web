@@ -6,6 +6,7 @@ import {
   type MobileTabLink,
 } from "@/interfaces/mobile";
 import { UserRole } from "@/interfaces/session";
+import { isEnumValue } from "@/lib/enum";
 
 /** The phone screens' translator and language, for the labels built in lib/mobile-*. */
 export type MobileTexts = {
@@ -51,9 +52,7 @@ export const MOBILE_ACCOUNT = "/m/account";
 export function isMobileConversationKind(
   value: string,
 ): value is MobileConversationKind {
-  return Object.values(MobileConversationKind).includes(
-    value as MobileConversationKind,
-  );
+  return isEnumValue(MobileConversationKind, value);
 }
 
 export function mobileChatHref(kind: MobileConversationKind, id: string) {

@@ -1,17 +1,18 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
+import { OnboardingTone } from "@/components/onboarding/onboarding-tone";
 import {
   OnboardingConsent,
   OnboardingNote,
   OnboardingReviewCard,
 } from "@/components/onboarding/onboarding-ui";
-import { OnboardingTone } from "@/components/onboarding/onboarding-tone";
 import { useProgramNames } from "@/hooks/use-programs";
 import type { SignupWizard } from "@/hooks/use-signup-wizard";
 import { useStoredDocuments } from "@/hooks/use-stored-documents";
 import { SignupStep, StartupDocumentKind } from "@/interfaces/signup";
 import { truncate } from "@/lib/utils";
-import { useTranslations } from "next-intl";
 
 const TONE = OnboardingTone.Mentee;
 
@@ -140,7 +141,7 @@ export function ReviewStep({ wizard }: { wizard: SignupWizard }) {
           ]}
         />
       )}
-      {missingKeyFiles && (
+      {missingKeyFiles ? (
         <OnboardingNote
           tone={TONE}
           icon="/onboarding/star.svg"
@@ -148,7 +149,7 @@ export function ReviewStep({ wizard }: { wizard: SignupWizard }) {
         >
           {copy("missingBody")}
         </OnboardingNote>
-      )}
+      ) : null}
       <OnboardingConsent
         tone={TONE}
         checked={draft.consent}

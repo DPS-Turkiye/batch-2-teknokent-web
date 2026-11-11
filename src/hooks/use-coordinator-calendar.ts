@@ -8,12 +8,11 @@ import { useCoordinatorPrograms } from "@/hooks/use-coordinator-programs";
 import { MEETING_PROPOSALS_QUERY_KEY } from "@/hooks/use-meeting-proposals";
 import type { CoordinatorCalendarItem } from "@/interfaces/coordinator-calendar";
 import { getCoordinatorCalendar } from "@/lib/client/coordinator-calendar";
-import { getCoordinatorMeetingProposals } from "@/lib/client/meeting-proposals";
 import { createCoordinatorProgramEvent } from "@/lib/client/coordinator-programs";
+import { getCoordinatorMeetingProposals } from "@/lib/client/meeting-proposals";
 import {
   CalendarView,
   emptyEventDraft,
-  type EventDraft,
   eventDraftError,
   eventInput,
   proposalItems,
@@ -21,6 +20,7 @@ import {
   shiftAnchor,
   viewDays,
   viewRange,
+  type EventDraft,
 } from "@/lib/coordinator-calendar";
 
 export const COORDINATOR_CALENDAR_QUERY_KEY = ["coordinator-calendar"] as const;

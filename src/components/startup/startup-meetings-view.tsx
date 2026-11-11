@@ -1,9 +1,9 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
 
 import { MeetingNotesPanel } from "@/components/startup/meeting-notes-panel";
 import { MeetingTimeline } from "@/components/startup/meeting-timeline";
