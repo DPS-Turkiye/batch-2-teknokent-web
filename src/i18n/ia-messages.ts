@@ -18,16 +18,21 @@ import tourTr from "@/messages/ia/tour/tr.json";
  * The IA Revizyon screens keep their copy in one catalog pair per screen group, so parallel work on the groups
  * never edits the same file. Each pair is one top-level namespace.
  */
-export const IA_MESSAGES = {
-  [Locale.Tr]: {
-    iaKit: kitTr,
-    iaStudent: studentTr,
-    iaIskur: iskurTr,
-    iaAcademician: academicianTr,
-    iaCoordinator: coordinatorTr,
-    iaProfile: profileTr,
-    iaTour: tourTr,
-  },
+const TR_CATALOGS = {
+  iaKit: kitTr,
+  iaStudent: studentTr,
+  iaIskur: iskurTr,
+  iaAcademician: academicianTr,
+  iaCoordinator: coordinatorTr,
+  iaProfile: profileTr,
+  iaTour: tourTr,
+};
+
+/** Each catalog's Turkish shape; English must match it key for key. */
+export type IaMessages = typeof TR_CATALOGS;
+
+export const IA_MESSAGES: Record<Locale, IaMessages> = {
+  [Locale.Tr]: TR_CATALOGS,
   [Locale.En]: {
     iaKit: kitEn,
     iaStudent: studentEn,
@@ -38,5 +43,3 @@ export const IA_MESSAGES = {
     iaTour: tourEn,
   },
 };
-
-export type IaMessages = (typeof IA_MESSAGES)[Locale.Tr];

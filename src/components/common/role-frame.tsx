@@ -275,6 +275,7 @@ function NavLink({ item, active }: { item: RoleNavItem; active: boolean }) {
     return (
       <span
         aria-disabled="true"
+        data-tour={`nav-${item.label}`}
         title={t("soon")}
         className="flex cursor-default items-center gap-2 whitespace-nowrap rounded-full px-3 py-[11px] text-[14px] leading-[1.3] text-[#cfd4da] xl:px-4"
       >

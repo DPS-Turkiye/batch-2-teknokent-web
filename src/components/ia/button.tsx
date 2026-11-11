@@ -42,13 +42,13 @@ export function buttonClasses(
   variant: ButtonVariant = ButtonVariant.Primary,
   size: ButtonSize = ButtonSize.Medium,
   fullWidth = false,
-) {
+): string {
   return `inline-flex shrink-0 items-center justify-center whitespace-nowrap transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-selected disabled:cursor-not-allowed disabled:bg-background-disabled disabled:text-text-disabled disabled:shadow-none ${VARIANT_CLASSES[variant]} ${SIZE_CLASSES[size]} ${fullWidth ? "w-full" : ""}`;
 }
 
 /**
  * The design system's button (Figma "Button", v1.1): S/M/L at 36/44/52 px with radius 12/14/16. With `href` it
- * renders a link that looks the same.
+ * renders a link that looks the same; a disabled one stays a button, so it cannot be followed.
  */
 export function Button({
   children,
@@ -62,19 +62,19 @@ export function Button({
   className = "",
 }: {
   children: ReactNode;
-  variant?: ButtonVariant;
-  size?: ButtonSize;
+  variant?: ButtonVariant | undefined;
+  size?: ButtonSize | undefined;
   href?: string | undefined;
-  type?: "button" | "submit";
-  onClick?: MouseEventHandler<HTMLButtonElement> | undefined;
-  disabled?: boolean;
-  fullWidth?: boolean;
-  className?: string;
+  type?: "button" | "submit" | undefined;
+  onClick?: MouseEventHandler<HTMLElement> | undefined;
+  disabled?: boolean | undefined;
+  fullWidth?: boolean | undefined;
+  className?: string | undefined;
 }) {
   const classes = `${buttonClasses(variant, size, fullWidth)} ${className}`;
   if (href !== undefined && !disabled) {
     return (
-      <Link href={href} className={classes}>
+      <Link href={href} className={classes} {...(onClick ? { onClick } : {})}>
         {children}
       </Link>
     );
