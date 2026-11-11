@@ -14,7 +14,17 @@ import type { BackendResponse } from "@/lib/server/backend-client";
 import { readJsonBody } from "@/lib/server/request-body";
 import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 
-const addCoordinatorSchema = z.object({ userId: z.string() });
+/** An approved coordinator by id, or an email to invite: exactly one, as the backend requires. */
+const addCoordinatorSchema = z.union([
+  z.object({ userId: z.string(), invite: z.never().optional() }),
+  z.object({
+    invite: z.object({
+      fullName: z.string().trim().min(1).max(255),
+      email: z.email().max(255),
+    }),
+    userId: z.never().optional(),
+  }),
+]);
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -43,7 +53,7 @@ export async function POST(request: Request, { params }: Params) {
     const response = await addProgramCoordinator(
       auth.session.userId,
       id,
-      body.data.userId,
+      body.data,
     );
     return backendResponse(await translateAssignment(response));
   } catch (error) {

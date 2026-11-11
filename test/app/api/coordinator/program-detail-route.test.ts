@@ -133,7 +133,19 @@ describe("coordinator program detail routes", () => {
     expect(api.addProgramCoordinator).toHaveBeenCalledWith(
       "coordinator-1",
       "program-1",
-      "coordinator-2",
+      { userId: "coordinator-2" },
+    );
+    await addCoordinator(
+      body({
+        invite: { fullName: "Yeni Kişi", email: "yeni@x.org" },
+        actorId: "someone-else",
+      }),
+      params,
+    );
+    expect(api.addProgramCoordinator).toHaveBeenLastCalledWith(
+      "coordinator-1",
+      "program-1",
+      { invite: { fullName: "Yeni Kişi", email: "yeni@x.org" } },
     );
     await removeCoordinator(new Request("http://localhost"), {
       params: Promise.resolve({ id: "program-1", userId: "coordinator-2" }),

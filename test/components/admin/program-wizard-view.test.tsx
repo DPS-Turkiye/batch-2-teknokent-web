@@ -13,6 +13,9 @@ import { createCoordinatorProgram } from "@/lib/client/coordinator-programs";
 import { coordinatorProgramDetail } from "@test/fixtures/coordinator-programs";
 import { renderWithQueryClient } from "@test/test-utils";
 
+// The e-mail field waits for typing to settle before it searches; leave room on a busy machine.
+const PICKER_WAIT = 3000;
+
 const push = vi.fn();
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push }),
@@ -40,7 +43,11 @@ async function reachSummary(clicker: ReturnType<typeof userEvent.setup>) {
   await clicker.click(screen.getByRole("button", { name: /Devam/ }));
   await clicker.type(screen.getByLabelText("Koordinatör e-postası"), "eli");
   await clicker.click(
-    await screen.findByRole("button", { name: "Elif Demir ekle" }),
+    await screen.findByRole(
+      "button",
+      { name: "Elif Demir ekle" },
+      { timeout: PICKER_WAIT },
+    ),
   );
   await clicker.click(screen.getByRole("button", { name: /Devam/ }));
 }
@@ -82,7 +89,11 @@ describe("admin Yeni Program Oluştur", () => {
     );
     await clicker.type(screen.getByLabelText("Koordinatör e-postası"), "eli");
     await clicker.click(
-      await screen.findByRole("button", { name: "Elif Demir ekle" }),
+      await screen.findByRole(
+        "button",
+        { name: "Elif Demir ekle" },
+        { timeout: PICKER_WAIT },
+      ),
     );
     await clicker.click(screen.getByRole("button", { name: /Devam/ }));
 
@@ -169,7 +180,10 @@ describe("admin Yeni Program Oluştur", () => {
       screen.getByLabelText("Koordinatör e-postası"),
       "yeni@odtu.test",
     );
-    await clicker.type(await screen.findByLabelText("Ad soyad"), "Yeni Kişi");
+    await clicker.type(
+      await screen.findByLabelText("Ad soyad", {}, { timeout: PICKER_WAIT }),
+      "Yeni Kişi",
+    );
     await clicker.click(screen.getByRole("button", { name: "Davet et" }));
     await clicker.click(screen.getByRole("button", { name: /Devam/ }));
 

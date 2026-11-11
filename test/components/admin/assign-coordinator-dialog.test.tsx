@@ -4,63 +4,74 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AssignCoordinatorDialog } from "@/components/admin/assign-coordinator-dialog";
 import { CoordinatorCandidateStatus } from "@/interfaces/admin-coordinator";
-import { UserAccountStatus } from "@/interfaces/session";
+import { UserRole } from "@/interfaces/session";
 import {
-  addCoordinator,
   getCoordinatorCandidate,
+  searchCoordinators,
 } from "@/lib/client/admin-coordinators";
 import {
   addProgramCoordinator,
-  getProgramCoordinatorCandidates,
+  inviteProgramCoordinator,
 } from "@/lib/client/coordinator-programs";
 import { renderWithQueryClient } from "@test/test-utils";
 
+// The e-mail field waits for typing to settle before it searches; leave room on a busy machine.
+const PICKER_WAIT = 3000;
+
 vi.mock("@/lib/client/admin-coordinators", () => ({
+  searchCoordinators: vi.fn(),
   getCoordinatorCandidate: vi.fn(),
-  addCoordinator: vi.fn(),
 }));
 
 vi.mock("@/lib/client/coordinator-programs", () => ({
-  getProgramCoordinatorCandidates: vi.fn(),
   addProgramCoordinator: vi.fn(),
+  inviteProgramCoordinator: vi.fn(),
 }));
 
-describe("AssignCoordinatorDialog", () => {
-  beforeEach(() => vi.clearAllMocks());
+function renderDialog(onClose = vi.fn()) {
+  renderWithQueryClient(
+    <AssignCoordinatorDialog
+      programId="p-1"
+      programName="Hızlandırma 2026"
+      onClose={onClose}
+    />,
+  );
+  return onClose;
+}
 
-  it("adds the picked coordinator to the program and closes", async () => {
-    vi.mocked(getProgramCoordinatorCandidates).mockResolvedValue([
-      { id: "c-1", fullName: "Elif Demir", owner: false },
-      { id: "c-2", fullName: "Mert Kaya", owner: false },
+describe("AssignCoordinatorDialog", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(searchCoordinators).mockResolvedValue([]);
+    vi.mocked(addProgramCoordinator).mockResolvedValue([]);
+    vi.mocked(inviteProgramCoordinator).mockResolvedValue([]);
+  });
+
+  it("lists nobody until searched, then adds the picked coordinator and closes", async () => {
+    vi.mocked(searchCoordinators).mockResolvedValue([
+      { id: "c-2", fullName: "Mert Kaya", email: "mert@teknokent.org" },
     ]);
-    vi.mocked(addProgramCoordinator).mockResolvedValue([
-      { id: "c-2", fullName: "Mert Kaya", owner: false },
-    ]);
-    const onClose = vi.fn();
     const user = userEvent.setup();
-    renderWithQueryClient(
-      <AssignCoordinatorDialog
-        programId="p-1"
-        programName="Hızlandırma 2026"
-        onClose={onClose}
-      />,
-    );
+    const onClose = renderDialog();
 
     expect(screen.getByText(/Hızlandırma 2026 programına/)).toBeInTheDocument();
-    const save = screen.getByRole("button", { name: "Programa ekle" });
-    expect(save).toBeDisabled();
+    expect(screen.queryByText("Mert Kaya")).not.toBeInTheDocument();
 
-    await user.click(await screen.findByLabelText("Mert Kaya"));
-    await user.click(save);
+    await user.type(screen.getByLabelText("Koordinatör e-postası"), "mer");
+    await user.click(
+      await screen.findByRole(
+        "button",
+        { name: "Mert Kaya ekle" },
+        { timeout: PICKER_WAIT },
+      ),
+    );
 
+    expect(searchCoordinators).toHaveBeenCalledWith("mer", "p-1");
     expect(addProgramCoordinator).toHaveBeenCalledWith("p-1", "c-2");
     await waitFor(() => expect(onClose).toHaveBeenCalled());
   });
 
-  it("adds someone not in the system by email, then puts them on the program", async () => {
-    vi.mocked(getProgramCoordinatorCandidates).mockResolvedValue([
-      { id: "c-1", fullName: "Elif Demir", owner: false },
-    ]);
+  it("invites an e-mail with no account into the program", async () => {
     vi.mocked(getCoordinatorCandidate).mockResolvedValue({
       email: "yeni@teknokent.org",
       status: CoordinatorCandidateStatus.New,
@@ -68,57 +79,71 @@ describe("AssignCoordinatorDialog", () => {
       fullName: null,
       role: null,
     });
-    vi.mocked(addCoordinator).mockResolvedValue({
-      id: "c-9",
-      email: "yeni@teknokent.org",
-      fullName: "Yeni Kişi",
-      status: UserAccountStatus.Approved,
-      outcome: CoordinatorCandidateStatus.New,
-    });
-    vi.mocked(addProgramCoordinator).mockResolvedValue([]);
-    const onClose = vi.fn();
     const user = userEvent.setup();
-    renderWithQueryClient(
-      <AssignCoordinatorDialog
-        programId="p-1"
-        programName="Hızlandırma 2026"
-        onClose={onClose}
-      />,
-    );
+    const onClose = renderDialog();
 
-    await user.click(
-      await screen.findByRole("button", {
-        name: "Listede yok mu? E-posta ile ekle",
-      }),
+    await user.type(
+      screen.getByLabelText("Koordinatör e-postası"),
+      "yeni@teknokent.org",
     );
-    await user.type(screen.getByLabelText("E-posta"), "yeni@teknokent.org");
-    await user.type(await screen.findByLabelText("Ad soyad"), "Yeni Kişi");
-    await user.click(screen.getByRole("button", { name: "Programa ekle" }));
+    await user.type(
+      await screen.findByLabelText("Ad soyad", {}, { timeout: PICKER_WAIT }),
+      "Yeni Kişi",
+    );
+    await user.click(screen.getByRole("button", { name: "Davet et" }));
 
-    await waitFor(() =>
-      expect(addProgramCoordinator).toHaveBeenCalledWith("p-1", "c-9"),
-    );
-    expect(addCoordinator).toHaveBeenCalledWith({
+    expect(inviteProgramCoordinator).toHaveBeenCalledWith("p-1", {
       fullName: "Yeni Kişi",
       email: "yeni@teknokent.org",
     });
+    expect(addProgramCoordinator).not.toHaveBeenCalled();
     await waitFor(() => expect(onClose).toHaveBeenCalled());
   });
 
-  it("goes straight to the email form when there is no approved coordinator", async () => {
-    vi.mocked(getProgramCoordinatorCandidates).mockResolvedValue([]);
-    renderWithQueryClient(
-      <AssignCoordinatorDialog
-        programId="p-1"
-        programName="Hızlandırma 2026"
-        onClose={vi.fn()}
-      />,
+  it("does not offer to promote a mentor from here", async () => {
+    vi.mocked(getCoordinatorCandidate).mockResolvedValue({
+      email: "ece@mentor.org",
+      status: CoordinatorCandidateStatus.Promotable,
+      userId: "m-1",
+      fullName: "Ece Mentor",
+      role: UserRole.Mentor,
+    });
+    const user = userEvent.setup();
+    renderDialog();
+
+    await user.type(
+      screen.getByLabelText("Koordinatör e-postası"),
+      "ece@mentor.org",
     );
 
-    expect(await screen.findByLabelText("E-posta")).toBeInTheDocument();
-    expect(screen.getByText(/Onaylı koordinatör yok/)).toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: "Listeden seç" }),
+      await screen.findByText(/Ece Mentor menton'da mentor olarak kayıtlı/),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Davet et" }),
     ).not.toBeInTheDocument();
+  });
+
+  it("keeps the dialog open when adding fails", async () => {
+    vi.mocked(searchCoordinators).mockResolvedValue([
+      { id: "c-2", fullName: "Mert Kaya", email: "mert@teknokent.org" },
+    ]);
+    vi.mocked(addProgramCoordinator).mockRejectedValue(
+      new Error("Bu koordinatör programı zaten yürütüyor."),
+    );
+    const user = userEvent.setup();
+    const onClose = renderDialog();
+
+    await user.type(screen.getByLabelText("Koordinatör e-postası"), "mer");
+    await user.click(
+      await screen.findByRole(
+        "button",
+        { name: "Mert Kaya ekle" },
+        { timeout: PICKER_WAIT },
+      ),
+    );
+
+    await waitFor(() => expect(addProgramCoordinator).toHaveBeenCalled());
+    expect(onClose).not.toHaveBeenCalled();
   });
 });

@@ -7,11 +7,11 @@ import { ProgramOverviewView } from "@/components/coordinator/program-overview-v
 import { ProgramSettingsView } from "@/components/coordinator/program-settings-view";
 import { ProgramLifecycle } from "@/interfaces/coordinator-program";
 import { ProgramStatus, ProgramType } from "@/interfaces/program";
+import { searchCoordinators } from "@/lib/client/admin-coordinators";
 import {
   addProgramCoordinator,
   extractSyllabusPhases,
   getCoordinatorProgram,
-  getProgramCoordinatorCandidates,
   getProgramTeams,
   launchCoordinatorProgram,
   replaceCoordinatorProgramPhases,
@@ -23,6 +23,9 @@ import {
   phase,
 } from "@test/fixtures/coordinator-programs";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
+
+// The e-mail field waits for typing to settle before it searches; leave room on a busy machine.
+const PICKER_WAIT = 3000;
 
 vi.mock("next/navigation", () => ({
   usePathname: vi.fn(() => "/coordinator/programs/program-1"),
@@ -40,12 +43,15 @@ vi.mock("@/lib/client/program-weeks", () => ({
   getProgramWeekPlan: vi.fn(async () => ({ totalWeeks: null, weeks: [] })),
   saveProgramWeekPlan: vi.fn(),
 }));
+vi.mock("@/lib/client/admin-coordinators", () => ({
+  searchCoordinators: vi.fn(),
+  getCoordinatorCandidate: vi.fn(),
+}));
 vi.mock("@/lib/client/coordinator-programs", () => ({
   getCoordinatorProgram: vi.fn(),
   updateCoordinatorProgram: vi.fn(),
   replaceCoordinatorProgramPhases: vi.fn(),
   setCoordinatorProgramArchived: vi.fn(),
-  getProgramCoordinatorCandidates: vi.fn(),
   addProgramCoordinator: vi.fn(),
   removeProgramCoordinator: vi.fn(),
   getProgramTeams: vi.fn(),
@@ -496,10 +502,10 @@ describe("coordinator program detail", () => {
     vi.useRealTimers();
   });
 
-  it("lets the admin add a coordinator from the approved ones", async () => {
+  it("lets the admin add a coordinator found by e-mail", async () => {
     vi.mocked(usePathname).mockReturnValue("/admin/programs/program-1");
-    vi.mocked(getProgramCoordinatorCandidates).mockResolvedValue([
-      { id: "coordinator-3", fullName: "Can Yılmaz", owner: false },
+    vi.mocked(searchCoordinators).mockResolvedValue([
+      { id: "coordinator-3", fullName: "Can Yılmaz", email: "can@x.org" },
     ]);
     vi.mocked(addProgramCoordinator).mockResolvedValue([]);
     const user = userEvent.setup();
@@ -515,10 +521,17 @@ describe("coordinator program detail", () => {
       }),
     ).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /Koordinatör ekle/ }));
+    expect(screen.queryByText("Can Yılmaz")).not.toBeInTheDocument();
+    await user.type(screen.getByLabelText("Koordinatör e-postası"), "can");
     await user.click(
-      await screen.findByRole("button", { name: "+ Can Yılmaz" }),
+      await screen.findByRole(
+        "button",
+        { name: "Can Yılmaz ekle" },
+        { timeout: PICKER_WAIT },
+      ),
     );
 
+    expect(searchCoordinators).toHaveBeenCalledWith("can", "program-1");
     expect(addProgramCoordinator).toHaveBeenCalledWith(
       "program-1",
       "coordinator-3",

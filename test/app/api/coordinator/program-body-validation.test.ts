@@ -289,8 +289,21 @@ const cases: BodyCase[] = [
     send: (request) => addCoordinatorRoute(request, program),
     valid: { userId: "c-2" },
     backend: programs.addProgramCoordinator,
-    expected: [ME, "program-1", "c-2"],
-    invalid: { "a user id of the wrong type": { userId: 2 } },
+    expected: [ME, "program-1", { userId: "c-2" }],
+    invalid: {
+      "a user id of the wrong type": { userId: 2 },
+      "neither a user nor an invite": {},
+      "both a user and an invite": {
+        userId: "c-2",
+        invite: { fullName: "Yeni", email: "yeni@x.org" },
+      },
+      "an invite whose e-mail is not one": {
+        invite: { fullName: "Yeni", email: "yeni" },
+      },
+      "an invite with a blank name": {
+        invite: { fullName: " ", email: "yeni@x.org" },
+      },
+    },
   },
   {
     route: "POST /api/coordinator/programs/[id]/eligible-emails",

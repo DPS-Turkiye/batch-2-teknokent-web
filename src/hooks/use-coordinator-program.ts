@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
+import { useAddProgramCoordinator } from "@/hooks/use-add-program-coordinator";
 import { ADMIN_OVERVIEW_QUERY_KEY } from "@/hooks/use-admin-overview";
 import { COORDINATOR_PROGRAMS_QUERY_KEY } from "@/hooks/use-coordinator-programs";
 import type {
@@ -13,10 +14,8 @@ import type {
 } from "@/interfaces/coordinator-program";
 import { ToastTone } from "@/interfaces/toast";
 import {
-  addProgramCoordinator,
   addProgramEligibleEmails,
   getCoordinatorProgram,
-  getProgramCoordinatorCandidates,
   getProgramEligibleEmails,
   launchCoordinatorProgram,
   removeProgramCoordinator,
@@ -120,44 +119,32 @@ export function useProgramCoordinators(
   const cache = useProgramCache(programId);
   const { showToast } = useToast();
   const [picking, setPicking] = useState(false);
-  const candidates = useQuery({
-    queryKey: [...coordinatorProgramQueryKey(programId), "candidates"],
-    queryFn: () => getProgramCoordinatorCandidates(programId),
-    enabled: picking,
-  });
-  const onError = (failure: Error) =>
-    showToast({
-      message: errorMessage(failure, t("coordinatorFailed")),
-      tone: ToastTone.Error,
-    });
   const queryClient = useQueryClient();
   const refresh = () => {
     void cache.refresh();
     void queryClient.invalidateQueries({ queryKey: ADMIN_OVERVIEW_QUERY_KEY });
   };
-  const add = useMutation({
-    mutationFn: (userId: string) => addProgramCoordinator(programId, userId),
-    onSuccess: () => {
-      setPicking(false);
-      refresh();
-    },
-    onError,
+  const add = useAddProgramCoordinator(programId, () => {
+    setPicking(false);
+    refresh();
   });
   const remove = useMutation({
     mutationFn: (userId: string) => removeProgramCoordinator(programId, userId),
     onSuccess: refresh,
-    onError,
+    onError: (failure: Error) =>
+      showToast({
+        message: errorMessage(failure, t("coordinatorFailed")),
+        tone: ToastTone.Error,
+      }),
   });
   return {
     coordinators,
     picking,
     openPicker: () => setPicking(true),
     closePicker: () => setPicking(false),
-    candidates: candidates.data ?? [],
-    candidatesLoading: candidates.isLoading,
-    add: (userId: string) => add.mutate(userId),
+    pick: add.pick,
     remove: (userId: string) => remove.mutate(userId),
-    busy: add.isPending || remove.isPending,
+    busy: add.adding || remove.isPending,
   };
 }
 

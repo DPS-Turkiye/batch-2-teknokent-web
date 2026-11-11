@@ -1,3 +1,4 @@
+import type { NewCoordinatorInput } from "@/interfaces/admin-coordinator";
 import type {
   CoordinatorProgram,
   CoordinatorProgramDetail,
@@ -117,19 +118,23 @@ export async function getProgramCoordinators(programId: string) {
   );
 }
 
-export async function getProgramCoordinatorCandidates(programId: string) {
-  return requireSuccess(
-    await httpClient.get<CoordinatorRef[]>(
-      `${programUrl(programId)}/coordinators/candidates`,
-    ),
-  );
-}
-
 export async function addProgramCoordinator(programId: string, userId: string) {
   return requireSuccess(
     await httpClient.post<CoordinatorRef[]>(
       `${programUrl(programId)}/coordinators`,
       { userId },
+    ),
+  );
+}
+
+export async function inviteProgramCoordinator(
+  programId: string,
+  invite: NewCoordinatorInput,
+) {
+  return requireSuccess(
+    await httpClient.post<CoordinatorRef[]>(
+      `${programUrl(programId)}/coordinators`,
+      { invite },
     ),
   );
 }

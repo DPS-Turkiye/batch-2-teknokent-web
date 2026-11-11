@@ -4151,8 +4151,6 @@
     "removeLabel": "{name} programdan çıkar",
     "remove": "Çıkar",
     "loading": "Yükleniyor…",
-    "noCandidates": "Eklenebilecek başka onaylı koordinatör yok. Yönetici, Kullanıcılar’dan yeni koordinatör ekleyebilir.",
-    "candidates": "Eklenebilecek koordinatörler",
     "addCoordinator": "Koordinatör ekle",
     "coordinatorFailed": "Koordinatör güncellenemedi.",
     "danger": "Tehlikeli bölge",
@@ -4747,7 +4745,6 @@
     "accessFailed": "Erişim değiştirilemedi.",
     "setupSent": "Şifre belirleme e-postası {email} adresine gönderildi.",
     "setupFailed": "E-posta gönderilemedi.",
-    "assigned": "Koordinatör programa eklendi.",
     "addTitle": "Koordinatör ekle",
     "addBody": "Yeni biri için hesap açılır; kayıtlı bir mentor ya da girişimci ise rolü koordinatör olur. Mentorlar ve takımlar kendileri kayıt olur ve bu listede onay bekler.",
     "cancel": "Vazgeç",
@@ -4758,13 +4755,8 @@
     "checking": "Kontrol ediliyor…",
     "assignTitle": "Koordinatör ata",
     "assignBody": "{program} programına koordinatör ekle. Programın kurallarını ve takımlarını koordinatör yönetir.",
-    "noCandidates": "Onaylı koordinatör yok. E-posta ile ekle: sistemde yoksa hesap açılır ve şifre belirleme e-postası gider.",
-    "byEmailHint": "Sistemde yoksa hesap açılır ve şifre belirleme e-postası gider; kayıtlı bir mentor ya da girişimci ise rolü koordinatör olur.",
-    "pickFromList": "Listeden seç",
     "loading": "Yükleniyor…",
-    "notListed": "Listede yok mu? E-posta ile ekle",
     "adding": "Ekleniyor…",
-    "addToProgram": "Programa ekle",
     "deactivate": "Pasife al",
     "reactivate": "Yeniden etkinleştir",
     "resendSetup": "Şifre e-postasını tekrar gönder"
@@ -4795,7 +4787,10 @@
       "ADMIN": "Bu e-posta bir yöneticiye ait.",
       "TEAM_MEMBER": "{name} bir startup ekibinde. Takım üyeleri koordinatör yapılamaz.",
       "MENTOR_IN_MENTORSHIP": "{name} planlı ya da aktif bir mentorluk yürütüyor. Mentorlukları bitmeden koordinatör yapılamaz."
-    }
+    },
+    "added": "{name} programa eklendi.",
+    "invited": "{name} programa eklendi; şifre belirleme e-postası {email} adresine gönderildi.",
+    "addFailed": "Koordinatör eklenemedi."
   },
   "adminUsers": {
     "tabs": {

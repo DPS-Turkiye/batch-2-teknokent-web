@@ -208,6 +208,10 @@ export type ProgramTeam = {
 
 export type TeamInviteInput = { teamName: string; leadEmail: string };
 
+/** Who to add to an existing program: an approved coordinator, or an email to invite. */
+export type ProgramCoordinatorTarget =
+  { userId: string } | { invite: NewCoordinatorInput };
+
 /** The admin's "Yeni Program Oluştur", sent in one request; the program starts as a draft. */
 export type CreateProgramInput = {
   type: ProgramType;

@@ -26,12 +26,12 @@ import {
   getMentorPool,
   getMentorReview,
   getProgramApprovals,
-  getProgramCoordinatorCandidates,
   getProgramCoordinators,
   getProgramEligibleEmails,
   getProgramTeamDetail,
   getProgramTeams,
   getProgramWithoutTeam,
+  inviteProgramCoordinator,
   inviteProgramMentor,
   launchCoordinatorProgram,
   removeProgramCoordinator,
@@ -161,16 +161,23 @@ const calls: ClientCall[] = [
     args: [`${P}/coordinators`],
   },
   {
-    title: "getProgramCoordinatorCandidates lists who may be added",
-    call: () => getProgramCoordinatorCandidates(PROGRAM),
-    method: "get",
-    args: [`${P}/coordinators/candidates`],
-  },
-  {
     title: "addProgramCoordinator posts the user to add",
     call: () => addProgramCoordinator(PROGRAM, "user-1"),
     method: "post",
     args: [`${P}/coordinators`, { userId: "user-1" }],
+  },
+  {
+    title: "inviteProgramCoordinator posts the e-mail to invite",
+    call: () =>
+      inviteProgramCoordinator(PROGRAM, {
+        fullName: "Yeni Kişi",
+        email: "yeni@x.org",
+      }),
+    method: "post",
+    args: [
+      `${P}/coordinators`,
+      { invite: { fullName: "Yeni Kişi", email: "yeni@x.org" } },
+    ],
   },
   {
     title: "removeProgramCoordinator deletes the encoded user",

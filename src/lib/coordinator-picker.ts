@@ -22,6 +22,9 @@ export type CoordinatorChoice =
     }
   | { kind: CoordinatorChoiceKind.Invited; fullName: string; email: string };
 
+/** For screens that add each pick straight away, so nothing stays chosen in the field. */
+export const NO_COORDINATOR_CHOICES: readonly CoordinatorChoice[] = [];
+
 /** Emails are compared the way the backend compares them: trimmed and case-insensitive. */
 export function normalizeEmail(email: string) {
   return email.trim().toLowerCase();

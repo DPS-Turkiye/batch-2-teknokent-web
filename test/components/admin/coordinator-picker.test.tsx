@@ -20,6 +20,9 @@ import {
 } from "@/lib/coordinator-picker";
 import { renderWithQueryClient } from "@test/test-utils";
 
+// The e-mail field waits for typing to settle before it searches; leave room on a busy machine.
+const PICKER_WAIT = 3000;
+
 vi.mock("@/lib/client/admin-coordinators", () => ({
   searchCoordinators: vi.fn(),
   getCoordinatorCandidate: vi.fn(),
@@ -101,7 +104,11 @@ describe("CoordinatorPicker", () => {
 
     await clicker.type(emailField(), "ayse");
     await clicker.click(
-      await screen.findByRole("button", { name: "Ayşe Aydın ekle" }),
+      await screen.findByRole(
+        "button",
+        { name: "Ayşe Aydın ekle" },
+        { timeout: PICKER_WAIT },
+      ),
     );
 
     expect(searchCoordinators).toHaveBeenLastCalledWith("ayse", "program-1");
@@ -142,11 +149,16 @@ describe("CoordinatorPicker", () => {
     renderWithQueryClient(<Harness />);
 
     await clicker.type(emailField(), "yeni@teknokent.org");
-    await clicker.type(await screen.findByLabelText("Ad soyad"), "Yanlış Kişi");
+    await clicker.type(
+      await screen.findByLabelText("Ad soyad", {}, { timeout: PICKER_WAIT }),
+      "Yanlış Kişi",
+    );
     await clicker.type(emailField(), "x");
     await clicker.clear(emailField());
     await clicker.type(emailField(), "yeni@teknokent.org");
-    expect(await screen.findByLabelText("Ad soyad")).toHaveValue("");
+    expect(
+      await screen.findByLabelText("Ad soyad", {}, { timeout: PICKER_WAIT }),
+    ).toHaveValue("");
 
     await clicker.type(screen.getByLabelText("Ad soyad"), "Yeni Kişi{Enter}");
 
@@ -238,7 +250,11 @@ describe("CoordinatorPicker", () => {
 
     await clicker.type(emailField(), "ayt");
     expect(
-      await screen.findByRole("button", { name: "Ayten Kaya ekle" }),
+      await screen.findByRole(
+        "button",
+        { name: "Ayten Kaya ekle" },
+        { timeout: PICKER_WAIT },
+      ),
     ).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Ayşe Aydın ekle" }),
