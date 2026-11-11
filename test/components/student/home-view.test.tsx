@@ -177,9 +177,10 @@ describe("StudentHomeView", () => {
   });
 
   it("shows only the loading note until the data is in", () => {
-    homeReturns({ ready: false, isLoading: true });
+    homeReturns({ ready: false, isLoading: true, greeting: null });
     renderWithQueryClient(<StudentHomeView />);
     expect(screen.getByText("Yükleniyor…")).toBeVisible();
+    expect(screen.queryByRole("heading", { level: 1 })).toBeNull();
     expect(
       screen.queryByRole("navigation", { name: "Hızlı işlemler" }),
     ).not.toBeInTheDocument();

@@ -59,11 +59,13 @@ export function StudentHomeView({
 
   return (
     <div className="flex flex-col gap-8">
-      <h1 className="type-h1 text-text-primary">
-        {home.name
-          ? t("greeting", { greeting: home.greeting, name: home.name })
-          : home.greeting}
-      </h1>
+      {home.greeting ? (
+        <h1 className="type-h1 text-text-primary">
+          {home.name
+            ? t("greeting", { greeting: home.greeting, name: home.name })
+            : home.greeting}
+        </h1>
+      ) : null}
       <QueryNotice isLoading={home.isLoading} error={home.error} />
       {home.ready ? (
         <>
