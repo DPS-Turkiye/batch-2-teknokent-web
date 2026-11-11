@@ -1002,6 +1002,7 @@
       "sendFailed": "Couldn't send the meeting assistant.",
       "stopFailed": "Couldn't stop the meeting assistant.",
       "transcriptFailed": "Couldn't get the meeting transcript.",
+      "botStateFailed": "Could not read the bot's status.",
       "reportFailed": "Couldn't create the meeting report."
     },
     "coordinatorEvent": {
@@ -3324,6 +3325,17 @@
     "transcriptShareFailed": "Couldn't send the transcript.",
     "reportShareFailed": "Couldn't send the report.",
     "botSent": "Bot sent — admit it in the meeting; the transcript will show up here.",
+    "botNoticeLabel": "Recording bot status",
+    "botNotice": {
+      "joining": "The recording bot is connecting to the meeting…",
+      "waitingForAdmission": "The recording bot is in the waiting room. When the join request appears in Meet, click “Admit”.",
+      "waitingTooLong": "The bot has waited 2 minutes. If you see no join request in Meet, Google may not have let it in: stop the bot and send it again.",
+      "recording": "The recording bot is in the meeting and recording.",
+      "couldNotJoin": "The recording bot could not join the meeting. You can send it again.",
+      "notAdmittedInTime": "The recording bot left because nobody admitted it in time. Send it again and click “Admit” in Meet.",
+      "rejected": "The recording bot's join request was declined.",
+      "left": "The recording bot has left the meeting."
+    },
     "reportView": {
       "noTopic": "Couldn't find the topic or date in the transcript",
       "summary": "Summary",
