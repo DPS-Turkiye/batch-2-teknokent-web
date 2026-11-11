@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { RoleFrame } from "@/components/common/role-frame";
 import { IdentityKind, UserRole, type AppSession } from "@/interfaces/session";
 import { Workspace } from "@/interfaces/workspace";
+import { IaAccent } from "@/types/ia-theme";
 import { itemAt } from "@test/fixtures/list-assertions";
 import { renderWithQueryClient } from "@test/test-utils";
 
@@ -120,6 +121,7 @@ describe("RoleFrame desktop nav between lg and xl", () => {
     );
     const soon = screen.getByText("Kullanıcılar").closest("[aria-disabled]");
     expect(soon).toHaveClass("whitespace-nowrap", "px-3", "xl:px-4");
+    expect(soon).toHaveAttribute("data-tour", "nav-users");
     const account = document.querySelector<HTMLElement>(
       'button[aria-haspopup="menu"]',
     )!;
@@ -201,7 +203,7 @@ describe("RoleFrame theme", () => {
     );
     expect(container.querySelector("[data-ia-accent]")).toHaveAttribute(
       "data-ia-accent",
-      "odtu",
+      IaAccent.Odtu,
     );
     unmount();
 
