@@ -182,9 +182,14 @@ export function placeInLanes<T>(
       grid.hours - MIN_BLOCK_HOURS,
     );
     const height = Math.max(Math.min(hours, grid.hours - top), MIN_BLOCK_HOURS);
-    const lane = placed.filter(
-      (other) => other.top + other.height > top,
-    ).length;
+    // Earlier items start at or before this one, so the ones still running are those ending after its top.
+    const taken = new Set(
+      placed
+        .filter((other) => other.top + other.height > top)
+        .map((other) => other.lane),
+    );
+    let lane = 0;
+    while (taken.has(lane)) lane += 1;
     placed.push({ item, top, height, lane });
   }
   return placed.map((block) => ({

@@ -128,4 +128,23 @@ describe("placeInLanes", () => {
       ["tiny", 3, 0.75, 0, 1],
     ]);
   });
+
+  it("reuses a lane that has come free instead of stacking on a running block", () => {
+    const placed = placeInLanes(
+      [
+        { id: "long", ...at(9, 3) },
+        { id: "short", ...at(9, 1) },
+        { id: "middle", ...at(9.5, 1.5) },
+        { id: "late", ...at(10.5, 0.5) },
+      ],
+      (item) => ({ start: item.start, hours: item.hours }),
+      grid,
+    );
+    expect(placed.map(({ item, lane }) => [item.id, lane])).toEqual([
+      ["long", 0],
+      ["short", 1],
+      ["middle", 2],
+      ["late", 1],
+    ]);
+  });
 });

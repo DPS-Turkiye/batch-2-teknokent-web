@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AcademicianAppointmentsView } from "@/components/academician/appointments-view";
 import { AppointmentStatus } from "@/interfaces/appointment";
 import {
-  DEFAULT_APPOINTMENTS_SEARCH,
+  appointmentsHref,
   type AppointmentsSearch,
 } from "@/lib/academician-calendar";
 import {
@@ -18,6 +18,14 @@ import {
   RequestStep,
 } from "@/types/academician-calendar";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
+
+vi.mock("next/navigation", async (importOriginal) => {
+  const { useLocationSearchParams } = await import("@test/mocks/search-params");
+  return {
+    ...(await importOriginal<typeof import("next/navigation")>()),
+    useSearchParams: useLocationSearchParams,
+  };
+});
 
 vi.mock("@/lib/client/institution", () => ({
   fetchInstitutionRecord: vi.fn(),
@@ -55,12 +63,14 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-function renderView(initial: Partial<AppointmentsSearch> = {}) {
-  return renderWithQueryClient(
-    <AcademicianAppointmentsView
-      initial={{ ...DEFAULT_APPOINTMENTS_SEARCH, ...initial }}
-    />,
+/** Opens the page at the URL `search` describes, as a link or a reload would. */
+function renderView(search: Partial<AppointmentsSearch> = {}) {
+  window.history.replaceState(
+    null,
+    "",
+    appointmentsHref("/academician/appointments", search),
   );
+  return renderWithQueryClient(<AcademicianAppointmentsView />);
 }
 
 async function calendarTitle(name: string) {
@@ -216,6 +226,20 @@ describe("AcademicianAppointmentsView", () => {
     ).toBeVisible();
   });
 
+  it("won't accept a requested time that has already passed", async () => {
+    // Deniz asked for tomorrow 14:00; a day later that time is gone.
+    vi.setSystemTime(new Date("2026-11-11T12:00:00Z"));
+    renderView({ request: "sample-request-1" });
+
+    const drawer = await screen.findByRole("dialog", {
+      name: "Randevu talebi",
+    });
+    expect(within(drawer).getByText("Bu saat geçti.")).toBeVisible();
+    expect(
+      within(drawer).getByRole("button", { name: "Kabul Et" }),
+    ).toBeDisabled();
+  });
+
   it("declines with an optional note to the student", async () => {
     const user = userEvent.setup();
     renderView({ request: "sample-request-1" });
@@ -261,6 +285,44 @@ describe("AcademicianAppointmentsView", () => {
       name: "Randevu talebi",
     });
     expect(drawer).toHaveTextContent("Bu talep artık yanıtını beklemiyor");
+  });
+
+  it("steps back with X after opening a drawer here, so history keeps no closed drawer", async () => {
+    const user = userEvent.setup();
+    renderView();
+    await user.click(
+      await screen.findByRole("button", {
+        name: "Deniz Kaya, 14:00–14:30, Onay Bekliyor",
+      }),
+    );
+    expect(window.location.search).toBe("?request=sample-request-1");
+
+    const back = vi.spyOn(window.history, "back");
+    await user.click(
+      within(screen.getByRole("dialog")).getByRole("button", { name: "Kapat" }),
+    );
+
+    expect(back).toHaveBeenCalledOnce();
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
+    back.mockRestore();
+  });
+
+  it("takes a linked drawer out of the URL with X, without leaving the page", async () => {
+    const user = userEvent.setup();
+    renderView({ request: "sample-request-1" });
+    const back = vi.spyOn(window.history, "back");
+
+    const drawer = await screen.findByRole("dialog", {
+      name: "Randevu talebi",
+    });
+    await user.click(within(drawer).getByRole("button", { name: "Kapat" }));
+
+    expect(back).not.toHaveBeenCalled();
+    expect(window.location.search).toBe("");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    back.mockRestore();
   });
 
   it("closes the drawer with the browser's Back button", async () => {
@@ -350,6 +412,31 @@ describe("AcademicianAppointmentsView", () => {
     expect(window.location.search).toBe("?request=sample-request-2");
   });
 
+  it("leaves the page as it was after proposing from a drawer opened here", async () => {
+    const user = userEvent.setup();
+    renderView();
+    await user.click(
+      await screen.findByRole("button", {
+        name: "Deniz Kaya, 14:00–14:30, Onay Bekliyor",
+      }),
+    );
+    await user.click(
+      within(screen.getByRole("dialog")).getByRole("button", {
+        name: "Alternatif Saat Öner",
+      }),
+    );
+    const dialog = screen.getByRole("dialog", { name: "Alternatif saat öner" });
+    await user.click(within(dialog).getByRole("button", { name: "14:00" }));
+    await user.click(
+      within(dialog).getByRole("button", { name: "Öneriyi Gönder" }),
+    );
+
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
+    expect(window.location.search).toBe("");
+  });
+
   it("proposes up to three free times across days, with a note", async () => {
     const user = userEvent.setup();
     renderView({ request: "sample-request-2", step: RequestStep.Propose });
@@ -401,7 +488,7 @@ describe("AcademicianAppointmentsView", () => {
   it("reads in English", async () => {
     renderWithQueryClient(
       <InLocale locale="en">
-        <AcademicianAppointmentsView initial={DEFAULT_APPOINTMENTS_SEARCH} />
+        <AcademicianAppointmentsView />
       </InLocale>,
     );
     expect(

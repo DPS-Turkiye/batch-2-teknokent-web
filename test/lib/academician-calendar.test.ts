@@ -20,7 +20,6 @@ import {
   parseAppointmentsSearch,
   pendingRequests,
   requestFit,
-  searchFromQueryString,
   shiftAnchor,
   shortName,
   weekColumns,
@@ -149,7 +148,11 @@ describe("Randevularım URL state", () => {
     expect(href).toBe(
       `${BASE}?view=day&date=2026-11-17&filter=requests&request=berk`,
     );
-    expect(searchFromQueryString(href.slice(BASE.length))).toEqual({
+    expect(
+      parseAppointmentsSearch(
+        Object.fromEntries(new URLSearchParams(href.slice(BASE.length))),
+      ),
+    ).toEqual({
       ...DEFAULT_APPOINTMENTS_SEARCH,
       view: AppointmentsCalendarView.Day,
       date: "2026-11-17",

@@ -3,13 +3,20 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AcademicianAvailabilityEditView } from "@/components/academician/availability-edit-view";
-import { DEFAULT_APPOINTMENTS_SEARCH } from "@/lib/academician-calendar";
 import {
   resetAcademicianSample,
   sampleState,
 } from "@/lib/client/fixtures/academician-office-hours-store";
 import { fetchInstitutionAdvisees } from "@/lib/client/institution";
 import { renderWithQueryClient } from "@test/test-utils";
+
+vi.mock("next/navigation", async (importOriginal) => {
+  const { useLocationSearchParams } = await import("@test/mocks/search-params");
+  return {
+    ...(await importOriginal<typeof import("next/navigation")>()),
+    useSearchParams: useLocationSearchParams,
+  };
+});
 
 vi.mock("@/lib/client/institution", () => ({
   fetchInstitutionRecord: vi.fn(),
@@ -41,9 +48,7 @@ afterEach(() => {
 });
 
 function renderView() {
-  return renderWithQueryClient(
-    <AcademicianAvailabilityEditView initial={DEFAULT_APPOINTMENTS_SEARCH} />,
-  );
+  return renderWithQueryClient(<AcademicianAvailabilityEditView />);
 }
 
 async function list(name: string) {

@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useLocale, useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 import { useAvailabilityRows } from "@/hooks/use-availability-rows";
 import { useInstitutionAdvisees } from "@/hooks/use-institution-record";
@@ -22,8 +22,8 @@ import {
   isForeground,
   monthCells,
   nowOffset,
+  parseAppointmentsSearch,
   pendingRequests,
-  searchFromQueryString,
   shiftAnchor,
   shortName,
   weekColumns,
@@ -88,12 +88,25 @@ export type RailRequest = {
 
 const MONTH_HEADER_DAYS = 7;
 
+/** Marks the history entry a drawer added, so closing it can step back instead of leaving a closed drawer behind. */
+const DRAWER_OPENED_HERE = "academicianDrawerOpenedHere";
+
+function drawerOpenedHere() {
+  const state: unknown = window.history.state;
+  return (
+    typeof state === "object" &&
+    state !== null &&
+    DRAWER_OPENED_HERE in state &&
+    state[DRAWER_OPENED_HERE] === true
+  );
+}
+
 /**
  * Randevularım: one calendar for appointments, requests and availability. The view, its day, the filter and an
- * open drawer live in the URL, so links from Ana Sayfa land on the right request and Back closes the drawer.
+ * open drawer live in the URL and are read from it, so links from Ana Sayfa land on the right request, Back closes
+ * the drawer and a reload keeps the week. Next.js syncs pushState/replaceState with useSearchParams.
  */
 export function useAcademicianAppointmentsCalendar(
-  initial: AppointmentsSearch,
   /** The page the URL state belongs to: Randevularım, or the availability page that shows the same calendar. */
   basePath: string = ACADEMICIAN_ROUTES.appointments,
 ) {
@@ -101,7 +114,9 @@ export function useAcademicianAppointmentsCalendar(
   const tWeekday = useTranslations("options.weekday");
   const locale = useLocale();
   const toRow = useAvailabilityRows({ everyWeek: true });
-  const [search, setSearch] = useState(initial);
+  const search = parseAppointmentsSearch(
+    Object.fromEntries(useSearchParams().entries()),
+  );
   const requests = useQuery({
     queryKey: ACADEMICIAN_REQUESTS_QUERY_KEY,
     queryFn: getAcademicianRequests,
@@ -117,25 +132,21 @@ export function useAcademicianAppointmentsCalendar(
   // Advisees only add the "Danışanın" chip; the calendar works without them.
   const advisees = useInstitutionAdvisees();
 
-  // Back and Forward move between drawers and views opened on this page.
-  useEffect(() => {
-    const onPopState = () => {
-      setSearch(searchFromQueryString(window.location.search));
-    };
-    window.addEventListener("popstate", onPopState);
-    return () => {
-      window.removeEventListener("popstate", onPopState);
-    };
-  }, []);
-
   // Opening a drawer adds a history entry, so Back closes it; changing the view only rewrites the current one.
   const push = (next: AppointmentsSearch) => {
-    setSearch(next);
-    window.history.pushState(null, "", appointmentsHref(basePath, next));
+    window.history.pushState(
+      { [DRAWER_OPENED_HERE]: true },
+      "",
+      appointmentsHref(basePath, next),
+    );
   };
   const replace = (next: AppointmentsSearch) => {
-    setSearch(next);
-    window.history.replaceState(null, "", appointmentsHref(basePath, next));
+    // The current entry's state is kept, so a view change under an open drawer still knows how it was opened.
+    window.history.replaceState(
+      window.history.state,
+      "",
+      appointmentsHref(basePath, next),
+    );
   };
   const update = (change: Partial<AppointmentsSearch>) => {
     replace({ ...search, ...change });
@@ -390,13 +401,21 @@ export function useAcademicianAppointmentsCalendar(
         !source.appointments.some((item) => item.id === search.appointment),
       isAdvisee: (userId: string) => advisor.has(userId),
       step: search.step,
+      // The propose dialog takes the drawer's place in the same history entry, so closing it after sending
+      // leaves the page instead of going back to a request that no longer waits for an answer.
       openPropose: () => {
-        push({ ...search, step: RequestStep.Propose });
+        replace({ ...search, step: RequestStep.Propose });
       },
       backToRequest: () => {
         replace({ ...search, step: RequestStep.Detail });
       },
+      // X does what Back does when the drawer was opened here, so the history doesn't keep a closed drawer;
+      // a drawer reached by a link has nothing to go back to on this page, so it is just taken out of the URL.
       closeDrawer: () => {
+        if (drawerOpenedHere()) {
+          window.history.back();
+          return;
+        }
         replace({
           ...search,
           request: null,

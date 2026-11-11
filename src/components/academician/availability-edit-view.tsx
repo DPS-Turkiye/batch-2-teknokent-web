@@ -21,7 +21,6 @@ import {
   type AcademicianAvailabilityEditor,
   type EditableRow,
 } from "@/hooks/use-academician-availability-editor";
-import type { AppointmentsSearch } from "@/lib/academician-calendar";
 import { ACADEMICIAN_ROUTES } from "@/lib/academician-routes";
 import { AvailabilityItemKind } from "@/types/academician-office-hours";
 
@@ -45,14 +44,9 @@ const ROW_STYLE: Record<AvailabilityItemKind, string> = {
 };
 
 /** "Randevularım › Müsaitliği düzenle": the same calendar, with the three lists that make the hours. */
-export function AcademicianAvailabilityEditView({
-  initial,
-}: {
-  initial: AppointmentsSearch;
-}) {
+export function AcademicianAvailabilityEditView() {
   const t = useTranslations("iaAcademician.availability");
   const { calendar, ...calendarState } = useAcademicianAppointmentsCalendar(
-    initial,
     ACADEMICIAN_ROUTES.availability,
   );
   const { editor, ...editorState } = useAcademicianAvailabilityEditor();
