@@ -12,5 +12,6 @@
   "retry": "Try again",
   "archiveTitle": "Saved CV analysis",
   "archiveHint": "This earlier analysis was stored with your startup. It has not been applied to your personal profile.",
-  "clear": "Clear fields"
+  "clear": "Clear fields",
+  "readOff": "Decks are not read automatically on this system; fill in the startup profile below by hand."
 }

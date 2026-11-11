@@ -1,6 +1,7 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { useAiFeatures } from "@/hooks/use-ai-features";
 import { useMentorOnboarding } from "@/hooks/use-mentor-onboarding";
 import { Weekday } from "@/interfaces/mentor";
 import {
@@ -29,7 +30,9 @@ import { getProgramNames } from "@/lib/client/programs";
 import { getUserProfile, saveUserProfile } from "@/lib/client/user-profile";
 import { currentIdToken } from "@/lib/firebase/auth";
 import { STUDENT_LEVELS, STUDENT_TOPICS } from "@/lib/student-topics";
+import { aiFeatures } from "@test/fixtures/ai-features";
 
+vi.mock("@/hooks/use-ai-features", () => ({ useAiFeatures: vi.fn() }));
 vi.mock("@/lib/client/documents", () => ({ uploadDocument: vi.fn() }));
 vi.mock("@/lib/client/profile-analysis", () => ({ parseStoredCv: vi.fn() }));
 vi.mock("@/lib/client/mentor-profile", () => ({
@@ -69,6 +72,7 @@ let stored: {
 beforeEach(() => {
   vi.clearAllMocks();
   stored = null;
+  vi.mocked(useAiFeatures).mockReturnValue(aiFeatures());
   vi.mocked(currentIdToken).mockResolvedValue("id-token");
   vi.mocked(updateMentorProfile).mockResolvedValue(
     {} as Awaited<ReturnType<typeof updateMentorProfile>>,
@@ -343,6 +347,31 @@ describe("useMentorOnboarding", () => {
 });
 
 describe("useMentorOnboarding — reading the CV", () => {
+  it("only stores the CV and opens the form when profile parsing is switched off", async () => {
+    vi.mocked(useAiFeatures).mockReturnValue(
+      aiFeatures({ profileParsing: false }),
+    );
+    const { result } = renderHook(() =>
+      useMentorOnboarding({ fullName: "Nihan Öztürk" }),
+    );
+    expect(result.current.canReadCv).toBe(false);
+
+    act(
+      () =>
+        void result.current.uploadCv({
+          name: cvFile.name,
+          size: 5,
+          file: cvFile,
+        }),
+    );
+
+    await waitFor(() => expect(result.current.phase).toBe(IntroPhase.Review));
+    expect(uploadDocument).toHaveBeenCalledWith(cvFile, "cv", "id-token");
+    expect(parseStoredCv).not.toHaveBeenCalled();
+    expect(result.current.draft.cvStoredName).toBe(cvFile.name);
+    expect(result.current.parseNote).toBe("");
+  });
+
   it("uploads the CV, reads it as a mentor's and fills only the empty fields", async () => {
     vi.mocked(parseStoredCv).mockResolvedValue({
       full_name: "Nihan Öztürk",
