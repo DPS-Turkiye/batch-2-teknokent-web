@@ -1,6 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import Home, { dynamic } from "@/app/(public)/page";
 import { styles } from "@/components/landing/landing-styles";
@@ -25,6 +25,35 @@ describe("Landing page", () => {
   beforeEach(() => {
     mockSession = null;
     isLoading = false;
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("gives the ODTÜ deployment its own entry page, without Teknokent's startup pitch", () => {
+    vi.stubEnv("APP_EDITION", "ODTU");
+    render(
+      <InLocale locale="tr">
+        <Home />
+      </InLocale>,
+    );
+
+    expect(
+      screen.getByRole("heading", { level: 1, name: "menton’a hoş geldin" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Giriş Yap" })).toHaveAttribute(
+      "href",
+      "/login",
+    );
+    expect(screen.getByRole("link", { name: "Kayıt Ol" })).toHaveAttribute(
+      "href",
+      "/signup",
+    );
+    expect(screen.getByRole("link", { name: "Yardım" })).toHaveAttribute(
+      "href",
+      "mailto:info@menton.com.tr",
+    );
   });
 
   it("renders per request so the CDN never hands phones the desktop page", () => {

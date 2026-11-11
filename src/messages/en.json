@@ -6782,5 +6782,9 @@
     "activeMentees": "Active startups",
     "completedMentorships": "Completed mentorships",
     "registered": "Registered"
+  },
+  "odtuLanding": {
+    "title": "Welcome to menton",
+    "intro": "Office Hours and peer mentoring for METU students and academics. Sign in with your METU account; if you are an İŞKUR student, create your account."
   }
 }

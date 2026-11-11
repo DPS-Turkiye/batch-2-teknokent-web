@@ -6782,5 +6782,9 @@
     "activeMentees": "Aktif girişim",
     "completedMentorships": "Tamamlanan mentorluk",
     "registered": "Kayıt tarihi"
+  },
+  "odtuLanding": {
+    "title": "menton’a hoş geldin",
+    "intro": "ODTÜ öğrencileri ve akademisyenleri için Office Hours ve akran mentörlüğü. ODTÜ hesabınla giriş yap; İŞKUR öğrencisiysen kaydını oluştur."
   }
 }
