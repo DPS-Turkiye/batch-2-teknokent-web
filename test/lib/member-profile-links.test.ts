@@ -83,13 +83,27 @@ describe("canOpenMemberProfile", () => {
     );
   });
 
-  it("lets admins and coordinators open anyone the page lists", () => {
+  it("lets an admin open anyone the page lists", () => {
     expect(canOpenMemberProfile({ role: UserRole.Admin }, "any", none)).toBe(
       true,
     );
+  });
+
+  // A coordinator's reach depends on the programs they run; they open people from their dashboard instead.
+  it("does not link members for a coordinator", () => {
     expect(
       canOpenMemberProfile({ role: UserRole.Coordinator }, "any", none),
-    ).toBe(true);
+    ).toBe(false);
+  });
+
+  it("does not treat a personal team as a startup to share", () => {
+    const student = {
+      role: UserRole.Mentee,
+      organizationId: "personal",
+      personalOrganization: true,
+    };
+
+    expect(canOpenMemberProfile(student, "personal", none)).toBe(false);
   });
 
   it("uses every permission a dual-role account holds", () => {

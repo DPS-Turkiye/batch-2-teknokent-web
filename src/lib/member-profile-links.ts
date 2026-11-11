@@ -2,7 +2,7 @@ import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import type { RegularMentorship } from "@/interfaces/regular-mentorship";
 import { UserRole } from "@/interfaces/session";
-import { hasAnyPermission, hasPermission } from "@/lib/permissions";
+import { hasPermission } from "@/lib/permissions";
 
 /** A declined or withdrawn request no longer ties a mentor to the startup (the backend agrees). */
 const CLOSED_REQUESTS: ReadonlySet<MentorshipRequestStatus> = new Set([
@@ -27,21 +27,26 @@ type Viewer = {
   role: UserRole;
   permissions?: readonly UserRole[];
   organizationId?: string | null;
+  personalOrganization?: boolean;
 };
 
 /**
  * Whether a startup member's name may link to their profile page, matching who the backend lets read it.
- * Taking part in the same program is not enough, so other teams' members are shown as plain text.
+ * Taking part in the same program is not enough, so other teams' members are shown as plain text. A
+ * coordinator's reach depends on the programs they run, so they open people from their own dashboard instead.
  */
 export function canOpenMemberProfile(
   viewer: Viewer,
   organizationId: string,
   mentorStartupIds: ReadonlySet<string>,
 ): boolean {
-  if (hasAnyPermission(viewer, [UserRole.Admin, UserRole.Coordinator])) {
+  if (hasPermission(viewer, UserRole.Admin)) return true;
+  if (
+    viewer.personalOrganization !== true &&
+    viewer.organizationId === organizationId
+  ) {
     return true;
   }
-  if (viewer.organizationId === organizationId) return true;
   return (
     hasPermission(viewer, UserRole.Mentor) &&
     mentorStartupIds.has(organizationId)
