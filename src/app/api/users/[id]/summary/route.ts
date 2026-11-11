@@ -7,7 +7,7 @@ import {
   backendResponse,
 } from "@/lib/server/api-response";
 import { readUuidParam } from "@/lib/server/path-params";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 
 /** For admins and the person's coordinators; the backend checks the program. */
 export async function GET(
@@ -15,7 +15,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const auth = await requireCoordinatorSession();
+    const auth = await requireCoordinatorOrAdminSession();
     if (!auth.ok) return auth.response;
     const person = await readUuidParam((await params).id, "personIdInvalid");
     if (!person.ok) return person.response;

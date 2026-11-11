@@ -2,8 +2,8 @@
 "use client";
 
 import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 import { useId, type ReactNode } from "react";
 
 import { Avatar, Panel, StatusChip } from "@/components/admin/admin-ui";
