@@ -137,6 +137,49 @@ describe("CoordinatorPicker", () => {
     expect(screen.getByText("Davet edilecek")).toBeInTheDocument();
   });
 
+  it("forgets a typed name when the e-mail changes, and returns focus to the field", async () => {
+    const clicker = userEvent.setup();
+    renderWithQueryClient(<Harness />);
+
+    await clicker.type(emailField(), "yeni@teknokent.org");
+    await clicker.type(await screen.findByLabelText("Ad soyad"), "Yanlış Kişi");
+    await clicker.type(emailField(), "x");
+    await clicker.clear(emailField());
+    await clicker.type(emailField(), "yeni@teknokent.org");
+    expect(await screen.findByLabelText("Ad soyad")).toHaveValue("");
+
+    await clicker.type(screen.getByLabelText("Ad soyad"), "Yeni Kişi{Enter}");
+
+    expect(changes).toHaveBeenLastCalledWith([
+      invitedChoice("yeni@teknokent.org", "Yeni Kişi"),
+    ]);
+    expect(emailField()).toHaveFocus();
+  });
+
+  it.each([
+    [CoordinatorCandidateStatus.Admin, "Bu e-posta bir yöneticiye ait."],
+    [
+      CoordinatorCandidateStatus.Reactivatable,
+      "Eski Koordinatör pasif bir koordinatör. Önce Kullanıcılar bölümünden yeniden etkinleştir.",
+    ],
+  ])("explains a %s e-mail", async (status, text) => {
+    vi.mocked(getCoordinatorCandidate).mockResolvedValue(
+      candidate({
+        email: "eski@x.org",
+        status,
+        userId: "u-1",
+        fullName: "Eski Koordinatör",
+        role: UserRole.Coordinator,
+      }),
+    );
+    const clicker = userEvent.setup();
+    renderWithQueryClient(<Harness />);
+
+    await clicker.type(emailField(), "eski@x.org");
+
+    expect(await screen.findByText(text)).toBeInTheDocument();
+  });
+
   it("explains an existing mentor's e-mail instead of offering to invite or promote", async () => {
     vi.mocked(getCoordinatorCandidate).mockResolvedValue(
       candidate({

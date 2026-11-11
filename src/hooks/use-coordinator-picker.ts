@@ -26,7 +26,9 @@ import { errorMessage } from "@/lib/utils";
 export const COORDINATOR_SEARCH_QUERY_KEY = [
   "admin-coordinator-search",
 ] as const;
-const INVITE_CHECK_QUERY_KEY = ["admin-coordinator-invite-check"] as const;
+export const COORDINATOR_INVITE_CHECK_QUERY_KEY = [
+  "admin-coordinator-invite-check",
+] as const;
 const SEARCH_DELAY_MS = 300;
 
 /**
@@ -72,9 +74,11 @@ export function useCoordinatorPicker({
     ? inviteCandidateEmail(settledQuery, found, chosen)
     : null;
   const check = useQuery({
-    queryKey: [...INVITE_CHECK_QUERY_KEY, inviteEmail],
+    queryKey: [...COORDINATOR_INVITE_CHECK_QUERY_KEY, inviteEmail],
     queryFn: () => getCoordinatorCandidate(inviteEmail ?? ""),
     enabled: inviteEmail !== null,
+    // A cached "no account" would offer to invite someone a just-saved program has already given an account.
+    staleTime: 0,
   });
   const candidate = inviteEmail === null ? undefined : check.data;
   const invitable = candidate?.status === CoordinatorCandidateStatus.New;
@@ -108,11 +112,7 @@ export function useCoordinatorPicker({
       check.isFetching,
     error: failure ? errorMessage(failure, t("searchFailed")) : null,
     results,
-    noMatches:
-      found !== undefined &&
-      results.length === 0 &&
-      inviteEmail === null &&
-      !failure,
+    noMatches: found?.length === 0 && inviteEmail === null && !failure,
     inviteEmail: invitable ? inviteEmail : null,
     inviteName,
     setInviteName,

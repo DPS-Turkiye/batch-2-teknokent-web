@@ -112,6 +112,14 @@ describe("coordinator program launch routes", () => {
       { newCoordinators: [{ fullName: "Yeni Kişi" }] },
     ],
     ["an invited coordinator given as text", { newCoordinators: ["a@b.co"] }],
+    [
+      "an invited coordinator whose e-mail is not one",
+      { newCoordinators: [{ fullName: "Yeni", email: "yeni" }] },
+    ],
+    [
+      "an invited coordinator with a blank name",
+      { newCoordinators: [{ fullName: "  ", email: "yeni@x.org" }] },
+    ],
     ["a rule given as text", { meetingFrequencyDays: "14" }],
     ["a team that is not an object", { teams: ["bad"] }],
   ])("refuses a program with %s instead of guessing", async (_case, change) => {

@@ -3,6 +3,7 @@
 // TEST UI: placeholder until the design team's screen; replace when it arrives.
 import { Plus, X } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useRef } from "react";
 
 import { useCoordinatorPicker } from "@/hooks/use-coordinator-picker";
 import {
@@ -25,6 +26,12 @@ export function CoordinatorPicker({
 }) {
   const t = useTranslations("coordinatorPicker");
   const picker = useCoordinatorPicker({ chosen, onChange, programId });
+  // The clicked row or chip disappears, so focus goes back to the field instead of the top of the page.
+  const field = useRef<HTMLInputElement>(null);
+  const andRefocus = (action: () => void) => () => {
+    action();
+    field.current?.focus();
+  };
 
   return (
     <div className="space-y-4">
@@ -46,7 +53,7 @@ export function CoordinatorPicker({
               ) : null}
               <button
                 type="button"
-                onClick={() => picker.remove(choice.key)}
+                onClick={andRefocus(() => picker.remove(choice.key))}
                 aria-label={t("remove", { name: choice.fullName })}
                 className="grid size-6 place-items-center rounded-full text-[#676e78] hover:bg-[#e9ecef]"
               >
@@ -60,6 +67,7 @@ export function CoordinatorPicker({
       <label className="block text-[13px] text-[#676e78]">
         {t("label")}
         <input
+          ref={field}
           type="text"
           inputMode="email"
           autoComplete="off"
@@ -74,6 +82,11 @@ export function CoordinatorPicker({
         />
       </label>
 
+      {picker.error && !picker.searching ? (
+        <p role="alert" className="text-[13px] text-[#d9464b]">
+          {picker.error}
+        </p>
+      ) : null}
       <div aria-live="polite" className="text-[13px]">
         {picker.tooShort ? (
           <p className="text-[#858c96]">
@@ -81,14 +94,14 @@ export function CoordinatorPicker({
           </p>
         ) : picker.searching ? (
           <p className="text-[#858c96]">{t("searching")}</p>
-        ) : picker.error ? (
-          <p role="alert" className="text-[#d9464b]">
-            {picker.error}
-          </p>
-        ) : picker.refusal ? (
+        ) : picker.error ? null : picker.refusal ? (
           <p className="text-[#b7791f]">{picker.refusal}</p>
         ) : picker.noMatches ? (
           <p className="text-[#858c96]">{t("noMatches")}</p>
+        ) : picker.results.length > 0 ? (
+          <p className="sr-only">
+            {t("resultCount", { count: picker.results.length })}
+          </p>
         ) : null}
       </div>
 
@@ -98,7 +111,7 @@ export function CoordinatorPicker({
             <li key={result.id}>
               <button
                 type="button"
-                onClick={() => picker.pick(result.id)}
+                onClick={andRefocus(() => picker.pick(result.id))}
                 aria-label={t("addNamed", { name: result.fullName })}
                 className="flex w-full items-center justify-between gap-3 rounded-2xl border border-[#e9ecef] px-4 py-3 text-left hover:border-[#22262b]"
               >
@@ -132,19 +145,20 @@ export function CoordinatorPicker({
               {t("inviteName")}
               <input
                 type="text"
+                autoComplete="off"
                 value={picker.inviteName}
                 onChange={(event) => picker.setInviteName(event.target.value)}
                 onKeyDown={(event) => {
                   if (event.key !== "Enter") return;
                   event.preventDefault();
-                  picker.invite();
+                  andRefocus(picker.invite)();
                 }}
                 className={`mt-1.5 ${FIELD}`}
               />
             </label>
             <button
               type="button"
-              onClick={picker.invite}
+              onClick={andRefocus(picker.invite)}
               disabled={!picker.canInvite}
               className="h-11 rounded-full bg-[#22262b] px-5 text-[13.5px] font-medium text-white disabled:bg-[#aeb4bc]"
             >

@@ -4777,6 +4777,7 @@
     "searchFailed": "Could not search coordinators.",
     "noMatches": "No coordinator's e-mail starts with this. To invite someone without a menton account, type the whole e-mail address.",
     "results": "Matching coordinators",
+    "resultCount": "{count, plural, one {# coordinator found} other {# coordinators found}}",
     "add": "Add",
     "addNamed": "Add {name}",
     "inviteTitle": "{email} has no menton account. You can invite them as a coordinator.",

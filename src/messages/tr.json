@@ -4777,6 +4777,7 @@
     "searchFailed": "Koordinatörler aranamadı.",
     "noMatches": "Bu e-postayla başlayan bir koordinatör yok. menton'da hesabı olmayan birini davet etmek için e-postanın tamamını yaz.",
     "results": "Eşleşen koordinatörler",
+    "resultCount": "{count, plural, one {# koordinatör bulundu} other {# koordinatör bulundu}}",
     "add": "Ekle",
     "addNamed": "{name} ekle",
     "inviteTitle": "{email} adresiyle menton'da hesap yok. Koordinatör olarak davet edebilirsin.",

@@ -6,7 +6,10 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { ADMIN_OVERVIEW_QUERY_KEY } from "@/hooks/use-admin-overview";
-import { COORDINATOR_SEARCH_QUERY_KEY } from "@/hooks/use-coordinator-picker";
+import {
+  COORDINATOR_INVITE_CHECK_QUERY_KEY,
+  COORDINATOR_SEARCH_QUERY_KEY,
+} from "@/hooks/use-coordinator-picker";
 import { coordinatorProgramQueryKey } from "@/hooks/use-coordinator-program";
 import type { ProgramType } from "@/interfaces/program";
 import { ToastTone } from "@/interfaces/toast";
@@ -51,6 +54,9 @@ export function useAdminProgramWizard() {
       });
       void queryClient.invalidateQueries({
         queryKey: COORDINATOR_SEARCH_QUERY_KEY,
+      });
+      void queryClient.invalidateQueries({
+        queryKey: COORDINATOR_INVITE_CHECK_QUERY_KEY,
       });
       showToast({
         message: t("created", { name: detail.program.name }),
