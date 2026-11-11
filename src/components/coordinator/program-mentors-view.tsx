@@ -13,8 +13,8 @@ import {
   StatusChip,
 } from "@/components/admin/admin-ui";
 import { PillSelect } from "@/components/coordinator/pill-select";
-import { ProfileLink } from "@/components/people/profile-link";
 import { ProgramDetailFrame } from "@/components/coordinator/program-detail-frame";
+import { ProfileLink } from "@/components/people/profile-link";
 import { useMentorPool, useMentorReview } from "@/hooks/use-mentor-pool";
 import { useOptionLabel } from "@/hooks/use-option-label";
 import {
@@ -27,9 +27,9 @@ import { isEnumValue } from "@/lib/enum";
 import {
   CapacityFilter,
   loadShare,
-  profileMentorId,
   POOL_STATUS_TONES,
   poolRowNote,
+  profileMentorId,
   rowKey,
 } from "@/lib/mentor-pool";
 import { formatLongDate, initials } from "@/lib/utils";
