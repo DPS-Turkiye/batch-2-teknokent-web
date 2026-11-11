@@ -10,7 +10,7 @@ const linesSchema = z
   );
 
 const weekSchema = z.object({
-  week: z.number(),
+  week: z.number().int(),
   title: z.string(),
   topics: linesSchema,
   activities: linesSchema,

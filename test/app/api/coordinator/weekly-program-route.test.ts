@@ -171,6 +171,10 @@ describe("weekly program proxy", () => {
       { ...validSave, weeks: [{ ...validSave.weeks[0], week: "1" }] },
     ],
     [
+      "a fractional week number",
+      { ...validSave, weeks: [{ ...validSave.weeks[0], week: 1.5 }] },
+    ],
+    [
       "a phase range given as text",
       { ...validSave, phases: [{ name: "A", firstWeek: "1", lastWeek: 2 }] },
     ],

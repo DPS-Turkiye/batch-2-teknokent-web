@@ -98,6 +98,7 @@ describe("phaseRangeProblem", () => {
       PhaseRangeProblem.OutOfOrder,
     ],
     ["a backwards phase", [range("A", 3, 2)], PhaseRangeProblem.OutOfOrder],
+    ["a fractional week", [range("A", 1.5, 2)], PhaseRangeProblem.OutOfOrder],
     ["a phase past the end", [range("A", 1, 12)], PhaseRangeProblem.PastTheEnd],
     [
       "more phases than a program keeps",
