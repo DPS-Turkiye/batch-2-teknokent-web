@@ -12,6 +12,7 @@ import {
   MeetingProposalStatus,
   type MeetingProposal,
 } from "@/interfaces/meeting-proposal";
+import { formatDateRange } from "@/lib/format";
 import { formatDayMonth } from "@/lib/utils";
 
 export enum CalendarView {
@@ -88,11 +89,15 @@ export function rangeLabel(view: CalendarView, anchor: Date, locale: string) {
   const days = viewDays(view, anchor);
   const start = days[0] ?? anchor;
   const end = days[6] ?? days[days.length - 1] ?? anchor;
-  return new Intl.DateTimeFormat(locale, {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  }).formatRange(start, end);
+  return formatDateRange(
+    new Intl.DateTimeFormat(locale, {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }),
+    start,
+    end,
+  );
 }
 
 export function shiftAnchor(view: CalendarView, anchor: Date, step: 1 | -1) {
@@ -137,7 +142,7 @@ export function slotLabel(item: CoordinatorCalendarItem, locale: string) {
   const day = `${weekdayLabel(start, locale)} ${formatDayMonth(start, locale)}`;
   const end = itemEnd(item);
   return end
-    ? `${day} · ${clock(locale).formatRange(start, end)}`
+    ? `${day} · ${formatDateRange(clock(locale), start, end)}`
     : `${day} · ${clock(locale).format(start)}`;
 }
 

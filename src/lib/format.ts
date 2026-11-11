@@ -21,3 +21,17 @@ export function formatMeetingShort(startsAt: string, locale = "tr") {
   }).format(date);
   return `${datePart} · ${timePart}`;
 }
+
+/**
+ * Node's ICU writes thin spaces (U+2009, U+202F) around the dash of a range where browsers write plain spaces, so a
+ * range rendered on the server would not match the one React hydrates in the browser. Plain spaces keep both equal.
+ */
+const RANGE_SPACES = /[  ]/g;
+
+export function formatDateRange(
+  formatter: Intl.DateTimeFormat,
+  start: Date,
+  end: Date,
+) {
+  return formatter.formatRange(start, end).replace(RANGE_SPACES, " ");
+}

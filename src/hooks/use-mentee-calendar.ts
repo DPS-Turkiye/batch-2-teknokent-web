@@ -19,6 +19,7 @@ import {
 } from "@/lib/calendar";
 import { ClientApiError } from "@/lib/client/api";
 import { getStartupProcess } from "@/lib/client/startup-process";
+import { formatDateRange } from "@/lib/format";
 import {
   CalendarEntryKind,
   deliverableEntries,
@@ -144,11 +145,15 @@ export function useMenteeCalendar(importedMeetings: MeetingItem[] = []) {
     days,
     hours: MENTEE_WEEK_HOURS,
     now,
-    rangeLabel: new Intl.DateTimeFormat(texts.locale, {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    }).formatRange(firstDay ?? lastDay ?? new Date(), lastDay ?? new Date()),
+    rangeLabel: formatDateRange(
+      new Intl.DateTimeFormat(texts.locale, {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      }),
+      firstDay ?? lastDay ?? new Date(),
+      lastDay ?? new Date(),
+    ),
     previous: () => moveWeek(-1),
     next: () => moveWeek(1),
     today: () => {

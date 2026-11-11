@@ -4,6 +4,7 @@ import type {
   CoordinatorAgendaItem,
   CoordinatorNextMeeting,
 } from "@/interfaces/coordinator-overview";
+import { formatDateRange } from "@/lib/format";
 import { relativeDayLabel } from "@/lib/utils";
 
 export enum AgendaWindow {
@@ -75,7 +76,7 @@ export function meetingSlotLabel(
   const end = new Date(
     start.getTime() + (meeting.durationMinutes ?? 60) * 60_000,
   );
-  return `${day} · ${clock(locale).formatRange(start, end)}`;
+  return `${day} · ${formatDateRange(clock(locale), start, end)}`;
 }
 
 export function hasOpenActions(actions: {
