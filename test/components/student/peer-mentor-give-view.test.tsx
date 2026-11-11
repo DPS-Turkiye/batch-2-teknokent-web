@@ -170,10 +170,19 @@ describe("PeerMentorGiveView", () => {
       vi.mocked(getStudentTraining).mockResolvedValue(training(state));
       renderWithQueryClient(<PeerMentorGiveView />);
 
-      expect(await screen.findByText("Rozet Yok")).toBeVisible();
       expect(
-        await screen.findByRole("link", { name: "Eğitimi başlat" }),
+        await screen.findByRole("heading", {
+          name: "Mentor olmak için eğitimi tamamla",
+        }),
+      ).toBeVisible();
+      expect(
+        await screen.findByRole("link", { name: "Eğitime Git" }),
       ).toHaveAttribute("href", "/student/peer-mentoring/training");
+      const steps = screen.getByRole("list");
+      expect(
+        within(steps).getByText("Rozetini Al").closest("li"),
+      ).toHaveAttribute("aria-current", "step");
+      expect(screen.getByText("Tek hesap")).toBeVisible();
     },
   );
 
@@ -198,10 +207,10 @@ describe("PeerMentorGiveView", () => {
 
       expect(await screen.findByText(reason)).toBeVisible();
       expect(
-        screen.getByRole("button", { name: "Eğitimi başlat" }),
+        screen.getByRole("button", { name: "Eğitime Git" }),
       ).toBeDisabled();
       expect(
-        screen.queryByRole("link", { name: "Eğitimi başlat" }),
+        screen.queryByRole("link", { name: "Eğitime Git" }),
       ).not.toBeInTheDocument();
     },
   );
@@ -222,10 +231,15 @@ describe("PeerMentorGiveView", () => {
   it("invites a new badge holder to create their profile", async () => {
     renderWithQueryClient(<PeerMentorGiveView />);
 
-    expect(await screen.findByText("Rozet Kazanıldı")).toBeVisible();
+    expect(await screen.findByText("Rozetin doğrulandı")).toBeVisible();
     expect(
       screen.getByRole("link", { name: "Mentor profilini oluştur" }),
     ).toHaveAttribute("href", "/student/peer-mentoring/profile");
+    expect(
+      within(screen.getByRole("list"))
+        .getByText("Mentor Profilini Oluştur")
+        .closest("li"),
+    ).toHaveAttribute("aria-current", "step");
   });
 
   it("re-reads the session once when the badge is newer than it, and asks for a sign-in only if that can't help", async () => {
@@ -245,7 +259,7 @@ describe("PeerMentorGiveView", () => {
     refresh.mockClear();
     renderWithQueryClient(<PeerMentorGiveView />);
 
-    expect(await screen.findByText("Rozet Kazanıldı")).toBeVisible();
+    expect(await screen.findByText("Rozetin doğrulandı")).toBeVisible();
     expect(refresh).not.toHaveBeenCalled();
   });
 
@@ -269,20 +283,33 @@ describe("PeerMentorGiveView", () => {
     const user = userEvent.setup();
     renderWithQueryClient(<PeerMentorGiveView />);
 
-    const waiting = await screen.findByRole("region", {
-      name: "Gelen talepler",
+    const panel = await screen.findByRole("tabpanel", {
+      name: /Mentorluk Talepleri/,
     });
-    expect(await within(waiting).findByText("Ayşe Yılmaz")).toBeVisible();
-    const mentees = screen.getByRole("region", { name: "Mentee'lerim" });
-    expect(within(mentees).getByText("Mehmet Kaya")).toBeVisible();
+    const card = await within(panel).findByRole("article", {
+      name: "Ayşe Yılmaz",
+    });
+    expect(within(card).getByText("Onay Bekliyor")).toBeVisible();
+    expect(within(card).getByText("Kariyer ve Staj")).toBeVisible();
     expect(
-      screen.getByRole("region", { name: "Müsaitlik ve kapasite" }),
-    ).toBeVisible();
+      screen.getByRole("tab", { name: /Mentorluk Talepleri/ }),
+    ).toHaveTextContent("1");
+    const capacity = screen.getByRole("region", { name: "Kapasiten" });
+    expect(within(capacity).getByText("/ 3 mentee")).toBeVisible();
+    expect(within(capacity).getByRole("progressbar")).toHaveAttribute(
+      "aria-valuetext",
+      "1 / 3 mentee",
+    );
     expect(
-      screen.getByRole("link", { name: "Profili düzenle" }),
+      screen.getByRole("link", { name: "Profili Düzenle" }),
     ).toHaveAttribute("href", "/student/peer-mentoring/profile");
 
-    await user.click(within(waiting).getByRole("button", { name: "Kabul et" }));
+    expect(
+      within(card)
+        .getByRole("button", { name: "Kabul Et" })
+        .closest("[data-tour]"),
+    ).toHaveAttribute("data-tour", "peer-request-accept");
+    await user.click(within(card).getByRole("button", { name: "Kabul Et" }));
     await waitFor(() =>
       expect(vi.mocked(decideMentorRequest).mock.calls[0]?.[0]).toEqual({
         id: "r1",
@@ -292,14 +319,52 @@ describe("PeerMentorGiveView", () => {
     );
     expect(await screen.findByText("Talebi kabul ettin.")).toBeVisible();
 
-    await user.click(
-      within(waiting).getByRole("button", { name: "Uygun değil" }),
-    );
+    await user.click(within(card).getByRole("button", { name: "Reddet" }));
     await waitFor(() =>
       expect(vi.mocked(decideMentorRequest).mock.calls[1]?.[0]).toMatchObject({
         id: "r1",
         status: MentorshipRequestStatus.Declined,
       }),
     );
+
+    screen.getByRole("tab", { name: /Mentorluk Talepleri/ }).focus();
+    await user.keyboard("{ArrowRight}");
+    expect(screen.getByRole("tab", { name: /Menteelerim/ })).toHaveFocus();
+    const mentees = screen.getByRole("tabpanel", { name: /Menteelerim/ });
+    expect(
+      within(mentees).getByRole("article", { name: "Mehmet Kaya" }),
+    ).toBeVisible();
+    expect(within(mentees).getByText("Kabul edildi")).toBeVisible();
+    expect(
+      within(mentees).queryByRole("button", { name: "Kabul Et" }),
+    ).not.toBeInTheDocument();
+
+    await user.keyboard("{End}");
+    expect(
+      screen.getByRole("tab", { name: "Mentor Profilim" }),
+    ).toHaveAttribute("aria-selected", "true");
+    expect(
+      screen.getByText("Staj ve CV konusunda yardımcı olurum."),
+    ).toBeVisible();
+  });
+
+  it("says when there is nothing to answer yet", async () => {
+    vi.mocked(getPeerMentorProfile).mockResolvedValue({
+      categories: [PeerTopicCategory.CareerInternship],
+      subTopics: [],
+      strongCourses: [],
+      projects: [],
+      erasmus: null,
+      helpWith: "Staj ve CV konusunda yardımcı olurum.",
+      linkedinUrl: null,
+      department: null,
+      classYear: null,
+      menteeCapacity: null,
+    });
+    renderWithQueryClient(<PeerMentorGiveView />);
+
+    expect(await screen.findByText("Yanıt bekleyen talep yok.")).toBeVisible();
+    expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+    expect(screen.getByText(/Kapasite belirlemedin/)).toBeVisible();
   });
 });

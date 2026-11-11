@@ -20,6 +20,7 @@ import {
 import { PEER_MENTOR_CATEGORIES_QUERY_KEY } from "@/hooks/use-student-profile-completion";
 import { STUDENT_TRAINING_QUERY_KEY } from "@/hooks/use-student-training";
 import { useWeeklyAvailabilityForm } from "@/hooks/use-weekly-availability-form";
+import { BadgeStatus } from "@/interfaces/badges";
 import type {
   MentorAvailabilitySettings,
   UpdateMentorAvailabilitySettingsPayload,
@@ -50,6 +51,7 @@ import {
   latestGateAward,
   PEER_MENTOR_TRAINING_HREF,
   PEER_REQUEST_MESSAGE_MIN,
+  peerMentorCapacity,
   peerMentorGateState,
 } from "@/lib/peer-mentoring";
 import { hasPermission } from "@/lib/permissions";
@@ -60,6 +62,7 @@ import {
 } from "@/lib/student-interests";
 import { errorMessage } from "@/lib/utils";
 import { useToast } from "@/stores/toast-store";
+import { PeerGiveTab } from "@/types/iskur-student";
 
 export const PEER_MENTOR_PROFILE_QUERY_KEY = [
   "peer-mentoring",
@@ -101,6 +104,7 @@ export function usePeerMentorGate() {
   return {
     state,
     gateAward,
+    expired: gateAward?.status === BadgeStatus.Expired,
     isLoading: badges.isLoading || institution.isLoading,
     sessionBehind,
   };
@@ -193,6 +197,28 @@ export function usePeerRequestDecision() {
     accept: (id: string) => decide.mutate({ id, accept: true }),
     decline: (id: string) => decide.mutate({ id, accept: false }),
     pendingId: decide.isPending ? decide.variables.id : undefined,
+  };
+}
+
+/**
+ * Mentorluk Ver once the profile is published: the open tab (requests first), the received requests, the decision
+ * actions and the "Kapasiten" card's numbers.
+ */
+export function usePeerGivePublished(menteeCapacity: number | null) {
+  const [tab, setTab] = useState(PeerGiveTab.Requests);
+  const received = useReceivedPeerRequests();
+  const decision = usePeerRequestDecision();
+  const loaded = received.query.data !== undefined;
+  return {
+    tab,
+    setTab,
+    received,
+    decision,
+    loaded,
+    // Until the requests load the mentee count is unknown, so the card waits instead of showing 0.
+    capacity: loaded
+      ? peerMentorCapacity(received.mentees.length, menteeCapacity)
+      : null,
   };
 }
 
