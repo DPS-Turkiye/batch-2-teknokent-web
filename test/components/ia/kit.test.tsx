@@ -7,6 +7,7 @@ import { Card } from "@/components/ia/card";
 import { InlineAlert } from "@/components/ia/inline-alert";
 import { PageHeader } from "@/components/ia/page-header";
 import { ProgramTypeBadge } from "@/components/ia/program-type-badge";
+import { SimpleHeader } from "@/components/ia/simple-header";
 import { StatusBadge, StatusTone } from "@/components/ia/status-badge";
 import { StepPills } from "@/components/ia/step-pills";
 import { ProgramType } from "@/interfaces/program";
@@ -137,5 +138,40 @@ describe("IA kit", () => {
     expect(
       screen.getByRole("heading", { name: "Programlarım" }),
     ).toBeInTheDocument();
+  });
+
+  it("offers help in the plain header and signs out only when it can", async () => {
+    const onLogout = vi.fn();
+    const { rerender } = render(
+      <InLocale locale="tr">
+        <SimpleHeader
+          helpHref="mailto:info@menton.com.tr"
+          onLogout={onLogout}
+        />
+      </InLocale>,
+    );
+
+    expect(screen.getByRole("link", { name: "Yardım" })).toHaveAttribute(
+      "href",
+      "mailto:info@menton.com.tr",
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Çıkış yap" }));
+    expect(onLogout).toHaveBeenCalledTimes(1);
+
+    rerender(
+      <InLocale locale="tr">
+        <SimpleHeader onLogout={onLogout} loggingOut />
+      </InLocale>,
+    );
+    expect(
+      screen.getByRole("button", { name: "Çıkış yapılıyor…" }),
+    ).toBeDisabled();
+
+    rerender(
+      <InLocale locale="tr">
+        <SimpleHeader />
+      </InLocale>,
+    );
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 });
