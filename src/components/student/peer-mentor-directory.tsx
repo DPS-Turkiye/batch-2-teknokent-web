@@ -1,193 +1,315 @@
 "use client";
 
-// TEST UI: placeholder until the design team's screen; replace when it arrives.
+import { Check, Lightbulb, Search } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import Image from "next/image";
+import type { ReactNode } from "react";
 
+import { QueryNotice } from "@/components/admin/admin-ui";
+import { Button, ButtonSize, ButtonVariant } from "@/components/ia/button";
+import { InlineAlert } from "@/components/ia/inline-alert";
+import { StatusTone } from "@/components/ia/status-badge";
 import {
-  FilterPills,
-  Panel,
-  QueryNotice,
-  SearchField,
-} from "@/components/admin/admin-ui";
-import { BadgeChips } from "@/components/badges/badge-chips";
-import { EmptyState } from "@/components/common/empty-state";
+  CATEGORY_ART,
+  InitialsAvatar,
+  Tag,
+} from "@/components/student/iskur-ui";
 import { PeerMentorRequestDialog } from "@/components/student/peer-mentor-request-dialog";
 import { usePeerMentorDirectory } from "@/hooks/use-peer-mentoring";
-import type {
-  PeerMentorCard,
+import {
   PeerTopicCategory,
+  type PeerMentorCard,
 } from "@/interfaces/peer-mentoring";
+import { isEnumValue } from "@/lib/enum";
+import { peerMentorProfileHref } from "@/lib/peer-mentoring";
+import { initials } from "@/lib/utils";
+import { PeerRequestAvailability } from "@/types/iskur-student";
 
 const ALL = "ALL";
 
-/** Mentorluk Al › Akran mentorları: filter by category or text, then send a request. */
+/** Mentorluk Al › Keşfet: the active categories, the recommended mentors, and a searchable list. */
 export function PeerMentorDirectory() {
-  const t = useTranslations("odtuWorkspaces.student.peerMentoring.mentors");
+  const t = useTranslations("iaIskur.take.discover");
   const tTopic = useTranslations("peerTopics");
   const directory = usePeerMentorDirectory();
-  const [requesting, setRequesting] = useState<PeerMentorCard | null>(null);
   const mentors = directory.mentors.data;
 
   return (
-    <section aria-labelledby="peer-mentors-title" className="space-y-4">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <h2
-          id="peer-mentors-title"
-          className="text-[18px] font-semibold text-[#22262b]"
+    <div className="space-y-10">
+      <Section
+        id="peer-categories-title"
+        title={t("categoriesTitle")}
+        hint={t("categoriesHint")}
+      >
+        {directory.noActiveCategories ? (
+          <InlineAlert tone={StatusTone.Info}>{t("noCategories")}</InlineAlert>
+        ) : (
+          <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {directory.categories.map((category) => {
+              const art = CATEGORY_ART[category];
+              const active = directory.category === category;
+              return (
+                <li key={category}>
+                  <button
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => directory.toggleCategory(category)}
+                    className={`flex min-h-24 w-full items-center gap-4 rounded-[20px] border bg-background-surface p-5 text-left transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-selected ${
+                      active
+                        ? "border-brand-odtu-primary"
+                        : "border-border-default hover:bg-background-subtle"
+                    }`}
+                  >
+                    {art ? (
+                      <Image
+                        src={art.src}
+                        alt=""
+                        width={art.width}
+                        height={art.height}
+                        className="shrink-0"
+                      />
+                    ) : null}
+                    <span className="type-label text-text-primary">
+                      {tTopic(category)}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </Section>
+
+      {directory.recommended.length > 0 ? (
+        <Section
+          id="peer-recommended-title"
+          title={t("recommendedTitle")}
+          hint={t("recommendedHint")}
         >
-          {t("title")}
-        </h2>
-        <SearchField
-          value={directory.query}
-          onChange={directory.setQuery}
-          placeholder={t("search")}
-        />
-      </div>
-      <FilterPills<PeerTopicCategory | typeof ALL>
-        value={directory.category ?? ALL}
-        onChange={(value) =>
-          directory.setCategory(value === ALL ? null : value)
-        }
-        options={[
-          { id: ALL, label: t("allCategories") },
-          ...directory.categories.map((category) => ({
-            id: category,
-            label: tTopic(category),
-          })),
-        ]}
-      />
-      <QueryNotice
-        isLoading={directory.mentors.isLoading}
-        error={directory.mentors.error}
-      />
-      {mentors?.length === 0 ? (
-        <EmptyState
-          className=""
-          title={
-            directory.noActiveCategories
-              ? t("noCategories")
-              : directory.filtered
-                ? t("noMatch")
-                : t("empty")
-          }
-        />
+          <ul className="grid gap-5 lg:grid-cols-3">
+            {directory.recommended.map((mentor) => (
+              <li key={mentor.mentorId}>
+                <article
+                  aria-label={mentor.fullName}
+                  className="flex h-full flex-col gap-5 rounded-card border border-border-subtle bg-background-surface p-6"
+                >
+                  <MentorHeading mentor={mentor} withRole />
+                  <WhyRecommended reasons={directory.reasonsOf(mentor)} />
+                  <div className="mt-auto flex gap-3">
+                    <Button
+                      href={peerMentorProfileHref(mentor.mentorId)}
+                      variant={ButtonVariant.Ghost}
+                    >
+                      {t("seeProfile")}
+                    </Button>
+                    <RequestButton
+                      mentor={mentor}
+                      availability={directory.availabilityOf(mentor)}
+                      onRequest={() => directory.openRequest(mentor)}
+                    />
+                  </div>
+                </article>
+              </li>
+            ))}
+          </ul>
+        </Section>
       ) : null}
-      {mentors && mentors.length > 0 ? (
-        <ul className="grid gap-4 md:grid-cols-2">
-          {mentors.map((mentor) => (
-            <li key={mentor.mentorId}>
-              <PeerMentorCardView
-                mentor={mentor}
-                hasOpenRequest={directory.hasOpenRequest(mentor.mentorId)}
-                sharedInterests={directory.sharedInterestsOf(mentor)}
-                onRequest={() => setRequesting(mentor)}
-              />
-            </li>
-          ))}
-        </ul>
-      ) : null}
-      {requesting ? (
+
+      <Section id="peer-search-title" title={t("searchTitle")}>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <label className="relative block sm:w-96">
+            <span className="sr-only">{t("search")}</span>
+            <Search
+              aria-hidden
+              className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-icon-muted"
+            />
+            <input
+              type="search"
+              value={directory.query}
+              onChange={(event) => directory.setQuery(event.target.value)}
+              placeholder={t("search")}
+              className="h-12 w-full rounded-input border border-border-control bg-background-surface pr-4 pl-11 type-body text-text-primary placeholder:text-text-placeholder focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-border-selected"
+            />
+          </label>
+          <label className="block">
+            <span className="sr-only">{t("categoryFilter")}</span>
+            <select
+              value={directory.category ?? ALL}
+              onChange={(event) => {
+                const { value } = event.target;
+                directory.setCategory(
+                  isEnumValue(PeerTopicCategory, value) ? value : null,
+                );
+              }}
+              className="h-10 rounded-full border border-border-default bg-background-surface px-4 type-label text-text-primary focus-visible:outline-2 focus-visible:outline-border-selected"
+            >
+              <option value={ALL}>{t("allCategories")}</option>
+              {directory.categories.map((category) => (
+                <option key={category} value={category}>
+                  {tTopic(category)}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        <QueryNotice
+          isLoading={directory.mentors.isLoading}
+          error={directory.mentors.error}
+        />
+        {mentors?.length === 0 ? (
+          <p className="rounded-card border border-border-subtle bg-background-surface p-6 type-body text-text-secondary">
+            {directory.filtered ? t("noMatch") : t("empty")}
+          </p>
+        ) : null}
+        {directory.others.length > 0 ? (
+          <ul className="divide-y divide-border-subtle overflow-hidden rounded-card border border-border-subtle bg-background-surface">
+            {directory.others.map((mentor) => (
+              <li
+                key={mentor.mentorId}
+                className="flex flex-col gap-3 px-5 py-4 md:flex-row md:items-center md:justify-between"
+              >
+                <MentorHeading mentor={mentor} />
+                <div className="flex flex-wrap items-center gap-2">
+                  {mentor.categories.map((category) => (
+                    <Tag key={category}>{tTopic(category)}</Tag>
+                  ))}
+                  <Button
+                    href={peerMentorProfileHref(mentor.mentorId)}
+                    variant={ButtonVariant.Secondary}
+                    size={ButtonSize.Small}
+                  >
+                    <span aria-hidden>{t("seeProfile")}</span>
+                    <span className="sr-only">
+                      {t("seeProfileOf", { name: mentor.fullName })}
+                    </span>
+                  </Button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </Section>
+
+      {directory.requesting ? (
         <PeerMentorRequestDialog
-          mentor={requesting}
-          onClose={() => setRequesting(null)}
+          mentor={directory.requesting}
+          onClose={directory.closeRequest}
         />
       ) : null}
+    </div>
+  );
+}
+
+function Section({
+  id,
+  title,
+  hint,
+  children,
+}: {
+  id: string;
+  title: string;
+  hint?: string;
+  children: ReactNode;
+}) {
+  return (
+    <section aria-labelledby={id} className="space-y-4">
+      <h2 id={id} className="flex flex-wrap items-baseline gap-2">
+        <span className="type-title-card text-text-primary">{title}</span>
+        {hint ? (
+          <span className="type-caption text-text-muted">{hint}</span>
+        ) : null}
+      </h2>
+      {children}
     </section>
   );
 }
 
-/**
- * A peer mentor as students see them. Without onRequest it is a preview (the peer-mentor wizard shows the student
- * their own card before publishing), so no request button.
- */
-export function PeerMentorCardView({
+/** Avatar, name and "bölüm · sınıf" (or "bölüm · Akran Mentoru" on a recommended card). */
+export function MentorHeading({
   mentor,
-  hasOpenRequest = false,
-  sharedInterests = [],
-  onRequest,
+  withRole = false,
 }: {
   mentor: PeerMentorCard;
-  hasOpenRequest?: boolean;
-  /** The mentor's categories the student also picked as interests. */
-  sharedInterests?: readonly PeerTopicCategory[];
-  onRequest?: () => void;
+  withRole?: boolean;
 }) {
-  const t = useTranslations("odtuWorkspaces.student.peerMentoring.mentors");
-  const tTopic = useTranslations("peerTopics");
-  const blocked = hasOpenRequest || mentor.capacityFull;
-  const reasons = [
-    ...(sharedInterests.length > 0
-      ? [
-          t("whyInterests", {
-            topics: sharedInterests.map((topic) => tTopic(topic)).join(", "),
-          }),
-        ]
-      : []),
-    ...mentor.recommendationReasons,
-  ];
-  const facts = [
-    mentor.department,
-    mentor.classYear ? t("classYear", { year: mentor.classYear }) : null,
-  ].filter(Boolean);
-
+  const t = useTranslations("iaIskur.take.discover");
   return (
-    <Panel>
-      <article className="flex h-full flex-col gap-3 p-5">
-        <header>
-          <h3 className="text-[15px] font-semibold text-[#22262b]">
-            {mentor.fullName}
-          </h3>
-          {facts.length > 0 ? (
-            <p className="text-[12.5px] text-[#858c96]">{facts.join(" · ")}</p>
-          ) : null}
-        </header>
-        <ul className="flex flex-wrap gap-1.5" aria-label={t("categories")}>
-          {mentor.categories.map((category) => (
-            <li
-              key={category}
-              className="rounded-full bg-[#f4f5f7] px-2.5 py-1 text-[11.5px] text-[#4a5059]"
-            >
-              {tTopic(category)}
-            </li>
-          ))}
-        </ul>
-        <p className="text-[13px] leading-5 text-[#4a5059]">
-          {mentor.helpWith}
+    <div className="flex min-w-0 items-center gap-3">
+      <InitialsAvatar initials={initials(mentor.fullName)} />
+      <div className="min-w-0">
+        <h3 className="truncate type-title-card text-text-primary">
+          {mentor.fullName}
+        </h3>
+        <p className="type-caption text-text-secondary">
+          {mentor.department}
+          {mentor.department ? " · " : null}
+          {withRole
+            ? t("role")
+            : mentor.classYear
+              ? t("classYear", { year: mentor.classYear })
+              : null}
         </p>
-        <BadgeChips badges={mentor.badges} max={3} includeGate />
-        {reasons.length > 0 ? (
-          <div>
-            <p className="text-[12px] font-medium text-[#22262b]">{t("why")}</p>
-            <ul className="mt-1 list-disc space-y-0.5 pl-4 text-[12.5px] text-[#676e78]">
-              {reasons.map((reason) => (
-                <li key={reason}>{reason}</li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
-        {onRequest ? (
-          <div className="mt-auto pt-1">
-            <button
-              type="button"
-              onClick={onRequest}
-              disabled={blocked}
-              aria-label={
-                blocked
-                  ? undefined
-                  : t("requestFrom", { name: mentor.fullName })
-              }
-              className="inline-flex h-10 items-center justify-center rounded-full bg-[#22262b] px-4 text-[13px] font-medium text-white disabled:bg-[#f4f5f7] disabled:text-[#858c96]"
-            >
-              {hasOpenRequest
-                ? t("requested")
-                : mentor.capacityFull
-                  ? t("full")
-                  : t("request")}
-            </button>
-          </div>
-        ) : null}
-      </article>
-    </Panel>
+      </div>
+    </div>
+  );
+}
+
+/** The "Neden önerildi?" box. */
+export function WhyRecommended({ reasons }: { reasons: readonly string[] }) {
+  const t = useTranslations("iaIskur.take.discover");
+  if (reasons.length === 0) return null;
+  return (
+    <div className="space-y-2 rounded-2xl bg-card-featured-bg p-4">
+      <p className="flex items-center gap-2 type-label text-text-accent">
+        <Lightbulb aria-hidden className="size-4" />
+        {t("why")}
+      </p>
+      <ul className="space-y-1.5">
+        {reasons.map((reason) => (
+          <li
+            key={reason}
+            className="flex items-start gap-2 type-body-sm text-text-primary"
+          >
+            <Check
+              aria-hidden
+              className="mt-0.5 size-3.5 shrink-0 text-text-accent"
+            />
+            {reason}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/** "Mentorluk Talebi Gönder", or why it can't be sent now (an open request, no places left). */
+export function RequestButton({
+  mentor,
+  availability,
+  onRequest,
+  fullWidth = false,
+}: {
+  mentor: PeerMentorCard;
+  availability: PeerRequestAvailability;
+  onRequest: () => void;
+  fullWidth?: boolean;
+}) {
+  const t = useTranslations("iaIskur.take.discover");
+  if (availability === PeerRequestAvailability.Open) {
+    return (
+      <Button onClick={onRequest} fullWidth={fullWidth} className="flex-1">
+        <span aria-hidden>{t("request")}</span>
+        <span className="sr-only">
+          {t("requestFrom", { name: mentor.fullName })}
+        </span>
+      </Button>
+    );
+  }
+  return (
+    <Button disabled fullWidth={fullWidth} className="flex-1">
+      {availability === PeerRequestAvailability.Requested
+        ? t("requested")
+        : t("full")}
+    </Button>
   );
 }

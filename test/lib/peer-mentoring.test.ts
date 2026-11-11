@@ -16,10 +16,17 @@ import {
   peerMentorCapacity,
   peerMentorGateState,
   peerMentoringSide,
+  peerMentorProfileHref,
+  peerRequestAvailability,
+  splitPeerRequests,
+  splitRecommended,
   subtopicGroupsWithCounts,
   weeklyHours,
 } from "@/lib/peer-mentoring";
-import { PeerCapacityNote } from "@/types/iskur-student";
+import {
+  PeerCapacityNote,
+  PeerRequestAvailability,
+} from "@/types/iskur-student";
 
 describe("peerMentoringSide", () => {
   it("opens Mentorluk Ver only for as=MENTOR", () => {
@@ -247,5 +254,66 @@ describe("chosenSubtopics", () => {
         (sub) => sub.id,
       ),
     ).toEqual(["cv", "courses"]);
+  });
+});
+
+describe("splitRecommended", () => {
+  const mentors = ["a", "b", "c", "d", "e"].map((mentorId) => ({ mentorId }));
+  const withReason = (mentor: { mentorId: string }) => mentor.mentorId !== "b";
+
+  it("recommends the first three mentors with a reason and lists everyone else", () => {
+    const { recommended, others } = splitRecommended(
+      mentors,
+      withReason,
+      false,
+    );
+    expect(recommended.map((mentor) => mentor.mentorId)).toEqual([
+      "a",
+      "c",
+      "d",
+    ]);
+    expect(others.map((mentor) => mentor.mentorId)).toEqual(["b", "e"]);
+  });
+
+  it("treats every mentor as a search result while the student filters", () => {
+    expect(splitRecommended(mentors, withReason, true)).toEqual({
+      recommended: [],
+      others: mentors,
+    });
+  });
+});
+
+describe("splitPeerRequests", () => {
+  it("separates accepted requests (active mentorships) from the rest", () => {
+    const requests = [
+      { id: "1", status: MentorshipRequestStatus.Pending },
+      { id: "2", status: MentorshipRequestStatus.Accepted },
+      { id: "3", status: MentorshipRequestStatus.Declined },
+    ];
+    const { active, others } = splitPeerRequests(requests);
+    expect(active.map((request) => request.id)).toEqual(["2"]);
+    expect(others.map((request) => request.id)).toEqual(["1", "3"]);
+  });
+});
+
+describe("peerRequestAvailability", () => {
+  it("puts an open request before a full capacity", () => {
+    expect(peerRequestAvailability(true, true)).toBe(
+      PeerRequestAvailability.Requested,
+    );
+    expect(peerRequestAvailability(false, true)).toBe(
+      PeerRequestAvailability.Full,
+    );
+    expect(peerRequestAvailability(false, false)).toBe(
+      PeerRequestAvailability.Open,
+    );
+  });
+});
+
+describe("peerMentorProfileHref", () => {
+  it("links to the mentor's profile with an encoded id", () => {
+    expect(peerMentorProfileHref("peer 1/2")).toBe(
+      "/student/peer-mentoring/mentors/peer%201%2F2",
+    );
   });
 });

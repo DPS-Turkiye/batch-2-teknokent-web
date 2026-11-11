@@ -233,5 +233,80 @@
       "helpWith": "This text must be at least {min} characters.",
       "link": "The link must start with http:// or https://."
     }
+  },
+  "take": {
+    "title": "Peer mentoring",
+    "subtitle": "Get mentoring from METU students. Mentors are students who completed the training and hold a verified badge.",
+    "switchLabel": "Peer mentoring side",
+    "switch": {
+      "get": "Get mentoring",
+      "give": "Give mentoring"
+    },
+    "tabs": {
+      "label": "Get mentoring",
+      "discover": "Discover",
+      "mine": "My mentorships"
+    },
+    "discover": {
+      "categoriesTitle": "Mentoring categories",
+      "categoriesHint": "Active in your program",
+      "noCategories": "Your program has no active peer-mentoring category yet.",
+      "recommendedTitle": "Recommended for you",
+      "recommendedHint": "By topic, experience and availability",
+      "searchTitle": "Find a mentor",
+      "search": "Search mentors or topics",
+      "allCategories": "All categories",
+      "categoryFilter": "Category",
+      "empty": "No peer mentors are listed right now.",
+      "noMatch": "No peer mentor matches these filters.",
+      "role": "Peer mentor",
+      "classYear": "Year {year}",
+      "why": "Why recommended?",
+      "whyInterests": "Matches your interests: {topics}",
+      "seeProfile": "View profile",
+      "seeProfileOf": "View {name}'s profile",
+      "request": "Send a mentoring request",
+      "requestFrom": "Send {name} a mentoring request",
+      "requested": "Your request is awaiting an answer",
+      "full": "No places left"
+    },
+    "profile": {
+      "back": "Peer mentoring",
+      "notFound": "This peer mentor wasn't found or is no longer listed.",
+      "peer": "Peer mentoring",
+      "badgeVerified": "Badge verified",
+      "topics": "Topics they can help with",
+      "helpWith": "How can I help students?",
+      "requestNote": "Once {name} accepts your request, the mentorship starts and you can plan meetings."
+    },
+    "dialog": {
+      "title": "Send a mentoring request",
+      "subtitle": "{name} · Peer mentor",
+      "close": "Close",
+      "category": "Topic",
+      "message": "Short message",
+      "messagePlaceholder": "For example: I'd like to go over my CV for a summer internship together.",
+      "counter": "Briefly introduce yourself and what you expect (at least {min} characters). {length} / {max}",
+      "messageTooShort": "Your message must be at least {min} characters.",
+      "cancel": "Cancel",
+      "send": "Send a mentoring request",
+      "sending": "Sending…",
+      "sent": "Your request was sent.",
+      "failed": "The request couldn't be sent."
+    },
+    "mine": {
+      "activeTitle": "Active mentorship",
+      "othersTitle": "My requests",
+      "empty": "You have no mentoring requests yet. Pick a peer mentor from Discover.",
+      "noActive": "You have no active mentorship yet.",
+      "noOthers": "No waiting or closed requests.",
+      "sentAt": "Sent {date}",
+      "nextSession": "Next meeting: {date}",
+      "seeProfile": "View profile",
+      "book": "Plan a meeting",
+      "seeAppointment": "Go to appointment",
+      "findAnother": "Find another mentor",
+      "note": "A mentorship is the relationship between you and your mentor. Your meetings are listed under \"My appointments\"."
+    }
   }
 }

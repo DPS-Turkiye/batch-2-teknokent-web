@@ -15,7 +15,7 @@ import {
 } from "@/lib/client/mentor-requests";
 import { getPeerMentoringRequests } from "@/lib/client/peer-mentoring";
 import { getStudentAppointments } from "@/lib/client/student-appointments";
-import { expectLength, itemAt } from "@test/fixtures/list-assertions";
+import { itemAt } from "@test/fixtures/list-assertions";
 import { peerAppointment } from "@test/fixtures/student-appointments";
 import { renderWithQueryClient } from "@test/test-utils";
 
@@ -59,6 +59,7 @@ beforeEach(() => {
     request("request-1", "Zeynep Demir", MentorshipRequestStatus.Accepted),
     request("request-2", "Mehmet Kaya", MentorshipRequestStatus.Accepted),
     request("request-3", "Deniz Ak", MentorshipRequestStatus.Pending),
+    request("request-4", "Selin Uçar", MentorshipRequestStatus.Declined),
   ]);
   vi.mocked(getStudentAppointments).mockResolvedValue([
     peerAppointment({ requestId: "request-2" }),
@@ -74,39 +75,76 @@ beforeEach(() => {
   });
 });
 
-async function rows() {
-  return within(await screen.findByRole("list")).getAllByRole("listitem");
+const onFindAnother = vi.fn();
+
+function renderMine() {
+  return renderWithQueryClient(
+    <PeerMentoringRequests onFindAnother={onFindAnother} />,
+  );
 }
 
-async function firstRow() {
-  return itemAt(await rows(), 0);
+async function activeMentorship(name: string) {
+  const active = await screen.findByRole("region", { name: /Aktif mentorluk/ });
+  return within(active).getByRole("article", { name });
 }
 
-describe("Mentorluk Al › Taleplerim booking", () => {
-  it("offers a booking only on an accepted request without a session, and shows the booked one", async () => {
-    renderWithQueryClient(<PeerMentoringRequests />);
-    const items = await rows();
-    expectLength(items, 3);
-    const [unbooked, booked, pending] = items;
+describe("Mentorluk Al › Mentorluklarım", () => {
+  it("shows accepted requests as active mentorships, with the next meeting or a way to plan one", async () => {
+    renderMine();
 
+    const unbooked = await activeMentorship("Zeynep Demir");
     expect(
-      await within(unbooked).findByRole("button", { name: "Randevu al" }),
+      await within(unbooked).findByRole("button", { name: "Görüşme Planla" }),
     ).toBeVisible();
-    expect(within(booked).getByText(/^Randevu: /)).toBeVisible();
+    expect(
+      within(unbooked).getByRole("link", { name: "Profili Gör" }),
+    ).toHaveAttribute(
+      "href",
+      "/student/peer-mentoring/mentors/request-1-mentor",
+    );
+
+    const booked = await activeMentorship("Mehmet Kaya");
+    expect(within(booked).getByText(/^Sıradaki görüşme: /)).toBeVisible();
     expect(
       within(booked).getByRole("link", { name: "Randevuya git" }),
     ).toHaveAttribute("href", "/student/appointments");
     expect(within(booked).queryByRole("button")).toBeNull();
+  });
+
+  it("lists the other requests with their status, and offers another mentor after a decline", async () => {
+    const user = userEvent.setup();
+    renderMine();
+
+    const others = await screen.findByRole("region", { name: /Taleplerim/ });
+    const items = within(others).getAllByRole("listitem");
+    const pending = itemAt(items, 0);
+    const declined = itemAt(items, 1);
+    expect(pending).toHaveTextContent("Deniz Ak");
+    expect(pending).toHaveTextContent("Onay Bekliyor");
     expect(within(pending).queryByRole("button")).toBeNull();
-    expect(within(pending).queryByRole("link")).toBeNull();
+    expect(declined).toHaveTextContent("Reddedildi");
+    await user.click(
+      within(declined).getByRole("button", { name: "Başka Mentor Bul" }),
+    );
+    expect(onFindAnother).toHaveBeenCalledTimes(1);
+  });
+
+  it("says so when the student has no request yet", async () => {
+    vi.mocked(getPeerMentoringRequests).mockResolvedValueOnce([]);
+    renderMine();
+    expect(
+      await screen.findByText(/Henüz bir mentorluk talebin yok/),
+    ).toBeVisible();
   });
 
   it("books one of the mentor's open times, then refreshes the appointments and closes", async () => {
     const user = userEvent.setup();
-    renderWithQueryClient(<PeerMentoringRequests />);
-    const unbooked = await firstRow();
+    renderMine();
     await user.click(
-      await within(unbooked).findByRole("button", { name: "Randevu al" }),
+      await within(await activeMentorship("Zeynep Demir")).findByRole(
+        "button",
+        { name: "Görüşme Planla" },
+      ),
     );
 
     const dialog = await screen.findByRole("dialog");
@@ -134,10 +172,12 @@ describe("Mentorluk Al › Taleplerim booking", () => {
   it("says so when the mentor has no open time, and shows a refused booking", async () => {
     vi.mocked(getMentorAvailability).mockResolvedValueOnce([]);
     const user = userEvent.setup();
-    const { unmount } = renderWithQueryClient(<PeerMentoringRequests />);
-    let unbooked = await firstRow();
+    const { unmount } = renderMine();
     await user.click(
-      await within(unbooked).findByRole("button", { name: "Randevu al" }),
+      await within(await activeMentorship("Zeynep Demir")).findByRole(
+        "button",
+        { name: "Görüşme Planla" },
+      ),
     );
     expect(
       await screen.findByText(/Mentorunun şu an açık saati yok/),
@@ -150,10 +190,12 @@ describe("Mentorluk Al › Taleplerim booking", () => {
         400,
       ),
     );
-    renderWithQueryClient(<PeerMentoringRequests />);
-    unbooked = await firstRow();
+    renderMine();
     await user.click(
-      await within(unbooked).findByRole("button", { name: "Randevu al" }),
+      await within(await activeMentorship("Zeynep Demir")).findByRole(
+        "button",
+        { name: "Görüşme Planla" },
+      ),
     );
     const dialog = await screen.findByRole("dialog");
     await user.click(

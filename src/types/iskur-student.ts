@@ -23,3 +23,18 @@ export enum PeerMentorJourneyStep {
   CreateProfile = "createProfile",
   Published = "published",
 }
+
+/** The Mentorluk Al side's tabs. */
+export enum PeerTakeTab {
+  Discover = "discover",
+  Mine = "mine",
+}
+
+/** Whether the student can send a mentor a request now. */
+export enum PeerRequestAvailability {
+  Open = "open",
+  /** A request to this mentor is still open. */
+  Requested = "requested",
+  /** Every place is taken. */
+  Full = "full",
+}

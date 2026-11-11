@@ -1,69 +1,102 @@
 "use client";
 
-// TEST UI: placeholder until the design team's screen; replace when it arrives.
 import { useTranslations } from "next-intl";
 
-import { PageHeading } from "@/components/admin/admin-ui";
+import { PageHeader } from "@/components/ia/page-header";
+import {
+  Segmented,
+  TabPanel,
+  UnderlineTabs,
+} from "@/components/student/iskur-ui";
 import { PeerMentorDirectory } from "@/components/student/peer-mentor-directory";
 import { PeerMentorGiveView } from "@/components/student/peer-mentor-give-view";
 import { PeerMentoringRequests } from "@/components/student/peer-mentoring-requests";
 import { usePeerMentorGate } from "@/hooks/use-peer-mentor-give";
-import { usePeerMentoringSide } from "@/hooks/use-peer-mentoring";
+import {
+  useMyPeerMentorships,
+  usePeerMentoringSide,
+  usePeerTakeTab,
+} from "@/hooks/use-peer-mentoring";
 import { AppointmentSide } from "@/interfaces/appointment";
 import { PeerMentorGateState } from "@/interfaces/peer-mentoring";
+import { PeerTakeTab } from "@/types/iskur-student";
 
-const SIDES = [
-  { side: AppointmentSide.Mentee, key: "get" },
-  { side: AppointmentSide.Mentor, key: "give" },
-] as const;
+const TAKE_TABS_ID = "peer-take";
 
+/** Akran Mentörlüğü: Mentorluk Al (Keşfet, Mentorluklarım), and Mentorluk Ver for İŞKUR students and peer mentors. */
 export function PeerMentoringView() {
-  const t = useTranslations("odtuWorkspaces.student.peerMentoring");
+  const t = useTranslations("iaIskur.take");
   const { side: asked, setSide } = usePeerMentoringSide();
   const gate = usePeerMentorGate();
   // Mentorluk Ver is there for İŞKUR students and peer mentors only; a link to it opens Mentorluk Al for anyone else.
   const canGive = gate.state !== PeerMentorGateState.Hidden;
   const side = canGive ? asked : AppointmentSide.Mentee;
-  const sides = SIDES.filter(
-    (item) => canGive || item.side === AppointmentSide.Mentee,
-  );
 
   return (
     <div className="space-y-8">
-      <PageHeading title={t("title")} subtitle={t("subtitle")} />
-      <div
-        role="tablist"
-        aria-label={t("switchLabel")}
-        className="inline-flex gap-1 rounded-full bg-[#f4f5f7] p-1"
+      <PageHeader
+        title={t("title")}
+        actions={
+          canGive ? (
+            <Segmented
+              label={t("switchLabel")}
+              selected={side}
+              onSelect={setSide}
+              options={[
+                { id: AppointmentSide.Mentee, label: t("switch.get") },
+                {
+                  id: AppointmentSide.Mentor,
+                  label: t("switch.give"),
+                  tour: "peer-mentoring-give-toggle",
+                },
+              ]}
+            />
+          ) : null
+        }
       >
-        {sides.map((item) => {
-          const selected = item.side === side;
-          return (
-            <button
-              key={item.key}
-              type="button"
-              role="tab"
-              aria-selected={selected}
-              onClick={() => setSide(item.side)}
-              className={`flex items-center gap-2 rounded-full px-4 py-2 text-[13px] ${
-                selected
-                  ? "bg-white font-medium text-[#22262b] shadow-[0_1px_2px_rgba(33,38,43,0.08)]"
-                  : "text-[#858c96]"
-              }`}
-            >
-              {t(`switch.${item.key}`)}
-            </button>
-          );
-        })}
-      </div>
-      {side === AppointmentSide.Mentee ? (
-        <div className="space-y-10">
-          <PeerMentoringRequests />
-          <PeerMentorDirectory />
-        </div>
-      ) : (
-        <PeerMentorGiveView />
-      )}
+        <p className="type-body text-text-secondary">{t("subtitle")}</p>
+      </PageHeader>
+      {side === AppointmentSide.Mentee ? <TakeSide /> : <PeerMentorGiveView />}
+    </div>
+  );
+}
+
+function TakeSide() {
+  const t = useTranslations("iaIskur.take.tabs");
+  const { tab, setTab } = usePeerTakeTab();
+  const mine = useMyPeerMentorships();
+  return (
+    <div className="space-y-7">
+      <UnderlineTabs
+        label={t("label")}
+        idPrefix={TAKE_TABS_ID}
+        selected={tab}
+        onSelect={setTab}
+        tabs={[
+          { id: PeerTakeTab.Discover, label: t("discover") },
+          {
+            id: PeerTakeTab.Mine,
+            label: t("mine"),
+            ...(mine.query.data ? { count: mine.count } : {}),
+          },
+        ]}
+      />
+      <TabPanel
+        idPrefix={TAKE_TABS_ID}
+        id={PeerTakeTab.Discover}
+        selected={tab === PeerTakeTab.Discover}
+      >
+        <PeerMentorDirectory />
+      </TabPanel>
+      <TabPanel
+        idPrefix={TAKE_TABS_ID}
+        id={PeerTakeTab.Mine}
+        selected={tab === PeerTakeTab.Mine}
+      >
+        <PeerMentoringRequests
+          onFindAnother={() => setTab(PeerTakeTab.Discover)}
+        />
+      </TabPanel>
     </div>
   );
 }
