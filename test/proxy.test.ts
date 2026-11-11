@@ -368,6 +368,12 @@ describe("proxy per edition", () => {
     },
   );
 
+  // A typo must not quietly open the other edition's screens.
+  it("refuses to serve a page under an unknown edition", async () => {
+    vi.stubEnv("APP_EDITION", "METU");
+    await expect(request("/login")).rejects.toThrow(/APP_EDITION/);
+  });
+
   it("treats an unset edition as Teknokent", async () => {
     vi.stubEnv("APP_EDITION", undefined);
     const response = await request("/student");

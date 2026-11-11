@@ -93,7 +93,7 @@ export async function switchSessionWorkspace(
   workspace: Workspace,
 ): Promise<AppSession | null> {
   const session = await getSessionStore();
-  const user = currentSessionUser(session);
+  const user = sessionUserOf(session);
   if (!user || !workspacesOf(user).includes(workspace)) return null;
   session.updateConfig(sessionOptions(session.persist === true));
   session.user = { ...user, activeWorkspace: workspace };
@@ -105,6 +105,15 @@ export async function switchSessionWorkspace(
     maxAge: LAST_WORKSPACE_MAX_AGE_SECONDS,
   });
   return session.user;
+}
+
+/**
+ * The cookie's user, read under this deployment's edition rather than the one stamped at sign-in: a cookie from
+ * before editions, or one minted while APP_EDITION said otherwise, must not open the wrong workspaces.
+ */
+function sessionUserOf(session: SessionData): AppSession | null {
+  const user = currentSessionUser(session);
+  return user ? { ...user, edition: appEdition() } : null;
 }
 
 export async function getSessionStore(persist = false) {
@@ -160,7 +169,7 @@ async function accountStillMatches(user: AppSession, issuedAt: number) {
  */
 export async function getSessionUser() {
   const session = await getSessionStore();
-  const user = currentSessionUser(session);
+  const user = sessionUserOf(session);
   if (!user) return null;
 
   const now = Date.now();

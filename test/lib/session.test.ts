@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { Edition } from "@/interfaces/edition";
 import {
@@ -95,13 +95,16 @@ function mentor(overrides: Partial<BackendUser> = {}): BackendUser {
   };
 }
 
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
+
 describe("toSession", () => {
   it("stamps the session with this deployment's edition", () => {
     vi.stubEnv("APP_EDITION", undefined);
     expect(toSession(mentee())?.edition).toBe(Edition.Teknokent);
     vi.stubEnv("APP_EDITION", "ODTU");
     expect(toSession(mentee())?.edition).toBe(Edition.Odtu);
-    vi.unstubAllEnvs();
   });
 
   it("builds a mentee session when organization info is present", () => {
@@ -255,7 +258,23 @@ describe("getSessionUser", () => {
   it("returns the user of a session saved within the last 12 hours", async () => {
     mockIronSession.user = user;
     mockIronSession.issuedAt = Date.now() - 11 * HOUR_MS;
-    await expect(getSessionUser()).resolves.toEqual(user);
+    await expect(getSessionUser()).resolves.toEqual({
+      ...user,
+      edition: Edition.Teknokent,
+    });
+  });
+
+  // A cookie from before editions, or one stamped under the other edition, must not pick the workspaces.
+  it("reads the session under this deployment's edition, whatever the cookie says", async () => {
+    vi.stubEnv("APP_EDITION", "ODTU");
+    mockIronSession.issuedAt = Date.now();
+    mockIronSession.checkedAt = Date.now();
+    for (const stamped of [undefined, Edition.Teknokent]) {
+      mockIronSession.user = { ...user, edition: stamped };
+      await expect(getSessionUser()).resolves.toMatchObject({
+        edition: Edition.Odtu,
+      });
+    }
   });
 
   // The sealed cookie itself never expires, so a copied one would sign in forever.
@@ -569,8 +588,17 @@ describe("switchSessionWorkspace", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubEnv("APP_EDITION", "ODTU");
     mockIronSession.user = assistant;
     mockIronSession.issuedAt = Date.now();
+  });
+
+  it("opens no ODTÜ workspace in the Teknokent edition, even for a cookie stamped ODTU", async () => {
+    vi.stubEnv("APP_EDITION", "TEKNOKENT");
+    await expect(
+      switchSessionWorkspace(Workspace.OdtuStudent),
+    ).resolves.toBeNull();
+    expect(savedSession.save).not.toHaveBeenCalled();
   });
 
   it("saves the switch and remembers it for the next sign-in", async () => {
