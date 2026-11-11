@@ -13,15 +13,14 @@ import {
 } from "@/lib/academician-availability";
 import {
   byStart,
+  daysBetween,
   groupAppointments,
+  turkeyDay,
   waitsForAcademician,
 } from "@/lib/academician-office-hours";
-import { isoDay } from "@/lib/coordinator-calendar";
 
 /** How many waiting requests Ana Sayfa shows before "Tümü". */
 export const HOME_REQUEST_PREVIEW = 3;
-
-const DAY_MS = 24 * 60 * 60 * 1000;
 
 export type HomeSummary = {
   pendingCount: number;
@@ -50,7 +49,7 @@ export function homeSummary({
   const waiting = requests
     .filter(waitsForAcademician)
     .toSorted((a, b) => Date.parse(a.requestedAt) - Date.parse(b.requestedAt));
-  const today = isoDay(now);
+  const today = turkeyDay(now);
   return {
     pendingCount: waiting.length,
     oldestRequestedAt: waiting[0]?.requestedAt ?? null,
@@ -59,7 +58,7 @@ export function homeSummary({
       .filter(
         (item) =>
           item.status === AppointmentStatus.Confirmed &&
-          isoDay(new Date(item.startsAt)) === today,
+          turkeyDay(item.startsAt) === today,
       )
       .toSorted(byStart),
     upcomingCount: groupAppointments(appointments, now.getTime()).upcoming
@@ -70,12 +69,9 @@ export function homeSummary({
   };
 }
 
-/** Whole calendar days from `value` to `now` ("2 gün önce"), counted between local midnights. */
+/** Whole Turkey calendar days from `value` to `now` ("2 gün önce"). */
 export function daysSince(value: string, now: Date) {
-  const then = new Date(value);
-  const start = new Date(then.getFullYear(), then.getMonth(), then.getDate());
-  const end = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  return Math.round((end.getTime() - start.getTime()) / DAY_MS);
+  return daysBetween(turkeyDay(value), turkeyDay(now));
 }
 
 /** "Elif" from "Elif Şahin": the design greets an academician by first name ("Günaydın, Elif Hocam"). */

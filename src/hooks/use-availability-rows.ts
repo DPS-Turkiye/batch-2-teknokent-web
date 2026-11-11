@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from "next-intl";
 
 import type { AvailabilityItem } from "@/lib/academician-availability";
+import { TURKEY_TIME_ZONE } from "@/lib/academician-office-hours";
 import { formatDateRange } from "@/lib/format";
 import { exceptionLabel } from "@/lib/mentor-availability";
 import { AvailabilityItemKind } from "@/types/academician-office-hours";
@@ -18,6 +19,7 @@ export type AvailabilityRow = {
 const ONE_OFF_DAY: Intl.DateTimeFormatOptions = {
   day: "numeric",
   month: "short",
+  timeZone: TURKEY_TIME_ZONE,
 };
 
 /**
@@ -31,6 +33,7 @@ export function useAvailabilityRows({ everyWeek }: { everyWeek: boolean }) {
   const clock = new Intl.DateTimeFormat(locale, {
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: TURKEY_TIME_ZONE,
   });
 
   return (item: AvailabilityItem, now: Date): AvailabilityRow => {

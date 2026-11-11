@@ -37,6 +37,7 @@ import {
   ACADEMICIAN_AVAILABILITY_QUERY_KEY,
   ACADEMICIAN_REQUESTS_QUERY_KEY,
   slotWhenLabel,
+  turkeyWallClock,
 } from "@/lib/academician-office-hours";
 import { ACADEMICIAN_ROUTES } from "@/lib/academician-routes";
 import { adviseeIds } from "@/lib/academician-students";
@@ -245,7 +246,7 @@ export function useAcademicianAppointmentsCalendar(
     }
   };
 
-  const today = isoDay(now);
+  const today = isoDay(turkeyWallClock(now));
   const toRailRequest = (request: OfficeHoursRequest): RailRequest => {
     const first = request.requestedTimes[0];
     return {

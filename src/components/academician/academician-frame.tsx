@@ -7,8 +7,6 @@ import { RoleFrame, type RoleNavItem } from "@/components/common/role-frame";
 import { Workspace } from "@/interfaces/workspace";
 import { ACADEMICIAN_ROUTES } from "@/lib/academician-routes";
 
-export const ACADEMICIAN_HOME = ACADEMICIAN_ROUTES.home;
-
 const NAV: RoleNavItem[] = [
   {
     href: ACADEMICIAN_ROUTES.home,
@@ -41,7 +39,7 @@ export function AcademicianFrame({ children }: { children: ReactNode }) {
   return (
     <RoleFrame
       workspace={Workspace.OdtuAcademician}
-      homeHref={ACADEMICIAN_HOME}
+      homeHref={ACADEMICIAN_ROUTES.home}
       menuLabel="academicianMenu"
       nav={NAV}
       roleLabel={t("academician")}
