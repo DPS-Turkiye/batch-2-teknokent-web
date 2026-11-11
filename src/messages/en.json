@@ -3329,7 +3329,7 @@
     "botNotice": {
       "joining": "The recording bot is connecting to the meeting…",
       "waitingForAdmission": "The recording bot is in the waiting room. When the join request appears in Meet, click “Admit”.",
-      "waitingTooLong": "The bot has waited 2 minutes. If you see no join request in Meet, Google may not have let it in: stop the bot and send it again.",
+      "waitingTooLong": "The bot has waited {minutes} minutes. If you see no join request in Meet, Google may not have let it in: stop the bot and send it again.",
       "recording": "The recording bot is in the meeting and recording.",
       "couldNotJoin": "The recording bot could not join the meeting. You can send it again.",
       "notAdmittedInTime": "The recording bot left because nobody admitted it in time. Send it again and click “Admit” in Meet.",

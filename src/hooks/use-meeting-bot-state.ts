@@ -4,11 +4,11 @@ import { useQuery } from "@tanstack/react-query";
 
 import { fetchMeetingBotStatus } from "@/lib/assistant";
 import {
-  isMeetingBotLive,
   meetingBotNotice,
   meetingBotNoticeTone,
+  meetingBotPollMs,
 } from "@/lib/meeting-bot";
-import { POLL_INTERVAL, polling } from "@/lib/poll";
+import { polling } from "@/lib/poll";
 import {
   MeetingBotNoticeTone,
   MeetingStatus,
@@ -24,12 +24,9 @@ export function meetingBotStateQueryKey(
   return [...MEETING_BOT_STATE_QUERY_KEY, platform, nativeMeetingId] as const;
 }
 
-const LIVE_POLL = polling(POLL_INTERVAL.chat);
-const SETTLED_POLL = polling(POLL_INTERVAL.background);
-
 /**
  * The recording bot of the selected meeting, as Vexa sees it: whether it waits in the lobby, records, or could not
- * join. A finished bot is still checked now and then, because the user may send a new one.
+ * join. A finished bot is still checked, because the user may send a new one.
  */
 export function useMeetingBotState(meeting: Meeting | null | undefined) {
   const platform = meeting?.platformKey ?? "";
@@ -43,15 +40,16 @@ export function useMeetingBotState(meeting: Meeting | null | undefined) {
     queryFn: () => fetchMeetingBotStatus(platform, nativeMeetingId),
     enabled: watched,
     refetchInterval: (current) =>
-      isMeetingBotLive(current.state.data?.state)
-        ? LIVE_POLL.refetchInterval()
-        : SETTLED_POLL.refetchInterval(),
-    meta: LIVE_POLL.meta,
+      polling(meetingBotPollMs(current.state.data?.state)).refetchInterval(),
+    refetchOnWindowFocus: true,
+    meta: { polled: true },
   });
 
-  const notice = watched
-    ? meetingBotNotice(query.data ?? null, query.dataUpdatedAt)
-    : null;
+  // After a failed refresh the last answer may no longer be true, so say nothing rather than "recording".
+  const notice =
+    watched && !query.isError
+      ? meetingBotNotice(query.data ?? null, query.dataUpdatedAt)
+      : null;
 
   return {
     botNotice: notice,

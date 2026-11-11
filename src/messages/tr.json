@@ -3329,7 +3329,7 @@
     "botNotice": {
       "joining": "Kayıt botu toplantıya bağlanıyor…",
       "waitingForAdmission": "Kayıt botu bekleme odasında. Meet'te katılma isteği çıkınca “Kabul et”e basın.",
-      "waitingTooLong": "Bot 2 dakikadır bekleme odasında. Meet'te katılma isteği görmüyorsanız Google botu içeri almamış olabilir: botu durdurup yeniden gönderin.",
+      "waitingTooLong": "Bot {minutes} dakikadır bekleme odasında. Meet'te katılma isteği görmüyorsanız Google botu içeri almamış olabilir: botu durdurup yeniden gönderin.",
       "recording": "Kayıt botu toplantıda, kayıt sürüyor.",
       "couldNotJoin": "Kayıt botu toplantıya giremedi. Botu yeniden gönderebilirsiniz.",
       "notAdmittedInTime": "Kayıt botu zamanında içeri alınmadığı için ayrıldı. Yeniden gönderip Meet'te “Kabul et”e basın.",

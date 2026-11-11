@@ -48,11 +48,24 @@ describe("MeetingBotNoticeLine", () => {
     );
   });
 
-  it("renders nothing without a notice", () => {
-    const { container } = render(
+  it("puts the wait limit into the warning", () => {
+    render(
+      <MeetingBotNoticeLine
+        notice={MeetingBotNotice.WaitingTooLong}
+        tone={MeetingBotNoticeTone.Danger}
+      />,
+    );
+
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Bot 2 dakikadır bekleme odasında.",
+    );
+  });
+
+  it("keeps an empty status region without a notice, so the next state is announced", () => {
+    render(
       <MeetingBotNoticeLine notice={null} tone={MeetingBotNoticeTone.Info} />,
     );
 
-    expect(container).toBeEmptyDOMElement();
+    expect(screen.getByRole("status")).toBeEmptyDOMElement();
   });
 });

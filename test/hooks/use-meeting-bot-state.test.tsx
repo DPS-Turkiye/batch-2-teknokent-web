@@ -107,6 +107,24 @@ describe("useMeetingBotState", () => {
     expect(result.current.botNotice).toBeNull();
   });
 
+  it("stops claiming a state once a refresh fails", async () => {
+    vi.mocked(fetchMeetingBotStatus).mockResolvedValueOnce(
+      meetingBotStatus({ state: MeetingBotState.Active }),
+    );
+    const { queryClient, wrapper } = queryWrapper();
+    const { result } = renderHook(() => useMeetingBotState(meeting()), {
+      wrapper,
+    });
+    await waitFor(() =>
+      expect(result.current.botNotice).toBe(MeetingBotNotice.Recording),
+    );
+
+    vi.mocked(fetchMeetingBotStatus).mockRejectedValueOnce(new Error("down"));
+    await queryClient.refetchQueries();
+
+    await waitFor(() => expect(result.current.botNotice).toBeNull());
+  });
+
   it.each([
     ["a completed meeting", meeting({ status: MeetingStatus.Completed })],
     ["a meeting without a Meet code", meeting({ nativeMeetingId: "" })],

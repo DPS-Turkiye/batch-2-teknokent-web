@@ -6,8 +6,10 @@ import {
   isMeetingBotLive,
   meetingBotNotice,
   meetingBotNoticeTone,
+  meetingBotPollMs,
   parseMeetingBotStatus,
 } from "@/lib/meeting-bot";
+import { POLL_INTERVAL } from "@/lib/poll";
 import { MeetingBotNotice, MeetingBotNoticeTone } from "@/types/assistant";
 import { BOT_REQUESTED_AT, meetingBotStatus } from "@test/fixtures/meeting-bot";
 
@@ -121,6 +123,21 @@ describe("meetingBotNoticeTone", () => {
     [MeetingBotNotice.Rejected, MeetingBotNoticeTone.Danger],
   ])("colours %s as %s", (notice, tone) => {
     expect(meetingBotNoticeTone(notice)).toBe(tone);
+  });
+});
+
+describe("meetingBotPollMs", () => {
+  it("checks a live bot often", () => {
+    expect(meetingBotPollMs(MeetingBotState.WaitingForAdmission)).toBe(
+      POLL_INTERVAL.chat,
+    );
+  });
+
+  it("checks a settled or unknown bot less often", () => {
+    expect(meetingBotPollMs(MeetingBotState.Failed)).toBe(
+      POLL_INTERVAL.messages,
+    );
+    expect(meetingBotPollMs(undefined)).toBe(POLL_INTERVAL.messages);
   });
 });
 
