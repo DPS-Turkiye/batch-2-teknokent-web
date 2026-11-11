@@ -10,6 +10,7 @@ import {
 } from "@/interfaces/academician-office-hours";
 import type { AppointmentTime } from "@/interfaces/appointment";
 import type { CalendarSource } from "@/lib/academician-calendar";
+import { TURKEY_TIME_ZONE } from "@/lib/academician-office-hours";
 import {
   proposableDays,
   proposalPayload,
@@ -41,6 +42,7 @@ export function useProposeTimes(
   const clock = new Intl.DateTimeFormat(locale, {
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: TURKEY_TIME_ZONE,
   });
   const weekdayShort = new Intl.DateTimeFormat(locale, { weekday: "short" });
   const dayHeading = new Intl.DateTimeFormat(locale, {
@@ -54,6 +56,7 @@ export function useProposeTimes(
     weekday: "short",
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: TURKEY_TIME_ZONE,
   });
   const isPicked = (time: AppointmentTime) =>
     selected.some((item) => item.startsAt === time.startsAt);
@@ -77,6 +80,7 @@ export function useProposeTimes(
             weekday: "long",
             hour: "2-digit",
             minute: "2-digit",
+            timeZone: TURKEY_TIME_ZONE,
           }).format(new Date(requested.startsAt)),
         })
       : request.student.fullName,

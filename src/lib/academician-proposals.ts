@@ -13,11 +13,14 @@ import {
 import { isDayOff } from "@/lib/academician-availability";
 import {
   byStart,
+  turkeyDay,
   turkeyTimeRange,
+  turkeyWallClock,
   waitsForAcademician,
 } from "@/lib/academician-office-hours";
 import { addDays, isoDay } from "@/lib/coordinator-calendar";
 import { weekdayOf } from "@/lib/mentor-availability";
+import { minutesOfDay } from "@/lib/utils";
 
 /** The propose dialog offers the next five weekdays, like the frame ("Sal 10 … Pzt 16"). */
 export const PROPOSABLE_DAY_COUNT = 5;
@@ -38,11 +41,6 @@ type Source = {
   requests: readonly OfficeHoursRequest[];
 };
 
-function minutesOf(time: string) {
-  const [hours = 0, minutes = 0] = time.split(":").map(Number);
-  return hours * 60 + minutes;
-}
-
 function clockOf(minutes: number) {
   const pad = (value: number) => String(value).padStart(2, "0");
   return `${pad(Math.floor(minutes / 60))}:${pad(minutes % 60)}`;
@@ -56,14 +54,14 @@ function windowsOf(date: Date, availability: AcademicianAvailability) {
   const weekly = availability.rules
     .filter((rule) => rule.dayOfWeek === weekday)
     .map((rule) => ({
-      start: minutesOf(rule.startTime),
-      end: minutesOf(rule.endTime),
+      start: minutesOfDay(rule.startTime),
+      end: minutesOfDay(rule.endTime),
     }));
   const oneOffs = availability.oneOffs
-    .filter((oneOff) => isoDay(new Date(oneOff.startsAt)) === day)
+    .filter((oneOff) => turkeyDay(oneOff.startsAt) === day)
     .map((oneOff) => {
-      const start = new Date(oneOff.startsAt);
-      const end = new Date(oneOff.endsAt);
+      const start = turkeyWallClock(oneOff.startsAt);
+      const end = turkeyWallClock(oneOff.endsAt);
       return {
         start: start.getHours() * 60 + start.getMinutes(),
         end: end.getHours() * 60 + end.getMinutes(),
@@ -111,9 +109,11 @@ export function proposableDays(
   );
   const held = heldTimes(requests, excludeRequestId);
 
+  // Days are Turkey days, drawn as wall-clock dates; "past" is still checked against the real moment.
+  const today = turkeyWallClock(now);
   const days: Date[] = [];
   for (
-    let date = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    let date = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     days.length < PROPOSABLE_DAY_COUNT;
     date = addDays(date, 1)
   ) {

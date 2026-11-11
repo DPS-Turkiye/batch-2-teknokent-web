@@ -29,12 +29,14 @@ import {
 import {
   ACADEMICIAN_AVAILABILITY_QUERY_KEY,
   ACADEMICIAN_OFFICE_HOURS_QUERY_KEY,
+  TURKEY_TIME_ZONE,
+  turkeyDay,
+  turkeyWallClock,
 } from "@/lib/academician-office-hours";
 import {
   getAcademicianAvailability,
   saveAcademicianAvailability,
 } from "@/lib/client/academician-office-hours";
-import { isoDay } from "@/lib/coordinator-calendar";
 import { formatDateRange } from "@/lib/format";
 import { calendarDay } from "@/lib/utils";
 import { useToast } from "@/stores/toast-store";
@@ -80,8 +82,9 @@ function idOf(item: AvailabilityItem) {
   }
 }
 
+/** "HH:mm" of a moment on Turkey's clock, for a time input. */
 function clockOf(value: string) {
-  const date = new Date(value);
+  const date = turkeyWallClock(value);
   const pad = (part: number) => String(part).padStart(2, "0");
   return `${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
@@ -102,7 +105,7 @@ function fieldsFor(item: AvailabilityItem): Fields {
       return {
         ...EMPTY_FIELDS,
         oneOff: {
-          date: isoDay(new Date(item.oneOff.startsAt)),
+          date: turkeyDay(item.oneOff.startsAt),
           startTime: clockOf(item.oneOff.startsAt),
           endTime: clockOf(item.oneOff.endsAt),
           place: item.oneOff.place ?? "",
@@ -168,12 +171,19 @@ export function useAcademicianAvailabilityEditor() {
   const clock = new Intl.DateTimeFormat(locale, {
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: TURKEY_TIME_ZONE,
   });
-  const longDay = new Intl.DateTimeFormat(locale, {
+  const longDayOptions: Intl.DateTimeFormatOptions = {
     day: "numeric",
     month: "long",
     year: "numeric",
+  };
+  // Moments are shown in Turkey time; day strings ("YYYY-MM-DD") are already days and stay as they are.
+  const longMoment = new Intl.DateTimeFormat(locale, {
+    ...longDayOptions,
+    timeZone: TURKEY_TIME_ZONE,
   });
+  const longDay = new Intl.DateTimeFormat(locale, longDayOptions);
 
   const toRow = (item: AvailabilityItem): EditableRow => {
     switch (item.kind) {
@@ -192,7 +202,7 @@ export function useAcademicianAvailabilityEditor() {
           id: idOf(item),
           kind: item.kind,
           title: t("dateRow", {
-            date: longDay.format(new Date(item.oneOff.startsAt)),
+            date: longMoment.format(new Date(item.oneOff.startsAt)),
             hours: formatDateRange(
               clock,
               new Date(item.oneOff.startsAt),
