@@ -28,11 +28,25 @@ vi.mock("@/components/providers/session-provider", () => ({
   useAppSession: () => current,
   useSession: () => ({ session: current, isLoading: false, logout: vi.fn() }),
 }));
+// The theme test checks only the frame's paint, so it lets the student in whatever the deployment's edition is.
+const gate = vi.hoisted(() => ({ forceAllowed: false }));
+vi.mock("@/hooks/use-role-gate", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/hooks/use-role-gate")>();
+  return {
+    useRoleGate: (...args: Parameters<typeof actual.useRoleGate>) => {
+      const real = actual.useRoleGate(...args);
+      return gate.forceAllowed
+        ? { ...real, allowed: true, isLoading: false }
+        : real;
+    },
+  };
+});
 vi.mock("@/components/common/notification-menu", () => ({
   NotificationMenu: () => null,
 }));
 
 beforeEach(() => {
+  gate.forceAllowed = false;
   pathname = "/admin";
   current = admin;
 });
@@ -193,6 +207,7 @@ describe("RoleFrame theme", () => {
   };
 
   it("paints the student workspace in ODTÜ red and staff frames in ink", () => {
+    gate.forceAllowed = true;
     current = student;
     const { container, unmount } = renderWithQueryClient(
       <RoleFrame
@@ -222,6 +237,7 @@ describe("RoleFrame theme", () => {
       </RoleFrame>,
     );
     expect(staff.container.querySelector("[data-ia-accent]")).toBeNull();
+    gate.forceAllowed = false;
     expect(screen.getByText("Admin", { selector: "p" })).toBeInTheDocument();
   });
 });
