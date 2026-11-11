@@ -3,14 +3,15 @@ import {
   WeeklyProgramWarningCode,
   type WeeklyProgramProposal,
 } from "@/interfaces/weekly-program";
+import { planWeek } from "@test/fixtures/program-week";
 
 /** A week of a synthetic weekly program (invented names, as in the backend's look-alike fixture). */
-export function planWeek(
+export function programWeek(
   week: number,
   title: string,
   overrides: Partial<ProgramPlanWeek> = {},
 ): ProgramPlanWeek {
-  return {
+  return planWeek({
     week,
     startDate: null,
     endDate: null,
@@ -18,9 +19,8 @@ export function planWeek(
     topics: [`Oturum: ${title}`, "Konuşmacı: Deniz Örnek"],
     activities: ["Workshop: Ekip çalışması"],
     deliverables: ["Haftalık görev"],
-    inferred: false,
     ...overrides,
-  };
+  });
 }
 
 /** Ten Tuesday weeks in four phases, two weeks printed off the calendar, a demo day after the last week. */
@@ -30,22 +30,22 @@ export function weeklyProgramProposal(
   return {
     totalWeeks: 11,
     weeks: [
-      planWeek(1, "Yola Çık", {
+      programWeek(1, "Yola Çık", {
         startDate: "2026-10-27",
         endDate: "2026-11-02",
       }),
-      planWeek(2, "Problemi Anla"),
-      planWeek(3, "Saha Gezisi 1", {
+      programWeek(2, "Problemi Anla"),
+      programWeek(3, "Saha Gezisi 1", {
         topics: [],
         activities: ["Ziyaret: Örnek Teknopark ofisleri"],
       }),
-      planWeek(4, "Fikir Üret"),
-      planWeek(5, "Değer Önerisi"),
-      planWeek(6, "Pazarı Tanı"),
-      planWeek(7, "İş Modeli"),
-      planWeek(8, "Saha Gezisi 2"),
-      planWeek(9, "Doğrula"),
-      planWeek(10, "Sun"),
+      programWeek(4, "Fikir Üret"),
+      programWeek(5, "Değer Önerisi"),
+      programWeek(6, "Pazarı Tanı"),
+      programWeek(7, "İş Modeli"),
+      programWeek(8, "Saha Gezisi 2"),
+      programWeek(9, "Doğrula"),
+      programWeek(10, "Sun"),
     ],
     phases: [
       {

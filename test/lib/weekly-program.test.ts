@@ -12,7 +12,10 @@ import {
   replacesExistingPlan,
   weeklyProgramSaveInput,
 } from "@/lib/weekly-program";
-import { planWeek, weeklyProgramProposal } from "@test/fixtures/weekly-program";
+import {
+  programWeek,
+  weeklyProgramProposal,
+} from "@test/fixtures/weekly-program";
 
 function range(
   name: string,
@@ -127,7 +130,7 @@ describe("weeklyProgramSaveInput", () => {
 
     const input = weeklyProgramSaveInput({
       documentId: "doc-1",
-      weeks: [weekDraftOf(planWeek(1, "  Yola Çık "))],
+      weeks: [weekDraftOf(programWeek(1, "  Yola Çık "))],
       phases: [
         { ...first, name: " Problemi Keşfet " },
         { ...second, expectedOutput: "  " },
