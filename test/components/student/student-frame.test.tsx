@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AcademicianFrame } from "@/components/academician/academician-frame";
 import { StudentFrame } from "@/components/student/student-frame";
+import { Edition } from "@/interfaces/edition";
 import { IdentityKind, UserRole, type AppSession } from "@/interfaces/session";
 import { itemAt } from "@test/fixtures/list-assertions";
 
@@ -16,6 +17,7 @@ const odtuStudent: AppSession = {
   jobTitle: "",
   permissions: [UserRole.Mentee],
   institutionKinds: [IdentityKind.Student],
+  edition: Edition.Odtu,
 };
 const teknokentMentee: AppSession = {
   userId: "u2",
@@ -34,6 +36,7 @@ const researchAssistant: AppSession = {
   jobTitle: "",
   permissions: [UserRole.Mentee, UserRole.Academician],
   institutionKinds: [IdentityKind.Student, IdentityKind.Academic],
+  edition: Edition.Odtu,
 };
 let session: AppSession = odtuStudent;
 vi.mock("next/navigation", () => ({
