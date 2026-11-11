@@ -87,7 +87,9 @@ describe("StudentHomeView", () => {
     renderWithQueryClient(<StudentHomeView />);
 
     const list = screen.getByRole("region", { name: "Yaklaşan randevularım" });
-    const row = within(list).getByRole("link", { name: /Doç\. Dr\. Elif Şahin/ });
+    const row = within(list).getByRole("link", {
+      name: /Doç\. Dr\. Elif Şahin/,
+    });
     expect(row).toHaveAttribute("href", "/student/appointments");
     expect(within(row).getByText(/Office Hours/)).toBeVisible();
   });
@@ -144,7 +146,9 @@ describe("StudentHomeView", () => {
       within(pending).getByRole("link", { name: "Tümü (2)" }),
     ).toBeVisible();
     expect(within(pending).getByText("Alternatif Önerildi")).toBeVisible();
-    expect(within(pending).getByRole("link", { name: "Yanıtla" })).toBeVisible();
+    expect(
+      within(pending).getByRole("link", { name: "Yanıtla" }),
+    ).toBeVisible();
     expect(within(pending).getByText(request.mentor.fullName)).toBeVisible();
     expect(within(pending).getByText("Yanıt Bekliyor")).toBeVisible();
   });
@@ -177,9 +181,10 @@ describe("StudentHomeView", () => {
   });
 
   it("shows only the loading note until the data is in", () => {
-    homeReturns({ ready: false, isLoading: true });
+    homeReturns({ ready: false, isLoading: true, greeting: null });
     renderWithQueryClient(<StudentHomeView />);
     expect(screen.getByText("Yükleniyor…")).toBeVisible();
+    expect(screen.queryByRole("heading", { level: 1 })).toBeNull();
     expect(
       screen.queryByRole("navigation", { name: "Hızlı işlemler" }),
     ).not.toBeInTheDocument();
