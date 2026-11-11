@@ -22,21 +22,30 @@ describe("user profile server API", () => {
     vi.mocked(backendRequest).mockReset();
   });
 
-  it("reads an encoded user's profile with the server's own credentials", async () => {
-    await fetchUserProfile("user/1");
+  it("reads an encoded user's profile as the viewer, on the server's own credentials", async () => {
+    await fetchUserProfile("user/1", "viewer-1");
 
     expect(vi.mocked(backendRequest).mock.lastCall).toEqual([
-      { method: "GET", url: "/api/users/user%2F1/profile" },
+      {
+        method: "GET",
+        url: "/api/users/user%2F1/profile",
+        params: { actorId: "viewer-1" },
+      },
       undefined,
     ]);
   });
 
   it("reads the profile signed with the onboarding token when one is given", async () => {
-    await fetchUserProfile("user/1", "id-token");
+    await fetchUserProfile("user/1", "user/1", "id-token");
 
-    expect(vi.mocked(backendRequest).mock.lastCall?.[1]).toEqual({
-      idToken: "id-token",
-    });
+    expect(vi.mocked(backendRequest).mock.lastCall).toEqual([
+      {
+        method: "GET",
+        url: "/api/users/user%2F1/profile",
+        params: { actorId: "user/1" },
+      },
+      { idToken: "id-token" },
+    ]);
   });
 
   it("saves the profile as the user themselves, the only actor the backend accepts", async () => {

@@ -7,8 +7,9 @@ import {
   ProgramMentorStatus,
   type ProgramDetail,
 } from "@/interfaces/program";
-import { UserRole, type AppSession } from "@/interfaces/session";
+import type { AppSession } from "@/interfaces/session";
 import { getProgramDetail } from "@/lib/client/programs";
+import { appSession } from "@test/fixtures/session";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 const mockIndividualProgram = vi.fn();
@@ -17,12 +18,13 @@ vi.mock("@/hooks/use-individual-program", () => ({
   useIndividualProgram: () => mockIndividualProgram(),
 }));
 
-beforeEach(() =>
+beforeEach(() => {
   mockIndividualProgram.mockReturnValue({
     individual: false,
     isLoading: false,
-  }),
-);
+  });
+  mockSession.mockReturnValue(mentee);
+});
 
 vi.mock("next/navigation", () => ({
   useParams: () => ({ id: "program-1" }),
@@ -34,14 +36,11 @@ vi.mock("@/components/hoc/app-shell", () => ({
   ),
 }));
 
+const mentee = appSession({ organizationId: "org-1" });
+const mockSession = vi.fn<() => AppSession>();
+
 vi.mock("@/components/providers/session-provider", () => ({
-  useAppSession: (): AppSession => ({
-    userId: "user-1",
-    email: "mentee@dongu.co",
-    fullName: "Gülse Buran",
-    jobTitle: "",
-    role: UserRole.Mentee,
-  }),
+  useAppSession: () => mockSession(),
 }));
 
 vi.mock("@/lib/client/programs", () => ({
@@ -124,6 +123,40 @@ describe("ProgramDetailView", () => {
     expect(
       await screen.findByRole("heading", { name: "Startuplar" }),
     ).toBeInTheDocument();
+  });
+
+  it("links a mentee's teammates and the coordinator, not other teams' members", async () => {
+    vi.mocked(getProgramDetail).mockResolvedValue({
+      ...detail,
+      startups: [
+        ...detail.startups,
+        {
+          id: "org-2",
+          name: "Başka Girişim",
+          members: [
+            {
+              id: "member-2",
+              fullName: "Deniz Yıldız",
+              jobTitle: null,
+              founder: false,
+            },
+          ],
+        },
+      ],
+    });
+    renderWithQueryClient(<ProgramDetailView />);
+
+    expect(
+      await screen.findByRole("link", { name: /Gamze Kozak/ }),
+    ).toHaveAttribute("href", "/people/member-1");
+    expect(screen.getByRole("link", { name: /Elif Demir/ })).toHaveAttribute(
+      "href",
+      "/people/coordinator-1",
+    );
+    expect(screen.getByText("Deniz Yıldız")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: /Deniz Yıldız/ }),
+    ).not.toBeInTheDocument();
   });
 
   it("reads in English", async () => {

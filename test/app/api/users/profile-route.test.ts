@@ -72,7 +72,7 @@ describe("/api/users/profile", () => {
       new Request("http://localhost/api/users/profile"),
     );
 
-    expect(fetchUserProfile).toHaveBeenCalledWith("user-1");
+    expect(fetchUserProfile).toHaveBeenCalledWith("user-1", "user-1");
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toMatchObject({
       bio: "Ürün odaklı kurucu",
@@ -133,7 +133,11 @@ describe("/api/users/profile", () => {
     );
 
     expect(fetchSignedInUser).toHaveBeenCalledWith("token-9");
-    expect(fetchUserProfile).toHaveBeenCalledWith("user-9", "token-9");
+    expect(fetchUserProfile).toHaveBeenCalledWith(
+      "user-9",
+      "user-9",
+      "token-9",
+    );
     expect(getSessionUser).not.toHaveBeenCalled();
     expect(response.status).toBe(200);
   });

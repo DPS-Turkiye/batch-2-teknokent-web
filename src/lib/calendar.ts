@@ -1,3 +1,5 @@
+import { formatDateRange } from "@/lib/format";
+
 export enum CalendarFilter {
   All = "all",
   Mentorship = "mentorship",
@@ -42,10 +44,11 @@ export function isSameDay(iso: string, day: Date) {
 
 /** "14–18 Eylül", "31 Ağustos – 4 Eylül" */
 export function weekRangeLabel(start: Date, end: Date, locale: string) {
-  return new Intl.DateTimeFormat(locale, {
-    day: "numeric",
-    month: "long",
-  }).formatRange(start, end);
+  return formatDateRange(
+    new Intl.DateTimeFormat(locale, { day: "numeric", month: "long" }),
+    start,
+    end,
+  );
 }
 
 /** The mentee week grid runs 09:00–18:00, Monday to Friday. */

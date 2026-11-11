@@ -6,6 +6,11 @@ import {
 } from "@/lib/assistant-schemas";
 import { createMeetingBot, stopMeetingBotBackend } from "@/lib/botapi";
 import { apiErrorResponse, apiText } from "@/lib/server/api-response";
+import {
+  assistantMeetingRefusal,
+  assistantSignInRequired,
+} from "@/lib/server/assistant-caller";
+import { readBearerToken } from "@/lib/server/bearer-token";
 import { readJsonBody } from "@/lib/server/request-body";
 import { getSessionIds } from "@/lib/session";
 
@@ -15,12 +20,16 @@ const RECORDING_SLOTS_FULL_DETAIL = "All recording slots are in use.";
 export async function POST(request: NextRequest) {
   try {
     await getSessionIds();
+    const idToken = readBearerToken(request);
+    if (!idToken) return await assistantSignInRequired();
     const body = await readJsonBody(request, addBotBodySchema, {
       invalidMessage: "meetingLinkRequired",
     });
     if (!body.ok) return body.response;
 
-    const { data, status } = await createMeetingBot(body.data);
+    const { data, status } = await createMeetingBot(body.data, idToken);
+    const refusal = await assistantMeetingRefusal(status);
+    if (refusal) return refusal;
     if (
       status === 409 &&
       (data as { detail?: unknown } | null)?.detail ===
@@ -45,6 +54,8 @@ export async function POST(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     await getSessionIds();
+    const idToken = readBearerToken(request);
+    if (!idToken) return await assistantSignInRequired();
     const { searchParams } = request.nextUrl;
     const parsed = transcriptQuerySchema.safeParse({
       platform: searchParams.get("platform"),
@@ -65,8 +76,11 @@ export async function DELETE(request: NextRequest) {
     const { data, status } = await stopMeetingBotBackend(
       platform,
       nativeMeetingId,
+      idToken,
     );
 
+    const refusal = await assistantMeetingRefusal(status);
+    if (refusal) return refusal;
     if (status === 204) {
       return new NextResponse(null, { status: 204 });
     }

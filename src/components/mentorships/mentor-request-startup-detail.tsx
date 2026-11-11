@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
+import { PersonLink } from "@/components/common/person-link";
 import { PrimaryButton } from "@/components/common/primary-button";
 import { SecondaryButton } from "@/components/common/secondary-button";
 import { StartupNameLink } from "@/components/common/startup-name-link";
@@ -16,6 +17,7 @@ import { normalizeDocumentTitles } from "@/components/mentorships/document-reque
 import { MentorAccent } from "@/components/mentorships/mentor-accent";
 import { MentorRequestReviewDialog } from "@/components/mentorships/mentor-request-review-dialog";
 import { MEETINGS_QUERY_KEY } from "@/hooks/use-meetings";
+import { useMemberProfileLinks } from "@/hooks/use-member-profile-links";
 import {
   useMentorRequestDecision,
   useMentorshipRequest,
@@ -62,7 +64,6 @@ import {
   mentorWorkspaceName,
   mentorWorkspacePerson,
 } from "@/lib/mentorship-workspace";
-import { programPersonHref } from "@/lib/program-links";
 import {
   buildRequestDetailContent,
   RequestDetailFieldKey,
@@ -109,6 +110,7 @@ export function MentorRequestStartupDetail({
   const queryClient = useQueryClient();
   const openDocument = useOpenDocument();
   const decisionMutation = useMentorRequestDecision();
+  const canOpenMember = useMemberProfileLinks();
   const [reviewing, setReviewing] = useState(false);
   const [actionError, setActionError] = useState("");
 
@@ -534,7 +536,11 @@ export function MentorRequestStartupDetail({
                     ) : (
                       <div className="space-y-3">
                         {members.map((member) => (
-                          <MemberRow key={member.id} member={member} />
+                          <MemberRow
+                            key={member.id}
+                            member={member}
+                            linked={canOpenMember(request.organizationId)}
+                          />
                         ))}
                       </div>
                     )}
@@ -646,13 +652,20 @@ function FileRow({
   );
 }
 
-function MemberRow({ member }: { member: OrganizationMember }) {
+function MemberRow({
+  member,
+  linked,
+}: {
+  member: OrganizationMember;
+  linked: boolean;
+}) {
   const t = useTranslations("mentorMentorships.startup");
   const roleLabel = member.founder ? t("manager") : t("member");
   return (
-    <Link
-      href={programPersonHref({ userId: member.id })}
-      className="flex items-center justify-between gap-3 rounded-lg hover:bg-[#f7f8f9]"
+    <PersonLink
+      userId={member.id}
+      linked={linked}
+      className="flex items-center justify-between gap-3 rounded-lg"
     >
       <div className="flex min-w-0 items-center gap-2.5">
         <div className="grid size-9 shrink-0 place-items-center rounded-full bg-[var(--ms-accent-soft,#fdebdd)] text-[11px] font-medium text-[var(--ms-accent-strong,#a8480e)]">
@@ -678,6 +691,6 @@ function MemberRow({ member }: { member: OrganizationMember }) {
       >
         {roleLabel}
       </span>
-    </Link>
+    </PersonLink>
   );
 }

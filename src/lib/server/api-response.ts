@@ -18,7 +18,9 @@ export async function apiText(key: ApiTextKey) {
 export type ApiErrorCode =
   | "BACKEND_TIMEOUT"
   | "BACKEND_UNAVAILABLE"
+  | "FORBIDDEN"
   | "INVALID_REQUEST"
+  | "NOT_FOUND"
   | "RECORDING_SLOTS_FULL"
   | "SESSION_REQUIRED";
 

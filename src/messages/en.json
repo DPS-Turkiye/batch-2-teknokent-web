@@ -144,6 +144,8 @@
     "code": "Invite code",
     "submit": "Join the team",
     "noCode": "No invite code?",
+    "otgAccount": "You are joining with your ODTÜ TEKNOKENT Girişimcilik account:",
+    "otgSwitch": "Join with another account",
     "backToLogin": "Back to sign in"
   },
   "verifyEmail": {
@@ -3296,6 +3298,7 @@
     "sendTranscriptHint": "Send to the bottom of the mentee's notebook",
     "sendTranscript": "Send transcript",
     "sendReport": "Send report",
+    "reportFromRecording": "The report is made from the meeting's recording; your transcript edits don't change it.",
     "stop": "Stop the assistant",
     "stopHint": "To see the transcript and create a report, press <b>Stop the assistant</b>. Once it stops, the transcript is locked and the report is created automatically.",
     "transcript": "Transcript",
@@ -3307,7 +3310,6 @@
     "line": "Transcript line",
     "deleteLine": "Delete line",
     "report": "Meeting report",
-    "reportStale": "The transcript changed. Create the report again to update it.",
     "generating": "Creating…",
     "generate": "Create report",
     "reportEmpty": "Press Stop the assistant to lock the transcript and create the report automatically. Send it so it lands at the bottom of the mentee's notebook.",
@@ -5746,6 +5748,8 @@
     "platformAndMeetingIdRequired": "A platform and a meeting ID are required.",
     "reportRequestInvalid": "The report request is not valid.",
     "reportServiceUnavailable": "The meeting report service is unavailable.",
+    "assistantMeetingForbidden": "Only this meeting's participants can use its assistant.",
+    "assistantMeetingNotFound": "There is no meeting for this link. The assistant works only for meetings in the calendar.",
     "messagesLoadFailed": "Could not load the messages.",
     "conversationStartFailed": "Could not start the conversation.",
     "messageSendFailed": "Could not send the message.",
