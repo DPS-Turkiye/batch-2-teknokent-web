@@ -298,7 +298,7 @@ function RequestDrawerFooter({
       {drawer.canAccept ? (
         <span data-tour="request-drawer-accept">
           <Button
-            disabled={!drawer.hasPick || drawer.isBusy}
+            disabled={!drawer.acceptable || drawer.isBusy}
             onClick={drawer.accept}
           >
             {t("accept")}

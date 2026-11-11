@@ -18,16 +18,11 @@ import {
   useAcademicianAppointmentsCalendar,
   type AcademicianAppointmentsCalendar,
 } from "@/hooks/use-academician-appointments-calendar";
-import type { AppointmentsSearch } from "@/lib/academician-calendar";
 
-export function AcademicianAppointmentsView({
-  initial,
-}: {
-  initial: AppointmentsSearch;
-}) {
+export function AcademicianAppointmentsView() {
   const t = useTranslations("iaAcademician.appointments");
   const { calendar, isLoading, error, retry, isRetrying } =
-    useAcademicianAppointmentsCalendar(initial);
+    useAcademicianAppointmentsCalendar();
   return (
     <div className="space-y-6">
       <PageHeader

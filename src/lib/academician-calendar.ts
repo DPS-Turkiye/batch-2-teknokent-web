@@ -102,13 +102,6 @@ export function parseAppointmentsSearch(raw: RawSearch): AppointmentsSearch {
   };
 }
 
-/** The same, from `window.location.search`. */
-export function searchFromQueryString(query: string) {
-  return parseAppointmentsSearch(
-    Object.fromEntries(new URLSearchParams(query)),
-  );
-}
-
 /** A link into Randevularım; defaults are left out so the plain page stays "/academician/appointments". */
 export function appointmentsHref(
   base: string,
@@ -193,14 +186,14 @@ function spanOf(time: AppointmentTime): CalendarSpan {
   };
 }
 
+/** An "HH:mm" time on a wall-clock day; the Date constructor carries minutes past 59 into the hours. */
 function atTime(day: Date, time: string) {
-  const [hours = 0, minutes = 0] = time.split(":").map(Number);
   return new Date(
     day.getFullYear(),
     day.getMonth(),
     day.getDate(),
-    hours,
-    minutes,
+    0,
+    minutesOfDay(time),
   );
 }
 
