@@ -4,17 +4,20 @@ import { AlarmClock, CalendarPlus, GraduationCap } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 
 import { QueryNotice } from "@/components/admin/admin-ui";
+import {
+  Button,
+  buttonClasses,
+  ButtonSize,
+  ButtonVariant,
+} from "@/components/ia/button";
+import { StatusBadge, StatusTone } from "@/components/ia/status-badge";
 import { AppointmentRow } from "@/components/student/ia/appointment-row";
 import {
-  AppointmentStatusPill,
-  iaButton,
-  iaCard,
-  iaText,
+  AppointmentStatusBadge,
   InitialsAvatar,
-  Pill,
   ReasonBox,
   SectionHeader,
 } from "@/components/student/ia/ui";
@@ -36,19 +39,27 @@ const OFFICE_HOURS_HREF = "/student/office-hours";
 const PEER_MENTORING_HREF = "/student/peer-mentoring";
 const APPOINTMENTS_HREF = "/student/appointments";
 
-export function StudentHomeView() {
-  const t = useTranslations("studentIa.home");
-  const tGreeting = useTranslations("common.greeting");
+/**
+ * Ana Sayfa (Figma 80:2). `main` and `aside` are extension points: another student edition (İŞKUR) adds its own
+ * blocks below the main column or the side column without changing this screen.
+ */
+export function StudentHomeView({
+  main,
+  aside,
+}: {
+  main?: ReactNode;
+  aside?: ReactNode;
+}) {
+  const t = useTranslations("iaStudent.home");
   const home = useStudentHome();
   const [asking, setAsking] = useState<PeerMentorCard | null>(null);
-  const greeting = tGreeting(home.greeting);
 
   return (
     <div className="flex flex-col gap-8">
-      <h1
-        className={`text-[28px] leading-10 font-bold tracking-[-0.48px] sm:text-[32px] ${iaText.primary}`}
-      >
-        {home.name ? t("greeting", { greeting, name: home.name }) : greeting}
+      <h1 className="type-h1 text-text-primary">
+        {home.name
+          ? t("greeting", { greeting: home.greeting, name: home.name })
+          : home.greeting}
       </h1>
       <QueryNotice isLoading={home.isLoading} error={home.error} />
       {home.ready ? (
@@ -67,7 +78,7 @@ export function StudentHomeView() {
                   action={{ href: APPOINTMENTS_HREF, label: t("seeAll") }}
                 />
                 {home.upcoming.length === 0 ? (
-                  <p className={`${iaCard} p-5 text-[13px] ${iaText.muted}`}>
+                  <p className="rounded-card border border-border-subtle p-5 type-body-sm text-text-muted">
                     {t("upcoming.empty")}
                   </p>
                 ) : (
@@ -109,10 +120,12 @@ export function StudentHomeView() {
                   </ul>
                 </section>
               ) : null}
+              {main}
             </div>
             <div className="flex flex-col gap-8">
               {home.advisor ? <AdvisorCard advisor={home.advisor} /> : null}
               <PendingRequests home={home} />
+              {aside}
             </div>
           </div>
         </>
@@ -128,8 +141,8 @@ export function StudentHomeView() {
 }
 
 function NextAppointment({ appointment }: { appointment: Appointment }) {
-  const t = useTranslations("studentIa.home.next");
-  const tKind = useTranslations("studentIa.common.kind");
+  const t = useTranslations("iaStudent.home.next");
+  const tKind = useTranslations("iaStudent.common.kind");
   const tTopic = useTranslations("peerTopics");
   const locale = useLocale();
   const { counterpart } = appointment;
@@ -145,16 +158,16 @@ function NextAppointment({ appointment }: { appointment: Appointment }) {
   return (
     <section
       aria-label={t("label")}
-      className="rounded-[28px] bg-[var(--color-brand-odtu-primary,#d0112b)] p-3 sm:px-5 sm:py-4"
+      className="rounded-featured bg-action-primary-bg p-3 sm:px-5 sm:py-4"
     >
-      <div className="flex flex-col gap-4 rounded-[20px] border border-white/50 bg-[rgba(28,32,38,0.2)] px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+      <div className="flex flex-col gap-4 rounded-[20px] border border-white/50 bg-background-inverse/20 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <div className="flex min-w-0 items-center gap-3.5">
           <InitialsAvatar name={counterpart.fullName} />
-          <div className="min-w-0 text-white">
-            <p className="truncate text-[13px] leading-5">
+          <div className="min-w-0 text-text-inverse">
+            <p className="truncate type-body-sm">
               {[who, counterpart.department].filter(Boolean).join(" · ")}
             </p>
-            <p className="text-[18px] leading-[26px] font-bold tracking-[-0.054px] break-words">
+            <p className="type-h4 break-words">
               {appointment.category
                 ? tTopic(appointment.category)
                 : appointment.topic}
@@ -162,13 +175,16 @@ function NextAppointment({ appointment }: { appointment: Appointment }) {
           </div>
         </div>
         <div className="flex flex-col gap-3 sm:items-end">
-          <p className="flex items-center gap-1.5 text-[13px] leading-5 text-white">
+          <p className="flex items-center gap-1.5 type-body-sm text-text-inverse">
             <AlarmClock aria-hidden className="size-4" strokeWidth={1.5} />
             {when}
           </p>
           <div className="flex flex-wrap items-center gap-2">
-            <AppointmentStatusPill status={appointment.status} />
-            <Link href={APPOINTMENTS_HREF} className={iaButton.small}>
+            <AppointmentStatusBadge status={appointment.status} />
+            <Link
+              href={APPOINTMENTS_HREF}
+              className={`${buttonClasses(ButtonVariant.Ghost, ButtonSize.Small)} border-0 text-text-accent`}
+            >
               {t("view")}
             </Link>
           </div>
@@ -178,27 +194,29 @@ function NextAppointment({ appointment }: { appointment: Appointment }) {
   );
 }
 
+const QUICK_IMAGE_DIR = "/ia/student";
+
 function QuickActions({ home }: { home: StudentHomeModel }) {
-  const t = useTranslations("studentIa.home.quick");
+  const t = useTranslations("iaStudent.home.quick");
   const cards = [
     {
       key: "officeHours",
       href: OFFICE_HOURS_HREF,
-      image: "/student/quick-office-hours.png",
+      image: `${QUICK_IMAGE_DIR}/quick-office-hours.png`,
       body: t("officeHours.body"),
       featured: true,
     },
     {
       key: "peerMentor",
       href: PEER_MENTORING_HREF,
-      image: "/student/quick-peer-mentor.png",
+      image: `${QUICK_IMAGE_DIR}/quick-peer-mentor.png`,
       body: t("peerMentor.body"),
       featured: false,
     },
     {
       key: "appointments",
       href: APPOINTMENTS_HREF,
-      image: "/student/quick-appointments.png",
+      image: `${QUICK_IMAGE_DIR}/quick-appointments.png`,
       body: t("appointments.body", {
         upcoming: home.confirmedCount,
         requests: home.requestCount,
@@ -208,7 +226,7 @@ function QuickActions({ home }: { home: StudentHomeModel }) {
     {
       key: "profile",
       href: home.profileHref,
-      image: "/student/quick-profile.png",
+      image: `${QUICK_IMAGE_DIR}/quick-profile.png`,
       body: t("profile.body"),
       featured: false,
     },
@@ -221,10 +239,10 @@ function QuickActions({ home }: { home: StudentHomeModel }) {
           <li key={card.key}>
             <Link
               href={card.href}
-              className={`flex h-[105px] items-center gap-3.5 overflow-hidden p-5 transition ${
+              className={`flex h-[105px] items-center gap-3.5 overflow-hidden rounded-[20px] p-5 transition hover:shadow-hover ${
                 card.featured
-                  ? "rounded-[20px] bg-[var(--color-brand-odtu-bg,#fdedef)] hover:bg-[#fbdde1]"
-                  : `${iaCard} rounded-[20px] hover:border-[var(--color-border-default,#dce1e6)]`
+                  ? "bg-card-featured-bg"
+                  : "border border-border-subtle bg-background-surface"
               }`}
             >
               <Image
@@ -235,14 +253,10 @@ function QuickActions({ home }: { home: StudentHomeModel }) {
                 className="h-16 w-20 shrink-0 object-contain"
               />
               <span className="flex min-w-0 flex-col gap-1">
-                <span
-                  className={`text-[16px] leading-[22px] font-bold tracking-[-0.032px] ${iaText.primary}`}
-                >
+                <span className="type-title-card text-text-primary">
                   {t(`${card.key}.title`)}
                 </span>
-                <span
-                  className={`truncate text-[12px] leading-4 ${iaText.muted}`}
-                >
+                <span className="truncate type-caption text-text-muted">
                   {card.body}
                 </span>
               </span>
@@ -261,36 +275,26 @@ function MentorCard({
   mentor: PeerMentorCard;
   onAsk: () => void;
 }) {
-  const t = useTranslations("studentIa.home.mentors");
+  const t = useTranslations("iaStudent.home.mentors");
   return (
-    <article
-      className={`${iaCard} flex w-full flex-col gap-4 p-6 shadow-[0_1px_1.5px_rgba(28,32,38,0.05),0_1px_1px_rgba(28,32,38,0.04)]`}
-    >
+    <article className="flex w-full flex-col gap-4 rounded-card border border-border-subtle bg-background-surface p-6 shadow-raised">
       <div className="flex items-center gap-3">
         <InitialsAvatar name={mentor.fullName} size="lg" />
         <div className="min-w-0">
-          <h3
-            className={`text-[18px] leading-[26px] font-bold ${iaText.primary}`}
-          >
-            {mentor.fullName}
-          </h3>
-          <p className={`text-[13px] leading-5 ${iaText.secondary}`}>
+          <h3 className="type-h4 text-text-primary">{mentor.fullName}</h3>
+          <p className="type-body-sm text-text-secondary">
             {[mentor.department, t("role")].filter(Boolean).join(" · ")}
           </p>
         </div>
       </div>
       <ReasonBox reasons={mentor.recommendationReasons} />
       <div className="mt-auto flex flex-wrap gap-3">
-        <Link href={PEER_MENTORING_HREF} className={iaButton.secondary}>
+        <Button variant={ButtonVariant.Ghost} href={PEER_MENTORING_HREF}>
           {t("profile")}
-        </Link>
-        <button
-          type="button"
-          className={`${iaButton.primary} flex-1`}
-          onClick={onAsk}
-        >
+        </Button>
+        <Button onClick={onAsk} className="flex-1">
           {t("request")}
-        </button>
+        </Button>
       </div>
     </article>
   );
@@ -301,48 +305,38 @@ function AdvisorCard({
 }: {
   advisor: NonNullable<StudentHomeModel["advisor"]>;
 }) {
-  const t = useTranslations("studentIa.home.advisor");
+  const t = useTranslations("iaStudent.home.advisor");
   const name = [advisor.academicTitle, advisor.fullName]
     .filter(Boolean)
     .join(" ");
   return (
     <section
       aria-labelledby="student-advisor"
-      className="flex flex-col gap-4 rounded-[28px] border border-[var(--color-card-featured-border,#f9c9cf)] p-6"
+      className="flex flex-col gap-4 rounded-featured border border-card-featured-border bg-background-surface p-6"
     >
-      <p
-        className={`flex items-center gap-2 text-[11px] leading-4 font-semibold tracking-[0.88px] uppercase ${iaText.accent}`}
-      >
+      <p className="flex items-center gap-2 type-overline text-text-accent">
         <GraduationCap aria-hidden className="size-5" strokeWidth={1.5} />
         {t("label")}
       </p>
       <div className="flex items-center gap-3">
         <InitialsAvatar name={advisor.fullName} size="lg" />
         <div className="min-w-0">
-          <h2
-            id="student-advisor"
-            className={`text-[18px] leading-[26px] font-bold ${iaText.primary}`}
-          >
+          <h2 id="student-advisor" className="type-h4 text-text-primary">
             {name}
           </h2>
-          <p className={`text-[13px] leading-5 ${iaText.secondary}`}>
-            {t("source")}
-          </p>
+          <p className="type-body-sm text-text-secondary">{t("source")}</p>
         </div>
       </div>
-      <Link
-        href={OFFICE_HOURS_HREF}
-        className={`${iaButton.primary} justify-start`}
-      >
+      <Button href={OFFICE_HOURS_HREF} fullWidth className="justify-start">
         <CalendarPlus aria-hidden className="size-5" strokeWidth={1.5} />
         {t("request")}
-      </Link>
+      </Button>
     </section>
   );
 }
 
 function PendingRequests({ home }: { home: StudentHomeModel }) {
-  const t = useTranslations("studentIa.home.requests");
+  const t = useTranslations("iaStudent.home.requests");
   return (
     <section
       aria-labelledby="student-requests"
@@ -361,15 +355,11 @@ function PendingRequests({ home }: { home: StudentHomeModel }) {
         }
       />
       {home.requestCount === 0 ? (
-        <p
-          className={`${iaCard} rounded-[20px] p-5 text-[13px] ${iaText.muted}`}
-        >
+        <p className="rounded-[20px] border border-border-subtle p-5 type-body-sm text-text-muted">
           {t("empty")}
         </p>
       ) : (
-        <ul
-          className={`${iaCard} divide-y divide-[var(--color-border-subtle,#e5e9ed)] rounded-[20px]`}
-        >
+        <ul className="divide-y divide-border-subtle rounded-[20px] border border-border-subtle bg-background-surface">
           {home.awaiting.map((appointment) => (
             <AwaitingAppointment
               key={appointment.id}
@@ -386,8 +376,8 @@ function PendingRequests({ home }: { home: StudentHomeModel }) {
 }
 
 function AwaitingAppointment({ appointment }: { appointment: Appointment }) {
-  const t = useTranslations("studentIa.home.requests");
-  const tKind = useTranslations("studentIa.common.kind");
+  const t = useTranslations("iaStudent.home.requests");
+  const tKind = useTranslations("iaStudent.common.kind");
   const locale = useLocale();
   const { counterpart } = appointment;
   const replyNeeded =
@@ -397,25 +387,26 @@ function AwaitingAppointment({ appointment }: { appointment: Appointment }) {
       <div className="flex items-start gap-3">
         <InitialsAvatar name={counterpart.fullName} size="sm" />
         <div className="min-w-0">
-          <p className={`text-[14px] leading-5 font-medium ${iaText.primary}`}>
+          <p className="type-label text-text-primary">
             {[counterpart.title, counterpart.fullName]
               .filter(Boolean)
               .join(" ")}
           </p>
-          <p className={`text-[12px] leading-4 ${iaText.muted}`}>
+          <p className="type-caption text-text-muted">
             {`${tKind(appointment.kind)} · ${formatDayMonth(new Date(appointment.startsAt), locale)}, ${timeLabel(appointment.startsAt, locale)}`}
           </p>
         </div>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-2 pl-11">
-        <AppointmentStatusPill status={appointment.status} />
+        <AppointmentStatusBadge status={appointment.status} />
         {replyNeeded ? (
-          <Link
+          <Button
             href={APPOINTMENTS_HREF}
-            className={`${iaButton.small} bg-[var(--color-background-selected,#fdedef)] shadow-none`}
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Small}
           >
             {t("reply")}
-          </Link>
+          </Button>
         ) : null}
       </div>
     </li>
@@ -423,21 +414,21 @@ function AwaitingAppointment({ appointment }: { appointment: Appointment }) {
 }
 
 function AwaitingPeerRequest({ request }: { request: PeerMentoringRequest }) {
-  const t = useTranslations("studentIa.home.requests");
-  const tKind = useTranslations("studentIa.common.kind");
+  const t = useTranslations("iaStudent.home.requests");
+  const tKind = useTranslations("iaStudent.common.kind");
   const tTopic = useTranslations("peerTopics");
   return (
     <li className="flex items-center gap-3 p-5">
       <InitialsAvatar name={request.mentor.fullName} size="sm" />
       <div className="min-w-0 flex-1">
-        <p className={`text-[14px] leading-5 font-medium ${iaText.primary}`}>
+        <p className="type-label text-text-primary">
           {request.mentor.fullName}
         </p>
-        <p className={`text-[12px] leading-4 ${iaText.muted}`}>
+        <p className="type-caption text-text-muted">
           {`${tKind(AppointmentKind.PeerMentoring)} · ${tTopic(request.category)}`}
         </p>
       </div>
-      <Pill tone="warning">{t("waiting")}</Pill>
+      <StatusBadge tone={StatusTone.Warning}>{t("waiting")}</StatusBadge>
     </li>
   );
 }

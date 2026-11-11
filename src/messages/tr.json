@@ -3388,6 +3388,25 @@
   },
   "odtuWorkspaces": {
     "student": {
+      "home": {
+        "title": "Ana Sayfa",
+        "subtitle": "Randevuların ve mentorluk alanların tek bakışta.",
+        "profileTitle": "Profilini tamamla",
+        "profileBody": "İlgilendiğin konuları seç; sana uygun akran mentorlarını ve Office Hours saatlerini öne çıkaralım.",
+        "profileAction": "Profili tamamla",
+        "upcomingTitle": "Yaklaşan randevular",
+        "seeAll": "Tümünü gör",
+        "upcomingEmpty": "Yaklaşan randevun yok.",
+        "entryLabel": "Çalışma alanı bölümleri",
+        "peerMentoring": {
+          "title": "Akran Mentörlüğü",
+          "body": "Bir akran mentordan destek al ya da rozetinle mentorluk ver."
+        },
+        "officeHours": {
+          "title": "Office Hours",
+          "body": "Akademisyenlerin görüşme saatlerinden randevu iste."
+        }
+      },
       "peerMentoring": {
         "title": "Akran Mentörlüğü",
         "subtitle": "ODTÜ'lü akran mentorlarından destek al.",
@@ -6763,65 +6782,5 @@
     "activeMentees": "Aktif girişim",
     "completedMentorships": "Tamamlanan mentorluk",
     "registered": "Kayıt tarihi"
-  },
-  "studentIa": {
-    "common": {
-      "whyRecommended": "Neden önerildi?",
-      "kind": {
-        "PEER_MENTORING": "Akran Mentörlüğü",
-        "OFFICE_HOURS": "Office Hours"
-      }
-    },
-    "home": {
-      "greeting": "{greeting}, {name}",
-      "seeAll": "Tümünü gör",
-      "next": {
-        "label": "Sıradaki randevu",
-        "view": "Randevuyu Gör"
-      },
-      "quick": {
-        "label": "Hızlı işlemler",
-        "officeHours": {
-          "title": "Randevu talep et",
-          "body": "Office Hours"
-        },
-        "peerMentor": {
-          "title": "Mentor bul",
-          "body": "Akran Mentörlüğü"
-        },
-        "appointments": {
-          "title": "Randevularım",
-          "body": "{upcoming} yaklaşan · {requests} talep"
-        },
-        "profile": {
-          "title": "Profilini güncelle",
-          "body": "İlgi alanların ve hedefin"
-        }
-      },
-      "upcoming": {
-        "title": "Yaklaşan randevularım",
-        "empty": "Yaklaşan randevun yok."
-      },
-      "mentors": {
-        "title": "Sana önerilen mentorlar",
-        "hint": "Seçtiğin konulara göre",
-        "all": "Akran Mentörlüğü",
-        "role": "Akran Mentoru",
-        "profile": "Profili Gör",
-        "request": "Mentorluk Talebi Gönder"
-      },
-      "advisor": {
-        "label": "Akademik danışmanın",
-        "source": "Kurumsal kayıttan",
-        "request": "Randevu Talep Et"
-      },
-      "requests": {
-        "title": "Bekleyen taleplerim",
-        "all": "Tümü ({count})",
-        "empty": "Yanıt bekleyen talebin yok.",
-        "reply": "Yanıtla",
-        "waiting": "Yanıt Bekliyor"
-      }
-    }
   }
 }

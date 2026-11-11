@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 
 import { useInstitutionRecord } from "@/hooks/use-institution-record";
 import {
@@ -24,6 +25,7 @@ const NO_FILTER = { category: null, query: "" } as const;
 
 /** Ana Sayfa: the next session, what waits on an answer, the advisor and two peer mentors to ask. */
 export function useStudentHome() {
+  const tCommon = useTranslations("common");
   const home = useQuery({
     queryKey: STUDENT_HOME_QUERY_KEY,
     queryFn: getStudentHome,
@@ -48,7 +50,7 @@ export function useStudentHome() {
     isLoading: home.isLoading,
     error: home.error,
     ready: home.data !== undefined,
-    greeting: dayPart(now),
+    greeting: tCommon(`greeting.${dayPart(now)}`),
     name: greetingName(record.data?.fullName),
     advisor: record.data?.advisor ?? null,
     profileHref: home.data?.profileCompleted
