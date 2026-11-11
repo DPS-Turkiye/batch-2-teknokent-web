@@ -64,7 +64,9 @@ function subscribeToPage(onChange: () => void) {
 
 /** The first shown element with this anchor: a hidden copy (the desktop menu on a phone) does not count. */
 function visibleAnchor(anchor: TourAnchor) {
-  const matches = document.querySelectorAll<HTMLElement>(anchorSelector(anchor));
+  const matches = document.querySelectorAll<HTMLElement>(
+    anchorSelector(anchor),
+  );
   return [...matches].find((element) => element.checkVisibility()) ?? null;
 }
 
