@@ -72,7 +72,12 @@
     "signUp": "Kayıt Ol",
     "invite": "Bir davet aldın mı? Davet kodunla devam et",
     "odtu": "ODTÜ Hesabıyla Giriş Yap",
-    "otg": "ODTÜ TEKNOKENT Girişimcilik ile giriş yap"
+    "otg": "ODTÜ TEKNOKENT Girişimcilik ile giriş yap",
+    "odtuIntro": "ODTÜ öğrencisi veya akademisyeniysen ODTÜ hesabınla giriş yap. Ayrı bir kayıt gerekmez.",
+    "or": "veya",
+    "staffQuestion": "Koordinatör, admin veya girişim programı hesabın mı var?",
+    "emailLogin": "E-posta ile giriş yap",
+    "help": "Giriş yapamıyor musun? Yardım al"
   },
   "otgLogin": {
     "signingIn": "ODTÜ TEKNOKENT Girişimcilik hesabınla giriş yapılıyor…",

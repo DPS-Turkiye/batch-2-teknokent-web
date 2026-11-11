@@ -72,7 +72,12 @@
     "signUp": "Sign up",
     "invite": "Got an invitation? Continue with your invite code",
     "odtu": "Sign in with your METU account",
-    "otg": "Sign in with ODTÜ TEKNOKENT Girişimcilik"
+    "otg": "Sign in with ODTÜ TEKNOKENT Girişimcilik",
+    "odtuIntro": "If you are a METU student or academic, sign in with your METU account. No separate sign-up is needed.",
+    "or": "or",
+    "staffQuestion": "Do you have a coordinator, admin or startup program account?",
+    "emailLogin": "Sign in with e-mail",
+    "help": "Cannot sign in? Get help"
   },
   "otgLogin": {
     "signingIn": "Signing you in with your ODTÜ TEKNOKENT Girişimcilik account…",
