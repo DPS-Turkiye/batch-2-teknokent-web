@@ -7,7 +7,9 @@ import {
   weekDays,
   weekRangeLabel,
 } from "@/lib/calendar";
+import { startOfDay } from "@/lib/mobile-calendar";
 import { isAwaitingAnswer } from "@/lib/student-home";
+import { splitFullName } from "@/lib/utils";
 import {
   AppointmentsTab,
   AppointmentsView,
@@ -43,25 +45,27 @@ export function appointmentsOnDay(appointments: Appointment[], day: Date) {
 
 /**
  * Where an appointment sits on the hour grid, in hours from the first row: `top` from the grid's start and
- * `height` its length (at least a quarter hour, so a short slot stays clickable). Clamped to the grid.
+ * `height` its length (at least half an hour, so a short slot stays clickable). A session outside the grid's
+ * hours is pinned to its first or last row instead of drawn off the grid; its chip still says the real time.
  */
 export function gridPlacement(
   appointment: Appointment,
   hours: readonly number[] = APPOINTMENT_GRID_HOURS,
 ) {
   const first = hours[0] ?? 0;
-  const last = (hours.at(-1) ?? first) + 1;
+  const span = hours.length;
   const start = new Date(appointment.startsAt);
   const end = new Date(appointment.endsAt);
-  const from = Math.min(
-    Math.max(start.getHours() + start.getMinutes() / 60, first),
-    last,
+  const minimum = 0.5;
+  const top = Math.min(
+    Math.max(start.getHours() + start.getMinutes() / 60 - first, 0),
+    span - minimum,
   );
-  const to = Math.min(
-    Math.max(end.getHours() + end.getMinutes() / 60, from),
-    last,
+  const bottom = Math.min(
+    Math.max(end.getHours() + end.getMinutes() / 60 - first, top + minimum),
+    span,
   );
-  return { top: from - first, height: Math.max(to - from, 0.25) };
+  return { top, height: bottom - top };
 }
 
 /** The days a calendar view shows around `anchor` (the list and month views show none on the time grid). */
@@ -126,16 +130,8 @@ export function calendarTitle(
   }
 }
 
-function startOfDay(date: Date) {
-  const copy = new Date(date);
-  copy.setHours(0, 0, 0, 0);
-  return copy;
-}
-
 /** "Elif Karaca" → "E. Karaca", as a calendar chip names the other side; one word stays as it is. */
 export function shortPersonName(fullName: string) {
-  const parts = fullName.trim().split(/\s+/).filter(Boolean);
-  const last = parts.at(-1) ?? "";
-  const first = parts[0];
-  return parts.length > 1 && first ? `${first.charAt(0)}. ${last}` : last;
+  const { firstName, lastName } = splitFullName(fullName);
+  return lastName ? `${firstName.charAt(0)}. ${lastName}` : firstName;
 }

@@ -50,7 +50,8 @@ export function useStudentHome() {
     isLoading: home.isLoading,
     error: home.error,
     ready: home.data !== undefined,
-    greeting: tCommon(`greeting.${dayPart()}`),
+    // Only once the data is in, so the server-rendered page never carries a greeting for the server's clock.
+    greeting: home.data ? tCommon(`greeting.${dayPart()}`) : null,
     name: greetingName(record.data?.fullName),
     advisor: record.data?.advisor ?? null,
     profileHref: home.data?.profileCompleted

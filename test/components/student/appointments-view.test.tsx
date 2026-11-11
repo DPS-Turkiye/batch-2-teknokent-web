@@ -155,6 +155,23 @@ describe("StudentAppointmentsView", () => {
     expect(within(await panel()).getAllByRole("article")).toHaveLength(1);
   });
 
+  it("moves between the tabs with the arrow keys", async () => {
+    renderWithQueryClient(<StudentAppointmentsView />);
+    const upcoming = await screen.findByRole("tab", { name: /Yaklaşan/ });
+    expect(upcoming).toHaveAttribute("tabindex", "0");
+    upcoming.focus();
+    await userEvent.keyboard("{ArrowRight}");
+    const requests = screen.getByRole("tab", { name: /Talepler/ });
+    expect(requests).toHaveAttribute("aria-selected", "true");
+    expect(requests).toHaveFocus();
+    await userEvent.keyboard("{End}");
+    expect(screen.getByRole("tab", { name: /Geçmiş/ })).toHaveFocus();
+    await userEvent.keyboard("{ArrowRight}");
+    expect(upcoming).toHaveFocus();
+    await userEvent.keyboard("{ArrowLeft}{Home}");
+    expect(upcoming).toHaveAttribute("aria-selected", "true");
+  });
+
   it("explains the statuses beside the list", async () => {
     renderWithQueryClient(<StudentAppointmentsView />);
     await panel();
