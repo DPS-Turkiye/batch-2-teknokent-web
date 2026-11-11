@@ -6767,7 +6767,8 @@
       "PHASES_REBUILT": "Phases were regrouped by the weeks' topics; check their names.",
       "PHASES_MERGED": "There were more than 12 phases; the last ones were merged.",
       "NO_PHASES": "No phases could be read. Add them with “Add phase” after saving."
-    }
+    },
+    "unnamedPhase": "Phase {n}"
   },
   "personSummary": {
     "back": "Back",

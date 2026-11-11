@@ -1,11 +1,10 @@
 "use client";
 
 import { FileText, RefreshCw } from "lucide-react";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { useRef } from "react";
 
 import type { useWeeklyProgramImport } from "@/hooks/use-weekly-program-import";
-import { formatLongDate } from "@/lib/utils";
 
 type Import = ReturnType<typeof useWeeklyProgramImport>;
 
@@ -15,30 +14,16 @@ const OUTLINE_BUTTON =
 /** The program's weekly program file: upload a PDF, or read the uploaded one again. */
 export function WeeklyProgramCard({
   weekly,
-  archived,
+  blocked,
 }: {
   weekly: Import;
-  archived: boolean;
+  /** Archived, or another editor on the page has unsaved changes. */
+  blocked: boolean;
 }) {
   const t = useTranslations("weeklyProgram");
-  const locale = useLocale();
   const input = useRef<HTMLInputElement>(null);
   const file = weekly.file;
-  const busy =
-    archived ||
-    weekly.reading ||
-    weekly.saving ||
-    weekly.reviewing ||
-    weekly.needsDates;
-  const hint = weekly.reading
-    ? t("reading")
-    : weekly.needsDates
-      ? t("needsDates")
-      : file
-        ? weekly.oldSyllabus
-          ? t("oldSyllabus")
-          : t("uploaded", { date: formatLongDate(file.uploadedAt, locale) })
-        : t("noFileHint");
+  const busy = blocked || weekly.busy;
   return (
     <div className="flex flex-wrap items-center gap-3 rounded-[20px] bg-[#f5f6f8] px-[14px] py-3">
       <span className="grid size-[38px] shrink-0 place-items-center rounded-xl bg-white">
@@ -52,7 +37,7 @@ export function WeeklyProgramCard({
           role={weekly.reading ? "status" : undefined}
           className="block text-[12px] text-[#858c96]"
         >
-          {hint}
+          {weekly.fileHint}
         </span>
       </span>
       <input

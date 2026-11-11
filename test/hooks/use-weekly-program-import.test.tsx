@@ -88,6 +88,54 @@ describe("useWeeklyProgramImport", () => {
     expect(result.current.keepPast).toBe(false);
   });
 
+  it("reads the just uploaded file again when the first read failed", async () => {
+    vi.mocked(uploadDocument).mockResolvedValue({
+      id: "doc-new",
+      kind: DocumentKind.WeeklyProgram,
+      originalFilename: "haftalik.pdf",
+      sizeBytes: 1,
+    });
+    vi.mocked(readWeeklyProgram)
+      .mockRejectedValueOnce(new Error("AI zaman aşımı"))
+      .mockResolvedValueOnce(weeklyProgramProposal());
+    const { result } = render();
+
+    act(() => result.current.chooseFile(new File(["x"], "haftalik.pdf")));
+    await waitFor(() => expect(result.current.reading).toBe(false));
+    expect(result.current.reviewing).toBe(false);
+    expect(result.current.canReread).toBe(true);
+
+    act(() => result.current.reread());
+
+    await waitFor(() => expect(result.current.reviewing).toBe(true));
+    expect(readWeeklyProgram).toHaveBeenLastCalledWith("program-1", "doc-new");
+  });
+
+  it("keeps both of two edits made in the same tick", async () => {
+    const detail = coordinatorProgramDetail({
+      syllabus: {
+        id: "doc-weekly",
+        filename: "haftalik.pdf",
+        sizeBytes: 1,
+        uploadedAt: "2026-06-01T09:00:00Z",
+        kind: DocumentKind.WeeklyProgram,
+      },
+    });
+    const { result } = render(detail);
+    act(() => result.current.reread());
+    await waitFor(() => expect(result.current.reviewing).toBe(true));
+
+    act(() => {
+      result.current.renamePhase(0, "Problem");
+      result.current.setPhaseOutput(1, "");
+      result.current.updateWeek(0, { title: "Başlangıç" });
+    });
+
+    expect(result.current.phases[0]?.name).toBe("Problem");
+    expect(result.current.phases[1]?.expectedOutput).toBeNull();
+    expect(result.current.weeks[0]?.title).toBe("Başlangıç");
+  });
+
   it("needs program dates before a file can be read", () => {
     const detail = coordinatorProgramDetail();
     const { result } = render({
@@ -176,7 +224,7 @@ describe("useWeeklyProgramImport", () => {
     expect(result.current.problem).toBe("Her haftaya bir başlık yaz.");
 
     act(() => result.current.updateWeek(0, { title: "Yola Çık" }));
-    act(() => result.current.updatePhase(1, { name: "" }));
+    act(() => result.current.renamePhase(1, ""));
     act(() => result.current.save());
     expect(result.current.problem).toBe("Her faza bir ad yaz.");
     expect(saveWeeklyProgram).not.toHaveBeenCalled();
