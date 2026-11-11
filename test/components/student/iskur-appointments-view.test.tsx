@@ -72,6 +72,22 @@ describe("IskurAppointmentsView", () => {
     expect(within(panel).queryByText("Zeynep Demir")).toBeNull();
   });
 
+  it.each([PeerMentorGateState.Earned, PeerMentorGateState.Hidden])(
+    "keeps the request-sent banner and its tour anchor (%s)",
+    async (state) => {
+      gate.state = state;
+      renderWithQueryClient(
+        <IskurAppointmentsView sentTo="Prof. Dr. Ahmet Kaya" />,
+      );
+      const banner = await screen.findByText("Randevu talebin gönderildi");
+      expect(banner).toBeVisible();
+      expect(banner.closest("[data-tour]")).toHaveAttribute(
+        "data-tour",
+        "appointment-request-sent",
+      );
+    },
+  );
+
   it("shows the plain list without a role filter to a student who only takes mentoring", async () => {
     gate.state = PeerMentorGateState.Hidden;
     renderWithQueryClient(<IskurAppointmentsView sentTo={null} />);
