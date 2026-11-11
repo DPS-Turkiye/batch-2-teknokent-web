@@ -5,7 +5,6 @@ import { POST as addCoordinatorRoute } from "@/app/api/admin/coordinators/route"
 import { POST as interventionRoute } from "@/app/api/admin/interventions/route";
 import { POST as passwordResetRoute } from "@/app/api/auth/password-reset/route";
 import { POST as registerRoute } from "@/app/api/auth/register/[role]/route";
-import { POST as reportRoute } from "@/app/api/botapi/report/route";
 import { POST as addBotRoute } from "@/app/api/botapi/route";
 import { POST as institutionCompleteRoute } from "@/app/api/institution-login/[provider]/complete/route";
 import { PUT as onboardingDraftRoute } from "@/app/api/onboarding/draft/route";
@@ -65,8 +64,6 @@ vi.mock("@/lib/session");
 
 const admin = appSession({ userId: "admin-1", role: UserRole.Admin });
 const withId = (id: string) => ({ params: Promise.resolve({ id }) });
-const meetingQuery =
-  "http://localhost/api/botapi/report?platform=google_meet&nativeMeetingId=abc-defg-hij";
 
 const cases: BodyCase[] = [
   {
@@ -179,19 +176,14 @@ const cases: BodyCase[] = [
   {
     route: "POST /api/botapi",
     send: (request) => addBotRoute(request),
+    token: "firebase-token",
     valid: { meetingUrl: " https://meet.google.com/abc-defg-hij " },
     backend: botapi.createMeetingBot,
-    expected: [{ meetingUrl: "https://meet.google.com/abc-defg-hij" }],
+    expected: [
+      { meetingUrl: "https://meet.google.com/abc-defg-hij" },
+      "firebase-token",
+    ],
     invalid: { "a link that is not a URL": { meetingUrl: "toplantı" } },
-  },
-  {
-    route: "POST /api/botapi/report",
-    url: meetingQuery,
-    send: (request) => reportRoute(request),
-    valid: { model: "fast" },
-    backend: botapi.generateMeetingReportBackend,
-    expected: ["google_meet", "abc-defg-hij", { model: "fast" }],
-    invalid: { "no transcript lines": { segments: [] } },
   },
   {
     route: "POST /api/programs",

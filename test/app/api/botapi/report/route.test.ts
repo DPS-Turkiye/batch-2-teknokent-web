@@ -13,6 +13,10 @@ vi.mock("@/lib/botapi", () => ({
   generateMeetingReportBackend: vi.fn(),
 }));
 
+const bearer = { authorization: "Bearer firebase-token" };
+const reportUrl =
+  "http://localhost/api/botapi/report?platform=google_meet&nativeMeetingId=abc-defg-hij";
+
 describe("assistant report API route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -21,6 +25,7 @@ describe("assistant report API route", () => {
   it("returns 400 when required query params are missing", async () => {
     const request = new NextRequest("http://localhost/api/botapi/report", {
       method: "POST",
+      headers: bearer,
       body: JSON.stringify({}),
     });
 
@@ -30,66 +35,54 @@ describe("assistant report API route", () => {
     expect(generateMeetingReportBackend).not.toHaveBeenCalled();
   });
 
-  it("returns 400 for invalid request body", async () => {
-    const request = new NextRequest(
-      "http://localhost/api/botapi/report?platform=google_meet&nativeMeetingId=abc-defg-hij",
-      {
-        method: "POST",
-        body: JSON.stringify({ model: "   " }),
-      },
-    );
+  it("answers 401 without the caller's own token", async () => {
+    const response = await POST(new NextRequest(reportUrl, { method: "POST" }));
 
-    const response = await POST(request);
-
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(401);
     expect(generateMeetingReportBackend).not.toHaveBeenCalled();
   });
 
-  it("forwards valid report requests", async () => {
+  it("forwards the caller's token and never a client-chosen model or transcript", async () => {
     vi.mocked(generateMeetingReportBackend).mockResolvedValue({
       data: { title: "Mentorluk Gorusmesi" },
       status: 200,
     });
 
-    const request = new NextRequest(
-      "http://localhost/api/botapi/report?platform=google_meet&nativeMeetingId=abc-defg-hij",
-      {
+    const response = await POST(
+      new NextRequest(reportUrl, {
         method: "POST",
-        body: JSON.stringify({ model: "gpt-5.4" }),
-      },
+        headers: bearer,
+        body: JSON.stringify({
+          model: "expensive/model",
+          segments: [{ id: "x", speaker: "A", text: "any text", at: "00:00" }],
+        }),
+      }),
     );
-
-    const response = await POST(request);
 
     expect(response.status).toBe(200);
     expect(generateMeetingReportBackend).toHaveBeenCalledWith(
       "google_meet",
       "abc-defg-hij",
-      { model: "gpt-5.4" },
+      "firebase-token",
     );
   });
 
-  it("defaults to empty body when JSON parsing fails", async () => {
+  it("answers a localized 403 for a meeting the caller is not part of", async () => {
     vi.mocked(generateMeetingReportBackend).mockResolvedValue({
-      data: { title: "Mentorluk Gorusmesi" },
-      status: 200,
+      data: {
+        message: "Only a participant of this meeting can use its assistant.",
+      },
+      status: 403,
     });
 
-    const request = new NextRequest(
-      "http://localhost/api/botapi/report?platform=google_meet&nativeMeetingId=abc-defg-hij",
-      {
-        method: "POST",
-      },
+    const response = await POST(
+      new NextRequest(reportUrl, { method: "POST", headers: bearer }),
     );
 
-    const response = await POST(request);
-
-    expect(response.status).toBe(200);
-    expect(generateMeetingReportBackend).toHaveBeenCalledWith(
-      "google_meet",
-      "abc-defg-hij",
-      {},
-    );
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toMatchObject({
+      code: "FORBIDDEN",
+    });
   });
 
   it("returns 502 when backend report call throws", async () => {
@@ -97,15 +90,9 @@ describe("assistant report API route", () => {
       new Error("boom"),
     );
 
-    const request = new NextRequest(
-      "http://localhost/api/botapi/report?platform=google_meet&nativeMeetingId=abc-defg-hij",
-      {
-        method: "POST",
-        body: JSON.stringify({}),
-      },
+    const response = await POST(
+      new NextRequest(reportUrl, { method: "POST", headers: bearer }),
     );
-
-    const response = await POST(request);
 
     expect(response.status).toBe(502);
     await expect(response.json()).resolves.toEqual({

@@ -5,6 +5,7 @@ import {
   generateMeetingReportBackend,
   stopMeetingBotBackend,
 } from "@/lib/botapi";
+import { HttpMethod } from "@/lib/http-method";
 import { backendRequest } from "@/lib/server/backend-client";
 import { fetchMeetingTranscript } from "@/lib/transcriptapi";
 
@@ -24,15 +25,19 @@ describe("assistant server lib", () => {
       status: 201,
     });
 
-    const result = await createMeetingBot({
-      meetingUrl: "https://meet.google.com/abc-defg-hij",
-    });
+    const result = await createMeetingBot(
+      { meetingUrl: "https://meet.google.com/abc-defg-hij" },
+      "firebase-token",
+    );
 
-    expect(backendRequest).toHaveBeenCalledWith({
-      method: "POST",
-      url: "/api/assistant/bots",
-      data: { meetingUrl: "https://meet.google.com/abc-defg-hij" },
-    });
+    expect(backendRequest).toHaveBeenCalledWith(
+      {
+        method: HttpMethod.Post,
+        url: "/api/assistant/bots",
+        data: { meetingUrl: "https://meet.google.com/abc-defg-hij" },
+      },
+      { idToken: "firebase-token" },
+    );
     expect(result).toEqual({ data: { id: "bot-1" }, status: 201 });
   });
 
@@ -43,16 +48,23 @@ describe("assistant server lib", () => {
       status: 204,
     });
 
-    const result = await stopMeetingBotBackend("google meet", "id/with/slash");
+    const result = await stopMeetingBotBackend(
+      "google meet",
+      "id/with/slash",
+      "firebase-token",
+    );
 
-    expect(backendRequest).toHaveBeenCalledWith({
-      method: "DELETE",
-      url: "/api/assistant/bots/google%20meet/id%2Fwith%2Fslash",
-    });
+    expect(backendRequest).toHaveBeenCalledWith(
+      {
+        method: HttpMethod.Delete,
+        url: "/api/assistant/bots/google%20meet/id%2Fwith%2Fslash",
+      },
+      { idToken: "firebase-token" },
+    );
     expect(result).toEqual({ data: null, status: 204 });
   });
 
-  it("generateMeetingReportBackend forwards body and returns backend status", async () => {
+  it("generateMeetingReportBackend sends no body, only the caller's token", async () => {
     vi.mocked(backendRequest).mockResolvedValue({
       data: { title: "Meeting" },
       headers: {},
@@ -62,15 +74,17 @@ describe("assistant server lib", () => {
     const result = await generateMeetingReportBackend(
       "google_meet",
       "abc-defg-hij",
-      { model: "gpt-5.4" },
+      "firebase-token",
     );
 
-    expect(backendRequest).toHaveBeenCalledWith({
-      method: "POST",
-      url: "/api/assistant/bots/google_meet/abc-defg-hij/report",
-      data: { model: "gpt-5.4" },
-      timeout: 120000,
-    });
+    expect(backendRequest).toHaveBeenCalledWith(
+      {
+        method: HttpMethod.Post,
+        url: "/api/assistant/bots/google_meet/abc-defg-hij/report",
+        timeout: 120000,
+      },
+      { idToken: "firebase-token" },
+    );
     expect(result).toEqual({ data: { title: "Meeting" }, status: 200 });
   });
 
@@ -81,12 +95,19 @@ describe("assistant server lib", () => {
       status: 200,
     });
 
-    const result = await fetchMeetingTranscript("google meet", "abc/def");
+    const result = await fetchMeetingTranscript(
+      "google meet",
+      "abc/def",
+      "firebase-token",
+    );
 
-    expect(backendRequest).toHaveBeenCalledWith({
-      method: "GET",
-      url: "/api/assistant/transcripts/google%20meet/abc%2Fdef",
-    });
+    expect(backendRequest).toHaveBeenCalledWith(
+      {
+        method: HttpMethod.Get,
+        url: "/api/assistant/transcripts/google%20meet/abc%2Fdef",
+      },
+      { idToken: "firebase-token" },
+    );
     expect(result).toEqual({ data: { segments: [] }, status: 200 });
   });
 });

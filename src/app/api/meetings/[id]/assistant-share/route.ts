@@ -12,6 +12,11 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import {
+  assistantMeetingRefusal,
+  assistantSignInRequired,
+} from "@/lib/server/assistant-caller";
+import { readBearerToken } from "@/lib/server/bearer-token";
 import { readJsonBody } from "@/lib/server/request-body";
 import { requireMentorSession } from "@/lib/server/require-program-access";
 import { SessionRequiredError } from "@/lib/server/session-error";
@@ -60,10 +65,16 @@ export async function POST(request: NextRequest, context: RouteContext) {
     if (!parsed.ok) return parsed.response;
     const body = parsed.data;
     if (body.kind === AssistantShareKind.ProviderTranscript) {
+      // The backend lets only that Meet code's participants read its transcript.
+      const idToken = readBearerToken(request);
+      if (!idToken) return await assistantSignInRequired();
       const transcript = await fetchMeetingTranscript(
         body.platform,
         body.nativeMeetingId,
+        idToken,
       );
+      const refusal = await assistantMeetingRefusal(transcript.status);
+      if (refusal) return refusal;
       if (transcript.status < 200 || transcript.status >= 300) {
         return NextResponse.json(transcript.data, {
           status: transcript.status,

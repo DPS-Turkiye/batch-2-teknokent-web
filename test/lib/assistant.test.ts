@@ -13,6 +13,7 @@ import {
   getStopBotApiUrl,
   getTranscriptApiUrl,
 } from "@/lib/const";
+import { currentIdToken } from "@/lib/firebase/auth";
 import { httpClient } from "@/lib/http-client";
 import { createAxiosResponse } from "@test/fixtures/health";
 
@@ -24,6 +25,10 @@ vi.mock("@/lib/http-client", () => ({
     delete: vi.fn(),
   },
 }));
+
+vi.mock("@/lib/firebase/auth", () => ({ currentIdToken: vi.fn() }));
+
+const signedIn = { headers: { Authorization: "Bearer firebase-token" } };
 
 function createAxiosError<T>(data: T, status: number) {
   return new AxiosError(
@@ -38,6 +43,7 @@ function createAxiosError<T>(data: T, status: number) {
 describe("assistant lib", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(currentIdToken).mockResolvedValue("firebase-token");
   });
 
   it("addMeetingBot posts meeting url and returns data", async () => {
@@ -54,9 +60,11 @@ describe("assistant lib", () => {
 
     const result = await addMeetingBot("https://meet.google.com/abc-defg-hij");
 
-    expect(httpClient.post).toHaveBeenCalledWith(getBotApiUrl(), {
-      meetingUrl: "https://meet.google.com/abc-defg-hij",
-    });
+    expect(httpClient.post).toHaveBeenCalledWith(
+      getBotApiUrl(),
+      { meetingUrl: "https://meet.google.com/abc-defg-hij" },
+      signedIn,
+    );
     expect(result).toEqual(payload);
   });
 
@@ -95,6 +103,7 @@ describe("assistant lib", () => {
 
     expect(httpClient.get).toHaveBeenCalledWith(
       getTranscriptApiUrl("google_meet", "abc-defg-hij"),
+      signedIn,
     );
     expect(result).toEqual(segments);
   });
@@ -118,6 +127,7 @@ describe("assistant lib", () => {
 
     expect(httpClient.delete).toHaveBeenCalledWith(
       getStopBotApiUrl("google_meet", "abc-defg-hij"),
+      signedIn,
     );
   });
 
@@ -129,7 +139,7 @@ describe("assistant lib", () => {
     );
   });
 
-  it("generateMeetingReport posts empty payload and returns report", async () => {
+  it("generateMeetingReport posts no transcript or model and returns the report", async () => {
     const report = {
       title: "Mentorluk Gorusmesi",
       meetingDate: "2026-08-27",
@@ -146,16 +156,12 @@ describe("assistant lib", () => {
       createAxiosResponse(report, 200),
     );
 
-    const result = await generateMeetingReport("google_meet", "abc-defg-hij", [
-      { id: "s1", speaker: "Ayşe", text: "Merhaba", at: "00:10" },
-    ]);
+    const result = await generateMeetingReport("google_meet", "abc-defg-hij");
 
     expect(httpClient.post).toHaveBeenCalledWith(
       getMeetingReportApiUrl("google_meet", "abc-defg-hij"),
-      {
-        segments: [{ id: "s1", speaker: "Ayşe", text: "Merhaba", at: "00:10" }],
-      },
-      { timeout: 120_000 },
+      undefined,
+      { timeout: 120_000, ...signedIn },
     );
     expect(result).toEqual(report);
   });
@@ -169,34 +175,8 @@ describe("assistant lib", () => {
     );
 
     await expect(
-      generateMeetingReport("google_meet", "abc-defg-hij", [
-        { id: "s1", speaker: "Ayşe", text: "Merhaba", at: "00:10" },
-      ]),
+      generateMeetingReport("google_meet", "abc-defg-hij"),
     ).rejects.toThrow(/CloudFront tarafından engellendi/);
-  });
-
-  it("generateMeetingReport omits oversized segments so CloudFront does not block the POST", async () => {
-    const report = {
-      title: "Mentorluk Gorusmesi",
-      summary: "Toplanti verimli gecti.",
-    };
-    vi.mocked(httpClient.post).mockResolvedValue(
-      createAxiosResponse(report, 200),
-    );
-    const segments = Array.from({ length: 80 }, (_, index) => ({
-      id: `s${index}`,
-      speaker: "Sudenaz",
-      text: "x".repeat(80),
-      at: "00:10",
-    }));
-
-    await generateMeetingReport("google_meet", "abc-defg-hij", segments);
-
-    expect(httpClient.post).toHaveBeenCalledWith(
-      getMeetingReportApiUrl("google_meet", "abc-defg-hij"),
-      {},
-      { timeout: 120_000 },
-    );
   });
 
   it("generateMeetingReport prefers provider detail message", async () => {
@@ -205,9 +185,7 @@ describe("assistant lib", () => {
     );
 
     await expect(
-      generateMeetingReport("google_meet", "abc-defg-hij", [
-        { id: "s1", speaker: "Ayşe", text: "Merhaba", at: "00:10" },
-      ]),
+      generateMeetingReport("google_meet", "abc-defg-hij"),
     ).rejects.toThrow("Toplantı raporu oluşturulamadı.");
   });
 
@@ -215,9 +193,20 @@ describe("assistant lib", () => {
     vi.mocked(httpClient.post).mockRejectedValue(createAxiosError({}, 502));
 
     await expect(
-      generateMeetingReport("google_meet", "abc-defg-hij", [
-        { id: "s1", speaker: "Ayşe", text: "Merhaba", at: "00:10" },
-      ]),
+      generateMeetingReport("google_meet", "abc-defg-hij"),
     ).rejects.toThrow("Toplantı raporu oluşturulamadı. (502)");
+  });
+
+  it("asks to sign in again and sends nothing without a Firebase session", async () => {
+    vi.mocked(currentIdToken).mockResolvedValue(null);
+
+    await expect(
+      fetchTranscript("google_meet", "abc-defg-hij"),
+    ).rejects.toThrow("Oturumunuz sona erdi. Lütfen tekrar giriş yapın.");
+    await expect(
+      generateMeetingReport("google_meet", "abc-defg-hij"),
+    ).rejects.toThrow("Oturumunuz sona erdi. Lütfen tekrar giriş yapın.");
+    expect(httpClient.get).not.toHaveBeenCalled();
+    expect(httpClient.post).not.toHaveBeenCalled();
   });
 });

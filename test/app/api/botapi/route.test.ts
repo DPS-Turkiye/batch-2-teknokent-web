@@ -14,6 +14,8 @@ vi.mock("@/lib/botapi", () => ({
   stopMeetingBotBackend: vi.fn(),
 }));
 
+const bearer = { authorization: "Bearer firebase-token" };
+
 describe("assistant bot API route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -22,6 +24,7 @@ describe("assistant bot API route", () => {
   it("returns 400 when meetingUrl is invalid", async () => {
     const request = new NextRequest("http://localhost/api/botapi", {
       method: "POST",
+      headers: bearer,
       body: JSON.stringify({ meetingUrl: "not-a-url" }),
     });
 
@@ -39,6 +42,7 @@ describe("assistant bot API route", () => {
 
     const request = new NextRequest("http://localhost/api/botapi", {
       method: "POST",
+      headers: bearer,
       body: JSON.stringify({
         meetingUrl: "https://meet.google.com/abc-defg-hij",
       }),
@@ -47,9 +51,10 @@ describe("assistant bot API route", () => {
     const response = await POST(request);
 
     expect(response.status).toBe(201);
-    expect(createMeetingBot).toHaveBeenCalledWith({
-      meetingUrl: "https://meet.google.com/abc-defg-hij",
-    });
+    expect(createMeetingBot).toHaveBeenCalledWith(
+      { meetingUrl: "https://meet.google.com/abc-defg-hij" },
+      "firebase-token",
+    );
   });
 
   it("answers a localized 409 when every recording slot is taken", async () => {
@@ -61,6 +66,7 @@ describe("assistant bot API route", () => {
     const response = await POST(
       new NextRequest("http://localhost/api/botapi", {
         method: "POST",
+        headers: bearer,
         body: JSON.stringify({
           meetingUrl: "https://meet.google.com/abc-defg-hij",
         }),
@@ -83,6 +89,7 @@ describe("assistant bot API route", () => {
     const response = await POST(
       new NextRequest("http://localhost/api/botapi", {
         method: "POST",
+        headers: bearer,
         body: JSON.stringify({
           meetingUrl: "https://meet.google.com/abc-defg-hij",
         }),
@@ -98,7 +105,7 @@ describe("assistant bot API route", () => {
   it("returns 400 when delete query is incomplete", async () => {
     const request = new NextRequest(
       "http://localhost/api/botapi?platform=google_meet",
-      { method: "DELETE" },
+      { method: "DELETE", headers: bearer },
     );
 
     const response = await DELETE(request);
@@ -115,7 +122,7 @@ describe("assistant bot API route", () => {
 
     const request = new NextRequest(
       "http://localhost/api/botapi?platform=google_meet&nativeMeetingId=abc-defg-hij",
-      { method: "DELETE" },
+      { method: "DELETE", headers: bearer },
     );
 
     const response = await DELETE(request);
@@ -124,6 +131,7 @@ describe("assistant bot API route", () => {
     expect(stopMeetingBotBackend).toHaveBeenCalledWith(
       "google_meet",
       "abc-defg-hij",
+      "firebase-token",
     );
   });
 
@@ -132,7 +140,7 @@ describe("assistant bot API route", () => {
 
     const request = new NextRequest(
       "http://localhost/api/botapi?platform=google_meet&nativeMeetingId=abc-defg-hij",
-      { method: "DELETE" },
+      { method: "DELETE", headers: bearer },
     );
 
     const response = await DELETE(request);
@@ -141,6 +149,73 @@ describe("assistant bot API route", () => {
     await expect(response.json()).resolves.toEqual({
       code: "BACKEND_UNAVAILABLE",
       message: "Toplantı asistanı hizmetine ulaşılamıyor.",
+    });
+  });
+
+  it("answers 401 to send or stop a bot without the caller's own token", async () => {
+    const send = await POST(
+      new NextRequest("http://localhost/api/botapi", {
+        method: "POST",
+        body: JSON.stringify({
+          meetingUrl: "https://meet.google.com/abc-defg-hij",
+        }),
+      }),
+    );
+    const stop = await DELETE(
+      new NextRequest(
+        "http://localhost/api/botapi?platform=google_meet&nativeMeetingId=abc-defg-hij",
+        { method: "DELETE" },
+      ),
+    );
+
+    expect(send.status).toBe(401);
+    expect(stop.status).toBe(401);
+    expect(createMeetingBot).not.toHaveBeenCalled();
+    expect(stopMeetingBotBackend).not.toHaveBeenCalled();
+  });
+
+  it("answers a localized 404 to send a bot to a link with no meeting", async () => {
+    vi.mocked(createMeetingBot).mockResolvedValue({
+      data: { message: "Meeting not found." },
+      status: 404,
+    });
+
+    const response = await POST(
+      new NextRequest("http://localhost/api/botapi", {
+        method: "POST",
+        headers: bearer,
+        body: JSON.stringify({
+          meetingUrl: "https://meet.google.com/zzz-zzzz-zzz",
+        }),
+      }),
+    );
+
+    expect(response.status).toBe(404);
+    await expect(response.json()).resolves.toEqual({
+      code: "NOT_FOUND",
+      message:
+        "Bu bağlantıya ait bir görüşme bulunamadı. Asistan yalnızca takvimdeki görüşmeler için kullanılabilir.",
+    });
+  });
+
+  it("answers a localized 403 to stop the bot of a meeting the caller is not part of", async () => {
+    vi.mocked(stopMeetingBotBackend).mockResolvedValue({
+      data: {
+        message: "Only a participant of this meeting can use its assistant.",
+      },
+      status: 403,
+    });
+
+    const response = await DELETE(
+      new NextRequest(
+        "http://localhost/api/botapi?platform=google_meet&nativeMeetingId=abc-defg-hij",
+        { method: "DELETE", headers: bearer },
+      ),
+    );
+
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toMatchObject({
+      code: "FORBIDDEN",
     });
   });
 });

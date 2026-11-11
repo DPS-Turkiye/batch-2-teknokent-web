@@ -365,7 +365,6 @@ describe("useMeetingAssistant", () => {
       act(() => result.current.updateTranscriptLine("a", { text: "Düzelt" }));
       act(() => result.current.removeTranscriptLine("b"));
 
-      expect(result.current.transcriptDirty).toBe(true);
       expect(result.current.visibleTranscript.map(({ text }) => text)).toEqual([
         "Düzelt",
       ]);
@@ -383,7 +382,6 @@ describe("useMeetingAssistant", () => {
       act(() => result.current.removeTranscriptLine("a"));
 
       expect(result.current.canEditTranscript).toBe(false);
-      expect(result.current.transcriptDirty).toBe(false);
       expect(result.current.visibleTranscript.map(({ text }) => text)).toEqual([
         "Canlı",
       ]);
@@ -406,9 +404,8 @@ describe("useMeetingAssistant", () => {
 
       await flush(4_000);
 
-      expect(generateMeetingReport).toHaveBeenCalledWith("google_meet", CODE, [
-        { id: "a", speaker: "Ayşe", text: "Merhaba", at: "00:10" },
-      ]);
+      // The backend reads the meeting's own transcript, so no lines are sent.
+      expect(generateMeetingReport).toHaveBeenCalledWith("google_meet", CODE);
       expect(result.current.meetingReport?.summary).toBe("Özet");
       expect(result.current.reportStatus).toBe(BotStatus.Ok);
     });
@@ -504,14 +501,18 @@ describe("useMeetingAssistant", () => {
       expect(result.current.shareError).toBe("S3 kapalı.");
     });
 
-    it("holds the report back while the transcript has unsent edits", async () => {
+    it("still sends the report after transcript edits, which never feed it", async () => {
+      vi.mocked(publishReportShare).mockResolvedValue(share());
       const { result } = renderAssistant("cal-1");
       await flush();
       act(() => result.current.updateTranscriptLine("a", { text: "Düzelt" }));
 
       await act(() => result.current.sendReport());
 
-      expect(publishReportShare).not.toHaveBeenCalled();
+      expect(publishReportShare).toHaveBeenCalledWith(
+        "cal-1",
+        expect.objectContaining({ summary: "Özet" }),
+      );
     });
   });
 
