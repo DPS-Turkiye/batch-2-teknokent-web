@@ -1,9 +1,12 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
+import { useProfilePhoto } from "@/hooks/use-profile-photo";
 import { STUDENT_HOME_QUERY_KEY } from "@/hooks/use-student-home";
+import { useStudentInstitution } from "@/hooks/use-student-profile";
 import type { PeerTopicCategory } from "@/interfaces/peer-mentoring";
 import {
   ProfileCompletionStep,
@@ -15,10 +18,17 @@ import {
   saveStudentProfileCompletion,
 } from "@/lib/client/student-profile-completion";
 import {
+  completionStepState,
+  completionSummary,
+  PROFILE_COMPLETION_STEPS,
+  welcomeFacts,
+} from "@/lib/profile-completion";
+import {
   chosenCategories,
   toggleInterestSubtopic,
   toggleInterestTopic,
 } from "@/lib/student-interests";
+import { initials, splitFullName } from "@/lib/utils";
 
 export const PROFILE_COMPLETION_QUERY_KEY = [
   "student-profile-completion",
@@ -41,7 +51,11 @@ export function useStudentProfileCompletion() {
     queryKey: PROFILE_COMPLETION_CATEGORIES_QUERY_KEY,
     queryFn: getProfileCompletionCategories,
   });
-  const [step, setStep] = useState(ProfileCompletionStep.Topics);
+  const t = useTranslations("studentProfileCompletion.welcome");
+  const tLevel = useTranslations("studyLevel");
+  const institution = useStudentInstitution();
+  const photo = useProfilePhoto();
+  const [step, setStep] = useState(ProfileCompletionStep.Welcome);
   const [edits, setEdits] = useState<StudentProfileCompletion | null>(null);
   const draft = edits ?? profile.data;
   const save = useMutation({
@@ -74,14 +88,49 @@ export function useStudentProfileCompletion() {
         skipped,
       });
   };
+  const record = institution.record;
+  const fullName = record?.fullName ?? "";
+  const next = () =>
+    setStep((current) => Math.min(ProfileCompletionStep.Goal, current + 1));
   return {
     step,
+    steps: PROFILE_COMPLETION_STEPS.map((item) => ({
+      step: item,
+      state: completionStepState(item, step),
+    })),
     draft,
     categories: categories.data ?? [],
     subtopicGroups: chosenCategories(
       categories.data ?? [],
       draft?.topics ?? [],
     ),
+    summary: completionSummary(categories.data ?? [], {
+      topics: draft?.topics ?? [],
+      subtopics: draft?.subtopics ?? [],
+    }),
+    /** "ODTÜ'den gelen bilgiler": read-only, and missing for an account no institution vouches for. */
+    welcome: {
+      firstName: splitFullName(fullName).firstName || null,
+      facts: record
+        ? welcomeFacts(record, (year, level) => {
+            if (year && level)
+              return t("classAndLevel", { year, level: tLevel(level) });
+            if (year) return t("classOnly", { year });
+            return level ? tLevel(level) : null;
+          })
+        : null,
+      isLoading: institution.isLoading,
+      missing: institution.missing,
+      error: institution.error,
+      isFetching: institution.isFetching,
+      retry: institution.retry,
+    },
+    photo: {
+      url: photo.photoUrl,
+      initials: initials(fullName),
+      isUploading: photo.isUploading,
+      upload: photo.upload,
+    },
     isLoading: profile.isLoading || categories.isLoading,
     loadError: profile.error ?? categories.error,
     retry: () => {
@@ -92,14 +141,19 @@ export function useStudentProfileCompletion() {
     isSaving: save.isPending,
     saveError: save.error,
     finished: save.isSuccess,
+    isLastStep: step === ProfileCompletionStep.Goal,
     toggleTopic,
     toggleSubtopic,
     setGoal: (goal: string) => change((current) => ({ ...current, goal })),
-    next: () =>
-      setStep((current) => Math.min(ProfileCompletionStep.Goal, current + 1)),
     back: () =>
-      setStep((current) => Math.max(ProfileCompletionStep.Topics, current - 1)),
-    finish: () => finish(),
+      setStep((current) =>
+        Math.max(ProfileCompletionStep.Welcome, current - 1),
+      ),
+    /** The footer's main button: the next step, or saving on the last one. */
+    advance: () => {
+      if (step === ProfileCompletionStep.Goal) finish();
+      else next();
+    },
     skip: () => finish(true),
   };
 }

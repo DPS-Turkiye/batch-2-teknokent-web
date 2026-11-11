@@ -5430,7 +5430,15 @@
       "noLink": "This meeting has no link yet",
       "previousMonth": "Previous month",
       "nextMonth": "Next month",
-      "monthWeekdays": ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"],
+      "monthWeekdays": [
+        "Mo",
+        "Tu",
+        "We",
+        "Th",
+        "Fr",
+        "Sa",
+        "Su"
+      ],
       "legendMeeting": "Meeting",
       "legendEvent": "Event",
       "backToToday": "Back to today"
@@ -6325,12 +6333,6 @@
     "saved": "Your profile is complete.",
     "skipped": "Skipped for now. You can complete your profile later.",
     "home": "Back to home",
-    "step": "Step {number} / 3",
-    "steps": {
-      "0": "Your interests",
-      "1": "Subtopics",
-      "2": "Your goal (optional)"
-    },
     "noTopics": "No interests selected. Go back or continue without a selection.",
     "goal": "Your goal (optional, up to 1000 characters)",
     "saveError": "Your profile couldn't be saved. Please try again.",
@@ -6349,7 +6351,74 @@
       "time": "Example: Time management",
       "exchange": "Example: Exchange programmes"
     },
-    "noActiveCategories": "Your program has no active category yet. You can choose here once your coordinator turns them on."
+    "noActiveCategories": "Your program has no active category yet. You can choose here once your coordinator turns them on.",
+    "progress": "Complete your profile · {current}/{total}",
+    "duration": "Takes about a minute. You can change it any time in Profilim.",
+    "stepDone": "Done",
+    "stepNames": {
+      "0": {
+        "title": "Welcome",
+        "hint": "Your ODTÜ details"
+      },
+      "1": {
+        "title": "Support topics",
+        "hint": "For suggestions"
+      },
+      "2": {
+        "title": "Your goal",
+        "hint": "Optional"
+      }
+    },
+    "welcome": {
+      "title": "Welcome",
+      "titleNamed": "Welcome, {name}",
+      "subtitle": "Your details from ODTÜ are below. You don't need to enter them again.",
+      "recordTitle": "Details from ODTÜ",
+      "readOnly": "Read-only",
+      "facts": {
+        "fullName": "Full name",
+        "email": "University e-mail",
+        "department": "Department",
+        "classYear": "Year",
+        "advisor": "Academic advisor"
+      },
+      "classAndLevel": "Year {year} · {level}",
+      "classOnly": "Year {year}",
+      "unknown": "—",
+      "correction": "If a detail is wrong, it is corrected through ODTÜ Student Affairs and shows up in menton automatically.",
+      "loading": "Loading your ODTÜ details…",
+      "loadError": "Your ODTÜ details could not be loaded.",
+      "retry": "Try again",
+      "missing": "We couldn't find an ODTÜ record linked to your account. You can skip this step and continue."
+    },
+    "photo": {
+      "title": "Profile photo",
+      "optional": "Optional",
+      "upload": "Upload photo",
+      "replace": "Change photo",
+      "uploading": "Uploading…",
+      "current": "Your profile photo",
+      "hint": "JPG, PNG or WebP · up to 5 MB",
+      "privacy": "Your photo appears on your profile. Without one, your initials are shown."
+    },
+    "topicsStep": {
+      "title": "Which topics would you like support with?",
+      "subtitle": "Your choices let us suggest peer mentors who fit you. You can pick more than one.",
+      "subtopicsTitle": "Subtopics",
+      "optional": "optional",
+      "pickFirst": "Pick a topic to see its subtopics here."
+    },
+    "goalStep": {
+      "title": "Would you like to share your goal?",
+      "subtitle": "It helps your mentors get to know you. This step is optional.",
+      "label": "Your goal or expectation",
+      "placeholder": "For example: I want to find a summer internship and prepare for interviews.",
+      "limit": "Up to {max} characters",
+      "count": "{count} / {max}",
+      "summaryTitle": "Your choices",
+      "summaryEmpty": "You haven't picked a topic yet.",
+      "summaryNote": "Once your profile is complete, you'll see suggested mentors on the home page."
+    }
   },
   "officeHours": {
     "title": "Office hours",

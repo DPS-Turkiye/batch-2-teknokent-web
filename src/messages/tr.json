@@ -5430,7 +5430,15 @@
       "noLink": "Bu görüşmenin henüz bağlantısı yok",
       "previousMonth": "Önceki ay",
       "nextMonth": "Sonraki ay",
-      "monthWeekdays": ["Pt", "Sa", "Ça", "Pe", "Cu", "Ct", "Pz"],
+      "monthWeekdays": [
+        "Pt",
+        "Sa",
+        "Ça",
+        "Pe",
+        "Cu",
+        "Ct",
+        "Pz"
+      ],
       "legendMeeting": "Görüşme",
       "legendEvent": "Etkinlik",
       "backToToday": "Bugüne dön"
@@ -6325,20 +6333,14 @@
     "saved": "Profilin tamamlandı.",
     "skipped": "Şimdilik atladın. İstersen daha sonra profilini tamamlayabilirsin.",
     "home": "Ana sayfaya dön",
-    "step": "Adım {number} / 3",
-    "steps": {
-      "0": "İlgi alanların",
-      "1": "Alt konular",
-      "2": "Hedefin (isteğe bağlı)"
-    },
     "noTopics": "Henüz alan seçmedin. Geri dönebilir ya da seçim yapmadan devam edebilirsin.",
     "goal": "Hedefin (isteğe bağlı, en fazla 1000 karakter)",
     "saveError": "Profilin kaydedilemedi. Tekrar deneyebilirsin.",
     "back": "Geri",
-    "next": "Devam et",
-    "finish": "Profili tamamla",
+    "next": "Devam Et",
+    "finish": "Profili Tamamla",
     "saving": "Kaydediliyor…",
-    "skip": "Şimdilik atla",
+    "skip": "Şimdilik Atla",
     "subtopics": {
       "study": "Örnek: Ders çalışma",
       "cv": "Örnek: CV hazırlama",
@@ -6349,7 +6351,74 @@
       "time": "Örnek: Zaman yönetimi",
       "exchange": "Örnek: Değişim programları"
     },
-    "noActiveCategories": "Programında henüz etkin kategori yok. Koordinatörün kategorileri açtığında burada seçebilirsin."
+    "noActiveCategories": "Programında henüz etkin kategori yok. Koordinatörün kategorileri açtığında burada seçebilirsin.",
+    "progress": "Profilini tamamla · {current}/{total}",
+    "duration": "Yaklaşık 1 dakika sürer. İstediğin zaman Profilim'den güncelleyebilirsin.",
+    "stepDone": "Tamamlandı",
+    "stepNames": {
+      "0": {
+        "title": "Hoş geldin",
+        "hint": "ODTÜ bilgilerin"
+      },
+      "1": {
+        "title": "Destek konuların",
+        "hint": "Öneriler için"
+      },
+      "2": {
+        "title": "Hedefin",
+        "hint": "Opsiyonel"
+      }
+    },
+    "welcome": {
+      "title": "Hoş geldin",
+      "titleNamed": "Hoş geldin, {name}",
+      "subtitle": "ODTÜ'den gelen bilgilerin aşağıda. Bunları tekrar girmene gerek yok.",
+      "recordTitle": "ODTÜ'den gelen bilgiler",
+      "readOnly": "Düzenlenemez",
+      "facts": {
+        "fullName": "Ad Soyad",
+        "email": "Kurumsal e-posta",
+        "department": "Bölüm",
+        "classYear": "Sınıf",
+        "advisor": "Akademik danışman"
+      },
+      "classAndLevel": "{year}. sınıf · {level}",
+      "classOnly": "{year}. sınıf",
+      "unknown": "—",
+      "correction": "Bir bilgi hatalıysa ODTÜ Öğrenci İşleri üzerinden güncellenir; menton'a otomatik yansır.",
+      "loading": "ODTÜ bilgilerin yükleniyor…",
+      "loadError": "ODTÜ bilgilerin yüklenemedi.",
+      "retry": "Tekrar dene",
+      "missing": "Hesabına bağlı bir ODTÜ kaydı bulamadık. Bu adımı geçip devam edebilirsin."
+    },
+    "photo": {
+      "title": "Profil fotoğrafı",
+      "optional": "Opsiyonel",
+      "upload": "Fotoğraf Yükle",
+      "replace": "Fotoğrafı değiştir",
+      "uploading": "Yükleniyor…",
+      "current": "Profil fotoğrafın",
+      "hint": "JPG, PNG veya WebP · en fazla 5 MB",
+      "privacy": "Fotoğrafın profilinde görünür. Yüklemezsen baş harflerin görünür."
+    },
+    "topicsStep": {
+      "title": "Hangi konularda destek almak istersin?",
+      "subtitle": "Seçimlerin sana uygun akran mentorlarını önermemizi sağlar. Birden fazla seçebilirsin.",
+      "subtopicsTitle": "Alt konular",
+      "optional": "opsiyonel",
+      "pickFirst": "Bir konu seçtiğinde alt konuları burada görürsün."
+    },
+    "goalStep": {
+      "title": "Kısaca hedefini paylaşmak ister misin?",
+      "subtitle": "Mentorların seni daha iyi tanımasına yardımcı olur. Bu adım opsiyonel.",
+      "label": "Hedefin veya beklentin",
+      "placeholder": "Örneğin: Yaz dönemi için staj bulmak ve mülakatlara hazırlanmak istiyorum.",
+      "limit": "En fazla {max} karakter",
+      "count": "{count} / {max}",
+      "summaryTitle": "Seçimlerin",
+      "summaryEmpty": "Henüz bir konu seçmedin.",
+      "summaryNote": "Profilini tamamladığında Ana Sayfa'da sana önerilen mentorları göreceksin."
+    }
   },
   "officeHours": {
     "title": "Ofis saatleri",
