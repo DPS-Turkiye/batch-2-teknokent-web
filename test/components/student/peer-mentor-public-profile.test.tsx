@@ -70,7 +70,7 @@ describe("PeerMentorPublicProfile", () => {
 
     await user.click(
       screen.getByRole("button", {
-        name: "Deniz Kaya için mentorluk talebi gönder",
+        name: "Mentorluk Talebi Gönder, Deniz Kaya",
       }),
     );
     expect(

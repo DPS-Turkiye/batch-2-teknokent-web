@@ -9,6 +9,7 @@ import {
   InitialsAvatar,
   RequestStatusBadge,
 } from "@/components/student/iskur-ui";
+import { NameSuffix } from "@/components/student/peer-mentor-directory";
 import { PeerSessionBookingDialog } from "@/components/student/peer-session-booking-dialog";
 import { useMyPeerMentorships } from "@/hooks/use-peer-mentoring";
 import type { PeerMentoringRequest } from "@/interfaces/peer-mentoring";
@@ -193,6 +194,7 @@ function ActiveMentorship({
           variant={ButtonVariant.Ghost}
         >
           {t("seeProfile")}
+          <NameSuffix name={request.mentor.fullName} />
         </Button>
         {session ? (
           <Button href={APPOINTMENTS_HREF}>{t("seeAppointment")}</Button>

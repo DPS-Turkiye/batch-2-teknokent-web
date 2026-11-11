@@ -101,6 +101,7 @@ export function PeerMentorDirectory() {
                       variant={ButtonVariant.Ghost}
                     >
                       {t("seeProfile")}
+                      <NameSuffix name={mentor.fullName} />
                     </Button>
                     <RequestButton
                       mentor={mentor}
@@ -178,10 +179,8 @@ export function PeerMentorDirectory() {
                     variant={ButtonVariant.Secondary}
                     size={ButtonSize.Small}
                   >
-                    <span aria-hidden>{t("seeProfile")}</span>
-                    <span className="sr-only">
-                      {t("seeProfileOf", { name: mentor.fullName })}
-                    </span>
+                    {t("seeProfile")}
+                    <NameSuffix name={mentor.fullName} />
                   </Button>
                 </div>
               </li>
@@ -298,10 +297,8 @@ export function RequestButton({
   if (availability === PeerRequestAvailability.Open) {
     return (
       <Button onClick={onRequest} fullWidth={fullWidth} className="flex-1">
-        <span aria-hidden>{t("request")}</span>
-        <span className="sr-only">
-          {t("requestFrom", { name: mentor.fullName })}
-        </span>
+        {t("request")}
+        <NameSuffix name={mentor.fullName} />
       </Button>
     );
   }
@@ -312,4 +309,13 @@ export function RequestButton({
         : t("full")}
     </Button>
   );
+}
+
+/**
+ * The mentor's name after a repeated button's visible text, for screen readers only; the visible text stays first in
+ * the accessible name, so voice control can still say "Profili Gör".
+ */
+export function NameSuffix({ name }: { name: string }) {
+  const t = useTranslations("iaIskur.take.discover");
+  return <span className="sr-only">{t("nameSuffix", { name })}</span>;
 }

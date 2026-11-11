@@ -203,6 +203,11 @@ export function usePeerTakeTab() {
   return { tab, setTab };
 }
 
+/** Mentorluklarım's tab count: every request the student sent; undefined until they load. */
+export function usePeerMentorshipCount() {
+  return usePeerMentoringRequests().data?.length;
+}
+
 /** Mentorluklarım: active mentorships (accepted requests) with their next session, and the other requests. */
 export function useMyPeerMentorships() {
   const requests = usePeerMentoringRequests();

@@ -100,11 +100,11 @@ describe("PeerMentoringView › Keşfet", () => {
     expect(within(deniz).getByText("Bu derste güçlü: CENG 242")).toBeVisible();
     expect(
       within(deniz).getByRole("button", {
-        name: "Deniz Kaya için mentorluk talebi gönder",
+        name: "Mentorluk Talebi Gönder, Deniz Kaya",
       }),
     ).toBeEnabled();
     expect(
-      within(deniz).getByRole("link", { name: "Profili Gör" }),
+      within(deniz).getByRole("link", { name: "Profili Gör, Deniz Kaya" }),
     ).toHaveAttribute("href", "/student/peer-mentoring/mentors/fixture-peer-1");
 
     const search = screen.getByRole("region", { name: "Mentor ara" });
@@ -113,7 +113,7 @@ describe("PeerMentoringView › Keşfet", () => {
     ).toBeVisible();
     expect(within(search).getByText("Psikoloji · 3. sınıf")).toBeVisible();
     expect(
-      within(search).getByRole("link", { name: "Zeynep Arslan profilini gör" }),
+      within(search).getByRole("link", { name: "Profili Gör, Zeynep Arslan" }),
     ).toHaveAttribute("href", "/student/peer-mentoring/mentors/fixture-peer-4");
   });
 
@@ -194,7 +194,7 @@ describe("PeerMentoringView › Keşfet", () => {
 
     await user.click(
       within(deniz).getByRole("button", {
-        name: "Deniz Kaya için mentorluk talebi gönder",
+        name: "Mentorluk Talebi Gönder, Deniz Kaya",
       }),
     );
     const dialog = screen.getByRole("dialog", {
@@ -285,7 +285,7 @@ describe("PeerMentoringView › switch", () => {
       "aria-selected",
       "true",
     );
-    expect(screen.queryByRole("tab", { name: "Mentorluk Ver" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Mentorluk Ver" })).toBeNull();
   });
 
   it("answers a Mentorluk Ver link from such a student with Mentorluk Al", async () => {
@@ -299,7 +299,7 @@ describe("PeerMentoringView › switch", () => {
     const user = userEvent.setup();
     renderWithQueryClient(<PeerMentoringView />);
 
-    const give = screen.getByRole("tab", { name: "Mentorluk Ver" });
+    const give = screen.getByRole("button", { name: "Mentorluk Ver" });
     expect(give).toHaveAttribute("data-tour", "peer-mentoring-give-toggle");
     await user.click(give);
     expect(replace).toHaveBeenCalledWith("/student/peer-mentoring?as=MENTOR", {
@@ -325,7 +325,7 @@ describe("PeerMentoringView › switch", () => {
     expect(screen.getByRole("tab", { name: "Discover" })).toBeVisible();
     expect(
       await screen.findByRole("button", {
-        name: "Send Deniz Kaya a mentoring request",
+        name: "Send a mentoring request, Deniz Kaya",
       }),
     ).toBeVisible();
     expect(

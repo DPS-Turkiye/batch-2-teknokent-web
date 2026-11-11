@@ -97,7 +97,7 @@ describe("Mentorluk Al › Mentorluklarım", () => {
       await within(unbooked).findByRole("button", { name: "Görüşme Planla" }),
     ).toBeVisible();
     expect(
-      within(unbooked).getByRole("link", { name: "Profili Gör" }),
+      within(unbooked).getByRole("link", { name: "Profili Gör, Zeynep Demir" }),
     ).toHaveAttribute(
       "href",
       "/student/peer-mentoring/mentors/request-1-mentor",

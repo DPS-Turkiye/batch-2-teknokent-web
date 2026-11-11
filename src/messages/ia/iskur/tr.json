@@ -264,11 +264,10 @@
       "why": "Neden önerildi?",
       "whyInterests": "İlgi alanlarınla eşleşiyor: {topics}",
       "seeProfile": "Profili Gör",
-      "seeProfileOf": "{name} profilini gör",
       "request": "Mentorluk Talebi Gönder",
-      "requestFrom": "{name} için mentorluk talebi gönder",
       "requested": "Talebin yanıt bekliyor",
-      "full": "Kontenjan dolu"
+      "full": "Kontenjan dolu",
+      "nameSuffix": ", {name}"
     },
     "profile": {
       "back": "Akran Mentörlüğü",

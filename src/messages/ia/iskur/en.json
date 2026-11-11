@@ -264,11 +264,10 @@
       "why": "Why recommended?",
       "whyInterests": "Matches your interests: {topics}",
       "seeProfile": "View profile",
-      "seeProfileOf": "View {name}'s profile",
       "request": "Send a mentoring request",
-      "requestFrom": "Send {name} a mentoring request",
       "requested": "Your request is awaiting an answer",
-      "full": "No places left"
+      "full": "No places left",
+      "nameSuffix": ", {name}"
     },
     "profile": {
       "back": "Peer mentoring",

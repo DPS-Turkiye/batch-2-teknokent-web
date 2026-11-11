@@ -13,8 +13,8 @@ import { PeerMentorGiveView } from "@/components/student/peer-mentor-give-view";
 import { PeerMentoringRequests } from "@/components/student/peer-mentoring-requests";
 import { usePeerMentorGate } from "@/hooks/use-peer-mentor-give";
 import {
-  useMyPeerMentorships,
   usePeerMentoringSide,
+  usePeerMentorshipCount,
   usePeerTakeTab,
 } from "@/hooks/use-peer-mentoring";
 import { AppointmentSide } from "@/interfaces/appointment";
@@ -64,7 +64,7 @@ export function PeerMentoringView() {
 function TakeSide() {
   const t = useTranslations("iaIskur.take.tabs");
   const { tab, setTab } = usePeerTakeTab();
-  const mine = useMyPeerMentorships();
+  const mineCount = usePeerMentorshipCount();
   return (
     <div className="space-y-7">
       <UnderlineTabs
@@ -77,7 +77,7 @@ function TakeSide() {
           {
             id: PeerTakeTab.Mine,
             label: t("mine"),
-            ...(mine.query.data ? { count: mine.count } : {}),
+            ...(mineCount === undefined ? {} : { count: mineCount }),
           },
         ]}
       />

@@ -330,7 +330,10 @@ export type SegmentOption<T extends string> = {
   tour?: string;
 };
 
-/** A two-or-three way segmented switch (Figma "Segment"), as tabs: the selected one is raised and accented. */
+/**
+ * A two-or-three way segmented switch (Figma "Segment"): toggle buttons in a group, the pressed one raised and
+ * accented. Not tabs: it swaps whole views, not panels.
+ */
 export function Segmented<T extends string>({
   label,
   options,
@@ -344,7 +347,7 @@ export function Segmented<T extends string>({
 }) {
   return (
     <div
-      role="tablist"
+      role="group"
       aria-label={label}
       className="inline-flex gap-1 rounded-[14px] bg-background-muted p-1"
     >
@@ -354,8 +357,7 @@ export function Segmented<T extends string>({
           <button
             key={option.id}
             type="button"
-            role="tab"
-            aria-selected={active}
+            aria-pressed={active}
             data-tour={option.tour}
             onClick={() => onSelect(option.id)}
             className={`h-9 rounded-full px-4 type-label focus-visible:outline-2 focus-visible:outline-border-selected ${
