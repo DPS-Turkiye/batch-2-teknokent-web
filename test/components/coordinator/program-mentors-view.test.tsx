@@ -90,23 +90,23 @@ describe("ProgramMentorsView", () => {
   it("links pool mentors and join requests to their profile, but not open invites", async () => {
     renderWithQueryClient(<ProgramMentorsView programId="program-1" />);
 
-    const activeRow = (await screen.findByText("Nihan Öztürk")).closest("tr");
+    await screen.findByText("Nihan Öztürk");
     expect(
-      within(activeRow as HTMLElement).getByRole("link", {
-        name: "Profili gör: Nihan Öztürk",
-      }),
+      within(screen.getByRole("row", { name: /Nihan Öztürk/ })).getByRole(
+        "link",
+        { name: "Profili gör: Nihan Öztürk" },
+      ),
     ).toHaveAttribute("href", "/coordinator/people/mentor-1");
-    const awaitingRow = screen.getByText("Zeynep Arslan").closest("tr");
     expect(
-      within(awaitingRow as HTMLElement).getByRole("link", {
-        name: "Profili gör: Zeynep Arslan",
-      }),
+      within(screen.getByRole("row", { name: /Zeynep Arslan/ })).getByRole(
+        "link",
+        { name: "Profili gör: Zeynep Arslan" },
+      ),
     ).toHaveAttribute("href", "/coordinator/people/mentor-2");
-    const invitedRow = screen.getByText("cagri@yilmazfinans.com").closest("tr");
     expect(
-      within(invitedRow as HTMLElement).queryByRole("link", {
-        name: /^Profili gör/,
-      }),
+      within(
+        screen.getByRole("row", { name: /cagri@yilmazfinans\.com/ }),
+      ).queryByRole("link", { name: /^Profili gör/ }),
     ).toBeNull();
   });
 
