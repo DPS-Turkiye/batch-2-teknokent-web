@@ -58,10 +58,12 @@ const pending = peerAppointment({
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ["Date"] });
   vi.setSystemTime(APPOINTMENTS_NOW);
-  vi.mocked(getStudentHome).mockReset().mockResolvedValue({
-    profileCompleted: false,
-    appointments: [pending, confirmed],
-  });
+  vi.mocked(getStudentHome)
+    .mockReset()
+    .mockResolvedValue({
+      profileCompleted: false,
+      appointments: [pending, confirmed],
+    });
   vi.mocked(fetchInstitutionRecord)
     .mockReset()
     .mockResolvedValue(STUDENT_RECORD);
@@ -74,6 +76,7 @@ beforeEach(() => {
 describe("useStudentHome", () => {
   it("greets the student by first name and finds the advisor", async () => {
     const { result } = renderHook(() => useStudentHome(), { wrapper });
+    expect(result.current.greeting).toBeNull();
     await waitFor(() => expect(result.current.name).toBe("Ayşe"));
 
     // 12:00 in Istanbul.
@@ -84,15 +87,11 @@ describe("useStudentHome", () => {
   it("splits what is ahead into the next session, confirmed ones and requests", async () => {
     const { result } = renderHook(() => useStudentHome(), { wrapper });
     await waitFor(() => expect(result.current.ready).toBe(true));
-    await waitFor(() =>
-      expect(result.current.peerRequests).toHaveLength(1),
-    );
+    await waitFor(() => expect(result.current.peerRequests).toHaveLength(1));
 
     expect(result.current.next?.id).toBe(confirmed.id);
     expect(result.current.confirmedCount).toBe(1);
-    expect(result.current.awaiting.map((item) => item.id)).toEqual([
-      "pending",
-    ]);
+    expect(result.current.awaiting.map((item) => item.id)).toEqual(["pending"]);
     expect(result.current.requestCount).toBe(2);
   });
 
@@ -103,9 +102,9 @@ describe("useStudentHome", () => {
 
     expect(result.current.profileHref).toBe(STUDENT_PROFILE_COMPLETION_HREF);
     expect(getPeerMentors).toHaveBeenCalledWith({ category: null, query: "" });
-    expect(
-      result.current.mentors.every((mentor) => !mentor.capacityFull),
-    ).toBe(true);
+    expect(result.current.mentors.every((mentor) => !mentor.capacityFull)).toBe(
+      true,
+    );
   });
 
   it("opens Profilim once the profile is done", async () => {

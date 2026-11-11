@@ -4,7 +4,8 @@ import Link from "next/link";
 
 import { AppointmentStatusBadge } from "@/components/student/ia/ui";
 import type { Appointment } from "@/interfaces/appointment";
-import { dateBadgeParts, timeLabel } from "@/lib/calendar";
+import { timeLabel } from "@/lib/calendar";
+import { dateTile } from "@/lib/coordinator-program-detail";
 
 /** Figma "Appointment Card": a date badge (10 / KAS) and who, when and what; the whole card opens `href`. */
 export function AppointmentRow({
@@ -17,7 +18,7 @@ export function AppointmentRow({
   const t = useTranslations("iaStudent.common");
   const tTopic = useTranslations("peerTopics");
   const locale = useLocale();
-  const badge = dateBadgeParts(appointment.startsAt, locale);
+  const badge = dateTile(appointment.startsAt, locale);
   const { counterpart } = appointment;
   const details = [
     `${timeLabel(appointment.startsAt, locale)} – ${timeLabel(appointment.endsAt, locale)}`,

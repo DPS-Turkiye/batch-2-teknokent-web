@@ -56,4 +56,3 @@ export function splitAppointments(appointments: Appointment[], now: Date) {
     past: byStart.filter((item) => !isUpcoming(item, now)).reverse(),
   };
 }
-
