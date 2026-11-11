@@ -6761,6 +6761,8 @@
     "activity": "Menton'da",
     "activeMentees": "Aktif girişim",
     "completedMentorships": "Tamamlanan mentorluk",
-    "registered": "Kayıt tarihi"
+    "registered": "Kayıt tarihi",
+    "open": "Profili gör",
+    "openFor": "Profili gör: {name}"
   }
 }
