@@ -6473,21 +6473,6 @@
     }
   },
   "academicianWorkspace": {
-    "studyLevel": {
-      "BACHELOR": "Lisans",
-      "MASTER": "Yüksek lisans",
-      "DOCTORATE": "Doktora"
-    },
-    "advisees": {
-      "title": "Danışan Öğrencilerim",
-      "subtitle": "ODTÜ kayıtlarındaki danışmanlığındaki öğrenciler. Bu bilgiler salt okunurdur.",
-      "search": "Öğrenci ara",
-      "count": "{count} öğrenci",
-      "classYear": "{year}. sınıf",
-      "notSignedIn": "Menton'a henüz giriş yapmadı",
-      "empty": "ODTÜ kayıtlarında danışmanlığında öğrenci görünmüyor.",
-      "noMatch": "Aramana uyan öğrenci yok."
-    },
     "institution": {
       "title": "Kurumsal Bilgiler",
       "readOnly": "ODTÜ'den, salt okunur",

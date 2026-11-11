@@ -1,12 +1,13 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AdviseesView } from "@/components/academician/advisees-view";
 import {
   StudyLevel,
   type InstitutionPersonSummary,
 } from "@/interfaces/institution";
+import { resetAcademicianSample } from "@/lib/client/fixtures/academician-office-hours-store";
 import { fetchInstitutionAdvisees } from "@/lib/client/institution";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
@@ -15,59 +16,99 @@ vi.mock("@/lib/client/institution", () => ({
   fetchInstitutionRecord: vi.fn(),
 }));
 
+// The sample meetings sit around "now" when the fixture module loads: Tuesday 10 November 2026, 10:00 in Istanbul.
+const MORNING = vi.hoisted(() => {
+  const morning = new Date("2026-11-10T07:00:00Z");
+  vi.useFakeTimers({ toFake: ["Date"] });
+  vi.setSystemTime(morning);
+  return morning;
+});
+
 const ADVISEES: InstitutionPersonSummary[] = [
   {
-    userId: "user-zeynep",
+    userId: "sample-student-zeynep",
     fullName: "Zeynep Arslan",
     departmentName: "Bilgisayar Mühendisliği",
     classYear: 4,
     programLevel: StudyLevel.Bachelor,
   },
   {
+    userId: "sample-student-deniz",
+    fullName: "Deniz Kaya",
+    departmentName: "Bilgisayar Mühendisliği",
+    classYear: 3,
+    programLevel: StudyLevel.Bachelor,
+  },
+  {
     userId: null,
     fullName: "Ali Çelik",
-    departmentName: "Bilgisayar Mühendisliği",
+    departmentName: "İnşaat Mühendisliği",
     classYear: null,
     programLevel: StudyLevel.Master,
   },
 ];
 
 beforeEach(() => {
+  vi.useFakeTimers({ toFake: ["Date"] });
+  vi.setSystemTime(MORNING);
+  resetAcademicianSample();
   vi.mocked(fetchInstitutionAdvisees)
     .mockReset()
     .mockResolvedValue(structuredClone(ADVISEES));
 });
 
+afterEach(() => {
+  vi.useRealTimers();
+});
+
+async function rows() {
+  const table = await screen.findByRole("table", {
+    name: "Danışan Öğrencilerim · 3 öğrenci",
+  });
+  // The first row is the header.
+  return within(table).getAllByRole("row").slice(1);
+}
+
 describe("AdviseesView", () => {
-  it("lists ODTÜ's advisees by name, read-only, and marks who has not signed in", async () => {
+  it("lists ODTÜ's advisees in Turkish order with their meetings", async () => {
     renderWithQueryClient(<AdviseesView />);
-    const list = await screen.findByRole("list", {
-      name: "Danışan Öğrencilerim",
-    });
-    const rows = within(list).getAllByRole("listitem");
-    expect(rows[0]).toHaveTextContent("Ali Çelik");
-    expect(rows[0]).toHaveTextContent("Yüksek lisans");
-    expect(rows[0]).toHaveTextContent("Menton'a henüz giriş yapmadı");
-    expect(rows[1]).toHaveTextContent("Zeynep Arslan");
-    expect(rows[1]).toHaveTextContent(
-      "Bilgisayar Mühendisliği · Lisans · 4. sınıf",
+    const [ali, deniz, zeynep] = await rows();
+
+    expect(ali).toHaveTextContent("Ali Çelik");
+    expect(ali).toHaveTextContent("Menton'a henüz giriş yapmadı");
+    expect(within(ali ?? document.body).queryByRole("link")).toBeNull();
+
+    expect(deniz).toHaveTextContent("Bilgisayar Mühendisliği · 3");
+    expect(
+      within(deniz ?? document.body).getByRole("link", { name: "Deniz Kaya" }),
+    ).toHaveAttribute(
+      "href",
+      "/academician/students/sample-student-deniz?from=advisees",
     );
-    expect(rows[1]).not.toHaveTextContent("giriş yapmadı");
-    expect(screen.getByText("2 öğrenci")).toBeVisible();
-    expect(within(list).queryByRole("button")).toBeNull();
-    expect(screen.queryByRole("note")).toBeNull();
+    expect(
+      within(deniz ?? document.body).getByRole("link", {
+        name: "Deniz Kaya ile randevular",
+      }),
+    ).toBeVisible();
+
+    expect(zeynep).toHaveTextContent("Bugün 15:30");
+    expect(screen.getByText("Kurumsal kayıttan · salt okunur")).toBeVisible();
+    expect(screen.queryByText(/Örnek veriler/)).toBeNull();
   });
 
   it("searches by name in Turkish and says when nothing matches", async () => {
     const user = userEvent.setup();
     renderWithQueryClient(<AdviseesView />);
-    const search = await screen.findByPlaceholderText("Öğrenci ara");
+    await rows();
+    const search = screen.getByRole("searchbox", { name: "Öğrenci ara" });
+
     await user.type(search, "ZEY");
-    expect(screen.getAllByRole("listitem")).toHaveLength(1);
+    expect(screen.getAllByRole("row")).toHaveLength(2);
     await user.clear(search);
     await user.type(search, "ÇELİK");
-    expect(screen.getByRole("listitem")).toHaveTextContent("Ali Çelik");
+    expect(screen.getAllByRole("row")[1]).toHaveTextContent("Ali Çelik");
     await user.type(search, "x");
+    expect(screen.queryByRole("table")).toBeNull();
     expect(screen.getByText("Aramana uyan öğrenci yok.")).toBeVisible();
   });
 
@@ -79,7 +120,7 @@ describe("AdviseesView", () => {
         "ODTÜ kayıtlarında danışmanlığında öğrenci görünmüyor.",
       ),
     ).toBeVisible();
-    expect(screen.queryByPlaceholderText("Öğrenci ara")).toBeNull();
+    expect(screen.queryByRole("searchbox")).toBeNull();
   });
 
   it("offers a retry when loading fails", async () => {
@@ -102,7 +143,7 @@ describe("AdviseesView", () => {
       </InLocale>,
     );
     expect(
-      await screen.findByText("Has not signed in to Menton yet"),
+      await screen.findByText("Hasn't signed in to Menton yet"),
     ).toBeVisible();
     expect(screen.getByRole("heading", { name: "My advisees" })).toBeVisible();
   });

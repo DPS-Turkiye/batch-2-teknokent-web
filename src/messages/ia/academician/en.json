@@ -141,6 +141,7 @@
   },
   "requestDrawer": {
     "title": "Appointment request",
+    "openProfile": "View student profile",
     "date": "Date",
     "time": "Time",
     "course": "Course",
@@ -263,5 +264,58 @@
     "saved": "Availability saved.",
     "removed": "Deleted.",
     "failed": "Couldn't save; please try again."
+  },
+  "advisees": {
+    "title": "My advisees",
+    "search": "Search students",
+    "readOnly": "From the university record · read-only",
+    "count": "{count} students",
+    "columns": {
+      "student": "Student",
+      "program": "Department · year",
+      "last": "Last appointment",
+      "next": "Next appointment",
+      "actions": "Actions"
+    },
+    "appointments": "Appointments",
+    "appointmentsLabel": "Appointments with {name}",
+    "today": "Today {time}",
+    "pending": "Awaiting approval",
+    "none": "—",
+    "notSignedIn": "Hasn't signed in to Menton yet",
+    "empty": "ODTÜ's records show no advisees for you.",
+    "noMatch": "No student matches your search.",
+    "footnote": "This list isn't a mentoring match or an appointment. Advising relations come from ODTÜ's records and can't be changed in Menton."
+  },
+  "student": {
+    "back": {
+      "appointments": "My appointments",
+      "advisees": "My advisees"
+    },
+    "classYear": "Year {year}",
+    "record": "University record",
+    "department": "Department",
+    "classYearLabel": "Year",
+    "advisor": "Academic advisor",
+    "advisorYou": "You",
+    "privacy": "The student's mentoring details, documents and appointments with other academics aren't visible to you.",
+    "pendingTitle": "Request waiting for you",
+    "history": "Appointments with you",
+    "historyEmpty": "No appointments with you yet.",
+    "historyWhen": "{when} · Office Hours",
+    "badges": {
+      "pending": "Awaiting approval",
+      "proposed": "Other time proposed",
+      "confirmed": "Confirmed",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "decline": "Decline",
+    "propose": "Propose another time",
+    "accept": "Accept",
+    "notFound": "There's nothing to show about this student.",
+    "openProfile": "See the student's profile",
+    "close": "Close",
+    "fullProfile": "See full profile"
   }
 }

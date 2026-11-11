@@ -389,6 +389,40 @@ describe("AcademicianAppointmentsView", () => {
     ).toBeNull();
   });
 
+  it("opens the student's profile from the drawer and goes back to it", async () => {
+    const user = userEvent.setup();
+    renderView({ request: "sample-request-1" });
+
+    await user.click(
+      await screen.findByRole("button", { name: "Öğrenci profilini gör" }),
+    );
+
+    const profile = screen.getByRole("dialog", { name: "Deniz Kaya" });
+    expect(window.location.search).toBe(
+      "?request=sample-request-1&step=profile",
+    );
+    expect(within(profile).getByText("Danışanın")).toBeVisible();
+    // The drawer underneath answers the request, so the pop-up only shows it.
+    expect(
+      within(profile).queryByRole("link", { name: "Kabul Et" }),
+    ).not.toBeInTheDocument();
+    expect(
+      within(profile).getByRole("link", { name: "Tam Profili Gör" }),
+    ).toHaveAttribute(
+      "href",
+      "/academician/students/sample-student-deniz?from=appointments",
+    );
+
+    await user.click(
+      within(profile).getAllByRole("button", { name: "Kapat" })[1] ?? profile,
+    );
+
+    expect(
+      screen.getByRole("dialog", { name: "Randevu talebi" }),
+    ).toBeVisible();
+    expect(window.location.search).toBe("?request=sample-request-1");
+  });
+
   it("opens the propose dialog from the drawer and goes back to the drawer", async () => {
     const user = userEvent.setup();
     renderView({ request: "sample-request-2" });

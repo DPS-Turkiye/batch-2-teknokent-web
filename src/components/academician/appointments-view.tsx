@@ -12,6 +12,7 @@ import {
   RequestDrawer,
 } from "@/components/academician/request-drawer";
 import { SampleDataNotice } from "@/components/academician/sample-data-notice";
+import { StudentProfileDialog } from "@/components/academician/student-profile-dialog";
 import { WorkspaceQueryState } from "@/components/academician/workspace-query-state";
 import { Button, ButtonVariant } from "@/components/ia/button";
 import { PageHeader } from "@/components/ia/page-header";
@@ -97,6 +98,15 @@ export function Drawers({
         />
       );
     }
+    if (calendar.step === RequestStep.Profile) {
+      return (
+        <StudentProfileDialog
+          key={request.id}
+          userId={request.student.userId}
+          onClose={calendar.backToRequest}
+        />
+      );
+    }
     return (
       <RequestDrawer
         key={request.id}
@@ -105,6 +115,7 @@ export function Drawers({
         source={calendar.source}
         now={calendar.now}
         onPropose={calendar.openPropose}
+        onOpenProfile={calendar.openProfile}
         onClose={calendar.closeDrawer}
       />
     );
