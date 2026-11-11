@@ -395,6 +395,7 @@ export function settingsDraftOf(
 export function savedPhases(detail: CoordinatorProgramDetail): PhaseDraft[] {
   return detail.program.phases.map((phase) => ({
     key: phase.id,
+    id: phase.id,
     name: phase.name,
     startDate: phase.startDate,
     endDate: phase.endDate,
@@ -405,6 +406,7 @@ export function savedPhases(detail: CoordinatorProgramDetail): PhaseDraft[] {
 export function emptyPhase(): PhaseDraft {
   return {
     key: phaseKey(),
+    id: null,
     name: "",
     startDate: null,
     endDate: null,
@@ -465,6 +467,7 @@ export function parseEmailList(text: string): string[] {
 
 export function phasesInput(phases: PhaseDraft[]): ProgramPhaseInput[] {
   return phases.map((phase) => ({
+    id: phase.id ?? null,
     name: phase.name.trim(),
     startDate: phase.startDate || null,
     endDate: phase.endDate || null,

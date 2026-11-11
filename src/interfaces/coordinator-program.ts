@@ -160,6 +160,8 @@ export type UpdateProgramDetailsInput = {
 };
 
 export type ProgramPhaseInput = {
+  /** A saved phase sent back with its id keeps it, so Süreç assignments stay linked; a new one has none. */
+  id?: string | null;
   name: string;
   startDate: string | null;
   endDate: string | null;

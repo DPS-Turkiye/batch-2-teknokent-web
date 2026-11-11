@@ -357,18 +357,21 @@ describe("coordinator program detail", () => {
       "program-1",
       [
         {
+          id: "phase-1",
           name: "Başvuru",
           startDate: "2026-02-01",
           endDate: "2026-02-28",
           expectedOutput: null,
         },
         {
+          id: "phase-2",
           name: "Mentorluk dönemi",
           startDate: "2026-05-01",
           endDate: "2026-11-28",
           expectedOutput: "Ara rapor",
         },
         {
+          id: "phase-3",
           name: "Demo Day",
           startDate: "2026-12-12",
           endDate: "2026-12-12",
