@@ -218,7 +218,9 @@ export function placeCard(
       arrowOffset: null,
     };
   }
-  if (viewport.width < DOCK_BELOW_WIDTH) return docked;
+  if (viewport.width < DOCK_BELOW_WIDTH) {
+    return { ...docked, width: viewport.width - MARGIN * 2 };
+  }
 
   const centerX = target.left + target.width / 2;
   // Beside a tall element the arrow points near its top, where its title usually is.

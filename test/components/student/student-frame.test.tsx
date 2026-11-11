@@ -47,6 +47,10 @@ vi.mock("@/components/providers/session-provider", () => ({
 vi.mock("@/components/common/notification-menu", () => ({
   NotificationMenu: () => null,
 }));
+// The tour has its own tests (test/components/product-tour); here it would only open over the menus.
+vi.mock("@/components/product-tour/product-tour", () => ({
+  ProductTour: () => null,
+}));
 
 function desktopNav(name: string) {
   return itemAt(screen.getAllByRole("navigation", { name }), 0);

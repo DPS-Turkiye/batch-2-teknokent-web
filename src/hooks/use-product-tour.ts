@@ -96,10 +96,13 @@ export function useProductTour(workspace: Workspace) {
     stepNumber: (run?.stepIndex ?? 0) + 1,
     stepCount,
     target,
+    /** "… tıkla": the element is there and can be pressed; the hint also moves keyboard focus to it. */
+    offersHint: step?.advance === TourAdvance.Click && target.interactive,
     /** Show "İleri": the element is missing, or a keyboard cannot press it. */
     offersNext:
       step?.advance === TourAdvance.Click &&
       (target.missing || (target.element !== null && !target.interactive)),
+    focusTarget: () => target.element?.focus(),
     start: actions.start,
     next: () => actions.next(stepCount),
     finish: actions.finish,

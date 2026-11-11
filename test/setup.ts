@@ -70,6 +70,15 @@ if (typeof window.matchMedia !== "function") {
   };
 }
 
+// jsdom has no layout, so nothing ever resizes; observers only need to exist.
+if (typeof globalThis.ResizeObserver !== "function") {
+  globalThis.ResizeObserver = class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  };
+}
+
 const originalGetComputedStyle = window.getComputedStyle.bind(window);
 
 const FALLBACK_STYLE = new Map([
