@@ -5982,7 +5982,9 @@
     "weekPlanLoadFailed": "Couldn't load the weekly plan.",
     "weekPlanSaveFailed": "Couldn't save the weekly plan.",
     "programThisWeekLoadFailed": "Couldn't load this week's plan.",
-    "sessionRefreshFailed": "Couldn't update your session."
+    "sessionRefreshFailed": "Couldn't update your session.",
+    "personSummaryLoadFailed": "Could not load the profile.",
+    "personIdInvalid": "Choose a valid person."
   },
   "startupStart": {
     "title": "My startup",
@@ -6728,5 +6730,57 @@
       "REPEATED_WEEK": "A week appears more than once.",
       "PAST_THE_END": "Week numbers must be between 1 and {total}."
     }
+  },
+  "personSummary": {
+    "back": "Back",
+    "loading": "Loading the profile…",
+    "notFound": "This profile was not found, or you can't see it.",
+    "toList": "Back to the list",
+    "roles": {
+      "MENTOR": "Mentor",
+      "MENTEE": "Founder"
+    },
+    "statuses": {
+      "APPROVED": "Approved",
+      "PENDING": "Awaiting approval",
+      "REJECTED": "Rejected"
+    },
+    "linkedin": "LinkedIn profile",
+    "about": "About",
+    "noAbout": "No introduction yet.",
+    "expertise": "Areas of expertise",
+    "mentoring": "Mentoring",
+    "facts": {
+      "experienceLevel": "Experience level",
+      "sectorExperience": "Sector experience",
+      "startupStages": "Startup stages",
+      "meetingMode": "Meeting format",
+      "languages": "Languages"
+    },
+    "offerings": "Offers",
+    "experience": "Experience",
+    "education": "Education",
+    "startup": "Startup",
+    "noStartup": "Not part of a startup.",
+    "startupFields": {
+      "sector": "Sector",
+      "maturity": "Stage",
+      "fundingStage": "Funding stage",
+      "foundedYear": "Founded",
+      "problem": "Problem",
+      "solution": "Solution",
+      "website": "Website"
+    },
+    "programs": "Programs",
+    "noPrograms": "Not in a program you can see.",
+    "relations": {
+      "MENTOR": "In the mentor pool",
+      "MENTEE": "Participant"
+    },
+    "mentorPending": "Request to join awaiting approval",
+    "activity": "On Menton",
+    "activeMentees": "Active startups",
+    "completedMentorships": "Completed mentorships",
+    "registered": "Registered"
   }
 }

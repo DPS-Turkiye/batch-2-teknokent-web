@@ -129,5 +129,27 @@ export function httpUrlOrNull(value: string | null | undefined) {
   return /^https?:\/\/\S+$/i.test(trimmed) ? trimmed : null;
 }
 
+/** Each distinct item once, keyed by `keyOf`: stable React keys for read-only lists without index keys. */
+export function distinctBy<T>(items: readonly T[], keyOf: (item: T) => string) {
+  const byKey = new Map<string, T>();
+  for (const item of items) {
+    const key = keyOf(item);
+    if (!byKey.has(key)) byKey.set(key, item);
+  }
+  return [...byKey].map(([key, item]) => ({ key, item }));
+}
+
+/** A backend id; anything else (say `..`) never reaches a backend URL. */
+export function isUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+    value,
+  );
+}
+
+/** Whether a page sits in the admin frame; shared screens use it to keep links inside that frame. */
+export function isAdminArea(pathname: string | null) {
+  return pathname?.startsWith("/admin/") ?? false;
+}
+
 /** A yyyy-mm-dd day, the way the report and calendar endpoints take it. */
 export const ISO_DAY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
