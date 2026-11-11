@@ -14,7 +14,7 @@ import { POST as create } from "@/app/api/coordinator/programs/route";
 import { ProgramType } from "@/interfaces/program";
 import { UserRole } from "@/interfaces/session";
 import * as api from "@/lib/api/coordinator-programs";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 import {
   answerEachWith,
   backendResponse,
@@ -33,7 +33,7 @@ vi.mock("@/lib/api/coordinator-programs", () => ({
   fetchProgramTeamDetail: vi.fn(),
 }));
 vi.mock("@/lib/server/require-coordinator", () => ({
-  requireCoordinatorSession: vi.fn(),
+  requireCoordinatorOrAdminSession: vi.fn(),
 }));
 
 const ok = backendResponse([]);
@@ -47,7 +47,7 @@ const request = (method: string, value: unknown) =>
 describe("coordinator program launch routes", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(requireCoordinatorSession).mockResolvedValue({
+    vi.mocked(requireCoordinatorOrAdminSession).mockResolvedValue({
       ok: true,
       session: appSession({
         userId: "coordinator-1",
@@ -181,7 +181,9 @@ describe("coordinator program launch routes", () => {
   });
 
   it("stops at the session check", async () => {
-    vi.mocked(requireCoordinatorSession).mockResolvedValue(guardRefusal(403));
+    vi.mocked(requireCoordinatorOrAdminSession).mockResolvedValue(
+      guardRefusal(403),
+    );
 
     const response = await create(request("POST", { name: "X" }));
 

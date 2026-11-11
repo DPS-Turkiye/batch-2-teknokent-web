@@ -10,7 +10,7 @@ import {
   fetchCoordinatorMentorships,
   remindCoordinatorMentorship,
 } from "@/lib/api/coordinator-mentorships";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 import {
   coordinatorMentorship,
   coordinatorMentorshipDetail,
@@ -25,13 +25,13 @@ vi.mock("@/lib/api/coordinator-mentorships", () => ({
 }));
 
 vi.mock("@/lib/server/require-coordinator", () => ({
-  requireCoordinatorSession: vi.fn(),
+  requireCoordinatorOrAdminSession: vi.fn(),
 }));
 
 const params = { params: Promise.resolve({ id: "mentorship-1" }) };
 
 function signIn() {
-  vi.mocked(requireCoordinatorSession).mockResolvedValue({
+  vi.mocked(requireCoordinatorOrAdminSession).mockResolvedValue({
     ok: true,
     session: appSession({
       userId: "coordinator-1",
@@ -88,7 +88,9 @@ describe("coordinator mentorship routes", () => {
   });
 
   it("stops at the session check", async () => {
-    vi.mocked(requireCoordinatorSession).mockResolvedValue(guardRefusal(403));
+    vi.mocked(requireCoordinatorOrAdminSession).mockResolvedValue(
+      guardRefusal(403),
+    );
 
     expect((await remind(new Request("http://localhost"), params)).status).toBe(
       403,

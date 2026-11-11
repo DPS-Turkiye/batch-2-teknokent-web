@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GET } from "@/app/api/coordinator/programs/[id]/meeting-feedback/route";
 import { UserRole } from "@/interfaces/session";
 import { fetchProgramMeetingFeedback } from "@/lib/api/program-report";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 import { guardRefusal } from "@test/fixtures/route-handlers";
 import { appSession } from "@test/fixtures/session";
 
@@ -13,7 +13,7 @@ vi.mock("@/lib/api/program-report", () => ({
 }));
 
 vi.mock("@/lib/server/require-coordinator", () => ({
-  requireCoordinatorSession: vi.fn(),
+  requireCoordinatorOrAdminSession: vi.fn(),
 }));
 
 const params = { params: Promise.resolve({ id: "program-1" }) };
@@ -30,7 +30,7 @@ function get(query = "") {
 describe("GET /api/coordinator/programs/[id]/meeting-feedback", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(requireCoordinatorSession).mockResolvedValue({
+    vi.mocked(requireCoordinatorOrAdminSession).mockResolvedValue({
       ok: true,
       session: appSession({ userId: "coord-1", role: UserRole.Coordinator }),
     });
@@ -76,7 +76,9 @@ describe("GET /api/coordinator/programs/[id]/meeting-feedback", () => {
   });
 
   it("stops anyone who is not a coordinator or admin", async () => {
-    vi.mocked(requireCoordinatorSession).mockResolvedValue(guardRefusal(403));
+    vi.mocked(requireCoordinatorOrAdminSession).mockResolvedValue(
+      guardRefusal(403),
+    );
 
     const response = await get();
 

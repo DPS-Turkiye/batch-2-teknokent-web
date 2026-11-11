@@ -51,6 +51,5 @@ These rules apply to every change, by people and by coding agents. The reasoning
 
 ## Known traps
 
-- Two different guards are both called `requireCoordinatorSession`. The one in `src/lib/server/require-coordinator.ts` also admits admins; the one in `src/lib/server/require-program-access.ts` does not. Import the one whose rule you mean.
 - `MeetingStatus` exists twice: `src/interfaces/meeting.ts` (meetings, upper case) and `src/types/assistant.ts` (the transcript bot, lower case). Do not mix them.
 - `BackendResponse<T>` types `data` as `T` for every status, error responses included. Check `status` before reading `data`.

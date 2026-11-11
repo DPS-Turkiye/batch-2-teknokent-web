@@ -7,14 +7,14 @@ import {
   backendResponse,
 } from "@/lib/server/api-response";
 import { readReportRange } from "@/lib/server/report-range";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const auth = await requireCoordinatorSession();
+    const auth = await requireCoordinatorOrAdminSession();
     if (!auth.ok) return auth.response;
     const range = readReportRange(request);
     if (!range) {

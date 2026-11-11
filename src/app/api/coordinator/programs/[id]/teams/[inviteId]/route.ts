@@ -9,13 +9,13 @@ import {
 } from "@/lib/server/api-response";
 import { teamInviteSchema } from "@/lib/server/coordinator-program-schemas";
 import { readJsonBody } from "@/lib/server/request-body";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 
 type Params = { params: Promise<{ id: string; inviteId: string }> };
 
 export async function PUT(request: Request, { params }: Params) {
   try {
-    const auth = await requireCoordinatorSession();
+    const auth = await requireCoordinatorOrAdminSession();
     if (!auth.ok) return auth.response;
     const { id, inviteId } = await params;
     const body = await readJsonBody(request, teamInviteSchema);
@@ -32,7 +32,7 @@ export async function PUT(request: Request, { params }: Params) {
 
 export async function DELETE(_request: Request, { params }: Params) {
   try {
-    const auth = await requireCoordinatorSession();
+    const auth = await requireCoordinatorOrAdminSession();
     if (!auth.ok) return auth.response;
     const { id, inviteId } = await params;
     return backendResponse(

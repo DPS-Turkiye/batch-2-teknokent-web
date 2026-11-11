@@ -8,7 +8,7 @@ import {
   backendResponse,
 } from "@/lib/server/api-response";
 import { readJsonBody } from "@/lib/server/request-body";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 
 // Only the shape is checked here; the backend checks the link and the ten questions. The editor
 // always sends four options and a chosen answer (TrainingQuestionDraft), so anything else is refused.
@@ -27,7 +27,7 @@ type Context = { params: Promise<{ id: string }> };
 
 export async function GET(_request: NextRequest, { params }: Context) {
   try {
-    const auth = await requireCoordinatorSession();
+    const auth = await requireCoordinatorOrAdminSession();
     if (!auth.ok) return auth.response;
     const { id } = await params;
     return backendResponse(
@@ -43,7 +43,7 @@ export async function GET(_request: NextRequest, { params }: Context) {
 /** The backend validates the link and the ten questions; the actor is always the session's. */
 export async function PUT(request: NextRequest, { params }: Context) {
   try {
-    const auth = await requireCoordinatorSession();
+    const auth = await requireCoordinatorOrAdminSession();
     if (!auth.ok) return auth.response;
     const { id } = await params;
     const body = await readJsonBody(request, saveTrainingSchema);

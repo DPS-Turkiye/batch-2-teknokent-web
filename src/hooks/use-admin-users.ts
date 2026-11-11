@@ -59,12 +59,15 @@ export function useUserListFilters() {
   };
 }
 
-/** Calls onFocus once each time the `?user=` focus changes (a link from elsewhere in the admin area). */
+/**
+ * Calls onFocus once for each `?user=` focus: on the first render when the page is opened with one (a link from
+ * elsewhere in the admin area), and again whenever it changes.
+ */
 function useFocusChange(
   focusUserId: string | null,
   onFocus: (id: string | null) => void,
 ) {
-  const [seenFocus, setSeenFocus] = useState(focusUserId);
+  const [seenFocus, setSeenFocus] = useState<string | null>(null);
   if (focusUserId !== seenFocus) {
     setSeenFocus(focusUserId);
     onFocus(focusUserId);

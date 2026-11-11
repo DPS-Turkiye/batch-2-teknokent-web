@@ -10,7 +10,7 @@ import {
   backendResponse,
 } from "@/lib/server/api-response";
 import { readJsonBody } from "@/lib/server/request-body";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 
 const inviteMentorSchema = z.object({ email: z.string() });
 
@@ -18,7 +18,7 @@ type Params = { params: Promise<{ id: string }> };
 
 export async function GET(_request: Request, { params }: Params) {
   try {
-    const auth = await requireCoordinatorSession();
+    const auth = await requireCoordinatorOrAdminSession();
     if (!auth.ok) return auth.response;
     const { id } = await params;
     return backendResponse(await fetchMentorPool(auth.session.userId, id));
@@ -31,7 +31,7 @@ export async function GET(_request: Request, { params }: Params) {
 
 export async function POST(request: Request, { params }: Params) {
   try {
-    const auth = await requireCoordinatorSession();
+    const auth = await requireCoordinatorOrAdminSession();
     if (!auth.ok) return auth.response;
     const { id } = await params;
     const body = await readJsonBody(request, inviteMentorSchema);

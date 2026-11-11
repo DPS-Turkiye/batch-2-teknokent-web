@@ -11,7 +11,7 @@ import {
   deleteCoordinatorNote,
   fetchCoordinatorNotes,
 } from "@/lib/api/coordinator-notes";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 import {
   answerEachWith,
   backendResponse,
@@ -25,7 +25,7 @@ vi.mock("@/lib/api/coordinator-notes", () => ({
   fetchCoordinatorNotes: vi.fn(),
 }));
 vi.mock("@/lib/server/require-coordinator", () => ({
-  requireCoordinatorSession: vi.fn(),
+  requireCoordinatorOrAdminSession: vi.fn(),
 }));
 
 const ok = backendResponse({});
@@ -34,7 +34,7 @@ const params = (id: string) => ({ params: Promise.resolve({ id }) });
 describe("coordinator note routes", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(requireCoordinatorSession).mockResolvedValue({
+    vi.mocked(requireCoordinatorOrAdminSession).mockResolvedValue({
       ok: true,
       session: appSession({
         userId: "coordinator-1",
@@ -68,7 +68,9 @@ describe("coordinator note routes", () => {
   });
 
   it("stops at the session check", async () => {
-    vi.mocked(requireCoordinatorSession).mockResolvedValue(guardRefusal(403));
+    vi.mocked(requireCoordinatorOrAdminSession).mockResolvedValue(
+      guardRefusal(403),
+    );
 
     const response = await list(new Request("http://localhost"), params("m-1"));
 

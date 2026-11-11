@@ -9,7 +9,7 @@ import {
   exportProgramSessions,
   fetchProgramSessions,
 } from "@/lib/api/program-report";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 import { appSession } from "@test/fixtures/session";
 
 vi.mock("@/lib/api/program-report", () => ({
@@ -18,7 +18,7 @@ vi.mock("@/lib/api/program-report", () => ({
 }));
 
 vi.mock("@/lib/server/require-coordinator", () => ({
-  requireCoordinatorSession: vi.fn(),
+  requireCoordinatorOrAdminSession: vi.fn(),
 }));
 
 const params = { params: Promise.resolve({ id: "program-1" }) };
@@ -27,7 +27,7 @@ const base = "http://localhost/api/coordinator/programs/program-1/sessions";
 describe("program sessions routes", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(requireCoordinatorSession).mockResolvedValue({
+    vi.mocked(requireCoordinatorOrAdminSession).mockResolvedValue({
       ok: true,
       session: appSession({ userId: "coord-1", role: UserRole.Coordinator }),
     });

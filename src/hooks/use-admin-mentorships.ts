@@ -85,8 +85,12 @@ export function useMentorshipInterventions(
     interventionRows(data, programs, t),
     openFollowUps(follow.data ?? []),
   );
+  // A bottleneck row of a team without a mentorship has a null id too, so look only when a dialog is open.
   const notifyRow =
-    entries.find((entry) => entry.row.mentorshipId === notifyId)?.row ?? null;
+    notifyId === null
+      ? null
+      : (entries.find((entry) => entry.row.mentorshipId === notifyId)?.row ??
+        null);
   const detail = entries.find((entry) => entry.tracked?.id === detailId);
 
   return {

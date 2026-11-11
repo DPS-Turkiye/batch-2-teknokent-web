@@ -11,7 +11,7 @@ import {
   fetchStartupProcess,
   updateProcessStage,
 } from "@/lib/api/startup-process";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 import {
   answerEachWith,
   backendRefusal,
@@ -28,7 +28,7 @@ vi.mock("@/lib/api/startup-process", () => ({
   updateProcessStage: vi.fn(),
 }));
 vi.mock("@/lib/server/require-coordinator", () => ({
-  requireCoordinatorSession: vi.fn(),
+  requireCoordinatorOrAdminSession: vi.fn(),
 }));
 
 const ok = backendResponse({});
@@ -44,7 +44,7 @@ const put = (value: unknown) =>
 describe("coordinator team stage route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(requireCoordinatorSession).mockResolvedValue({
+    vi.mocked(requireCoordinatorOrAdminSession).mockResolvedValue({
       ok: true,
       session: appSession({
         userId: "coordinator-1",
@@ -90,7 +90,9 @@ describe("coordinator team stage route", () => {
   });
 
   it("refuses anyone who is not a coordinator or admin", async () => {
-    vi.mocked(requireCoordinatorSession).mockResolvedValue(guardRefusal(403));
+    vi.mocked(requireCoordinatorOrAdminSession).mockResolvedValue(
+      guardRefusal(403),
+    );
 
     expect((await PUT(put({ stage: "MARKET" }), params)).status).toBe(403);
     expect(fetchProgramTeamDetail).not.toHaveBeenCalled();

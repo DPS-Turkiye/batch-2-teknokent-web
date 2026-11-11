@@ -30,8 +30,8 @@ import * as botapi from "@/lib/botapi";
 import { Locale } from "@/lib/i18n";
 import { INSTITUTION_LOGIN_COOKIE } from "@/lib/server/institution-login-cookie";
 import { requireAdminSession } from "@/lib/server/require-admin";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 import {
-  requireCoordinatorSession,
   requireMentorSession,
   requireStartupSession,
 } from "@/lib/server/require-program-access";
@@ -59,6 +59,7 @@ vi.mock("@/lib/api/program-attendance");
 vi.mock("@/lib/api/programs");
 vi.mock("@/lib/botapi");
 vi.mock("@/lib/server/require-admin");
+vi.mock("@/lib/server/require-coordinator");
 vi.mock("@/lib/server/require-program-access");
 vi.mock("@/lib/session");
 
@@ -234,7 +235,7 @@ describe.each(cases)("$route", (bodyCase) => {
       ok: true,
       session: admin,
     });
-    vi.mocked(requireCoordinatorSession).mockResolvedValue({
+    vi.mocked(requireCoordinatorOrAdminSession).mockResolvedValue({
       ok: true,
       session: appSession({
         userId: "coordinator-1",

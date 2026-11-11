@@ -11,7 +11,7 @@ import {
   backendResponse,
 } from "@/lib/server/api-response";
 import { readJsonBody } from "@/lib/server/request-body";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 
 // Never fall back to [] here: an empty set turns every category off.
 const peerCategoriesSchema = z.object({
@@ -22,7 +22,7 @@ type Context = { params: Promise<{ id: string }> };
 
 export async function GET(_request: Request, { params }: Context) {
   try {
-    const auth = await requireCoordinatorSession();
+    const auth = await requireCoordinatorOrAdminSession();
     if (!auth.ok) return auth.response;
     const { id } = await params;
     return backendResponse(
@@ -37,7 +37,7 @@ export async function GET(_request: Request, { params }: Context) {
 
 export async function PUT(request: Request, { params }: Context) {
   try {
-    const auth = await requireCoordinatorSession();
+    const auth = await requireCoordinatorOrAdminSession();
     if (!auth.ok) return auth.response;
     const { id } = await params;
     const body = await readJsonBody(request, peerCategoriesSchema, {

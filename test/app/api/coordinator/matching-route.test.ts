@@ -4,7 +4,7 @@ import { GET as suggestions } from "@/app/api/coordinator/programs/[id]/matching
 import { GET, POST } from "@/app/api/coordinator/programs/[id]/matching/route";
 import { UserRole } from "@/interfaces/session";
 import * as api from "@/lib/api/coordinator-programs";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 import { answerEachWith, guardRefusal } from "@test/fixtures/route-handlers";
 import { appSession } from "@test/fixtures/session";
 
@@ -14,7 +14,7 @@ vi.mock("@/lib/api/coordinator-programs", () => ({
   createMatch: vi.fn(),
 }));
 vi.mock("@/lib/server/require-coordinator", () => ({
-  requireCoordinatorSession: vi.fn(),
+  requireCoordinatorOrAdminSession: vi.fn(),
 }));
 
 const program = { params: Promise.resolve({ id: "program-1" }) };
@@ -22,7 +22,7 @@ const program = { params: Promise.resolve({ id: "program-1" }) };
 describe("coordinator matching routes", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(requireCoordinatorSession).mockResolvedValue({
+    vi.mocked(requireCoordinatorOrAdminSession).mockResolvedValue({
       ok: true,
       session: appSession({ userId: "c-1", role: UserRole.Coordinator }),
     });
@@ -60,7 +60,9 @@ describe("coordinator matching routes", () => {
   });
 
   it("stops at the session check", async () => {
-    vi.mocked(requireCoordinatorSession).mockResolvedValue(guardRefusal(403));
+    vi.mocked(requireCoordinatorOrAdminSession).mockResolvedValue(
+      guardRefusal(403),
+    );
     const response = await GET(new Request("http://localhost"), program);
     expect(response.status).toBe(403);
     expect(api.fetchMatching).not.toHaveBeenCalled();

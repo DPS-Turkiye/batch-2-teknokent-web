@@ -5,14 +5,14 @@ import { exportProgramAttendance } from "@/lib/api/program-attendance";
 import { isEnumValue } from "@/lib/enum";
 import { apiErrorResponse, apiText } from "@/lib/server/api-response";
 import { readOptionalReportRange } from "@/lib/server/report-range";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const auth = await requireCoordinatorSession();
+    const auth = await requireCoordinatorOrAdminSession();
     if (!auth.ok) return auth.response;
     const range = readOptionalReportRange(request);
     const format = request.nextUrl.searchParams.get("format");

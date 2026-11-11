@@ -8,7 +8,7 @@ import {
 } from "@/lib/server/api-response";
 import { programPhaseSchema } from "@/lib/server/coordinator-program-schemas";
 import { readJsonBody, stringOrNullSchema } from "@/lib/server/request-body";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 
 const replacePhasesSchema = z.object({
   phases: z.array(programPhaseSchema),
@@ -20,7 +20,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const auth = await requireCoordinatorSession();
+    const auth = await requireCoordinatorOrAdminSession();
     if (!auth.ok) return auth.response;
     const { id } = await params;
     const body = await readJsonBody(request, replacePhasesSchema);

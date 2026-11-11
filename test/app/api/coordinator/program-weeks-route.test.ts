@@ -9,7 +9,7 @@ import {
   replaceProgramWeekPlan,
 } from "@/lib/api/program-weeks";
 import { HttpMethod } from "@/lib/http-method";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 import { backendResponse, guardRefusal } from "@test/fixtures/route-handlers";
 import { appSession } from "@test/fixtures/session";
 
@@ -18,7 +18,7 @@ vi.mock("@/lib/api/program-weeks", () => ({
   replaceProgramWeekPlan: vi.fn(),
 }));
 vi.mock("@/lib/server/require-coordinator", () => ({
-  requireCoordinatorSession: vi.fn(),
+  requireCoordinatorOrAdminSession: vi.fn(),
 }));
 
 const context = { params: Promise.resolve({ id: "program-1" }) };
@@ -45,7 +45,7 @@ function put(body: unknown) {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(requireCoordinatorSession).mockResolvedValue({
+  vi.mocked(requireCoordinatorOrAdminSession).mockResolvedValue({
     ok: true,
     session: appSession({
       userId: "coordinator-1",
@@ -58,7 +58,9 @@ beforeEach(() => {
 
 describe("coordinator weekly plan proxy", () => {
   it("stops at the coordinator check for reading and saving", async () => {
-    vi.mocked(requireCoordinatorSession).mockResolvedValue(guardRefusal(403));
+    vi.mocked(requireCoordinatorOrAdminSession).mockResolvedValue(
+      guardRefusal(403),
+    );
 
     expect(
       (await GET(new NextRequest("http://localhost"), context)).status,

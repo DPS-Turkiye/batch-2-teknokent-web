@@ -18,7 +18,7 @@ import {
   remindMeetingProposal,
   withdrawMeetingProposal,
 } from "@/lib/api/meeting-proposals";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 import { getSessionIds } from "@/lib/session";
 import {
   answerEachWith,
@@ -37,7 +37,7 @@ vi.mock("@/lib/api/meeting-proposals", () => ({
   withdrawMeetingProposal: vi.fn(),
 }));
 vi.mock("@/lib/server/require-coordinator", () => ({
-  requireCoordinatorSession: vi.fn(),
+  requireCoordinatorOrAdminSession: vi.fn(),
 }));
 vi.mock("@/lib/session", () => ({ getSessionIds: vi.fn() }));
 
@@ -47,7 +47,7 @@ const params = (id: string) => ({ params: Promise.resolve({ id }) });
 describe("meeting proposal routes", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(requireCoordinatorSession).mockResolvedValue({
+    vi.mocked(requireCoordinatorOrAdminSession).mockResolvedValue({
       ok: true,
       session: appSession({
         userId: "coordinator-1",
@@ -110,7 +110,9 @@ describe("meeting proposal routes", () => {
   });
 
   it("stops coordinator routes at the session check", async () => {
-    vi.mocked(requireCoordinatorSession).mockResolvedValue(guardRefusal(403));
+    vi.mocked(requireCoordinatorOrAdminSession).mockResolvedValue(
+      guardRefusal(403),
+    );
 
     const response = await remind(
       new Request("http://localhost"),

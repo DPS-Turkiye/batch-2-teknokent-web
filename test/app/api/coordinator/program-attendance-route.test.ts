@@ -9,7 +9,7 @@ import {
   exportProgramAttendance,
   fetchProgramAttendance,
 } from "@/lib/api/program-attendance";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 import { answerEachWith, guardRefusal } from "@test/fixtures/route-handlers";
 import { appSession } from "@test/fixtures/session";
 
@@ -19,7 +19,7 @@ vi.mock("@/lib/api/program-attendance", () => ({
 }));
 
 vi.mock("@/lib/server/require-coordinator", () => ({
-  requireCoordinatorSession: vi.fn(),
+  requireCoordinatorOrAdminSession: vi.fn(),
 }));
 
 const params = { params: Promise.resolve({ id: "program-1" }) };
@@ -28,7 +28,7 @@ const url = "http://localhost/api/coordinator/programs/program-1/attendance";
 describe("coordinator attendance routes", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(requireCoordinatorSession).mockResolvedValue({
+    vi.mocked(requireCoordinatorOrAdminSession).mockResolvedValue({
       ok: true,
       session: appSession({ userId: "coord-1", role: UserRole.Coordinator }),
     });
@@ -109,7 +109,9 @@ describe("coordinator attendance routes", () => {
   });
 
   it("stops anyone who is not a coordinator or admin", async () => {
-    vi.mocked(requireCoordinatorSession).mockResolvedValue(guardRefusal(403));
+    vi.mocked(requireCoordinatorOrAdminSession).mockResolvedValue(
+      guardRefusal(403),
+    );
 
     expect((await GET(new NextRequest(url), params)).status).toBe(403);
     expect(

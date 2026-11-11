@@ -34,10 +34,6 @@ async function requireRole(
   return { ok: true, session };
 }
 
-export function requireCoordinatorSession() {
-  return requireRole(UserRole.Coordinator, "coordinatorsOnlyManage");
-}
-
 export function requireMentorSession() {
   return requireRole(UserRole.Mentor, "mentorsOnlyAction");
 }
@@ -75,7 +71,7 @@ export async function requireStartupSession() {
   return { ok: true as const, session };
 }
 
-export async function requireCoordinatorOrMentorSession() {
+export async function requireCoordinatorMentorOrAdminSession() {
   const session = await getSessionUser();
   if (!session) {
     return {

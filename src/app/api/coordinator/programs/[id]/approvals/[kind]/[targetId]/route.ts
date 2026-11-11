@@ -9,7 +9,7 @@ import {
   backendResponse,
 } from "@/lib/server/api-response";
 import { readJsonBody } from "@/lib/server/request-body";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 
 const decisionSchema = z.object({ accepted: z.boolean() });
 
@@ -24,7 +24,7 @@ export async function POST(
   }: { params: Promise<{ id: string; kind: string; targetId: string }> },
 ) {
   try {
-    const auth = await requireCoordinatorSession();
+    const auth = await requireCoordinatorOrAdminSession();
     if (!auth.ok) return auth.response;
     const { id, kind, targetId } = await params;
     if (!isApprovalKind(kind)) {

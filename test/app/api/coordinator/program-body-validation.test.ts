@@ -32,7 +32,7 @@ import * as proposals from "@/lib/api/meeting-proposals";
 import * as announcements from "@/lib/api/program-announcements";
 import * as peerCategories from "@/lib/api/program-peer-categories";
 import * as training from "@/lib/api/training";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 import {
   answerAllWith200,
   itChecksTheBody,
@@ -48,7 +48,7 @@ vi.mock("@/lib/api/program-announcements");
 vi.mock("@/lib/api/program-peer-categories");
 vi.mock("@/lib/api/training");
 vi.mock("@/lib/server/require-coordinator", () => ({
-  requireCoordinatorSession: vi.fn(),
+  requireCoordinatorOrAdminSession: vi.fn(),
 }));
 
 const program = { params: Promise.resolve({ id: "program-1" }) };
@@ -412,7 +412,7 @@ const cases: BodyCase[] = [
 describe.each(cases)("$route", (bodyCase) => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(requireCoordinatorSession).mockResolvedValue({
+    vi.mocked(requireCoordinatorOrAdminSession).mockResolvedValue({
       ok: true,
       session: appSession({ userId: ME, role: UserRole.Coordinator }),
     });

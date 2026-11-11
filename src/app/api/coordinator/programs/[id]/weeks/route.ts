@@ -11,7 +11,7 @@ import {
   backendResponse,
 } from "@/lib/server/api-response";
 import { readJsonBody } from "@/lib/server/request-body";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 
 /** Each line is trimmed and blank ones are dropped. */
 const linesSchema = z
@@ -41,7 +41,7 @@ type Context = { params: Promise<{ id: string }> };
 
 export async function GET(_request: NextRequest, { params }: Context) {
   try {
-    const auth = await requireCoordinatorSession();
+    const auth = await requireCoordinatorOrAdminSession();
     if (!auth.ok) return auth.response;
     const { id } = await params;
     return backendResponse(await fetchProgramWeekPlan(auth.session.userId, id));
@@ -55,7 +55,7 @@ export async function GET(_request: NextRequest, { params }: Context) {
 /** The whole plan is replaced; the backend checks week numbers against the program's length. */
 export async function PUT(request: NextRequest, { params }: Context) {
   try {
-    const auth = await requireCoordinatorSession();
+    const auth = await requireCoordinatorOrAdminSession();
     if (!auth.ok) return auth.response;
     const { id } = await params;
     const body = await readJsonBody(request, weekPlanSchema);

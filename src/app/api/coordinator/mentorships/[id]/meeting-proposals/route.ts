@@ -7,7 +7,7 @@ import {
   backendResponse,
 } from "@/lib/server/api-response";
 import { readJsonBody, stringOrNullSchema } from "@/lib/server/request-body";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 
 const proposeMeetingSchema = z.object({
   scheduledAt: z.string(),
@@ -21,7 +21,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const auth = await requireCoordinatorSession();
+    const auth = await requireCoordinatorOrAdminSession();
     if (!auth.ok) return auth.response;
     const { id } = await params;
     const body = await readJsonBody(request, proposeMeetingSchema);

@@ -12,7 +12,7 @@ import {
   backendResponse,
 } from "@/lib/server/api-response";
 import { readJsonBody } from "@/lib/server/request-body";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 
 type Params = { params: Promise<{ id: string; organizationId: string }> };
 
@@ -23,7 +23,7 @@ const stageBodySchema = z.object({ stage: z.enum(StartupStage) });
  * (or admin) whose program the team is in may, so the team lookup runs first.
  */
 async function requireProgramTeam({ params }: Params) {
-  const auth = await requireCoordinatorSession();
+  const auth = await requireCoordinatorOrAdminSession();
   if (!auth.ok) return auth;
   const { id, organizationId } = await params;
   const team = await fetchProgramTeamDetail(

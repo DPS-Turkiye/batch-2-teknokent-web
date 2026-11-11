@@ -7,7 +7,7 @@ import {
   backendResponse,
 } from "@/lib/server/api-response";
 import { readJsonBody } from "@/lib/server/request-body";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 
 const decisionSchema = z.object({ accepted: z.boolean() });
 
@@ -16,7 +16,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string; mentorId: string }> },
 ) {
   try {
-    const auth = await requireCoordinatorSession();
+    const auth = await requireCoordinatorOrAdminSession();
     if (!auth.ok) return auth.response;
     const { id, mentorId } = await params;
     const body = await readJsonBody(request, decisionSchema);

@@ -57,18 +57,19 @@ That is the whole job: **authenticate, validate, forward, map errors.** If a han
   `{ ok: false, response }`:
 
   ```ts
-  const auth = await requireCoordinatorSession();
+  const auth = await requireCoordinatorOrAdminSession();
   if (!auth.ok) return auth.response;
   ```
 
-  | Guard                                                  | Admits                      |
-  | ------------------------------------------------------ | --------------------------- |
-  | `requireAdminSession` (`require-admin`)                | admins                      |
-  | `requireCoordinatorSession` (`require-coordinator`)    | coordinators **and admins** |
-  | `requireCoordinatorSession` (`require-program-access`) | coordinators only           |
-  | `requireMentorSession` (`require-program-access`)      | mentors                     |
+  | Guard                                                                  | Admits                           |
+  | ---------------------------------------------------------------------- | -------------------------------- |
+  | `requireAdminSession` (`require-admin`)                                | admins                           |
+  | `requireCoordinatorOrAdminSession(forbidden?)` (`require-coordinator`) | coordinators and admins          |
+  | `requireCoordinatorMentorOrAdminSession` (`require-program-access`)    | coordinators, mentors and admins |
+  | `requireMentorSession` (`require-program-access`)                      | mentors                          |
+  | `requireStartupSession` (`require-program-access`)                     | members of a startup             |
 
-  The two guards named `requireCoordinatorSession` behave differently. Check which file you import from.
+  The guard's name says who it admits. `forbidden` picks the 403 message for a screen that needs its own wording.
 
 - **Never trust an id from the browser as the actor.** The acting user's id (`actorId`, `userId`) always comes from
   the session. Ids in the URL or body name the _target_ (which meeting, which program); the backend checks the actor

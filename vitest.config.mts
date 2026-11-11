@@ -34,10 +34,10 @@ export default defineConfig({
       // A floor just under the measured coverage: a change that drops it fails CI.
       // Raise these as coverage grows; never lower them to make a change pass.
       thresholds: {
-        statements: 87,
+        statements: 88,
         branches: 80,
         functions: 86,
-        lines: 88,
+        lines: 89,
       },
     },
   },

@@ -6,12 +6,12 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 import { ISO_DAY_PATTERN } from "@/lib/utils";
 
 export async function GET(request: NextRequest) {
   try {
-    const auth = await requireCoordinatorSession();
+    const auth = await requireCoordinatorOrAdminSession();
     if (!auth.ok) return auth.response;
     const search = request.nextUrl.searchParams;
     const from = search.get("from") ?? "";

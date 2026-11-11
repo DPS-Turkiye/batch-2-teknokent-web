@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GET } from "@/app/api/coordinator/overview/route";
 import { UserRole } from "@/interfaces/session";
 import { fetchCoordinatorOverview } from "@/lib/api/coordinator-overview";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 import { guardRefusal } from "@test/fixtures/route-handlers";
 import { appSession } from "@test/fixtures/session";
 
@@ -13,7 +13,7 @@ vi.mock("@/lib/api/coordinator-overview", () => ({
 }));
 
 vi.mock("@/lib/server/require-coordinator", () => ({
-  requireCoordinatorSession: vi.fn(),
+  requireCoordinatorOrAdminSession: vi.fn(),
 }));
 
 function get(query = "") {
@@ -26,7 +26,7 @@ describe("GET /api/coordinator/overview", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("asks as the signed-in coordinator and passes the program through", async () => {
-    vi.mocked(requireCoordinatorSession).mockResolvedValue({
+    vi.mocked(requireCoordinatorOrAdminSession).mockResolvedValue({
       ok: true,
       session: appSession({
         userId: "coordinator-1",
@@ -53,7 +53,9 @@ describe("GET /api/coordinator/overview", () => {
   });
 
   it("stops at the session check", async () => {
-    vi.mocked(requireCoordinatorSession).mockResolvedValue(guardRefusal(403));
+    vi.mocked(requireCoordinatorOrAdminSession).mockResolvedValue(
+      guardRefusal(403),
+    );
 
     expect((await get()).status).toBe(403);
     expect(fetchCoordinatorOverview).not.toHaveBeenCalled();

@@ -11,7 +11,7 @@ import {
   fetchProgramAnnouncements,
   postProgramAnnouncement,
 } from "@/lib/api/program-announcements";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 import { getSessionIds } from "@/lib/session";
 import { answerEachWith, backendResponse } from "@test/fixtures/route-handlers";
 import { appSession } from "@test/fixtures/session";
@@ -22,7 +22,7 @@ vi.mock("@/lib/api/program-announcements", () => ({
   postProgramAnnouncement: vi.fn(),
 }));
 vi.mock("@/lib/server/require-coordinator", () => ({
-  requireCoordinatorSession: vi.fn(),
+  requireCoordinatorOrAdminSession: vi.fn(),
 }));
 vi.mock("@/lib/session", () => ({ getSessionIds: vi.fn() }));
 
@@ -32,7 +32,7 @@ const params = { params: Promise.resolve({ id: "program-1" }) };
 describe("program announcement routes", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(requireCoordinatorSession).mockResolvedValue({
+    vi.mocked(requireCoordinatorOrAdminSession).mockResolvedValue({
       ok: true,
       session: appSession({
         userId: "coordinator-1",
