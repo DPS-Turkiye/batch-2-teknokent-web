@@ -75,7 +75,9 @@ export const useProductTourStore = create<ProductTourStore>()((set, get) => {
       dismiss: (role) => {
         const { dismissed } = get();
         set({
-          dismissed: dismissed.includes(role) ? dismissed : [...dismissed, role],
+          dismissed: dismissed.includes(role)
+            ? dismissed
+            : [...dismissed, role],
         });
         save(null);
       },
