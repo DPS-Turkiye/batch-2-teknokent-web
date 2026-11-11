@@ -30,7 +30,11 @@ describe("profile reads", () => {
     await fetchUserProfile("user-9", "user-9", "token-9");
 
     expect(backendRequest).toHaveBeenCalledWith(
-      expect.objectContaining({ params: { actorId: "user-9" } }),
+      {
+        method: HttpMethod.Get,
+        url: "/api/users/user-9/profile",
+        params: { actorId: "user-9" },
+      },
       { idToken: "token-9" },
     );
   });
