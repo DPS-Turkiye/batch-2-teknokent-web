@@ -40,6 +40,7 @@ const syllabus: ProgramSyllabus = {
   filename: "mufredat.pdf",
   sizeBytes: 2048,
   uploadedAt: "2026-11-01T09:00:00Z",
+  kind: DocumentKind.Syllabus,
 };
 const pdf = new File(["%PDF"], "mufredat.pdf", { type: "application/pdf" });
 

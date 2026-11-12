@@ -157,6 +157,19 @@ describe("AssistantPage integration", () => {
     });
   });
 
+  it("keeps a pasted link and warns when it is not a meeting in the calendar", async () => {
+    const user = userEvent.setup();
+    render(<AssistantPage />);
+
+    const box = screen.getByPlaceholderText("Toplantı linki yapıştır…");
+    await user.type(box, "https://meet.google.com/zzz-zzzz-zzz");
+
+    expect(box).toHaveValue("https://meet.google.com/zzz-zzzz-zzz");
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Bu bağlantı takviminde bir toplantıya ait değil; asistan yalnızca Menton takvimindeki toplantılara katılabilir.",
+    );
+  });
+
   it("stops an added meeting then generates a report from the transcript", async () => {
     const user = userEvent.setup();
     const segments = [
