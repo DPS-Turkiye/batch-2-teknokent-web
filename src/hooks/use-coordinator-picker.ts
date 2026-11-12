@@ -101,10 +101,8 @@ export function useCoordinatorPicker({
 
   return {
     query,
-    setQuery: (value: string) => {
-      setQuery(value);
-      setInviteName("");
-    },
+    // The typed name stays while the e-mail is corrected; a pick or an invite clears both.
+    setQuery,
     tooShort: query.trim().length > 0 && !isSearchable(query),
     searching:
       (isSearchable(query) && !settled) ||

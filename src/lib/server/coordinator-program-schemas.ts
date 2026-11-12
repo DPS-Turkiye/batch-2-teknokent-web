@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { ProgramEventKind } from "@/interfaces/coordinator-program";
 import { ProgramType } from "@/interfaces/program";
+import { normalizeEmail } from "@/lib/coordinator-picker";
 import { stringOrNullSchema } from "@/lib/server/request-body";
 
 /** A program rule left out or sent as null keeps the backend's default or the saved value. */
@@ -44,6 +45,12 @@ export const createProgramSchema = z.object({
       }),
     )
     .max(10)
+    // The picker never sends an e-mail twice; a body that does is refused rather than quietly merged.
+    .refine(
+      (invites) =>
+        new Set(invites.map((invite) => normalizeEmail(invite.email))).size ===
+        invites.length,
+    )
     .default([]),
   defaultMentorCapacity: optionalNumberSchema,
   meetingFrequencyDays: optionalNumberSchema,

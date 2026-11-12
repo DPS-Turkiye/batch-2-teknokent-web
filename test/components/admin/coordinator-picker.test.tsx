@@ -144,28 +144,29 @@ describe("CoordinatorPicker", () => {
     expect(screen.getByText("Davet edilecek")).toBeInTheDocument();
   });
 
-  it("forgets a typed name when the e-mail changes, and returns focus to the field", async () => {
+  it("keeps the typed name while a typo in the e-mail is fixed, then clears both on invite", async () => {
     const clicker = userEvent.setup();
     renderWithQueryClient(<Harness />);
 
-    await clicker.type(emailField(), "yeni@teknokent.org");
-    await clicker.type(
-      await screen.findByLabelText("Ad soyad", {}, { timeout: PICKER_WAIT }),
-      "Yanlış Kişi",
-    );
-    await clicker.type(emailField(), "x");
+    await clicker.type(emailField(), "yeni@teknokent.og");
+    await clicker.type(await screen.findByLabelText("Ad soyad"), "Yeni Kişi");
     await clicker.clear(emailField());
     await clicker.type(emailField(), "yeni@teknokent.org");
-    expect(
-      await screen.findByLabelText("Ad soyad", {}, { timeout: PICKER_WAIT }),
-    ).toHaveValue("");
+    expect(await screen.findByLabelText("Ad soyad")).toHaveValue("Yeni Kişi");
 
-    await clicker.type(screen.getByLabelText("Ad soyad"), "Yeni Kişi{Enter}");
+    await clicker.type(screen.getByLabelText("Ad soyad"), "{Enter}");
 
     expect(changes).toHaveBeenLastCalledWith([
       invitedChoice("yeni@teknokent.org", "Yeni Kişi"),
     ]);
+    expect(getCoordinatorCandidate).toHaveBeenLastCalledWith(
+      "yeni@teknokent.org",
+    );
     expect(emailField()).toHaveFocus();
+    expect(emailField()).toHaveValue("");
+
+    await clicker.type(emailField(), "baska@teknokent.org");
+    expect(await screen.findByLabelText("Ad soyad")).toHaveValue("");
   });
 
   it.each([
