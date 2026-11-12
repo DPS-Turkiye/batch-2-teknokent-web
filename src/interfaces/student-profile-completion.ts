@@ -21,8 +21,9 @@ export type ProfileCompletionCategory = {
   }[];
 };
 
+/** The wizard's screens, in order: ODTÜ record + photo, support topics with their sub-topics, the goal. */
 export enum ProfileCompletionStep {
+  Welcome,
   Topics,
-  Subtopics,
   Goal,
 }
