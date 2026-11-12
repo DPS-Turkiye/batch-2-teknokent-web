@@ -73,6 +73,23 @@ function restoreFromPayload(saved: unknown): {
   };
 }
 
+/**
+ * Where a restored draft resumes. One saved past the startup step without a complete startup (the removed
+ * "create it later", or an individual program saved before it was marked) goes back to that step, which asks
+ * for the startup or marks the program.
+ */
+function resumeStep(saved: SignupStep, draft: SignupDraft) {
+  const { programId, individualProgram, name, tagline } = draft.startup;
+  const startupDone = Boolean(
+    programId &&
+    (individualProgram === true || (name.trim() && tagline.trim())),
+  );
+  const pastStartup =
+    SIGNUP_STEP_ORDER.indexOf(saved) >
+    SIGNUP_STEP_ORDER.indexOf(SignupStep.StartupProfile);
+  return pastStartup && !startupDone ? SignupStep.StartupProfile : saved;
+}
+
 export function useSignupWizard(
   options: { onSubmit?: (draft: SignupDraft) => Promise<void> } = {},
 ) {
@@ -89,7 +106,9 @@ export function useSignupWizard(
     setDraft(restored.draft);
     setDroppedFiles(restored.droppedFiles);
     const nextStep = Number(saved.step);
-    if (isOneOf(SIGNUP_STEP_ORDER, nextStep)) setStep(nextStep);
+    if (isOneOf(SIGNUP_STEP_ORDER, nextStep)) {
+      setStep(resumeStep(nextStep, restored.draft));
+    }
   }, []);
 
   // The saved draft keeps its shape: the rows' React keys stay in the browser.
@@ -139,13 +158,13 @@ export function useSignupWizard(
 
   const editors = useStartupDraftEditors(setDraft);
 
-  // Without a startup there are no startup files to ask for.
+  // An individual program (İŞKUR) has no startup, so no startup files to ask for.
   const steps = useMemo(
     () =>
-      draft.startup.startupLater
+      draft.startup.individualProgram
         ? SIGNUP_STEP_ORDER.filter((item) => item !== SignupStep.Documents)
         : SIGNUP_STEP_ORDER,
-    [draft.startup.startupLater],
+    [draft.startup.individualProgram],
   );
 
   // A step is a new page to the applicant, so it should start at its heading
@@ -201,9 +220,10 @@ export function useSignupWizard(
       return Boolean(firstName.trim() && lastName.trim() && role.trim());
     }
     if (step === SignupStep.StartupProfile) {
-      const { name, tagline, programId, startupLater } = draft.startup;
+      const { name, tagline, programId, individualProgram } = draft.startup;
       return Boolean(
-        programId && (startupLater === true || (name.trim() && tagline.trim())),
+        programId &&
+        (individualProgram === true || (name.trim() && tagline.trim())),
       );
     }
     if (step === SignupStep.Review) return draft.consent;
