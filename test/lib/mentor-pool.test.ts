@@ -10,6 +10,7 @@ import {
   PoolFilter,
   poolFilterOptions,
   poolRowNote,
+  profileMentorId,
 } from "@/lib/mentor-pool";
 import { translatorIn } from "@test/translators";
 
@@ -119,5 +120,25 @@ describe("mentor pool helpers", () => {
     expect(mentorInviteLink("abc", "https://menton.com.tr")).toBe(
       "https://menton.com.tr/signup?role=mentor&programInvite=abc",
     );
+  });
+});
+
+describe("profileMentorId", () => {
+  it("opens profiles only where the backend shows them", () => {
+    expect(profileMentorId(row())).toBe("mentor-1");
+    expect(profileMentorId(row({ status: MentorPoolStatus.Full }))).toBe(
+      "mentor-1",
+    );
+    expect(
+      profileMentorId(row({ status: MentorPoolStatus.AwaitingApproval })),
+    ).toBe("mentor-1");
+    for (const status of [
+      MentorPoolStatus.Invited,
+      MentorPoolStatus.InviteExpiring,
+      MentorPoolStatus.InviteExpired,
+    ]) {
+      expect(profileMentorId(row({ status }))).toBeNull();
+    }
+    expect(profileMentorId(row({ mentorId: null }))).toBeNull();
   });
 });

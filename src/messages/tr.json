@@ -326,7 +326,8 @@
     "individualProgram": "Bu programa bireysel katılıyorsun; startup bilgisi gerekmez.",
     "programEligibilityChecking": "Bu programa katılıp katılamayacağın kontrol ediliyor…",
     "programEligibilityRefused": "Bu programa bu e-posta adresiyle katılamazsın. Program koordinatörüne başvur ya da başka bir program seç.",
-    "stageSubtitle": "Doğru mentorla eşleşmen için en belirleyici bilgi."
+    "stageSubtitle": "Doğru mentorla eşleşmen için en belirleyici bilgi.",
+    "cvManual": "Bu sistemde CV otomatik okunmuyor; dosyan yalnızca kaydedilir. Bilgilerini yukarıya kendin gir."
   },
   "signupDocuments": {
     "canvasSubtitle": "İş modelini tek sayfada özetleyen doküman.",
@@ -509,7 +510,9 @@
     "offeringPlaceholder": "Örn. Değer önerisini netleştirme",
     "cancel": "Vazgeç",
     "add": "Ekle",
-    "noOfferings": "Henüz madde eklemedin."
+    "noOfferings": "Henüz madde eklemedin.",
+    "uploadOnlyHint": "Bu sistemde CV otomatik okunmuyor; dosyan yalnızca kaydedilir, bilgilerini bir sonraki adımda kendin girersin.",
+    "uploading": "CV yükleniyor…"
   },
   "mentorAvailability": {
     "weekly": "Haftalık uygunluk",
@@ -819,7 +822,8 @@
       "mentors": "Mentörler",
       "programs": "Programlar",
       "applications": "Başvurular",
-      "project": "Projem"
+      "project": "Projem",
+      "assistant": "Asistan"
     },
     "mainMenu": "Ana menü",
     "openMenu": "Menüyü aç",
@@ -2231,7 +2235,8 @@
     "fill": "Profili CV'den doldur",
     "needPdf": "Profili doldurmak için CV'ni PDF olarak yükle.",
     "uploading": "CV yükleniyor…",
-    "reading": "CV okunuyor, alanların dolduruluyor…"
+    "reading": "CV okunuyor, alanların dolduruluyor…",
+    "manual": "Bu sistemde CV otomatik okunmuyor; dosyan yalnızca kaydedilir. Profil bilgilerini kendin gir."
   },
   "editableChips": {
     "add": "Ekle…",
@@ -3334,7 +3339,8 @@
       "risks": "Riskler / engeller",
       "nextSteps": "Sonraki adımlar",
       "none": "Belirtilmedi."
-    }
+    },
+    "reportOff": "Bu sistemde toplantı raporu üretilmiyor; yalnızca transkript tutulur."
   },
   "roleFrame": {
     "soon": "Yakında",
@@ -5984,7 +5990,8 @@
     "programThisWeekLoadFailed": "Bu haftanın planı yüklenemedi.",
     "sessionRefreshFailed": "Oturum bilgilerin güncellenemedi.",
     "personSummaryLoadFailed": "Profil yüklenemedi.",
-    "personIdInvalid": "Geçerli bir kişi seçin."
+    "personIdInvalid": "Geçerli bir kişi seçin.",
+    "aiFeaturesLoadFailed": "Yapay zekâ ayarları yüklenemedi."
   },
   "startupStart": {
     "title": "Startup'ım",
@@ -6096,7 +6103,8 @@
     "readFailed": "Müfredat okunamadı.",
     "uploadFailed": "Dosya yüklenemedi.",
     "pdfOnly": "Yalnızca PDF yükleyebilirsin.",
-    "tooLarge": "Dosya en fazla 10 MB olabilir."
+    "tooLarge": "Dosya en fazla 10 MB olabilir.",
+    "manualHint": "Bu sistemde müfredat dosyası otomatik okunmuyor; fazları burada, haftaları Haftalık plan'da elle ekle."
   },
   "teamHistory": {
     "show": "Takım geçmişi",
@@ -6473,12 +6481,6 @@
     }
   },
   "academicianWorkspace": {
-    "sampleNotice": "Örnek veriler gösteriliyor: Office Hours henüz bağlı değil, burada yaptığın değişiklikler kaydedilmez.",
-    "queryState": {
-      "loading": "Yükleniyor…",
-      "error": "Yüklenemedi.",
-      "retry": "Tekrar dene"
-    },
     "studyLevel": {
       "BACHELOR": "Lisans",
       "MASTER": "Yüksek lisans",
@@ -6548,11 +6550,6 @@
       "question": "Öğrenciye sorun",
       "needTime": "En az bir saat seç.",
       "needQuestion": "Sorunu yaz.",
-      "accepted": "Talep kabul edildi; randevu Randevularım'da.",
-      "declined": "Talep reddedildi.",
-      "proposed": "Önerdiğin saatler öğrenciye gönderildi.",
-      "asked": "Sorun öğrenciye gönderildi.",
-      "failed": "Talep yanıtlanamadı; liste yenilendi.",
       "noteLabel": "Öğrencinin notu",
       "proposedPast": "Geçmiş bir saat önerilemez.",
       "pickOne": "Bir saat seç."
@@ -6607,26 +6604,6 @@
       "oneOffFailed": "Tek seferlik saatler kaydedilemedi.",
       "insideDayOff": "Bu tarih uygun olmadığın tarihler arasında. Önce o tarihleri kaldır.",
       "insideDayOffReason": "Bu tarih uygun olmadığın tarihler arasında ({reason}). Önce o tarihleri kaldır."
-    },
-    "home": {
-      "greeting": "Merhaba, {name}",
-      "greetingFallback": "Merhaba",
-      "subtitle": "Ofis saati taleplerin, randevuların ve danışan öğrencilerin.",
-      "pendingTitle": "Yanıt bekleyen talep",
-      "pendingHint": "Kabul et, reddet ya da başka saat öner.",
-      "pendingLink": "Taleplere git",
-      "weekTitle": "Önümüzdeki 7 günde randevu",
-      "weekHint": "Onaylanmış ofis saati randevuları.",
-      "weekLink": "Randevularım",
-      "adviseesTitle": "Danışan öğrenci",
-      "adviseesHint": "ODTÜ kayıtlarından.",
-      "adviseesLink": "Danışan Öğrencilerim",
-      "nextTitle": "Sıradaki randevular",
-      "nextEmpty": "Yaklaşan randevun yok.",
-      "requestsTitle": "Son talepler",
-      "requestsEmpty": "Yanıt bekleyen talep yok.",
-      "seeAll": "Tümünü gör",
-      "calendarLink": "Ofis saatlerini düzenle"
     }
   },
   "programPeerCategories": {
@@ -6781,6 +6758,8 @@
     "activity": "Menton'da",
     "activeMentees": "Aktif girişim",
     "completedMentorships": "Tamamlanan mentorluk",
-    "registered": "Kayıt tarihi"
+    "registered": "Kayıt tarihi",
+    "open": "Profili gör",
+    "openFor": "Profili gör: {name}"
   }
 }
