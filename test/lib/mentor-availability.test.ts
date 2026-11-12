@@ -10,6 +10,7 @@ import {
   stepNumberValue,
   toAvailabilityDraft,
   toAvailabilityPayload,
+  weekdayOf,
   type AvailabilityDraft,
   type AvailabilityRange,
 } from "@/lib/mentor-availability";
@@ -325,5 +326,12 @@ describe("toAvailabilityPayload", () => {
       defaultMeetingDurationMinutes: 45,
       meetingBufferMinutes: 15,
     });
+  });
+});
+
+describe("weekdayOf", () => {
+  it("counts the week from Monday, with Sunday last", () => {
+    expect(weekdayOf(new Date(2026, 10, 9))).toBe(Weekday.Monday);
+    expect(weekdayOf(new Date(2026, 10, 15))).toBe(Weekday.Sunday);
   });
 });

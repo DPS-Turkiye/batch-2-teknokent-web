@@ -30,71 +30,83 @@ export function StartupProfileImport() {
         <h2 className={cardHeadingClass}>{labels("importTitle")}</h2>
         <p className="mt-1 text-xs text-[#676e78]">{labels("importHint")}</p>
       </div>
-      <fieldset disabled={form.isPending} className="space-y-4">
-        <FileDrop
-          key={form.inputVersion}
-          label={labels("upload")}
-          accept="application/pdf,.pdf"
-          maxBytes={PROFILE_ANALYSIS_MAX_BYTES}
-          helpText={t("pdfOnly")}
-          file={
-            form.file ? { name: form.file.name, size: form.file.size } : null
-          }
-          onChange={(picked) => form.chooseFile(picked?.file ?? null)}
-        />
-        <details className="group rounded-xl border border-[#edf0f2] bg-[#fcfcfd] px-3.5 py-3 text-sm text-[#4a5059]">
-          <summary className="flex cursor-pointer list-none items-center justify-between text-xs font-medium text-[#3c424a]">
-            {labels("advanced")}
-            <ChevronDown className="size-4 text-[#858c96] transition group-open:rotate-180" />
-          </summary>
-          <div className="mt-3 space-y-2">
-            <p className="text-xs font-medium text-[#676e78]">
-              {t("ocrLevel")}
-            </p>
-            <div role="radiogroup" className="flex flex-wrap gap-2">
-              {Object.values(ProfileOcrMode).map((mode) => (
-                <label
-                  key={mode}
-                  className="flex cursor-pointer items-center gap-2 rounded-lg border border-[#e4e7ea] bg-white px-3 py-1.5 text-xs has-[:checked]:border-[#e86f22] has-[:checked]:text-[#c85816]"
-                >
-                  <input
-                    type="radio"
-                    name={ocrName}
-                    value={mode}
-                    checked={mode === form.ocrMode}
-                    onChange={() => form.setOcrMode(mode)}
-                    className="accent-[#e86f22]"
-                  />
-                  {t(`ocr.${mode}`)}
-                </label>
-              ))}
-            </div>
-            <p className="text-[11px] text-[#858c96]">{t("ocrHint")}</p>
+      {form.canRead ? null : (
+        <>
+          {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+          <p className="text-xs text-[#676e78]">{labels("readOff")}</p>
+        </>
+      )}
+      {form.canRead ? (
+        <>
+          <fieldset disabled={form.isPending} className="space-y-4">
+            <FileDrop
+              key={form.inputVersion}
+              label={labels("upload")}
+              accept="application/pdf,.pdf"
+              maxBytes={PROFILE_ANALYSIS_MAX_BYTES}
+              helpText={t("pdfOnly")}
+              file={
+                form.file
+                  ? { name: form.file.name, size: form.file.size }
+                  : null
+              }
+              onChange={(picked) => form.chooseFile(picked?.file ?? null)}
+            />
+            <details className="group rounded-xl border border-[#edf0f2] bg-[#fcfcfd] px-3.5 py-3 text-sm text-[#4a5059]">
+              <summary className="flex cursor-pointer list-none items-center justify-between text-xs font-medium text-[#3c424a]">
+                {labels("advanced")}
+                <ChevronDown className="size-4 text-[#858c96] transition group-open:rotate-180" />
+              </summary>
+              <div className="mt-3 space-y-2">
+                <p className="text-xs font-medium text-[#676e78]">
+                  {t("ocrLevel")}
+                </p>
+                <div role="radiogroup" className="flex flex-wrap gap-2">
+                  {Object.values(ProfileOcrMode).map((mode) => (
+                    <label
+                      key={mode}
+                      className="flex cursor-pointer items-center gap-2 rounded-lg border border-[#e4e7ea] bg-white px-3 py-1.5 text-xs has-[:checked]:border-[#e86f22] has-[:checked]:text-[#c85816]"
+                    >
+                      <input
+                        type="radio"
+                        name={ocrName}
+                        value={mode}
+                        checked={mode === form.ocrMode}
+                        onChange={() => form.setOcrMode(mode)}
+                        className="accent-[#e86f22]"
+                      />
+                      {t(`ocr.${mode}`)}
+                    </label>
+                  ))}
+                </div>
+                <p className="text-[11px] text-[#858c96]">{t("ocrHint")}</p>
+              </div>
+            </details>
+            <OnboardingConsent
+              tone={OnboardingTone.Mentee}
+              checked={form.consent}
+              onChange={form.setConsent}
+            >
+              {t("consent")}
+            </OnboardingConsent>
+            <p className="text-[11px] text-[#858c96]">{t("localOnly")}</p>
+          </fieldset>
+          <div className="flex flex-wrap items-center gap-3">
+            <PrimaryButton
+              disabled={!form.file || !form.consent || form.isPending}
+              onClick={() => void form.extract()}
+            >
+              {form.isPending ? t("extracting") : t("extract")}
+            </PrimaryButton>
+            <SecondaryButton
+              disabled={form.isPending}
+              onClick={() => form.setShowManual(!form.showManual)}
+            >
+              {form.showManual ? t("closeManual") : t("openManual")}
+            </SecondaryButton>
           </div>
-        </details>
-        <OnboardingConsent
-          tone={OnboardingTone.Mentee}
-          checked={form.consent}
-          onChange={form.setConsent}
-        >
-          {t("consent")}
-        </OnboardingConsent>
-        <p className="text-[11px] text-[#858c96]">{t("localOnly")}</p>
-      </fieldset>
-      <div className="flex flex-wrap items-center gap-3">
-        <PrimaryButton
-          disabled={!form.file || !form.consent || form.isPending}
-          onClick={() => void form.extract()}
-        >
-          {form.isPending ? t("extracting") : t("extract")}
-        </PrimaryButton>
-        <SecondaryButton
-          disabled={form.isPending}
-          onClick={() => form.setShowManual(!form.showManual)}
-        >
-          {form.showManual ? t("closeManual") : t("openManual")}
-        </SecondaryButton>
-      </div>
+        </>
+      ) : null}
       {form.error ? (
         <p role="alert" className="text-sm text-[#b91c1c]">
           {form.error}
