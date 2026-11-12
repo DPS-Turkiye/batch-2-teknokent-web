@@ -56,7 +56,6 @@ function DeleteUserDialog({
   return (
     <AdminOverlay label={t("dialogTitle")} onClose={deletion.cancel}>
       <form
-        aria-label={t("dialogTitle")}
         className="w-full max-w-md rounded-[28px] bg-white p-6 shadow-[0_16px_48px_rgba(33,38,43,0.14)]"
         onClick={(event) => event.stopPropagation()}
         onSubmit={(event) => {

@@ -174,4 +174,71 @@ describe("DeleteUserSection", () => {
     ).toHaveValue("");
     expect(deleteUserAccount).not.toHaveBeenCalled();
   });
+
+  it("keeps the dialog open on Escape while the deletion is on its way", async () => {
+    const person = showPerson();
+    let finish: (value: {
+      deletedUserId: string;
+      cleanupPending: boolean;
+    }) => void = () => undefined;
+    vi.mocked(deleteUserAccount).mockReturnValue(
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+    );
+
+    await openDialog();
+    await userEvent.type(
+      screen.getByLabelText("Onaylamak için kullanıcının e-postasını yaz"),
+      person.email,
+    );
+    await userEvent.click(
+      screen.getByRole("button", { name: "Kalıcı olarak sil" }),
+    );
+    await screen.findByRole("button", { name: "Siliniyor…" });
+    await userEvent.keyboard("{Escape}");
+
+    expect(
+      screen.getByRole("dialog", {
+        name: "Kullanıcı kalıcı olarak silinsin mi?",
+      }),
+    ).toBeInTheDocument();
+    finish({ deletedUserId: "user-1", cleanupPending: false });
+    expect(await screen.findByText("Kullanıcı silindi.")).toBeInTheDocument();
+  });
+
+  it("closes on Escape when nothing is running", async () => {
+    showPerson();
+
+    await openDialog();
+    await userEvent.keyboard("{Escape}");
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("drops the deleted person out of the admin lists", async () => {
+    const person = menteeSummary({ id: "user-1" });
+    vi.mocked(getPersonSummary).mockResolvedValue(person);
+    vi.mocked(deleteUserAccount).mockResolvedValue({
+      deletedUserId: "user-1",
+      cleanupPending: false,
+    });
+    const { queryClient } = renderWithQueryClient(
+      <DeleteUserSection userId="user-1" />,
+    );
+    const invalidate = vi.spyOn(queryClient, "invalidateQueries");
+
+    await openDialog();
+    await userEvent.type(
+      screen.getByLabelText("Onaylamak için kullanıcının e-postasını yaz"),
+      person.email,
+    );
+    await userEvent.click(
+      screen.getByRole("button", { name: "Kalıcı olarak sil" }),
+    );
+
+    await screen.findByText("Kullanıcı silindi.");
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["admin-overview"] });
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["admin"] });
+  });
 });

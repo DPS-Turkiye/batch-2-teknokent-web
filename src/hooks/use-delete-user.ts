@@ -17,6 +17,8 @@ import { errorMessage } from "@/lib/utils";
 import { useToast } from "@/stores/toast-store";
 
 const USERS_LIST_HREF = "/admin/users";
+/** Prefix of the admin people lists (students and the like) a deleted person must drop out of. */
+const ADMIN_LISTS_KEY = ["admin"] as const;
 
 /** Deleting one account for good, after the admin typed its address. */
 export function useDeleteUser(userId: string) {
@@ -46,27 +48,38 @@ export function useDeleteUser(userId: string) {
     setTypedEmail("");
   }
 
+  function cancel() {
+    // Escape or a backdrop click must not hide a deletion that is already on its way.
+    if (!remove.isPending) close();
+  }
+
   function confirm() {
-    void remove
-      .mutateAsync(typedEmail)
-      .then(async (result) => {
+    if (remove.isPending) return;
+    // Per-call callbacks, unlike a promise, do not fire once the admin has left this page.
+    remove.mutate(typedEmail, {
+      onSuccess: (result) => {
         close();
         showToast({
           message: t(result.cleanupPending ? "donePending" : "done"),
           tone: ToastTone.Success,
         });
-        queryClient.removeQueries({ queryKey: personSummaryQueryKey(userId) });
-        await queryClient.invalidateQueries({
+        // Leave first: refetching the open profile would flash the deleted person as "not found".
+        router.replace(USERS_LIST_HREF);
+        void queryClient.invalidateQueries({
+          queryKey: personSummaryQueryKey(userId),
+          refetchType: "none",
+        });
+        void queryClient.invalidateQueries({
           queryKey: ADMIN_OVERVIEW_QUERY_KEY,
         });
-        router.replace(USERS_LIST_HREF);
-      })
-      .catch((error: unknown) =>
+        void queryClient.invalidateQueries({ queryKey: ADMIN_LISTS_KEY });
+      },
+      onError: (error) =>
         showToast({
           message: errorMessage(error, t("failed")),
           tone: ToastTone.Error,
         }),
-      );
+    });
   }
 
   return {
@@ -82,7 +95,7 @@ export function useDeleteUser(userId: string) {
       !remove.isPending,
     pending: remove.isPending,
     ask: () => setConfirming(true),
-    cancel: close,
+    cancel,
     setTypedEmail,
     confirm,
   };
