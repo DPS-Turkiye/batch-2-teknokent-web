@@ -562,6 +562,38 @@ describe("coordinator program detail", () => {
     );
   });
 
+  it("tells the coordinator an ended program keeps every week", async () => {
+    vi.mocked(getCoordinatorProgram).mockResolvedValue(
+      coordinatorProgramDetail({
+        syllabus: {
+          id: "doc-weekly",
+          filename: "haftalik-program.pdf",
+          sizeBytes: 70_000,
+          uploadedAt: "2026-06-01T09:00:00Z",
+          kind: DocumentKind.WeeklyProgram,
+        },
+      }),
+    );
+    vi.mocked(readWeeklyProgram).mockResolvedValue(
+      weeklyProgramProposal({
+        existing: { phaseCount: 4, weekCount: 11, currentWeek: 12 },
+      }),
+    );
+    const user = userEvent.setup();
+    renderWithQueryClient(<ProgramSettingsView programId="program-1" />);
+
+    await user.click(
+      await screen.findByRole("button", { name: /Yeniden oku/ }),
+    );
+    const review = await screen.findByRole("region", {
+      name: "Dosyadan okunan plan",
+    });
+    expect(
+      within(review).getByText(/Program bitti; tüm haftalar/),
+    ).toBeVisible();
+    expect(within(review).queryByText(/Hafta 1–11/)).not.toBeInTheDocument();
+  });
+
   it("lets the admin add a coordinator from the approved ones", async () => {
     vi.mocked(usePathname).mockReturnValue("/admin/programs/program-1");
     vi.mocked(getProgramCoordinatorCandidates).mockResolvedValue([

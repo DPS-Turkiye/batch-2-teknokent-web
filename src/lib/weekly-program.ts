@@ -118,6 +118,11 @@ export function lastKeptWeek(
   return existing.currentWeek - 1;
 }
 
+/** Whether keeping the past leaves every week as it is, because the program has ended. */
+export function keepsEveryWeek(lastKept: number | null, totalWeeks: number) {
+  return lastKept !== null && lastKept >= totalWeeks;
+}
+
 /**
  * Whether saving replaces a plan the program already has, so the coordinator must confirm it. The save sends back
  * the plan the read counted; if it changed in between, the backend refuses the save instead of overwriting it.

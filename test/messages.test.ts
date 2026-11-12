@@ -1,5 +1,8 @@
+import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 
+import { IA_MESSAGES } from "@/i18n/ia-messages";
+import { Locale } from "@/lib/i18n";
 import en from "@/messages/en.json";
 import tr from "@/messages/tr.json";
 
@@ -34,5 +37,25 @@ function leaves(value: unknown, path = ""): Record<string, string[]> {
 describe("messages", () => {
   it("gives English every Turkish key, list item and placeholder", () => {
     expect(leaves(en)).toEqual(leaves(tr));
+  });
+
+  it("gives English every Turkish key of the IA Revizyon catalogs", () => {
+    expect(leaves(IA_MESSAGES[Locale.En])).toEqual(
+      leaves(IA_MESSAGES[Locale.Tr]),
+    );
+  });
+
+  it("counts a weekly program's phases and weeks in the singular too", () => {
+    const t = createTranslator({
+      locale: Locale.En,
+      messages: en,
+      namespace: "weeklyProgram",
+    });
+    expect(t("replaceBody", { phases: 1, weeks: 1 })).toMatch(
+      /^1 phase and 1 week are saved/,
+    );
+    expect(t("reviewSubtitle", { weeks: 10, phases: 4 })).toMatch(
+      /^10 weeks and 4 phases read/,
+    );
   });
 });

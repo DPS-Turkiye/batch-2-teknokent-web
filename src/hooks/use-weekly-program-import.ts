@@ -31,6 +31,7 @@ import {
 import { errorMessage, formatLongDate } from "@/lib/utils";
 import {
   isStalePlanError,
+  keepsEveryWeek,
   lastKeptWeek,
   moveWeekToPhase,
   phaseIndexOfWeek,
@@ -141,6 +142,9 @@ export function useWeeklyProgramImport(
   };
 
   const existing = review?.proposal.existing ?? null;
+  const keptThrough = existing
+    ? lastKeptWeek(existing, review?.keepPast ?? false)
+    : null;
   const daysOf = (week: number) =>
     programWeekDays(detail.program.startDate, detail.program.endDate, week);
   const rereadId =
@@ -191,9 +195,10 @@ export function useWeeklyProgramImport(
     weeks: review?.weeks ?? [],
     phases: review?.phases ?? [],
     keepPast: review?.keepPast ?? false,
-    lastKeptWeek: existing
-      ? lastKeptWeek(existing, review?.keepPast ?? false)
-      : null,
+    lastKeptWeek: keptThrough,
+    keepsEveryWeek: review
+      ? keepsEveryWeek(keptThrough, review.proposal.totalWeeks)
+      : false,
     mustConfirm: existing ? replacesExistingPlan(existing) : false,
     confirmed: review?.confirmed ?? false,
     problem,
