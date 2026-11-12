@@ -193,6 +193,25 @@ describe("SignupFlow resume", () => {
     expect(screen.queryByTestId("wizard")).not.toBeInTheDocument();
   });
 
+  it("still opens the wizard when the account check itself fails", async () => {
+    searchParams.set("resume", "1");
+    searchParams.set("role", "founder");
+    vi.mocked(currentFirebaseAccount).mockResolvedValue({
+      email: "gulse@dongu.co",
+      fullName: "Gülse Yılmaz",
+      verified: true,
+    });
+    vi.mocked(fetchAccountStatus).mockRejectedValue(
+      new ClientApiError("Sunucuya ulaşılamadı.", 503),
+    );
+
+    render(<SignupFlow />);
+
+    expect(await screen.findByTestId("wizard")).toHaveTextContent(
+      "gulse@dongu.co",
+    );
+  });
+
   it("collects missing identity and registers a mentor resumed in another session", async () => {
     searchParams.set("resume", "1");
     searchParams.set("role", "mentor");

@@ -158,6 +158,10 @@ export function SignupFlow() {
     return <ResumeLoading message={copy("preparingMentor")} />;
   }
 
+  if (!isMentor && flow.existingAccount === null) {
+    return <ResumeLoading message={copy("checkingSession")} />;
+  }
+
   if (!isMentor && flow.existingAccount) {
     return <ExistingAccountNotice email={account.email} />;
   }

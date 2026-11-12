@@ -106,6 +106,9 @@ beforeEach(() => {
 
 describe("Signup role routing", () => {
   it("sends a founder from the role page through the account form to the startup wizard", async () => {
+    vi.mocked(fetchAccountStatus).mockRejectedValue(
+      new ClientApiError("Registration required", 401),
+    );
     const user = userEvent.setup();
     render(<SignupFlow />);
 

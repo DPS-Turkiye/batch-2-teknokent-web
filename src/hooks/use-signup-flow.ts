@@ -56,7 +56,8 @@ export function useSignupFlow() {
   const [mentorRegistration, setMentorRegistration] = useState(
     MentorRegistration.Idle,
   );
-  const [existingAccount, setExistingAccount] = useState(false);
+  // null until a founder's login has been checked, so the wizard never opens for an existing account.
+  const [existingAccount, setExistingAccount] = useState<boolean | null>(null);
   const [mentorRegistrationError, setMentorRegistrationError] = useState("");
 
   const isMentor = role === SignupRole.Mentor;
@@ -159,14 +160,17 @@ export function useSignupFlow() {
     if (!account || !isFounder || needsEmailVerification) return;
     const cancellation = new AbortController();
     void (async () => {
-      const idToken = await currentIdToken();
-      if (!idToken) return;
+      let exists = false;
       try {
-        await fetchAccountStatus(idToken);
-        if (!cancellation.signal.aborted) setExistingAccount(true);
+        const idToken = await currentIdToken();
+        if (idToken) {
+          await fetchAccountStatus(idToken);
+          exists = true;
+        }
       } catch {
         // No account yet (401) is the normal case; any other failure is left to the final submit, which says why.
       }
+      if (!cancellation.signal.aborted) setExistingAccount(exists);
     })();
     return () => cancellation.abort();
   }, [account, isFounder, needsEmailVerification]);
