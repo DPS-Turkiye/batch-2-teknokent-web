@@ -382,10 +382,9 @@ function stepNamed(name: string | null): PeerMentorWizardStep | null {
 function resumedStep(name: string | null, hasSavedHours: boolean) {
   const step = stepNamed(name);
   if (step === null || hasSavedHours) return step;
-  return Math.min(
-    step,
-    PeerMentorWizardStep.Availability,
-  ) as PeerMentorWizardStep;
+  return step > PeerMentorWizardStep.Availability
+    ? PeerMentorWizardStep.Availability
+    : step;
 }
 
 /** What "Taslak olarak kaydet" sends: the answers so far and the step to reopen on. */
