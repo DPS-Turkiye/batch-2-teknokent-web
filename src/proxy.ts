@@ -1,7 +1,9 @@
 import { unsealData } from "iron-session";
 import { NextResponse, type NextRequest } from "next/server";
 
+import { Edition } from "@/interfaces/edition";
 import type { AppSession, SessionData } from "@/interfaces/session";
+import { EDITION_CLOSED_PATH, isPathOpenIn, parseEdition } from "@/lib/edition";
 import {
   hasMobileApp,
   isMobilePath,
@@ -77,6 +79,12 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Before the session checks, so the other edition's pages look missing to everyone, signed in or not.
+  const edition = parseEdition(process.env.APP_EDITION);
+  if (!isPathOpenIn(edition, pathname)) {
+    return NextResponse.rewrite(new URL(EDITION_CLOSED_PATH, request.url));
+  }
+
   const seal = request.cookies.get(SESSION_COOKIE)?.value;
   const { signedIn, user } = await readSession(seal);
   const mobile = isMobilePath(pathname);
@@ -101,7 +109,9 @@ export async function proxy(request: NextRequest) {
   const redirect = (path: string) =>
     respond(NextResponse.redirect(new URL(path, request.url)));
 
-  const phoneUser = !user || hasMobileApp(user.role);
+  // The phone app is Teknokent's alone, so the ODTÜ deployment never sends a phone there.
+  const phoneUser =
+    edition === Edition.Teknokent && (!user || hasMobileApp(user.role));
   if (
     PHONE_ENTRY_PATHS.has(pathname) &&
     !prefersWeb &&
