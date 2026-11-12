@@ -12,6 +12,7 @@ import { RoleSelectView } from "@/components/signup/role-select-view";
 import { SignupWizardView } from "@/components/signup/signup-wizard";
 import { MentorRegistration, useSignupFlow } from "@/hooks/use-signup-flow";
 import type { RegisteredAccount } from "@/interfaces/auth";
+import type { Edition } from "@/interfaces/edition";
 
 function ResumeMentorIdentity({
   account,
@@ -102,7 +103,7 @@ function ExistingAccountNotice({ email }: { email: string }) {
   );
 }
 
-export function SignupFlow() {
+export function SignupFlow({ edition }: { edition: Edition }) {
   const copy = useTranslations("signupFlow");
   const flow = useSignupFlow();
   const { account, isMentor, mentorRegistration } = flow;
@@ -122,7 +123,11 @@ export function SignupFlow() {
 
   if (flow.role === null) {
     return (
-      <RoleSelectView signedIn={Boolean(account)} onChoose={flow.chooseRole} />
+      <RoleSelectView
+        edition={edition}
+        signedIn={Boolean(account)}
+        onChoose={flow.chooseRole}
+      />
     );
   }
 

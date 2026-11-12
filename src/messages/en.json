@@ -72,7 +72,12 @@
     "signUp": "Sign up",
     "invite": "Got an invitation? Continue with your invite code",
     "odtu": "Sign in with your METU account",
-    "otg": "Sign in with ODTÜ TEKNOKENT Girişimcilik"
+    "otg": "Sign in with ODTÜ TEKNOKENT Girişimcilik",
+    "odtuIntro": "If you are a METU student or academic, sign in with your METU account. No separate sign-up is needed.",
+    "or": "or",
+    "staffQuestion": "Do you have a coordinator, admin or startup program account?",
+    "emailLogin": "Sign in with e-mail",
+    "help": "Cannot sign in? Get help"
   },
   "otgLogin": {
     "signingIn": "Signing you in with your ODTÜ TEKNOKENT Girişimcilik account…",
@@ -218,7 +223,24 @@
           "Coordinator approval"
         ],
         "action": "Continue as a mentor"
+      },
+      "student": {
+        "badge": "İŞKUR Student",
+        "title": "I want to be a peer mentor",
+        "description": "You set up your profile and choose your program; after the coordinator approves and you finish the mentoring training and earn your badge, you give peer mentoring to METU students.",
+        "steps": [
+          "Personal profile",
+          "Program choice",
+          "Coordinator approval",
+          "Training and badge"
+        ],
+        "action": "Continue as an İŞKUR student"
       }
+    },
+    "odtuBanner": {
+      "title": "Are you a METU student or academic?",
+      "tag": "No sign-up needed",
+      "text": "Sign in with your METU account. Office Hours, peer mentoring and your academic advisor open based on your account."
     }
   },
   "signupFlow": {

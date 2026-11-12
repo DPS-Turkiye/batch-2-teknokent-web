@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MentorOnboardingFlow } from "@/components/mentor-onboarding/mentor-onboarding-flow";
 import { SignupFlow } from "@/components/signup/signup-flow";
+import { Edition } from "@/interfaces/edition";
 import { ClientApiError } from "@/lib/client/api";
 import { fetchAccountStatus } from "@/lib/client/auth";
 import {
@@ -110,7 +111,7 @@ describe("Signup role routing", () => {
       new ClientApiError("Registration required", 401),
     );
     const user = userEvent.setup();
-    render(<SignupFlow />);
+    render(<SignupFlow edition={Edition.Teknokent} />);
 
     await user.click(
       screen.getByRole("button", { name: "Girişimci olarak devam et" }),
@@ -133,7 +134,7 @@ describe("Signup role routing", () => {
       new ClientApiError("Registration required", 401),
     );
     const user = userEvent.setup();
-    render(<SignupFlow />);
+    render(<SignupFlow edition={Edition.Teknokent} />);
 
     await fillAccount(user);
     await user.click(
