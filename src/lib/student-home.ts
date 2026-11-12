@@ -42,6 +42,25 @@ export function openPeerRequests(requests: PeerMentoringRequest[]) {
     .toSorted((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
 }
 
+/**
+ * "Bekleyen taleplerim" as one list of at most `STUDENT_HOME_PREVIEW` rows: the appointment requests first, then
+ * the peer requests. `total` counts all of them, for "Tümü (n)".
+ */
+export function waitingPreview(
+  awaiting: Appointment[],
+  peerRequests: PeerMentoringRequest[],
+) {
+  const shownAwaiting = awaiting.slice(0, STUDENT_HOME_PREVIEW);
+  return {
+    awaiting: shownAwaiting,
+    peerRequests: peerRequests.slice(
+      0,
+      STUDENT_HOME_PREVIEW - shownAwaiting.length,
+    ),
+    total: awaiting.length + peerRequests.length,
+  };
+}
+
 /** Mentors with a free place and a reason to show, in the backend's (best match first) order. */
 export function recommendedPeerMentors(mentors: PeerMentorCard[]) {
   return mentors
