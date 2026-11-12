@@ -15,6 +15,7 @@ import {
   chosenSubtopics,
   EMPTY_EXPERIENCE_FORM,
   experienceCardProblem,
+  experienceProblemField,
   formatYearMonth,
   latestGateAward,
   levelsFor,
@@ -34,6 +35,8 @@ import {
   toExperienceForm,
   weeklyHours,
 } from "@/lib/peer-mentoring";
+import enIskur from "@/messages/ia/iskur/en.json";
+import trIskur from "@/messages/ia/iskur/tr.json";
 import {
   ExperienceCardProblem,
   PeerCapacityNote,
@@ -378,7 +381,20 @@ describe("mentorshipSince", () => {
       day: 3,
       month: "nov",
     });
-    expect(mentorshipSince("2026-10-15T12:00:00+03:00").month).toBe("oct");
+    expect(mentorshipSince("2026-10-15T12:00:00+03:00")?.month).toBe("oct");
+    expect(mentorshipSince("not a date")).toBeNull();
+  });
+
+  it("has every month's form in both languages", () => {
+    for (let month = 1; month <= 12; month += 1) {
+      const key = mentorshipSince(
+        `2026-${String(month).padStart(2, "0")}-15T12:00:00+03:00`,
+      )?.month;
+      expect(key).toBeDefined();
+      if (!key) continue;
+      expect(trIskur.take.mine.sinceMonth[key]).toBeTruthy();
+      expect(enIskur.take.mine.sinceMonth[key]).toBeTruthy();
+    }
   });
 });
 
@@ -405,6 +421,34 @@ describe("experience cards", () => {
       ExperienceCardProblem.EndBeforeStart,
     );
     expect(experienceCardProblem({ ...filled, endedOn: "2025-07" })).toBeNull();
+    // A browser without a month picker lets anything be typed.
+    expect(experienceCardProblem({ ...filled, startedOn: "Temmuz 2025" })).toBe(
+      ExperienceCardProblem.Month,
+    );
+    expect(experienceCardProblem({ ...filled, endedOn: "2025-13" })).toBe(
+      ExperienceCardProblem.Month,
+    );
+  });
+
+  it("points each problem at its field", () => {
+    expect(
+      experienceProblemField(ExperienceCardProblem.Organization, filled),
+    ).toBe("organization");
+    expect(
+      experienceProblemField(ExperienceCardProblem.Month, {
+        ...filled,
+        startedOn: "Temmuz",
+      }),
+    ).toBe("startedOn");
+    expect(
+      experienceProblemField(ExperienceCardProblem.Month, {
+        ...filled,
+        endedOn: "Ağustos",
+      }),
+    ).toBe("endedOn");
+    expect(
+      experienceProblemField(ExperienceCardProblem.EndBeforeStart, filled),
+    ).toBe("endedOn");
     expect(experienceCardProblem(filled)).toBeNull();
   });
 

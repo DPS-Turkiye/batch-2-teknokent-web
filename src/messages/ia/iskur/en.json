@@ -198,8 +198,10 @@
         "title": "Write the experience title.",
         "organization": "Write the organisation.",
         "start": "Pick the start month.",
-        "endBeforeStart": "The end can't be before the start."
-      }
+        "endBeforeStart": "The end can't be before the start.",
+        "month": "Write the month as 2025-07."
+      },
+      "monthPlaceholder": "YYYY-MM"
     },
     "helpWith": {
       "tipsTitle": "For a good description",

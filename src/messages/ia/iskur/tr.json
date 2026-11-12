@@ -198,8 +198,10 @@
         "title": "Deneyim başlığını yaz.",
         "organization": "Kurumu ya da kuruluşu yaz.",
         "start": "Başlangıç ayını seç.",
-        "endBeforeStart": "Bitiş, başlangıçtan önce olamaz."
-      }
+        "endBeforeStart": "Bitiş, başlangıçtan önce olamaz.",
+        "month": "Ayı 2025-07 biçiminde yaz."
+      },
+      "monthPlaceholder": "YYYY-AA"
     },
     "helpWith": {
       "tipsTitle": "İyi bir açıklama için",

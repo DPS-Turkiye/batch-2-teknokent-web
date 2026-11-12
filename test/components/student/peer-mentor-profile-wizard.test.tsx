@@ -263,7 +263,7 @@ describe("PeerMentorProfileWizard", () => {
     });
   });
 
-  it("opens the saved level and cards when editing, edits a card in place and removes one", async () => {
+  it("opens the saved level and cards when editing, edits one card at a time and removes one", async () => {
     const user = userEvent.setup();
     vi.mocked(getPeerMentorProfile).mockResolvedValue({
       categories: [PeerTopicCategory.CareerInternship],
@@ -312,20 +312,25 @@ describe("PeerMentorProfileWizard", () => {
       screen.getByRole("button", { name: "Düzenle, Kulüp başkanı" }),
     );
     const form = screen.getByRole("region", { name: "Deneyimi düzenle" });
-    expect(within(form).getByLabelText("Deneyim başlığı")).toHaveValue(
-      "Kulüp başkanı",
-    );
-    // Removing a card above the open one keeps the form on the same card.
-    await user.click(
+    const title = within(form).getByLabelText("Deneyim başlığı");
+    expect(title).toHaveValue("Kulüp başkanı");
+    expect(title).toHaveFocus();
+    // One card at a time: the list's buttons wait while a card is open.
+    expect(
       screen.getByRole("button", { name: "Kaldır, Yaz stajyeri" }),
-    );
-    await user.clear(within(form).getByLabelText("Deneyim başlığı"));
-    await user.type(
-      within(form).getByLabelText("Deneyim başlığı"),
-      "Kulüp eş başkanı",
-    );
+    ).toBeDisabled();
+    await user.clear(title);
     await user.click(
       within(form).getByRole("button", { name: "Deneyimi Kaydet" }),
+    );
+    expect(title).toHaveAttribute("aria-invalid", "true");
+    expect(title).toHaveAccessibleDescription("Deneyim başlığını yaz.");
+    await user.type(title, "Kulüp eş başkanı");
+    await user.click(
+      within(form).getByRole("button", { name: "Deneyimi Kaydet" }),
+    );
+    await user.click(
+      screen.getByRole("button", { name: "Kaldır, Yaz stajyeri" }),
     );
 
     expect(screen.queryByText(/Yaz stajyeri/)).toBeNull();

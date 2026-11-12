@@ -10,7 +10,12 @@ import {
   fetchPeerMentorProfile,
   savePeerMentorProfile,
 } from "@/lib/api/peer-mentoring";
-import { PEER_EXPERIENCE_CARDS_MAX } from "@/lib/peer-mentoring";
+import {
+  PEER_EXPERIENCE_CARDS_MAX,
+  PEER_EXPERIENCE_SUMMARY_MAX,
+  PEER_EXPERIENCE_TITLE_MAX,
+  YEAR_MONTH,
+} from "@/lib/peer-mentoring";
 import {
   apiErrorResponse,
   apiText,
@@ -19,8 +24,6 @@ import {
 import { readJsonBody } from "@/lib/server/request-body";
 import { SessionRequiredError } from "@/lib/server/session-error";
 import { getSessionUser } from "@/lib/session";
-
-const YEAR_MONTH = /^\d{4}-(0[1-9]|1[0-2])$/;
 
 const peerMentorProfileSchema = z.object({
   categories: z.array(z.enum(PeerTopicCategory)),
@@ -35,11 +38,11 @@ const peerMentorProfileSchema = z.object({
     .array(
       z.object({
         kind: z.enum(PeerExperienceKind),
-        title: z.string(),
-        organization: z.string().nullable(),
+        title: z.string().trim().min(1).max(PEER_EXPERIENCE_TITLE_MAX),
+        organization: z.string().max(PEER_EXPERIENCE_TITLE_MAX).nullable(),
         startedOn: z.string().regex(YEAR_MONTH),
         endedOn: z.string().regex(YEAR_MONTH).nullable(),
-        summary: z.string().nullable(),
+        summary: z.string().max(PEER_EXPERIENCE_SUMMARY_MAX).nullable(),
       }),
     )
     .max(PEER_EXPERIENCE_CARDS_MAX),

@@ -363,6 +363,14 @@ const cases: BodyCase[] = [
         ...peerProfile,
         experiences: [{ ...peerProfile.experiences[0], endedOn: "2024-13" }],
       },
+      "a level for an unknown category": {
+        ...peerProfile,
+        levels: { ASTRONOMY: PeerTopicLevel.Basic },
+      },
+      "a card without a title": {
+        ...peerProfile,
+        experiences: [{ ...peerProfile.experiences[0], title: "  " }],
+      },
       "eleven cards": {
         ...peerProfile,
         experiences: Array.from(

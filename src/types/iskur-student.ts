@@ -44,6 +44,8 @@ export enum ExperienceCardProblem {
   Title = "title",
   Organization = "organization",
   Start = "start",
+  /** A browser without a month picker shows a text box, where anything can be typed. */
+  Month = "month",
   EndBeforeStart = "endBeforeStart",
 }
 

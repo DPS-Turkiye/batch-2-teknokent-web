@@ -308,13 +308,16 @@ const MONTH_KEYS = [
 export type MonthKey = (typeof MONTH_KEYS)[number];
 
 /** The day and month a mentorship began, for "3 Kasım'dan beri": Turkish picks the suffix by month. */
-export function mentorshipSince(acceptedAt: string): {
-  day: number;
-  month: MonthKey;
-} {
+export function mentorshipSince(
+  acceptedAt: string,
+): { day: number; month: MonthKey } | null {
   const date = new Date(acceptedAt);
-  return { day: date.getDate(), month: MONTH_KEYS[date.getMonth()] ?? "jan" };
+  const month = MONTH_KEYS[date.getMonth()];
+  return month ? { day: date.getDate(), month } : null;
 }
+
+/** A month as the backend takes it ("2025-07"). */
+export const YEAR_MONTH = /^\d{4}-(0[1-9]|1[0-2])$/;
 
 /** The backend's limits on an experience card. */
 export const PEER_EXPERIENCE_CARDS_MAX = 10;
@@ -336,6 +339,12 @@ export function experienceCardProblem(
   if (!form.title.trim()) return ExperienceCardProblem.Title;
   if (!form.organization.trim()) return ExperienceCardProblem.Organization;
   if (!form.startedOn) return ExperienceCardProblem.Start;
+  if (
+    !YEAR_MONTH.test(form.startedOn) ||
+    (form.endedOn && !YEAR_MONTH.test(form.endedOn))
+  ) {
+    return ExperienceCardProblem.Month;
+  }
   // "yyyy-MM" strings compare in date order.
   if (form.endedOn && form.endedOn < form.startedOn) {
     return ExperienceCardProblem.EndBeforeStart;
@@ -386,4 +395,23 @@ export function levelsFor(
       return level ? [[category, level]] : [];
     }),
   );
+}
+
+/** The field a problem is about, so the form can mark it. */
+export function experienceProblemField(
+  problem: ExperienceCardProblem,
+  form: ExperienceCardForm,
+): keyof ExperienceCardForm {
+  switch (problem) {
+    case ExperienceCardProblem.Title:
+      return "title";
+    case ExperienceCardProblem.Organization:
+      return "organization";
+    case ExperienceCardProblem.Start:
+      return "startedOn";
+    case ExperienceCardProblem.Month:
+      return YEAR_MONTH.test(form.startedOn) ? "endedOn" : "startedOn";
+    case ExperienceCardProblem.EndBeforeStart:
+      return "endedOn";
+  }
 }

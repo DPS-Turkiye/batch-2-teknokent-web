@@ -30,6 +30,7 @@ import {
   PEER_EXPERIENCE_SUMMARY_MAX,
   PEER_EXPERIENCE_TITLE_MAX,
 } from "@/lib/peer-mentoring";
+import type { ExperienceCardForm } from "@/types/iskur-student";
 
 const CANCEL_HREF = "/student/peer-mentoring?as=MENTOR";
 
@@ -381,6 +382,8 @@ function ExperienceStep({ wizard }: { wizard: Wizard }) {
   );
 }
 
+const PROBLEM_ID = "experience-problem";
+
 /** Figma 110:330: the saved cards, then one card at a time in the "Yeni deneyim" form. */
 function ExperienceCards({ wizard }: { wizard: Wizard }) {
   const t = useTranslations("iaIskur.wizard.experience");
@@ -388,6 +391,17 @@ function ExperienceCards({ wizard }: { wizard: Wizard }) {
   const cards = wizard.experienceCards;
   const { form } = cards;
   const problem = cards.problem;
+  /** aria-invalid on the field the problem is about, described by the problem (and any hint). */
+  const invalid = (field: keyof ExperienceCardForm, hint?: string) => {
+    const wrong = cards.invalidField === field;
+    const describedBy = [hint, wrong ? PROBLEM_ID : undefined]
+      .filter(Boolean)
+      .join(" ");
+    return {
+      "aria-invalid": wrong,
+      ...(describedBy ? { "aria-describedby": describedBy } : {}),
+    };
+  };
   return (
     <section aria-labelledby="experience-cards-title" className="space-y-4">
       <div className="space-y-1">
@@ -429,6 +443,7 @@ function ExperienceCards({ wizard }: { wizard: Wizard }) {
                     variant={ButtonVariant.Secondary}
                     size={ButtonSize.Small}
                     onClick={() => cards.edit(index)}
+                    disabled={form !== null}
                   >
                     {t("edit")}
                     <span className="sr-only">, {card.title}</span>
@@ -437,6 +452,7 @@ function ExperienceCards({ wizard }: { wizard: Wizard }) {
                     variant={ButtonVariant.Ghost}
                     size={ButtonSize.Small}
                     onClick={() => cards.remove(index)}
+                    disabled={form !== null}
                   >
                     {t("remove")}
                     <span className="sr-only">, {card.title}</span>
@@ -467,6 +483,9 @@ function ExperienceCards({ wizard }: { wizard: Wizard }) {
               value={form.title}
               maxLength={PEER_EXPERIENCE_TITLE_MAX}
               aria-required="true"
+              // The form opens on a click; its first field takes the focus.
+              autoFocus
+              {...invalid("title")}
               onChange={(event) => cards.setField("title", event.target.value)}
             />
           </label>
@@ -480,6 +499,7 @@ function ExperienceCards({ wizard }: { wizard: Wizard }) {
                 value={form.organization}
                 maxLength={PEER_EXPERIENCE_TITLE_MAX}
                 aria-required="true"
+                {...invalid("organization")}
                 onChange={(event) =>
                   cards.setField("organization", event.target.value)
                 }
@@ -493,32 +513,37 @@ function ExperienceCards({ wizard }: { wizard: Wizard }) {
                 type="month"
                 className={fieldClass}
                 value={form.startedOn}
+                placeholder={t("monthPlaceholder")}
                 aria-required="true"
+                {...invalid("startedOn")}
                 onChange={(event) =>
                   cards.setField("startedOn", event.target.value)
                 }
               />
             </label>
-            <label className="block space-y-2">
-              <span className="type-label text-text-primary">
-                {t("endedOn")}
-              </span>
-              <input
-                type="month"
-                className={fieldClass}
-                value={form.endedOn}
-                aria-describedby="experience-end-hint"
-                onChange={(event) =>
-                  cards.setField("endedOn", event.target.value)
-                }
-              />
+            <div className="space-y-2">
+              <label className="block space-y-2">
+                <span className="type-label text-text-primary">
+                  {t("endedOn")}
+                </span>
+                <input
+                  type="month"
+                  className={fieldClass}
+                  value={form.endedOn}
+                  placeholder={t("monthPlaceholder")}
+                  {...invalid("endedOn", "experience-end-hint")}
+                  onChange={(event) =>
+                    cards.setField("endedOn", event.target.value)
+                  }
+                />
+              </label>
               <span
                 id="experience-end-hint"
                 className="block type-caption text-text-muted"
               >
                 {t("endedOnHint")}
               </span>
-            </label>
+            </div>
           </div>
           <label className="block space-y-2">
             <span className="type-label text-text-primary">{t("summary")}</span>
@@ -535,7 +560,11 @@ function ExperienceCards({ wizard }: { wizard: Wizard }) {
           {/* The evidence file (Kanıt belgesi) comes with document upload (BE-I5, after Friday). */}
           <p className="type-caption text-text-muted">{t("evidenceSoon")}</p>
           {problem ? (
-            <p role="alert" className="type-body-sm text-status-error-text">
+            <p
+              id={PROBLEM_ID}
+              role="alert"
+              className="type-body-sm text-status-error-text"
+            >
               {t(`problems.${problem}`)}
             </p>
           ) : null}
