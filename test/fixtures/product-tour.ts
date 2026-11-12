@@ -1,3 +1,4 @@
+import { Edition } from "@/interfaces/edition";
 import { StudyLevel, type InstitutionRecord } from "@/interfaces/institution";
 import { IdentityKind, UserRole, type AppSession } from "@/interfaces/session";
 import { writeTourRun } from "@/lib/product-tour-storage";
@@ -24,8 +25,10 @@ export function institutionRecord(
   };
 }
 
+/** An ODTÜ account on the ODTÜ deployment: since #336 the workspace exists only in that edition. */
 export function odtuSession(overrides: Partial<AppSession> = {}): AppSession {
   return {
+    edition: Edition.Odtu,
     userId: "student-1",
     email: "ayse.yilmaz@odtu-dev.invalid",
     fullName: "Ayşe Yılmaz",
