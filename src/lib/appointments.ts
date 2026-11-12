@@ -39,10 +39,18 @@ const OPEN_STATUSES = new Set([
   AppointmentStatus.Confirmed,
 ]);
 
+/** When an open appointment is over: the proposed time's end while another time is on the table. */
+function endOf(appointment: Appointment) {
+  return appointment.status === AppointmentStatus.AlternativeProposed &&
+    appointment.alternative
+    ? appointment.alternative.endsAt
+    : appointment.endsAt;
+}
+
 export function isUpcoming(appointment: Appointment, now: Date) {
   return (
     OPEN_STATUSES.has(appointment.status) &&
-    Date.parse(appointment.endsAt) > now.getTime()
+    Date.parse(endOf(appointment)) > now.getTime()
   );
 }
 

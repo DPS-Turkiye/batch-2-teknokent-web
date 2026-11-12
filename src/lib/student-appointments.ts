@@ -135,3 +135,9 @@ export function shortPersonName(fullName: string) {
   const { firstName, lastName } = splitFullName(fullName);
   return lastName ? `${firstName.charAt(0)}. ${lastName}` : firstName;
 }
+
+/** `?sent=` as the page receives it: absent, once, or repeated. The first non-blank value names who was asked. */
+export function sentToParam(value: string | string[] | undefined) {
+  const values = typeof value === "string" ? [value] : (value ?? []);
+  return values.map((item) => item.trim()).find((item) => item !== "") ?? null;
+}

@@ -7,6 +7,7 @@ import {
   appointmentTabs,
   calendarTitle,
   gridPlacement,
+  sentToParam,
   shiftAnchor,
   shortPersonName,
   visibleDays,
@@ -166,5 +167,17 @@ describe("shortPersonName", () => {
     expect(shortPersonName("Elif Karaca")).toBe("E. Karaca");
     expect(shortPersonName("Ayşe Nur Yılmaz")).toBe("A. Yılmaz");
     expect(shortPersonName("Cher")).toBe("Cher");
+  });
+});
+
+describe("sentToParam", () => {
+  it("reads ?sent= once, repeated or missing", () => {
+    expect(sentToParam("  Prof. Dr. Ahmet Kaya ")).toBe("Prof. Dr. Ahmet Kaya");
+    expect(sentToParam(["", " ", "Doç. Dr. Elif Şahin", "x"])).toBe(
+      "Doç. Dr. Elif Şahin",
+    );
+    expect(sentToParam("   ")).toBeNull();
+    expect(sentToParam([])).toBeNull();
+    expect(sentToParam(undefined)).toBeNull();
   });
 });
