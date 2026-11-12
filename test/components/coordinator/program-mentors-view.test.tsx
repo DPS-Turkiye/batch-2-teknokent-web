@@ -93,6 +93,29 @@ describe("ProgramMentorsView", () => {
     expect(screen.getByText("cagri@yilmazfinans.com")).toBeInTheDocument();
   });
 
+  it("links pool mentors and join requests to their profile, but not open invites", async () => {
+    renderWithQueryClient(<ProgramMentorsView programId="program-1" />);
+
+    await screen.findByText("Nihan Öztürk");
+    expect(
+      within(screen.getByRole("row", { name: /Nihan Öztürk/ })).getByRole(
+        "link",
+        { name: "Profili gör: Nihan Öztürk" },
+      ),
+    ).toHaveAttribute("href", "/coordinator/people/mentor-1");
+    expect(
+      within(screen.getByRole("row", { name: /Zeynep Arslan/ })).getByRole(
+        "link",
+        { name: "Profili gör: Zeynep Arslan" },
+      ),
+    ).toHaveAttribute("href", "/coordinator/people/mentor-2");
+    expect(
+      within(
+        screen.getByRole("row", { name: /cagri@yilmazfinans\.com/ }),
+      ).queryByRole("link", { name: /^Profili gör/ }),
+    ).toBeNull();
+  });
+
   it("reads in English and filters by capacity", async () => {
     const user = userEvent.setup();
     renderWithQueryClient(
