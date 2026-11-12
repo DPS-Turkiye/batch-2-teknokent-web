@@ -2,7 +2,9 @@ import { BadgeCode, BadgeKind } from "@/interfaces/badges";
 import { Weekday } from "@/interfaces/mentor";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import {
+  PeerExperienceKind,
   PeerTopicCategory,
+  PeerTopicLevel,
   type CreatePeerMentoringRequestInput,
   type PeerCategoryCount,
   type PeerMentorCard,
@@ -171,6 +173,29 @@ export function peerMentorDetailFixture(
             startTime: "18:00:00",
             endTime: "20:00:00",
             slotMinutes: 60,
+          },
+        ]
+      : [],
+    levels: isDeniz
+      ? { [PeerTopicCategory.CareerInternship]: PeerTopicLevel.Advanced }
+      : {},
+    experiences: isDeniz
+      ? [
+          {
+            kind: PeerExperienceKind.Internship,
+            title: "Yaz stajyeri",
+            organization: "ABC Lojistik",
+            startedOn: "2025-07",
+            endedOn: "2025-08",
+            summary: "Haftalık operasyon raporları hazırladım.",
+          },
+          {
+            kind: PeerExperienceKind.Club,
+            title: "Etkinlik koordinatörü",
+            organization: "ODTÜ Kariyer Kulübü",
+            startedOn: "2024-09",
+            endedOn: null,
+            summary: null,
           },
         ]
       : [],

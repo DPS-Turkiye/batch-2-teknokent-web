@@ -1,13 +1,13 @@
 "use client";
 
-import { Check, Info, Link2 } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { Check, Info, Link2, Plus } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import type { ReactNode } from "react";
 
 import { QueryNotice } from "@/components/admin/admin-ui";
 import { WeeklyAvailabilityEditor } from "@/components/availability/weekly-availability-editor";
-import { Button, ButtonVariant } from "@/components/ia/button";
+import { Button, ButtonSize, ButtonVariant } from "@/components/ia/button";
 import { Card } from "@/components/ia/card";
 import { InlineAlert } from "@/components/ia/inline-alert";
 import { StatusBadge, StatusTone } from "@/components/ia/status-badge";
@@ -24,6 +24,12 @@ import {
   usePeerMentorPreviewPerson,
   usePeerMentorWizard,
 } from "@/hooks/use-peer-mentor-give";
+import { PEER_TOPIC_LEVELS, PeerTopicLevel } from "@/interfaces/peer-mentoring";
+import {
+  formatYearMonth,
+  PEER_EXPERIENCE_SUMMARY_MAX,
+  PEER_EXPERIENCE_TITLE_MAX,
+} from "@/lib/peer-mentoring";
 
 const CANCEL_HREF = "/student/peer-mentoring?as=MENTOR";
 
@@ -39,7 +45,11 @@ const STEP_KEY = {
 
 const DOCUMENT_KINDS = ["transcript", "cv", "certificate", "other"] as const;
 const HELP_TIPS = ["concrete", "who", "how", "noContact"] as const;
-const LEVELS = ["basic", "intermediate", "advanced"] as const;
+const LEVEL_KEY = {
+  [PeerTopicLevel.Basic]: "basic",
+  [PeerTopicLevel.Intermediate]: "intermediate",
+  [PeerTopicLevel.Advanced]: "advanced",
+} as const satisfies Record<PeerTopicLevel, string>;
 
 type Wizard = ReturnType<typeof usePeerMentorWizard>;
 
@@ -299,33 +309,34 @@ function SubtopicsStep({ wizard }: { wizard: Wizard }) {
               })}
             </div>
           </fieldset>
-          {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
-          {/* A level per category needs a backend field (open with Arya); shown disabled until then. */}
-          <fieldset
-            disabled
-            aria-describedby={`level-soon-${group.id}`}
-            className="flex flex-wrap items-center gap-3"
-          >
+          <fieldset className="flex flex-wrap items-center gap-3">
             <legend className="float-left mr-3 type-caption text-text-secondary">
               {t("level.label")}
+              <span className="sr-only">, {topicLabel(group.id)}</span>
             </legend>
-            <span className="inline-flex rounded-xl bg-background-muted p-1 opacity-60">
-              {LEVELS.map((level) => (
-                <label
-                  key={level}
-                  className="rounded-full px-3.5 py-1.5 type-label text-text-secondary"
-                >
-                  <input
-                    type="radio"
-                    name={`level-${group.id}`}
-                    className="sr-only"
-                  />
-                  {t(`level.${level}`)}
-                </label>
-              ))}
-            </span>
-            <span id={`level-soon-${group.id}`}>
-              <SoonBadge />
+            <span className="inline-flex rounded-xl bg-background-muted p-1">
+              {PEER_TOPIC_LEVELS.map((level) => {
+                const chosen = wizard.levelOf(group.id) === level;
+                return (
+                  <label
+                    key={level}
+                    className={`cursor-pointer rounded-full px-3.5 py-1.5 type-label has-focus-visible:outline-2 has-focus-visible:outline-border-selected ${
+                      chosen
+                        ? "bg-background-surface text-text-accent shadow-raised"
+                        : "text-text-secondary hover:text-text-primary"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name={`level-${group.id}`}
+                      className="sr-only"
+                      checked={chosen}
+                      onChange={() => wizard.setLevel(group.id, level)}
+                    />
+                    {t(`level.${LEVEL_KEY[level]}`)}
+                  </label>
+                );
+              })}
             </span>
           </fieldset>
         </Card>
@@ -365,10 +376,184 @@ function ExperienceStep({ wizard }: { wizard: Wizard }) {
           />
         </label>
       </Card>
-      {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
-      {/* Experience cards (title, organisation, dates, evidence) need backend fields (open with Arya). */}
-      <InlineAlert tone={StatusTone.Neutral}>{t("cardsSoon")}</InlineAlert>
+      <ExperienceCards wizard={wizard} />
     </div>
+  );
+}
+
+/** Figma 110:330: the saved cards, then one card at a time in the "Yeni deneyim" form. */
+function ExperienceCards({ wizard }: { wizard: Wizard }) {
+  const t = useTranslations("iaIskur.wizard.experience");
+  const locale = useLocale();
+  const cards = wizard.experienceCards;
+  const { form } = cards;
+  const problem = cards.problem;
+  return (
+    <section aria-labelledby="experience-cards-title" className="space-y-4">
+      <div className="space-y-1">
+        <h2
+          id="experience-cards-title"
+          className="type-title-card text-text-primary"
+        >
+          {t("cardsTitle")}
+        </h2>
+        <p className="type-body-sm text-text-secondary">{t("cardsHint")}</p>
+      </div>
+      {cards.cards.length > 0 ? (
+        <ul className="space-y-3">
+          {cards.cards.map((card, index) => (
+            <li key={`${card.title}-${card.startedOn}-${String(index)}`}>
+              <Card className="flex flex-wrap items-start justify-between gap-4">
+                <div className="min-w-0 space-y-1">
+                  <h3 className="type-label text-text-primary">
+                    {card.organization
+                      ? `${card.title} — ${card.organization}`
+                      : card.title}
+                  </h3>
+                  <p className="type-caption text-text-muted">
+                    {t("range", {
+                      start: formatYearMonth(card.startedOn, locale),
+                      end: card.endedOn
+                        ? formatYearMonth(card.endedOn, locale)
+                        : t("ongoing"),
+                    })}
+                  </p>
+                  {card.summary ? (
+                    <p className="type-body-sm text-text-secondary">
+                      {card.summary}
+                    </p>
+                  ) : null}
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant={ButtonVariant.Secondary}
+                    size={ButtonSize.Small}
+                    onClick={() => cards.edit(index)}
+                  >
+                    {t("edit")}
+                    <span className="sr-only">, {card.title}</span>
+                  </Button>
+                  <Button
+                    variant={ButtonVariant.Ghost}
+                    size={ButtonSize.Small}
+                    onClick={() => cards.remove(index)}
+                  >
+                    {t("remove")}
+                    <span className="sr-only">, {card.title}</span>
+                  </Button>
+                </div>
+              </Card>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      {form ? (
+        <Card
+          labelledBy="experience-form-title"
+          className="space-y-4 border-brand-odtu-primary"
+        >
+          <h3
+            id="experience-form-title"
+            className="type-label text-text-primary"
+          >
+            {cards.editingIndex === null ? t("newCard") : t("editCard")}
+          </h3>
+          <label className="block space-y-2">
+            <span className="type-label text-text-primary">
+              {t("cardTitle")}
+            </span>
+            <input
+              className={fieldClass}
+              value={form.title}
+              maxLength={PEER_EXPERIENCE_TITLE_MAX}
+              aria-required="true"
+              onChange={(event) => cards.setField("title", event.target.value)}
+            />
+          </label>
+          <div className="grid gap-4 md:grid-cols-3">
+            <label className="block space-y-2">
+              <span className="type-label text-text-primary">
+                {t("organization")}
+              </span>
+              <input
+                className={fieldClass}
+                value={form.organization}
+                maxLength={PEER_EXPERIENCE_TITLE_MAX}
+                aria-required="true"
+                onChange={(event) =>
+                  cards.setField("organization", event.target.value)
+                }
+              />
+            </label>
+            <label className="block space-y-2">
+              <span className="type-label text-text-primary">
+                {t("startedOn")}
+              </span>
+              <input
+                type="month"
+                className={fieldClass}
+                value={form.startedOn}
+                aria-required="true"
+                onChange={(event) =>
+                  cards.setField("startedOn", event.target.value)
+                }
+              />
+            </label>
+            <label className="block space-y-2">
+              <span className="type-label text-text-primary">
+                {t("endedOn")}
+              </span>
+              <input
+                type="month"
+                className={fieldClass}
+                value={form.endedOn}
+                aria-describedby="experience-end-hint"
+                onChange={(event) =>
+                  cards.setField("endedOn", event.target.value)
+                }
+              />
+              <span
+                id="experience-end-hint"
+                className="block type-caption text-text-muted"
+              >
+                {t("endedOnHint")}
+              </span>
+            </label>
+          </div>
+          <label className="block space-y-2">
+            <span className="type-label text-text-primary">{t("summary")}</span>
+            <textarea
+              className={`${fieldClass} min-h-24`}
+              value={form.summary}
+              maxLength={PEER_EXPERIENCE_SUMMARY_MAX}
+              onChange={(event) =>
+                cards.setField("summary", event.target.value)
+              }
+            />
+          </label>
+          {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+          {/* The evidence file (Kanıt belgesi) comes with document upload (BE-I5, after Friday). */}
+          <p className="type-caption text-text-muted">{t("evidenceSoon")}</p>
+          {problem ? (
+            <p role="alert" className="type-body-sm text-status-error-text">
+              {t(`problems.${problem}`)}
+            </p>
+          ) : null}
+          <div className="flex justify-end gap-3">
+            <Button variant={ButtonVariant.Secondary} onClick={cards.cancel}>
+              {t("cancel")}
+            </Button>
+            <Button onClick={cards.save}>{t("save")}</Button>
+          </div>
+        </Card>
+      ) : null}
+      {cards.canAdd ? (
+        <Button variant={ButtonVariant.Ghost} onClick={cards.startNew}>
+          <Plus aria-hidden className="size-4" />
+          {cards.cards.length === 0 ? t("add") : t("addAnother")}
+        </Button>
+      ) : null}
+    </section>
   );
 }
 
@@ -528,6 +713,23 @@ function PreviewStep({ wizard }: { wizard: Wizard }) {
             {wizard.previewHelpWith}
           </p>
         </div>
+        {wizard.draft.experiences.length > 0 ? (
+          <div className="space-y-2">
+            <h3 className="type-label text-text-primary">{t("experience")}</h3>
+            <ul className="space-y-1">
+              {wizard.draft.experiences.map((card, index) => (
+                <li
+                  key={`${card.title}-${card.startedOn}-${String(index)}`}
+                  className="type-body-sm text-text-secondary"
+                >
+                  {card.organization
+                    ? `${card.title} — ${card.organization}`
+                    : card.title}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
         <dl className="grid gap-4 sm:grid-cols-[2fr_1fr]">
           <div className="space-y-1">
             <dt className="type-caption text-text-muted">{t("hours")}</dt>

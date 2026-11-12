@@ -10,14 +10,19 @@ import {
 } from "@/interfaces/mentor";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import {
+  PeerExperienceKind,
   PeerMentorGateState,
+  type PeerExperienceCard,
   type PeerTopicCategory,
+  type PeerTopicLevels,
 } from "@/interfaces/peer-mentoring";
 import type { ProfileCompletionCategory } from "@/interfaces/student-profile-completion";
 import { toTimeInput } from "@/lib/mentor-availability";
 import {
+  ExperienceCardProblem,
   PeerCapacityNote,
   PeerRequestAvailability,
+  type ExperienceCardForm,
 } from "@/types/iskur-student";
 
 type Tone = ComponentProps<typeof StatusChip>["tone"];
@@ -309,4 +314,76 @@ export function mentorshipSince(acceptedAt: string): {
 } {
   const date = new Date(acceptedAt);
   return { day: date.getDate(), month: MONTH_KEYS[date.getMonth()] ?? "jan" };
+}
+
+/** The backend's limits on an experience card. */
+export const PEER_EXPERIENCE_CARDS_MAX = 10;
+export const PEER_EXPERIENCE_TITLE_MAX = 200;
+export const PEER_EXPERIENCE_SUMMARY_MAX = 300;
+
+export const EMPTY_EXPERIENCE_FORM: ExperienceCardForm = {
+  title: "",
+  organization: "",
+  startedOn: "",
+  endedOn: "",
+  summary: "",
+};
+
+/** The first thing stopping the card from being saved; the design asks for a title, an organisation and a start. */
+export function experienceCardProblem(
+  form: ExperienceCardForm,
+): ExperienceCardProblem | null {
+  if (!form.title.trim()) return ExperienceCardProblem.Title;
+  if (!form.organization.trim()) return ExperienceCardProblem.Organization;
+  if (!form.startedOn) return ExperienceCardProblem.Start;
+  // "yyyy-MM" strings compare in date order.
+  if (form.endedOn && form.endedOn < form.startedOn) {
+    return ExperienceCardProblem.EndBeforeStart;
+  }
+  return null;
+}
+
+export function toExperienceCard(form: ExperienceCardForm): PeerExperienceCard {
+  return {
+    kind: PeerExperienceKind.Other,
+    title: form.title.trim(),
+    organization: form.organization.trim() || null,
+    startedOn: form.startedOn,
+    endedOn: form.endedOn || null,
+    summary: form.summary.trim() || null,
+  };
+}
+
+export function toExperienceForm(card: PeerExperienceCard): ExperienceCardForm {
+  return {
+    title: card.title,
+    organization: card.organization ?? "",
+    startedOn: card.startedOn,
+    endedOn: card.endedOn ?? "",
+    summary: card.summary ?? "",
+  };
+}
+
+/** "Temmuz 2025" from "2025-07", read the same in every time zone. */
+export function formatYearMonth(value: string, locale: string) {
+  const [year, month] = value.split("-").map(Number);
+  if (!year || !month) return value;
+  return new Intl.DateTimeFormat(locale, {
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(Date.UTC(year, month - 1, 1)));
+}
+
+/** The chosen categories' levels only: a level outlives neither its category nor a deselection. */
+export function levelsFor(
+  levels: PeerTopicLevels,
+  chosen: readonly PeerTopicCategory[],
+): PeerTopicLevels {
+  return Object.fromEntries(
+    chosen.flatMap((category) => {
+      const level = levels[category];
+      return level ? [[category, level]] : [];
+    }),
+  );
 }

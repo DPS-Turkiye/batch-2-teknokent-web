@@ -38,3 +38,20 @@ export enum PeerRequestAvailability {
   /** Every place is taken. */
   Full = "full",
 }
+
+/** Why an experience card can't be saved yet. */
+export enum ExperienceCardProblem {
+  Title = "title",
+  Organization = "organization",
+  Start = "start",
+  EndBeforeStart = "endBeforeStart",
+}
+
+/** The "Yeni deneyim" form as typed; months as "yyyy-MM" (a month input's value). */
+export type ExperienceCardForm = {
+  title: string;
+  organization: string;
+  startedOn: string;
+  endedOn: string;
+  summary: string;
+};

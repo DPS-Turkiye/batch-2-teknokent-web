@@ -123,6 +123,17 @@ describe("PeerMentorPublicProfile", () => {
     expect(within(topics).getByText("Serbest konu")).toBeVisible();
 
     const experience = screen.getByRole("region", { name: "İlgili deneyim" });
+    expect(
+      within(experience).getByText("Yaz stajyeri — ABC Lojistik"),
+    ).toBeVisible();
+    expect(
+      within(experience).getByText(
+        "Temmuz 2025 – Ağustos 2025 · Haftalık operasyon raporları hazırladım.",
+      ),
+    ).toBeVisible();
+    expect(
+      within(experience).getByText("Eylül 2024 – Devam ediyor"),
+    ).toBeVisible();
     expect(within(experience).getByText("CENG 242 · CENG 315")).toBeVisible();
     expect(
       within(experience).getByText("Kampüs etkinlik uygulaması"),

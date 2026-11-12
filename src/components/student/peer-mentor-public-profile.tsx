@@ -1,7 +1,7 @@
 "use client";
 
 import { Link2 } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -14,6 +14,7 @@ import {
 } from "@/components/student/peer-mentor-directory";
 import { PeerMentorRequestDialog } from "@/components/student/peer-mentor-request-dialog";
 import { usePeerMentor } from "@/hooks/use-peer-mentoring";
+import { formatYearMonth } from "@/lib/peer-mentoring";
 import { httpUrlOrNull, initials } from "@/lib/utils";
 
 const BACK_HREF = "/student/peer-mentoring";
@@ -28,6 +29,7 @@ export function PeerMentorPublicProfile({ mentorId }: { mentorId: string }) {
   const tTopic = useTranslations("peerTopics");
   const tSubTopic = useTranslations("studentProfileCompletion.subtopics");
   const tDay = useTranslations("options.weekday");
+  const locale = useLocale();
   const view = usePeerMentor(mentorId);
   const { mentor } = view;
   const linkedinUrl = httpUrlOrNull(mentor?.linkedinUrl);
@@ -97,7 +99,8 @@ export function PeerMentorPublicProfile({ mentorId }: { mentorId: string }) {
                 {mentor.helpWith}
               </p>
             </section>
-            {mentor.strongCourses.length > 0 ||
+            {mentor.experiences.length > 0 ||
+            mentor.strongCourses.length > 0 ||
             mentor.projects.length > 0 ||
             mentor.erasmus ? (
               <section
@@ -110,6 +113,31 @@ export function PeerMentorPublicProfile({ mentorId }: { mentorId: string }) {
                 >
                   {t("experience")}
                 </h2>
+                {mentor.experiences.length > 0 ? (
+                  <ul className="space-y-3">
+                    {mentor.experiences.map((card, index) => (
+                      <li
+                        key={`${card.title}-${card.startedOn}-${String(index)}`}
+                        className="space-y-0.5"
+                      >
+                        <p className="type-label text-text-primary">
+                          {card.organization
+                            ? `${card.title} — ${card.organization}`
+                            : card.title}
+                        </p>
+                        <p className="type-caption text-text-muted">
+                          {t("experienceRange", {
+                            start: formatYearMonth(card.startedOn, locale),
+                            end: card.endedOn
+                              ? formatYearMonth(card.endedOn, locale)
+                              : t("ongoing"),
+                          })}
+                          {card.summary ? ` · ${card.summary}` : null}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
                 <dl className="space-y-3">
                   <ExperienceLine
                     label={t("strongCourses")}

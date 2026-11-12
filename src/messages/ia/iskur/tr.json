@@ -175,7 +175,31 @@
       "projects": "Projelerin",
       "erasmus": "Yurt dışı / değişim deneyimin (isteğe bağlı)",
       "onePerLine": "Her satıra bir tane.",
-      "cardsSoon": "Staj, kulüp ve iş deneyimlerini belgeleriyle kart olarak eklemek yakında."
+      "cardsTitle": "Deneyim kartların",
+      "cardsHint": "Staj, proje, kulüp veya iş deneyimlerini ekle.",
+      "newCard": "Yeni deneyim",
+      "editCard": "Deneyimi düzenle",
+      "cardTitle": "Deneyim başlığı",
+      "organization": "Kurum / kuruluş",
+      "startedOn": "Başlangıç",
+      "endedOn": "Bitiş",
+      "endedOnHint": "Devam ediyorsa boş bırak.",
+      "summary": "Kısa açıklama",
+      "cancel": "Vazgeç",
+      "save": "Deneyimi Kaydet",
+      "add": "Deneyim ekle",
+      "addAnother": "Başka deneyim ekle",
+      "edit": "Düzenle",
+      "remove": "Kaldır",
+      "range": "{start} – {end}",
+      "ongoing": "Devam ediyor",
+      "evidenceSoon": "Deneyimi bir belgeyle desteklemek yakında.",
+      "problems": {
+        "title": "Deneyim başlığını yaz.",
+        "organization": "Kurumu ya da kuruluşu yaz.",
+        "start": "Başlangıç ayını seç.",
+        "endBeforeStart": "Bitiş, başlangıçtan önce olamaz."
+      }
     },
     "helpWith": {
       "tipsTitle": "İyi bir açıklama için",
@@ -218,7 +242,8 @@
       "noCapacity": "Belirlenmedi",
       "links": "Bağlantıların",
       "linkShown": "Profilimde gösteriliyor",
-      "noLinks": "Bağlantı eklenmedi"
+      "noLinks": "Bağlantı eklenmedi",
+      "experience": "İlgili deneyim"
     },
     "back": "Geri",
     "next": "Devam Et",
@@ -231,7 +256,8 @@
     "errors": {
       "categories": "En az bir kategori seç.",
       "helpWith": "Bu metin en az {min} karakter olmalı.",
-      "link": "Bağlantı http:// veya https:// ile başlamalı."
+      "link": "Bağlantı http:// veya https:// ile başlamalı.",
+      "experienceOpen": "Açık deneyimi önce kaydet ya da vazgeç."
     }
   },
   "take": {
@@ -293,7 +319,9 @@
       "thisWeek": "Bu hafta",
       "thisWeekOpen": "Boş saat var",
       "thisWeekFull": "Boş saat yok",
-      "newTab": "(yeni sekmede açılır)"
+      "newTab": "(yeni sekmede açılır)",
+      "experienceRange": "{start} – {end}",
+      "ongoing": "Devam ediyor"
     },
     "dialog": {
       "title": "Mentorluk talebi gönder",

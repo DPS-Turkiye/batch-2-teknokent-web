@@ -5,13 +5,19 @@ import { BadgeCode, BadgeStatus } from "@/interfaces/badges";
 import { Weekday } from "@/interfaces/mentor";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import {
+  PeerExperienceKind,
   PeerMentorGateState,
   PeerTopicCategory,
+  PeerTopicLevel,
 } from "@/interfaces/peer-mentoring";
 import type { ProfileCompletionCategory } from "@/interfaces/student-profile-completion";
 import {
   chosenSubtopics,
+  EMPTY_EXPERIENCE_FORM,
+  experienceCardProblem,
+  formatYearMonth,
   latestGateAward,
+  levelsFor,
   mentorshipSince,
   offeredSubTopics,
   PEER_REQUEST_STATUS_TONE,
@@ -24,9 +30,12 @@ import {
   splitRecommended,
   subtopicGroupsWithCounts,
   subTopicOptions,
+  toExperienceCard,
+  toExperienceForm,
   weeklyHours,
 } from "@/lib/peer-mentoring";
 import {
+  ExperienceCardProblem,
   PeerCapacityNote,
   PeerRequestAvailability,
 } from "@/types/iskur-student";
@@ -370,5 +379,71 @@ describe("mentorshipSince", () => {
       month: "nov",
     });
     expect(mentorshipSince("2026-10-15T12:00:00+03:00").month).toBe("oct");
+  });
+});
+
+describe("experience cards", () => {
+  const filled = {
+    title: " Yaz stajyeri ",
+    organization: " ABC Lojistik ",
+    startedOn: "2025-07",
+    endedOn: "",
+    summary: "  ",
+  };
+
+  it("asks for a title, an organisation and a start, and an end no earlier than the start", () => {
+    expect(experienceCardProblem(EMPTY_EXPERIENCE_FORM)).toBe(
+      ExperienceCardProblem.Title,
+    );
+    expect(experienceCardProblem({ ...filled, organization: " " })).toBe(
+      ExperienceCardProblem.Organization,
+    );
+    expect(experienceCardProblem({ ...filled, startedOn: "" })).toBe(
+      ExperienceCardProblem.Start,
+    );
+    expect(experienceCardProblem({ ...filled, endedOn: "2025-06" })).toBe(
+      ExperienceCardProblem.EndBeforeStart,
+    );
+    expect(experienceCardProblem({ ...filled, endedOn: "2025-07" })).toBeNull();
+    expect(experienceCardProblem(filled)).toBeNull();
+  });
+
+  it("turns the form into a trimmed card and back", () => {
+    const card = toExperienceCard(filled);
+    expect(card).toEqual({
+      kind: PeerExperienceKind.Other,
+      title: "Yaz stajyeri",
+      organization: "ABC Lojistik",
+      startedOn: "2025-07",
+      endedOn: null,
+      summary: null,
+    });
+    expect(toExperienceForm(card)).toEqual({
+      title: "Yaz stajyeri",
+      organization: "ABC Lojistik",
+      startedOn: "2025-07",
+      endedOn: "",
+      summary: "",
+    });
+  });
+
+  it("names a month the same way in every time zone", () => {
+    expect(formatYearMonth("2025-07", "tr")).toBe("Temmuz 2025");
+    expect(formatYearMonth("2024-09", "en")).toBe("September 2024");
+    expect(formatYearMonth("not-a-month", "tr")).toBe("not-a-month");
+  });
+
+  it("keeps levels only for the chosen categories", () => {
+    expect(
+      levelsFor(
+        {
+          [PeerTopicCategory.CareerInternship]: PeerTopicLevel.Advanced,
+          [PeerTopicCategory.International]: PeerTopicLevel.Basic,
+        },
+        [PeerTopicCategory.CareerInternship, PeerTopicCategory.CampusLife],
+      ),
+    ).toEqual({
+      [PeerTopicCategory.CareerInternship]: PeerTopicLevel.Advanced,
+    });
   });
 });

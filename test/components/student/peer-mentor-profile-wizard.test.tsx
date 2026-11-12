@@ -1,9 +1,13 @@
-import { screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PeerMentorProfileWizard } from "@/components/student/peer-mentor-profile-wizard";
-import { PeerTopicCategory } from "@/interfaces/peer-mentoring";
+import {
+  PeerExperienceKind,
+  PeerTopicCategory,
+  PeerTopicLevel,
+} from "@/interfaces/peer-mentoring";
 import { IdentityKind, UserRole, type AppSession } from "@/interfaces/session";
 import { PROFILE_COMPLETION_CATEGORIES } from "@/lib/client/fixtures/student-profile-completion";
 import { fetchInstitutionRecord } from "@/lib/client/institution";
@@ -123,13 +127,61 @@ describe("PeerMentorProfileWizard", () => {
       screen.getByRole("checkbox", { name: "Örnek: CV hazırlama" }),
     );
     expect(screen.getByText("1 alt konu seçildi")).toBeVisible();
-    expect(screen.getByText("Deneyim düzeyin")).toBeVisible();
+    const level = screen.getByRole("group", {
+      name: "Deneyim düzeyin, Kariyer ve Staj",
+    });
+    await user.click(within(level).getByRole("radio", { name: "İleri" }));
+    expect(within(level).getByRole("radio", { name: "İleri" })).toBeChecked();
     await next();
 
     await user.type(
       screen.getByLabelText(/Güçlü olduğun dersler/),
       "IE 251{enter}IE 265",
     );
+    await user.click(screen.getByRole("button", { name: "Deneyim ekle" }));
+    const form = screen.getByRole("region", { name: "Yeni deneyim" });
+    await user.click(
+      within(form).getByRole("button", { name: "Deneyimi Kaydet" }),
+    );
+    expect(within(form).getByRole("alert")).toHaveTextContent(
+      "Deneyim başlığını yaz.",
+    );
+    await next();
+    expect(
+      screen.getByText("Açık deneyimi önce kaydet ya da vazgeç."),
+    ).toBeVisible();
+    await user.type(
+      within(form).getByLabelText("Deneyim başlığı"),
+      "Yaz stajyeri",
+    );
+    await user.type(
+      within(form).getByLabelText("Kurum / kuruluş"),
+      "ABC Lojistik",
+    );
+    fireEvent.change(within(form).getByLabelText("Başlangıç"), {
+      target: { value: "2025-07" },
+    });
+    fireEvent.change(within(form).getByLabelText(/^Bitiş/), {
+      target: { value: "2025-06" },
+    });
+    await user.click(
+      within(form).getByRole("button", { name: "Deneyimi Kaydet" }),
+    );
+    expect(within(form).getByRole("alert")).toHaveTextContent(
+      "Bitiş, başlangıçtan önce olamaz.",
+    );
+    fireEvent.change(within(form).getByLabelText(/^Bitiş/), {
+      target: { value: "2025-08" },
+    });
+    await user.click(
+      within(form).getByRole("button", { name: "Deneyimi Kaydet" }),
+    );
+    expect(screen.queryByRole("region", { name: "Yeni deneyim" })).toBeNull();
+    expect(screen.getByText("Yaz stajyeri — ABC Lojistik")).toBeVisible();
+    expect(screen.getByText("Temmuz 2025 – Ağustos 2025")).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Başka deneyim ekle" }),
+    ).toBeVisible();
     await next();
 
     await user.type(screen.getByLabelText(/Açıklaman/), "Kısa");
@@ -173,6 +225,7 @@ describe("PeerMentorProfileWizard", () => {
     ).toBeVisible();
     expect(screen.getByText(/^Salı \d{2}:\d{2} – \d{2}:\d{2}$/)).toBeVisible();
     expect(screen.getByText("Aynı anda 3 mentee")).toBeVisible();
+    expect(screen.getByText("Yaz stajyeri — ABC Lojistik")).toBeVisible();
     expect(screen.getByText("https://linkedin.com/in/zeynep")).toBeVisible();
     expect(savePeerMentorProfile).not.toHaveBeenCalled();
 
@@ -189,6 +242,17 @@ describe("PeerMentorProfileWizard", () => {
       erasmus: "",
       helpWith: "Kısa değil: staj başvurusu ve CV hazırlığı.",
       linkedinUrl: "https://linkedin.com/in/zeynep",
+      levels: { [PeerTopicCategory.CareerInternship]: PeerTopicLevel.Advanced },
+      experiences: [
+        {
+          kind: PeerExperienceKind.Other,
+          title: "Yaz stajyeri",
+          organization: "ABC Lojistik",
+          startedOn: "2025-07",
+          endedOn: "2025-08",
+          summary: null,
+        },
+      ],
     });
     expect(
       vi.mocked(updateAvailabilitySettings).mock.calls[0]?.[0],
@@ -197,6 +261,75 @@ describe("PeerMentorProfileWizard", () => {
       defaultMeetingDurationMinutes: 30,
       rules: [expect.objectContaining({ dayOfWeek: "TUESDAY" })],
     });
+  });
+
+  it("opens the saved level and cards when editing, edits a card in place and removes one", async () => {
+    const user = userEvent.setup();
+    vi.mocked(getPeerMentorProfile).mockResolvedValue({
+      categories: [PeerTopicCategory.CareerInternship],
+      subTopics: [],
+      strongCourses: [],
+      projects: [],
+      erasmus: null,
+      helpWith: "Staj başvurusu ve CV konusunda yardımcı olurum.",
+      linkedinUrl: null,
+      department: "Endüstri Mühendisliği",
+      classYear: 4,
+      menteeCapacity: 3,
+      levels: {
+        [PeerTopicCategory.CareerInternship]: PeerTopicLevel.Intermediate,
+      },
+      experiences: [
+        {
+          kind: PeerExperienceKind.Internship,
+          title: "Yaz stajyeri",
+          organization: "ABC Lojistik",
+          startedOn: "2025-07",
+          endedOn: "2025-08",
+          summary: null,
+        },
+        {
+          kind: PeerExperienceKind.Club,
+          title: "Kulüp başkanı",
+          organization: "IEEE ODTÜ",
+          startedOn: "2024-09",
+          endedOn: null,
+          summary: null,
+        },
+      ],
+    });
+    renderWithQueryClient(<PeerMentorProfileWizard />);
+    const next = () =>
+      user.click(screen.getByRole("button", { name: "Devam Et" }));
+    await screen.findByRole("group", { name: "Mentor profilini düzenle" });
+    await next();
+
+    expect(screen.getByRole("radio", { name: "Orta" })).toBeChecked();
+    await next();
+
+    expect(screen.getByText("Eylül 2024 – Devam ediyor")).toBeVisible();
+    await user.click(
+      screen.getByRole("button", { name: "Düzenle, Kulüp başkanı" }),
+    );
+    const form = screen.getByRole("region", { name: "Deneyimi düzenle" });
+    expect(within(form).getByLabelText("Deneyim başlığı")).toHaveValue(
+      "Kulüp başkanı",
+    );
+    // Removing a card above the open one keeps the form on the same card.
+    await user.click(
+      screen.getByRole("button", { name: "Kaldır, Yaz stajyeri" }),
+    );
+    await user.clear(within(form).getByLabelText("Deneyim başlığı"));
+    await user.type(
+      within(form).getByLabelText("Deneyim başlığı"),
+      "Kulüp eş başkanı",
+    );
+    await user.click(
+      within(form).getByRole("button", { name: "Deneyimi Kaydet" }),
+    );
+
+    expect(screen.queryByText(/Yaz stajyeri/)).toBeNull();
+    expect(screen.getByText("Kulüp eş başkanı — IEEE ODTÜ")).toBeVisible();
   });
 
   it("opens with the published answers when editing", async () => {
@@ -211,6 +344,8 @@ describe("PeerMentorProfileWizard", () => {
       department: "Endüstri Mühendisliği",
       classYear: 4,
       menteeCapacity: 3,
+      levels: {},
+      experiences: [],
     });
     renderWithQueryClient(<PeerMentorProfileWizard />);
 

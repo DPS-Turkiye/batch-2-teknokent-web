@@ -43,6 +43,8 @@ const profile = {
   erasmus: "",
   helpWith: "Frontend",
   linkedinUrl: "",
+  levels: {},
+  experiences: [],
 };
 
 const calls: ClientCall[] = [
