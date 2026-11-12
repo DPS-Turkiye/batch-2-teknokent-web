@@ -72,7 +72,12 @@
     "signUp": "Kayıt Ol",
     "invite": "Bir davet aldın mı? Davet kodunla devam et",
     "odtu": "ODTÜ Hesabıyla Giriş Yap",
-    "otg": "ODTÜ TEKNOKENT Girişimcilik ile giriş yap"
+    "otg": "ODTÜ TEKNOKENT Girişimcilik ile giriş yap",
+    "odtuIntro": "ODTÜ öğrencisi veya akademisyeniysen ODTÜ hesabınla giriş yap. Ayrı bir kayıt gerekmez.",
+    "or": "veya",
+    "staffQuestion": "Koordinatör, admin veya girişim programı hesabın mı var?",
+    "emailLogin": "E-posta ile giriş yap",
+    "help": "Giriş yapamıyor musun? Yardım al"
   },
   "otgLogin": {
     "signingIn": "ODTÜ TEKNOKENT Girişimcilik hesabınla giriş yapılıyor…",
@@ -218,7 +223,24 @@
           "Koordinatör onayı"
         ],
         "action": "Mentor olarak devam et"
+      },
+      "student": {
+        "badge": "İŞKUR Öğrencisi",
+        "title": "Akran mentoru olmak istiyorum",
+        "description": "Profilini ve programını seçersin; koordinatör onayından sonra mentorluk eğitimini tamamlayıp rozetini aldığında ODTÜ öğrencilerine akran mentorluğu verirsin.",
+        "steps": [
+          "Kişisel profil",
+          "Program seçimi",
+          "Koordinatör onayı",
+          "Eğitim ve rozet"
+        ],
+        "action": "İŞKUR öğrencisi olarak devam et"
       }
+    },
+    "odtuBanner": {
+      "title": "ODTÜ öğrencisi veya akademisyeni misin?",
+      "tag": "Kayıt gerekmez",
+      "text": "ODTÜ hesabınla giriş yap. Office Hours, Akran Mentörlüğü ve akademik danışmanın hesabındaki bilgilere göre açılır."
     }
   },
   "signupFlow": {
@@ -229,10 +251,32 @@
     "resumeSubmit": "Mentor profiline devam et",
     "checkingSession": "Oturum bilgileri kontrol ediliyor…",
     "preparingMentor": "Mentor hesabı hazırlanıyor…",
-    "retry": "Tekrar dene"
+    "retry": "Tekrar dene",
+    "existingAccountTitle": "Bu e-postayla zaten bir hesabın var",
+    "existingAccountBody": "{email} adresiyle kayıtlı bir hesap zaten var. Yeniden kayıt olman gerekmiyor; giriş yaparak devam et.",
+    "existingAccountSignIn": "Giriş yap"
   },
   "signupWizard": {
     "programRequired": "Lütfen bir program seçin.",
+    "invalidFields": "Şu alanlar geçersiz: {fields}. Düzeltip tekrar gönder.",
+    "fieldNames": {
+      "fullName": "Ad soyad",
+      "email": "E-posta",
+      "phone": "Telefon",
+      "jobTitle": "Rol",
+      "bio": "Kısa biyografi",
+      "linkedinUrl": "LinkedIn",
+      "contactPreferences": "İletişim tercihleri",
+      "programId": "Program",
+      "organizationName": "Startup adı",
+      "description": "Kısa tanım",
+      "website": "Web sitesi",
+      "mvpUrl": "MVP bağlantısı",
+      "foundedYear": "Kuruluş yılı",
+      "maturity": "Aşama",
+      "supportAreas": "Destek alanları",
+      "teamMembers": "Ekip üyeleri"
+    },
     "steps": {
       "personal": {
         "title": "Kişisel profilini oluştur",
@@ -4156,8 +4200,6 @@
     "removeLabel": "{name} programdan çıkar",
     "remove": "Çıkar",
     "loading": "Yükleniyor…",
-    "noCandidates": "Eklenebilecek başka onaylı koordinatör yok. Yönetici, Kullanıcılar’dan yeni koordinatör ekleyebilir.",
-    "candidates": "Eklenebilecek koordinatörler",
     "addCoordinator": "Koordinatör ekle",
     "coordinatorFailed": "Koordinatör güncellenemedi.",
     "danger": "Tehlikeli bölge",
@@ -4752,7 +4794,6 @@
     "accessFailed": "Erişim değiştirilemedi.",
     "setupSent": "Şifre belirleme e-postası {email} adresine gönderildi.",
     "setupFailed": "E-posta gönderilemedi.",
-    "assigned": "Koordinatör programa eklendi.",
     "addTitle": "Koordinatör ekle",
     "addBody": "Yeni biri için hesap açılır; kayıtlı bir mentor ya da girişimci ise rolü koordinatör olur. Mentorlar ve takımlar kendileri kayıt olur ve bu listede onay bekler.",
     "cancel": "Vazgeç",
@@ -4763,16 +4804,42 @@
     "checking": "Kontrol ediliyor…",
     "assignTitle": "Koordinatör ata",
     "assignBody": "{program} programına koordinatör ekle. Programın kurallarını ve takımlarını koordinatör yönetir.",
-    "noCandidates": "Onaylı koordinatör yok. E-posta ile ekle: sistemde yoksa hesap açılır ve şifre belirleme e-postası gider.",
-    "byEmailHint": "Sistemde yoksa hesap açılır ve şifre belirleme e-postası gider; kayıtlı bir mentor ya da girişimci ise rolü koordinatör olur.",
-    "pickFromList": "Listeden seç",
     "loading": "Yükleniyor…",
-    "notListed": "Listede yok mu? E-posta ile ekle",
     "adding": "Ekleniyor…",
-    "addToProgram": "Programa ekle",
     "deactivate": "Pasife al",
     "reactivate": "Yeniden etkinleştir",
     "resendSetup": "Şifre e-postasını tekrar gönder"
+  },
+  "coordinatorPicker": {
+    "label": "Koordinatör e-postası",
+    "placeholder": "ornek@kurum.com",
+    "hint": "Aramak için en az {min} karakter yaz.",
+    "searching": "Aranıyor…",
+    "searchFailed": "Koordinatörler aranamadı.",
+    "noMatches": "Bu e-postayla başlayan bir koordinatör yok. menton'da hesabı olmayan birini davet etmek için e-postanın tamamını yaz.",
+    "results": "Eşleşen koordinatörler",
+    "resultCount": "{count, plural, one {# koordinatör bulundu} other {# koordinatör bulundu}}",
+    "add": "Ekle",
+    "addNamed": "{name} ekle",
+    "inviteTitle": "{email} adresiyle menton'da hesap yok. Koordinatör olarak davet edebilirsin.",
+    "inviteNote": "Program kaydedilince bu kişiye koordinatör hesabı açılır ve şifresini belirlemesi için bir e-posta gönderilir. Bağlantı tek kullanımlık ve yaklaşık 1 saat geçerli; süresi dolarsa kişi giriş sayfasındaki \"Şifremi unuttum\" ile yenisini alabilir.",
+    "inviteName": "Ad soyad",
+    "invite": "Davet et",
+    "chosen": "Seçilen koordinatörler",
+    "invitedTag": "Davet edilecek",
+    "remove": "{name} kaldır",
+    "someone": "kullanıcı",
+    "refusal": {
+      "PROMOTABLE": "{name} menton'da {role} olarak kayıtlı. Koordinatör yapmak için önce Kullanıcılar › Koordinatör ekle bölümünü kullan.",
+      "REACTIVATABLE": "{name} pasif bir koordinatör. Önce Kullanıcılar bölümünden yeniden etkinleştir.",
+      "ALREADY_COORDINATOR": "{name} bu programın koordinatörü zaten.",
+      "ADMIN": "Bu e-posta bir yöneticiye ait.",
+      "TEAM_MEMBER": "{name} bir startup ekibinde. Takım üyeleri koordinatör yapılamaz.",
+      "MENTOR_IN_MENTORSHIP": "{name} planlı ya da aktif bir mentorluk yürütüyor. Mentorlukları bitmeden koordinatör yapılamaz."
+    },
+    "added": "{name} programa eklendi.",
+    "invited": "{name} programa eklendi; şifre belirleme e-postası {email} adresine gönderildi.",
+    "addFailed": "Koordinatör eklenemedi."
   },
   "adminUsers": {
     "tabs": {
@@ -5951,6 +6018,7 @@
     "inviteRenewFailed": "Davet yenilenemedi.",
     "noteDeleteFailed": "Not silinemedi.",
     "emailCheckFailed": "E-posta kontrol edilemedi.",
+    "coordinatorSearchFailed": "Koordinatörler aranamadı.",
     "profileSaveFailed": "Profil kaydedilemedi.",
     "startupAddFailed": "Startup programa eklenemedi.",
     "documentRequestTargetRequired": "meetingId, mentorshipRequestId veya mentorshipId gerekli.",
@@ -6248,7 +6316,7 @@
         "label": "Koordinatör",
         "hint": "Programı yönetecek kişiler",
         "title": "Koordinatör ata",
-        "note": "Bir veya daha fazla koordinatör seç. Koordinatörler programın koşullarını yapılandırır."
+        "note": "Koordinatörü e-postasıyla ara ya da menton'da hesabı olmayan birini e-postasıyla davet et. Koordinatörler programın koşullarını yapılandırır."
       },
       "SUMMARY": {
         "label": "Özet",
@@ -6269,21 +6337,19 @@
     "start": "Başlangıç",
     "end": "Bitiş",
     "coordinatorsLabel": "Koordinatörler",
-    "coordinatorsFailed": "Koordinatörler yüklenemedi.",
-    "retry": "Tekrar dene",
-    "noCoordinators": "Onaylı koordinatör yok. Önce Kullanıcılar › Koordinatörler bölümünden bir koordinatör ekle.",
     "summaryType": "Program türü",
     "summaryName": "Program adı",
     "summaryDates": "Tarihler",
     "noDates": "Belirtilmedi",
     "summaryCoordinators": "Koordinatörler",
+    "invitedTag": "Davet edilecek",
     "summaryStatus": "Durum",
     "draft": "Taslak",
     "problems": {
       "TYPE_REQUIRED": "Bir program türü seç.",
       "NAME_REQUIRED": "Program adını yaz.",
       "DATES_ORDER": "Bitiş tarihi başlangıçtan önce olamaz.",
-      "COORDINATOR_REQUIRED": "En az bir koordinatör seç."
+      "COORDINATOR_REQUIRED": "En az bir koordinatör ekle."
     },
     "cancel": "Vazgeç",
     "back": "Geri",
@@ -6310,28 +6376,8 @@
     "past": "Geçmiş"
   },
   "studentProfileCompletion": {
-    "title": "Profilini tamamla",
-    "subtitle": "İlgi alanlarını ve hedefini seç; Profilim'den istediğin zaman değiştirebilirsin.",
-    "loading": "Profil yükleniyor…",
-    "loadError": "Profil yüklenemedi.",
-    "retry": "Tekrar dene",
-    "saved": "Profilin tamamlandı.",
-    "skipped": "Şimdilik atladın. İstersen daha sonra profilini tamamlayabilirsin.",
-    "home": "Ana sayfaya dön",
-    "step": "Adım {number} / 3",
-    "steps": {
-      "0": "İlgi alanların",
-      "1": "Alt konular",
-      "2": "Hedefin (isteğe bağlı)"
-    },
     "noTopics": "Henüz alan seçmedin. Geri dönebilir ya da seçim yapmadan devam edebilirsin.",
     "goal": "Hedefin (isteğe bağlı, en fazla 1000 karakter)",
-    "saveError": "Profilin kaydedilemedi. Tekrar deneyebilirsin.",
-    "back": "Geri",
-    "next": "Devam et",
-    "finish": "Profili tamamla",
-    "saving": "Kaydediliyor…",
-    "skip": "Şimdilik atla",
     "subtopics": {
       "study": "Örnek: Ders çalışma",
       "cv": "Örnek: CV hazırlama",

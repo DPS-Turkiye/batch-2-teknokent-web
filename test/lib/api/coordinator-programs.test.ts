@@ -73,6 +73,7 @@ const newProgram: CreateProgramInput = {
   startDate: null,
   endDate: null,
   coordinatorIds: [ACTOR],
+  newCoordinators: [{ fullName: "Yeni Kişi", email: "yeni@teknokent.org" }],
 };
 
 type RequestCase = [
@@ -168,21 +169,27 @@ const peopleCases: RequestCase[] = [
     },
   ],
   [
-    "lists coordinator candidates when asked for them",
-    () => fetchProgramCoordinators(ACTOR, PROGRAM, true),
-    {
-      method: "GET",
-      url: `${PROGRAM_URL}/coordinators/candidates`,
-      params: { actorId: ACTOR },
-    },
-  ],
-  [
     "adds a coordinator by user id in the body",
-    () => addProgramCoordinator(ACTOR, PROGRAM, "user 7"),
+    () => addProgramCoordinator(ACTOR, PROGRAM, { userId: "user 7" }),
     {
       method: "POST",
       url: `${PROGRAM_URL}/coordinators`,
       data: { actorId: ACTOR, userId: "user 7" },
+    },
+  ],
+  [
+    "invites a coordinator by email, with the actor after the target",
+    () =>
+      addProgramCoordinator(ACTOR, PROGRAM, {
+        invite: { fullName: "Yeni Kişi", email: "yeni@x.org" },
+      }),
+    {
+      method: "POST",
+      url: `${PROGRAM_URL}/coordinators`,
+      data: {
+        invite: { fullName: "Yeni Kişi", email: "yeni@x.org" },
+        actorId: ACTOR,
+      },
     },
   ],
   [

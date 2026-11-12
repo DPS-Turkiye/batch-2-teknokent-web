@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 
+import { useAddProgramCoordinator } from "@/hooks/use-add-program-coordinator";
 import { ADMIN_OVERVIEW_QUERY_KEY } from "@/hooks/use-admin-overview";
 import { ToastTone } from "@/interfaces/toast";
 import {
@@ -17,21 +18,14 @@ import {
   resendCoordinatorPasswordSetup,
   setCoordinatorAccess,
 } from "@/lib/client/admin-coordinators";
-import {
-  addProgramCoordinator,
-  getProgramCoordinatorCandidates,
-} from "@/lib/client/coordinator-programs";
 import { errorMessage, isEmailAddress } from "@/lib/utils";
 import { useToast } from "@/stores/toast-store";
 
 const CANDIDATE_QUERY_KEY = ["admin-coordinator-candidate"] as const;
 const CHECK_DELAY_MS = 400;
 
-/**
- * The "Koordinatör ekle" form: checks the email as it is typed, then adds or promotes.
- * With a programId the new coordinator is also added to that program.
- */
-export function useAddCoordinatorForm(onDone: () => void, programId?: string) {
+/** The "Koordinatör ekle" form: checks the email as it is typed, then adds or promotes. */
+export function useAddCoordinatorForm(onDone: () => void) {
   const t = useTranslations("adminCoordinators");
   const queryClient = useQueryClient();
   const { showToast } = useToast();
@@ -59,14 +53,11 @@ export function useAddCoordinatorForm(onDone: () => void, programId?: string) {
   const needsName = nameRequired(current);
 
   const save = useMutation({
-    mutationFn: async () => {
-      const account = await addCoordinator({
+    mutationFn: () =>
+      addCoordinator({
         fullName: needsName ? fullName.trim() : (current?.fullName ?? ""),
         email: email.trim(),
-      });
-      if (programId) await addProgramCoordinator(programId, account.id);
-      return account;
-    },
+      }),
     onSuccess: (account) => {
       void queryClient.invalidateQueries({
         queryKey: ADMIN_OVERVIEW_QUERY_KEY,
@@ -154,45 +145,21 @@ export function useCoordinatorPasswordSetup() {
   };
 }
 
-/** The admin's "Koordinatör ata" popup: pick an approved coordinator and add them to the program. */
+/** The admin's "Koordinatör ata" popup: search or invite by email; the picked person joins the program at once. */
 export function useAssignProgramCoordinator(
   programId: string,
   onDone: () => void,
 ) {
-  const t = useTranslations("adminCoordinators");
   const queryClient = useQueryClient();
-  const { showToast } = useToast();
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const candidates = useQuery({
-    queryKey: ["admin-program-coordinator-candidates", programId],
-    queryFn: () => getProgramCoordinatorCandidates(programId),
+  const add = useAddProgramCoordinator(programId, () => {
+    void queryClient.invalidateQueries({ queryKey: ADMIN_OVERVIEW_QUERY_KEY });
+    onDone();
   });
-  const mutation = useMutation({
-    mutationFn: (userId: string) => addProgramCoordinator(programId, userId),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: ADMIN_OVERVIEW_QUERY_KEY,
-      });
-      showToast({ message: t("assigned"), tone: ToastTone.Success });
-      onDone();
-    },
-    onError: (error) =>
-      showToast({
-        message: errorMessage(error, t("addFailed")),
-        tone: ToastTone.Error,
-      }),
-  });
-
   return {
-    candidates: candidates.data ?? [],
-    isLoading: candidates.isLoading,
-    loadError: candidates.error,
-    selectedId,
-    select: setSelectedId,
-    canSave: selectedId != null && !mutation.isPending,
-    save: () => {
-      if (selectedId) mutation.mutate(selectedId);
+    ...add,
+    /** Escape, the overlay or Vazgeç; ignored while a pick is being saved so its outcome is seen. */
+    close: () => {
+      if (!add.adding) onDone();
     },
-    saving: mutation.isPending,
   };
 }

@@ -39,7 +39,10 @@ const OPEN_STATUSES = new Set([
   AppointmentStatus.Confirmed,
 ]);
 
-export function isUpcoming(appointment: Appointment, now: Date) {
+export function isUpcoming(
+  appointment: Pick<Appointment, "status" | "endsAt" | "alternative">,
+  now: Date,
+) {
   return (
     OPEN_STATUSES.has(appointment.status) &&
     Date.parse(appointment.endsAt) > now.getTime()

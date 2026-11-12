@@ -6,6 +6,7 @@ import type {
   CoordinatorRef,
   CreateProgramEventInput,
   CreateProgramInput,
+  ProgramCoordinatorTarget,
   ProgramEligibleEmail,
   ProgramEvent,
   ProgramPhaseInput,
@@ -103,14 +104,10 @@ export function setCoordinatorProgramArchived(
   });
 }
 
-export function fetchProgramCoordinators(
-  actorId: string,
-  programId: string,
-  candidates = false,
-) {
+export function fetchProgramCoordinators(actorId: string, programId: string) {
   return backendRequest<CoordinatorRef[]>({
     method: "GET",
-    url: `${programUrl(programId)}/coordinators${candidates ? "/candidates" : ""}`,
+    url: `${programUrl(programId)}/coordinators`,
     params: { actorId },
   });
 }
@@ -118,12 +115,12 @@ export function fetchProgramCoordinators(
 export function addProgramCoordinator(
   actorId: string,
   programId: string,
-  userId: string,
+  target: ProgramCoordinatorTarget,
 ) {
   return backendRequest<CoordinatorRef[]>({
     method: "POST",
     url: `${programUrl(programId)}/coordinators`,
-    data: { actorId, userId },
+    data: { ...target, actorId },
   });
 }
 
