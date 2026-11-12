@@ -4198,8 +4198,6 @@
     "removeLabel": "Remove {name} from the program",
     "remove": "Remove",
     "loading": "Loading…",
-    "noCandidates": "No other approved coordinators to add. An admin can add new coordinators under Users.",
-    "candidates": "Coordinators you can add",
     "addCoordinator": "Add a coordinator",
     "coordinatorFailed": "Couldn't update the coordinators.",
     "danger": "Danger zone",
@@ -4794,7 +4792,6 @@
     "accessFailed": "Couldn't change the access.",
     "setupSent": "A password setup email was sent to {email}.",
     "setupFailed": "Couldn't send the email.",
-    "assigned": "Coordinator added to the program.",
     "addTitle": "Add a coordinator",
     "addBody": "An account is opened for someone new; if they're already a mentor or a founder, their role becomes coordinator. Mentors and teams sign up themselves and wait for approval in this list.",
     "cancel": "Cancel",
@@ -4805,13 +4802,8 @@
     "checking": "Checking…",
     "assignTitle": "Assign a coordinator",
     "assignBody": "Add a coordinator to {program}. The coordinator runs the program's rules and teams.",
-    "noCandidates": "No approved coordinators. Add one by email: an account is opened if they're new, and a password setup email goes out.",
-    "byEmailHint": "If they're new, an account is opened and a password setup email goes out; if they're already a mentor or a founder, their role becomes coordinator.",
-    "pickFromList": "Pick from the list",
     "loading": "Loading…",
-    "notListed": "Not on the list? Add by email",
     "adding": "Adding…",
-    "addToProgram": "Add to the program",
     "deactivate": "Deactivate",
     "reactivate": "Reactivate",
     "resendSetup": "Send the password email again"
@@ -4842,7 +4834,10 @@
       "ADMIN": "This e-mail belongs to an admin.",
       "TEAM_MEMBER": "{name} is in a startup team. Team members cannot become coordinators.",
       "MENTOR_IN_MENTORSHIP": "{name} has a planned or active mentorship and cannot become a coordinator until it ends."
-    }
+    },
+    "added": "{name} was added to the program.",
+    "invited": "{name} was added to the program; a password setup e-mail was sent to {email}.",
+    "addFailed": "Could not add the coordinator."
   },
   "adminUsers": {
     "tabs": {

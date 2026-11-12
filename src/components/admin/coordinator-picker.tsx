@@ -19,10 +19,13 @@ export function CoordinatorPicker({
   chosen,
   onChange,
   programId,
+  disabled = false,
 }: {
   chosen: readonly CoordinatorChoice[];
   onChange: (next: CoordinatorChoice[]) => void;
   programId?: string | undefined;
+  /** While a pick is being saved, so a second one is not silently dropped. */
+  disabled?: boolean;
 }) {
   const t = useTranslations("coordinatorPicker");
   const picker = useCoordinatorPicker({ chosen, onChange, programId });
@@ -53,6 +56,7 @@ export function CoordinatorPicker({
               ) : null}
               <button
                 type="button"
+                disabled={disabled}
                 onClick={andRefocus(() => picker.remove(choice.key))}
                 aria-label={t("remove", { name: choice.fullName })}
                 className="grid size-6 place-items-center rounded-full text-[#676e78] hover:bg-[#e9ecef]"
@@ -68,6 +72,7 @@ export function CoordinatorPicker({
         {t("label")}
         <input
           ref={field}
+          disabled={disabled}
           type="text"
           inputMode="email"
           autoComplete="off"
@@ -111,6 +116,7 @@ export function CoordinatorPicker({
             <li key={result.id}>
               <button
                 type="button"
+                disabled={disabled}
                 onClick={andRefocus(() => picker.pick(result.id))}
                 aria-label={t("addNamed", { name: result.fullName })}
                 className="flex w-full items-center justify-between gap-3 rounded-2xl border border-[#e9ecef] px-4 py-3 text-left hover:border-[#22262b]"
@@ -151,6 +157,7 @@ export function CoordinatorPicker({
                 onKeyDown={(event) => {
                   if (event.key !== "Enter") return;
                   event.preventDefault();
+                  if (disabled) return;
                   andRefocus(picker.invite)();
                 }}
                 className={`mt-1.5 ${FIELD}`}
@@ -159,7 +166,7 @@ export function CoordinatorPicker({
             <button
               type="button"
               onClick={andRefocus(picker.invite)}
-              disabled={!picker.canInvite}
+              disabled={disabled || !picker.canInvite}
               className="h-11 rounded-full bg-[#22262b] px-5 text-[13.5px] font-medium text-white disabled:bg-[#aeb4bc]"
             >
               {t("invite")}
