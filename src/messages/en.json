@@ -348,7 +348,8 @@
     "individualProgram": "You join this program on your own; no startup details are needed.",
     "programEligibilityChecking": "Checking whether you can join this program…",
     "programEligibilityRefused": "You cannot join this program with this e-mail address. Ask the program coordinator, or choose another program.",
-    "stageSubtitle": "What matters most for matching you with the right mentor."
+    "stageSubtitle": "What matters most for matching you with the right mentor.",
+    "cvManual": "Your CV is not read automatically on this system; the file is only stored. Fill in your details above yourself."
   },
   "signupDocuments": {
     "canvasSubtitle": "A one-page summary of your business model.",
@@ -531,7 +532,9 @@
     "offeringPlaceholder": "E.g. Sharpening the value proposition",
     "cancel": "Cancel",
     "add": "Add",
-    "noOfferings": "You haven't added any items yet."
+    "noOfferings": "You haven't added any items yet.",
+    "uploadOnlyHint": "Your CV is not read automatically on this system; the file is only stored and you fill in your details in the next step.",
+    "uploading": "Uploading your CV…"
   },
   "mentorAvailability": {
     "weekly": "Weekly availability",
@@ -841,7 +844,8 @@
       "mentors": "Mentors",
       "programs": "Programs",
       "applications": "Applications",
-      "project": "My project"
+      "project": "My project",
+      "assistant": "Assistant"
     },
     "mainMenu": "Main menu",
     "openMenu": "Open menu",
@@ -2062,7 +2066,8 @@
     "avatar": "Profile photo",
     "profile-pdf": "Profile PDF",
     "requested-doc": "Requested document",
-    "syllabus": "Syllabus"
+    "syllabus": "Syllabus",
+    "weekly-program": "Weekly program"
   },
   "startupStages": {
     "PROBLEM": "Problem",
@@ -2253,7 +2258,8 @@
     "fill": "Fill in my profile from the CV",
     "needPdf": "Upload your CV as a PDF to fill in your profile.",
     "uploading": "Uploading CV…",
-    "reading": "Reading your CV and filling in the fields…"
+    "reading": "Reading your CV and filling in the fields…",
+    "manual": "Your CV is not read automatically on this system; the file is only stored. Fill in your profile yourself."
   },
   "editableChips": {
     "add": "Add…",
@@ -3356,7 +3362,8 @@
       "risks": "Risks / blockers",
       "nextSteps": "Next steps",
       "none": "None noted."
-    }
+    },
+    "reportOff": "Meeting reports are not generated on this system; only the transcript is kept."
   },
   "roleFrame": {
     "soon": "Coming soon",
@@ -6003,10 +6010,13 @@
     "academicsLoadFailed": "Could not load the academics.",
     "weekPlanLoadFailed": "Couldn't load the weekly plan.",
     "weekPlanSaveFailed": "Couldn't save the weekly plan.",
+    "weeklyProgramReadFailed": "Couldn't read the weekly program.",
+    "weeklyProgramSaveFailed": "Couldn't save the weekly program.",
     "programThisWeekLoadFailed": "Couldn't load this week's plan.",
     "sessionRefreshFailed": "Couldn't update your session.",
     "personSummaryLoadFailed": "Could not load the profile.",
-    "personIdInvalid": "Choose a valid person."
+    "personIdInvalid": "Choose a valid person.",
+    "aiFeaturesLoadFailed": "Could not load the AI settings."
   },
   "startupStart": {
     "title": "My startup",
@@ -6118,7 +6128,8 @@
     "readFailed": "Could not read the curriculum.",
     "uploadFailed": "Could not upload the file.",
     "pdfOnly": "Only PDF files can be uploaded.",
-    "tooLarge": "The file can be at most 10 MB."
+    "tooLarge": "The file can be at most 10 MB.",
+    "manualHint": "Syllabus files are not read automatically on this system; add the phases here and the weeks in the weekly plan by hand."
   },
   "teamHistory": {
     "show": "Team history",
@@ -6495,12 +6506,6 @@
     }
   },
   "academicianWorkspace": {
-    "sampleNotice": "Sample data: Office Hours is not connected yet, so changes here are not saved.",
-    "queryState": {
-      "loading": "Loading…",
-      "error": "Could not load.",
-      "retry": "Try again"
-    },
     "studyLevel": {
       "BACHELOR": "Bachelor's",
       "MASTER": "Master's",
@@ -6570,11 +6575,6 @@
       "question": "Your question to the student",
       "needTime": "Pick at least one time.",
       "needQuestion": "Write your question.",
-      "accepted": "Request accepted; the appointment is in My appointments.",
-      "declined": "Request declined.",
-      "proposed": "Your times were sent to the student.",
-      "asked": "Your question was sent to the student.",
-      "failed": "The request could not be answered; the list was refreshed.",
       "noteLabel": "Student note",
       "proposedPast": "A time in the past cannot be offered.",
       "pickOne": "Pick a time."
@@ -6629,26 +6629,6 @@
       "oneOffFailed": "One-off hours could not be saved.",
       "insideDayOff": "This date is within your unavailable dates. Remove those dates first.",
       "insideDayOffReason": "This date is within your unavailable dates ({reason}). Remove those dates first."
-    },
-    "home": {
-      "greeting": "Hello, {name}",
-      "greetingFallback": "Hello",
-      "subtitle": "Your office hours requests, appointments and advisees.",
-      "pendingTitle": "Requests waiting for you",
-      "pendingHint": "Accept, decline or propose another time.",
-      "pendingLink": "Go to requests",
-      "weekTitle": "Appointments in the next 7 days",
-      "weekHint": "Confirmed office hours appointments.",
-      "weekLink": "My appointments",
-      "adviseesTitle": "Advisees",
-      "adviseesHint": "From ODTÜ's records.",
-      "adviseesLink": "My advisees",
-      "nextTitle": "Next appointments",
-      "nextEmpty": "No upcoming appointments.",
-      "requestsTitle": "Latest requests",
-      "requestsEmpty": "No requests are waiting for you.",
-      "seeAll": "See all",
-      "calendarLink": "Edit office hours"
     }
   },
   "programPeerCategories": {
