@@ -72,7 +72,12 @@
     "signUp": "Kayıt Ol",
     "invite": "Bir davet aldın mı? Davet kodunla devam et",
     "odtu": "ODTÜ Hesabıyla Giriş Yap",
-    "otg": "ODTÜ TEKNOKENT Girişimcilik ile giriş yap"
+    "otg": "ODTÜ TEKNOKENT Girişimcilik ile giriş yap",
+    "odtuIntro": "ODTÜ öğrencisi veya akademisyeniysen ODTÜ hesabınla giriş yap. Ayrı bir kayıt gerekmez.",
+    "or": "veya",
+    "staffQuestion": "Koordinatör, admin veya girişim programı hesabın mı var?",
+    "emailLogin": "E-posta ile giriş yap",
+    "help": "Giriş yapamıyor musun? Yardım al"
   },
   "otgLogin": {
     "signingIn": "ODTÜ TEKNOKENT Girişimcilik hesabınla giriş yapılıyor…",
@@ -218,7 +223,24 @@
           "Koordinatör onayı"
         ],
         "action": "Mentor olarak devam et"
+      },
+      "student": {
+        "badge": "İŞKUR Öğrencisi",
+        "title": "Akran mentoru olmak istiyorum",
+        "description": "Profilini ve programını seçersin; koordinatör onayından sonra mentorluk eğitimini tamamlayıp rozetini aldığında ODTÜ öğrencilerine akran mentorluğu verirsin.",
+        "steps": [
+          "Kişisel profil",
+          "Program seçimi",
+          "Koordinatör onayı",
+          "Eğitim ve rozet"
+        ],
+        "action": "İŞKUR öğrencisi olarak devam et"
       }
+    },
+    "odtuBanner": {
+      "title": "ODTÜ öğrencisi veya akademisyeni misin?",
+      "tag": "Kayıt gerekmez",
+      "text": "ODTÜ hesabınla giriş yap. Office Hours, Akran Mentörlüğü ve akademik danışmanın hesabındaki bilgilere göre açılır."
     }
   },
   "signupFlow": {
@@ -229,10 +251,32 @@
     "resumeSubmit": "Mentor profiline devam et",
     "checkingSession": "Oturum bilgileri kontrol ediliyor…",
     "preparingMentor": "Mentor hesabı hazırlanıyor…",
-    "retry": "Tekrar dene"
+    "retry": "Tekrar dene",
+    "existingAccountTitle": "Bu e-postayla zaten bir hesabın var",
+    "existingAccountBody": "{email} adresiyle kayıtlı bir hesap zaten var. Yeniden kayıt olman gerekmiyor; giriş yaparak devam et.",
+    "existingAccountSignIn": "Giriş yap"
   },
   "signupWizard": {
     "programRequired": "Lütfen bir program seçin.",
+    "invalidFields": "Şu alanlar geçersiz: {fields}. Düzeltip tekrar gönder.",
+    "fieldNames": {
+      "fullName": "Ad soyad",
+      "email": "E-posta",
+      "phone": "Telefon",
+      "jobTitle": "Rol",
+      "bio": "Kısa biyografi",
+      "linkedinUrl": "LinkedIn",
+      "contactPreferences": "İletişim tercihleri",
+      "programId": "Program",
+      "organizationName": "Startup adı",
+      "description": "Kısa tanım",
+      "website": "Web sitesi",
+      "mvpUrl": "MVP bağlantısı",
+      "foundedYear": "Kuruluş yılı",
+      "maturity": "Aşama",
+      "supportAreas": "Destek alanları",
+      "teamMembers": "Ekip üyeleri"
+    },
     "steps": {
       "personal": {
         "title": "Kişisel profilini oluştur",
@@ -6326,28 +6370,8 @@
     "past": "Geçmiş"
   },
   "studentProfileCompletion": {
-    "title": "Profilini tamamla",
-    "subtitle": "İlgi alanlarını ve hedefini seç; Profilim'den istediğin zaman değiştirebilirsin.",
-    "loading": "Profil yükleniyor…",
-    "loadError": "Profil yüklenemedi.",
-    "retry": "Tekrar dene",
-    "saved": "Profilin tamamlandı.",
-    "skipped": "Şimdilik atladın. İstersen daha sonra profilini tamamlayabilirsin.",
-    "home": "Ana sayfaya dön",
-    "step": "Adım {number} / 3",
-    "steps": {
-      "0": "İlgi alanların",
-      "1": "Alt konular",
-      "2": "Hedefin (isteğe bağlı)"
-    },
     "noTopics": "Henüz alan seçmedin. Geri dönebilir ya da seçim yapmadan devam edebilirsin.",
     "goal": "Hedefin (isteğe bağlı, en fazla 1000 karakter)",
-    "saveError": "Profilin kaydedilemedi. Tekrar deneyebilirsin.",
-    "back": "Geri",
-    "next": "Devam et",
-    "finish": "Profili tamamla",
-    "saving": "Kaydediliyor…",
-    "skip": "Şimdilik atla",
     "subtopics": {
       "study": "Örnek: Ders çalışma",
       "cv": "Örnek: CV hazırlama",
