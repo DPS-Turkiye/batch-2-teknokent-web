@@ -12,6 +12,10 @@ import { renderWithQueryClient } from "@test/test-utils";
 vi.mock("@/lib/client/student-appointments", () => ({
   getStudentAppointments: vi.fn(),
 }));
+vi.mock(
+  "@/lib/client/student-office-hours",
+  async () => await import("@test/fixtures/student-office-hours-client"),
+);
 vi.mock("@/lib/client/institution", () => ({
   fetchInstitutionRecord: vi.fn(),
   fetchInstitutionAdvisees: vi.fn(),

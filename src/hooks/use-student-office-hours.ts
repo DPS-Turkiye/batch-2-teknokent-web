@@ -88,9 +88,10 @@ function slotsQuery(
     ],
     queryFn: (): Promise<StudentOfficeHoursSlot[]> =>
       id !== null && duration !== null
-        ? getOfficeHoursSlots(id, from, days, duration)
+        ? getOfficeHoursSlots(id, from, days)
         : Promise.resolve([]),
-    enabled: id !== null,
+    // The advisor from the institution record has no Office Hours listing of their own to ask.
+    enabled: id !== null && id !== ADVISOR_ACADEMICIAN_ID,
   };
 }
 
@@ -126,7 +127,14 @@ export function useStudentOfficeHours() {
     queryFn: getOfficeHoursAcademicians,
   });
   const record = useInstitutionRecord();
-  const advisor = record.data ? advisorAcademician(record.data) : null;
+  // The advisor's own listing when they opted in, otherwise their name from the record, with no times to ask.
+  const advisorAccount = record.data?.advisor?.userId ?? null;
+  const listedAdvisor =
+    advisorAccount === null
+      ? undefined
+      : academicians.data?.find((item) => item.accountId === advisorAccount);
+  const advisor =
+    listedAdvisor ?? (record.data ? advisorAcademician(record.data) : null);
   const [from] = useState(startOfToday);
   const [filter, setFilter] = useState<OfficeHoursFilter>({
     query: "",
@@ -150,12 +158,15 @@ export function useStudentOfficeHours() {
     ]),
   );
   const freeOf = (id: string) => free.get(id) ?? [];
-  const directory = academicians.data ?? [];
+  const directory = (academicians.data ?? []).filter(
+    (item) => item !== listedAdvisor,
+  );
 
   return {
     isLoading: academicians.isLoading,
     // "Müsait saati olanlar" decides on the slots, so the list waits for them before it can say "none".
-    isLoadingSlots: slots.some((query) => query.isPending),
+    // isLoading, not isPending: an advisor without a listing has no slots to load, and a disabled query stays pending.
+    isLoadingSlots: slots.some((query) => query.isLoading),
     error: academicians.error,
     advisor: advisor
       ? {
@@ -261,15 +272,12 @@ export function useOfficeHoursBooking(id: string) {
       academician: OfficeHoursAcademician;
       slot: StudentOfficeHoursSlot;
     }) =>
-      requestOfficeHours(
-        {
-          academicianId: input.academician.id,
-          slot: { startsAt: input.slot.startsAt, endsAt: input.slot.endsAt },
-          title: title.trim(),
-          description: description.trim(),
-        },
-        input.academician,
-      ),
+      requestOfficeHours({
+        academicianId: input.academician.id,
+        slot: { startsAt: input.slot.startsAt, endsAt: input.slot.endsAt },
+        title: title.trim(),
+        description: description.trim(),
+      }),
     onSuccess: () =>
       Promise.all([
         queryClient.invalidateQueries({
@@ -367,7 +375,11 @@ export function useOfficeHoursAlternativeAnswer(appointment: Appointment) {
   const { showToast } = useToast();
   const answer = useMutation({
     mutationFn: (accept: boolean) =>
-      answerOfficeHoursAlternative(appointment.id, accept),
+      answerOfficeHoursAlternative(
+        appointment.id,
+        accept,
+        appointment.alternative?.startsAt ?? null,
+      ),
     onSuccess: () =>
       Promise.all([
         queryClient.invalidateQueries({

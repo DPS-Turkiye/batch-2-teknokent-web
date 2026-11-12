@@ -17,6 +17,8 @@ export type OfficeHoursCourse = {
  */
 export type OfficeHoursAcademician = {
   id: string;
+  /** Their Menton account, which tells the student's advisor apart; null in sample data. */
+  accountId: string | null;
   fullName: string;
   academicTitle: string | null;
   department: string | null;

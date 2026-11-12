@@ -102,7 +102,11 @@ describe("StudentAppointmentsView", () => {
     await userEvent.click(
       within(card).getByRole("button", { name: "Önerilen Saati Kabul Et" }),
     );
-    expect(answerOfficeHoursAlternative).toHaveBeenCalledWith("alt", true);
+    expect(answerOfficeHoursAlternative).toHaveBeenCalledWith(
+      "alt",
+      true,
+      alternative.alternative?.startsAt ?? null,
+    );
     expect(
       await screen.findByText(
         "Önerilen saati kabul ettin; randevun onaylandı.",

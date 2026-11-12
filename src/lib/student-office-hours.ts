@@ -44,6 +44,7 @@ export function advisorAcademician(
   if (!record.advisor) return null;
   return {
     id: ADVISOR_ACADEMICIAN_ID,
+    accountId: record.advisor.userId,
     fullName: record.advisor.fullName,
     academicTitle: record.advisor.academicTitle,
     department: record.departmentName,

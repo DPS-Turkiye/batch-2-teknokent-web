@@ -5,8 +5,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { StudentOfficeHoursView } from "@/components/student/office-hours-view";
 import { fetchInstitutionRecord } from "@/lib/client/institution";
 import { STUDENT_RECORD } from "@test/fixtures/student-home";
+import { listAdvisorAs } from "@test/fixtures/student-office-hours-client";
 import { renderWithQueryClient } from "@test/test-utils";
 
+vi.mock(
+  "@/lib/client/student-office-hours",
+  async () => await import("@test/fixtures/student-office-hours-client"),
+);
 vi.mock("@/lib/client/institution", () => ({
   fetchInstitutionRecord: vi.fn(),
   fetchInstitutionAdvisees: vi.fn(),
@@ -22,6 +27,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.useRealTimers();
+  listAdvisorAs(null);
 });
 
 async function cards() {
@@ -29,19 +35,42 @@ async function cards() {
 }
 
 describe("StudentOfficeHoursView", () => {
-  it("puts the advisor on top with their nearest times, marked for the tour", async () => {
+  it("puts the advisor on top, marked for the tour, with no times until they list their office hours", async () => {
     const { container } = renderWithQueryClient(<StudentOfficeHoursView />);
     const advisor = await screen.findByRole("region", {
       name: "Doç. Dr. Elif Şahin",
     });
     expect(within(advisor).getByText("Akademik danışmanın")).toBeVisible();
     expect(
-      within(advisor).getByRole("link", { name: "Randevu Talep Et" }),
-    ).toHaveAttribute("href", "/student/office-hours/advisor/book");
-    expect(
       container.querySelector('[data-tour="office-hours-academician"]'),
     ).toBe(advisor);
+    expect(
+      await within(advisor).findByText(
+        "Danışmanının şu anda müsait saati yok.",
+      ),
+    ).toBeVisible();
+  });
+
+  it("shows a listed advisor's own times and booking, and does not repeat them in the list", async () => {
+    listAdvisorAs("academician-1");
+    renderWithQueryClient(<StudentOfficeHoursView />);
+    const advisor = await screen.findByRole("region", {
+      name: "Prof. Dr. Ahmet Kaya",
+    });
+
+    expect(within(advisor).getByText("Akademik danışmanın")).toBeVisible();
+    expect(
+      within(advisor).getByRole("link", { name: "Randevu Talep Et" }),
+    ).toHaveAttribute(
+      "href",
+      "/student/office-hours/sample-academician-kaya/book",
+    );
     expect(await within(advisor).findAllByRole("listitem")).not.toHaveLength(0);
+    expect(
+      (await cards()).filter((card) =>
+        within(card).queryByRole("heading", { name: "Prof. Dr. Ahmet Kaya" }),
+      ),
+    ).toHaveLength(0);
   });
 
   it("lists the academicians with a free time and counts everyone", async () => {
