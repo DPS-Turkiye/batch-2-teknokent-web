@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AccountType } from "@/interfaces/account-type";
+import { Edition } from "@/interfaces/edition";
 import {
   IdentityKind,
   UserRole,
@@ -36,7 +37,10 @@ function signedIn(institutionKinds?: IdentityKind[], role = UserRole.Mentee) {
     jobTitle: "Mentee",
     role,
   };
-  if (institutionKinds !== undefined) user.institutionKinds = institutionKinds;
+  if (institutionKinds !== undefined) {
+    user.institutionKinds = institutionKinds;
+    user.edition = Edition.Odtu;
+  }
   vi.mocked(getSessionStore).mockResolvedValue(
     sessionStore({ user, issuedAt: Date.now() }),
   );

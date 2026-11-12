@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { RoleFrame } from "@/components/common/role-frame";
+import { Edition } from "@/interfaces/edition";
 import { IdentityKind, UserRole, type AppSession } from "@/interfaces/session";
 import { Workspace } from "@/interfaces/workspace";
 import { IaAccent } from "@/types/ia-theme";
@@ -154,6 +155,7 @@ describe("RoleFrame workspace switch", () => {
     role: UserRole.Academician,
     permissions: [UserRole.Mentee, UserRole.Academician],
     institutionKinds: [IdentityKind.Student, IdentityKind.Academic],
+    edition: Edition.Odtu,
   };
   const frame = (
     <RoleFrame
