@@ -8,6 +8,7 @@ import {
   type SubmitEvent,
 } from "react";
 
+import { useAiFeatureRefusal, useAiFeatures } from "@/hooks/use-ai-features";
 import { useMeetings } from "@/hooks/use-meetings";
 import { MeetingStatus as CalendarMeetingStatus } from "@/interfaces/meeting";
 import { UserRole } from "@/interfaces/session";
@@ -146,6 +147,9 @@ export function useMeetingAssistant(
   role?: UserRole | null,
 ) {
   const t = useTranslations("assistant");
+  // Off: no report is asked for, automatically or by hand; the transcript is still kept.
+  const canReport = useAiFeatures().meetingReport;
+  const refused = useAiFeatureRefusal();
   const locale = useLocale();
   const meetingTexts = useMemo(
     () => ({ meetingFallback: t("meetingFallback"), locale }),
@@ -511,7 +515,7 @@ export function useMeetingAssistant(
   const requestMeetingReport = useCallback(
     async (lines?: TranscriptLine[], meeting?: Meeting) => {
       const target = meeting ?? selected;
-      if (!target?.platformKey || !target.nativeMeetingId) return;
+      if (!canReport || !target?.platformKey || !target.nativeMeetingId) return;
       const segments = (
         lines ??
         transcriptByMeetingRef.current[target.id] ??
@@ -545,6 +549,7 @@ export function useMeetingAssistant(
           setReportStatus(BotStatus.Ok);
           window.setTimeout(() => setReportStatus(null), 4000);
         } catch (error) {
+          refused(error);
           autoReportAttemptedRef.current[target.id] = false;
           setReportStatus(BotStatus.Err);
           setReportError(
@@ -558,7 +563,7 @@ export function useMeetingAssistant(
       reportInFlightRef.current[target.id] = run;
       return run;
     },
-    [selected, t],
+    [selected, t, canReport, refused],
   );
 
   const selectedTranscriptFingerprint = selectedTranscript
@@ -736,6 +741,7 @@ export function useMeetingAssistant(
     addBot,
     stopBot,
     meetingReport,
+    canReport,
     reportStatus,
     reportError,
     regenerateReport: () => {

@@ -49,6 +49,7 @@ function MeetingAssistantWorkspace() {
     addBot,
     stopBot,
     meetingReport,
+    canReport,
     reportStatus,
     reportError,
     regenerateReport,
@@ -391,20 +392,22 @@ function MeetingAssistantWorkspace() {
                           {t("report")}
                         </span>
                         <span className="h-px flex-1 bg-[var(--ma-line)]" />
-                        <button
-                          type="button"
-                          onClick={() => regenerateReport()}
-                          disabled={
-                            reportStatus === BotStatus.Sending ||
-                            !selected.platformKey ||
-                            !selected.nativeMeetingId
-                          }
-                          className="rounded-[7px] border border-[var(--ma-line2)] px-2 py-0.5 text-[11px] font-medium text-[var(--ma-t2)] disabled:opacity-50"
-                        >
-                          {reportStatus === BotStatus.Sending
-                            ? t("generating")
-                            : t("generate")}
-                        </button>
+                        {canReport ? (
+                          <button
+                            type="button"
+                            onClick={() => regenerateReport()}
+                            disabled={
+                              reportStatus === BotStatus.Sending ||
+                              !selected.platformKey ||
+                              !selected.nativeMeetingId
+                            }
+                            className="rounded-[7px] border border-[var(--ma-line2)] px-2 py-0.5 text-[11px] font-medium text-[var(--ma-t2)] disabled:opacity-50"
+                          >
+                            {reportStatus === BotStatus.Sending
+                              ? t("generating")
+                              : t("generate")}
+                          </button>
+                        ) : null}
                       </div>
                       <BotStatusRenderer
                         status={reportStatus}
@@ -416,11 +419,12 @@ function MeetingAssistantWorkspace() {
                           {t("reportFromRecording")}
                         </p>
                       ) : null}
+                      {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
                       {meetingReport ? (
                         <MeetingReportView report={meetingReport} />
                       ) : (
                         <p className="text-[12.5px] leading-relaxed text-[var(--ma-t3)]">
-                          {t("reportEmpty")}
+                          {canReport ? t("reportEmpty") : t("reportOff")}
                         </p>
                       )}
                     </div>

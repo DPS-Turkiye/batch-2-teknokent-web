@@ -2,7 +2,9 @@ import { act, renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { useAiFeatures } from "@/hooks/use-ai-features";
 import { useMeetingAssistant } from "@/hooks/use-meeting-assistant";
+import { BackendErrorCode } from "@/interfaces/ai-features";
 import {
   MeetingStatus as CalendarStatus,
   type MeetingItem,
@@ -15,6 +17,7 @@ import {
   generateMeetingReport,
   stopMeetingBot,
 } from "@/lib/assistant";
+import { ClientApiError } from "@/lib/client/api";
 import {
   getAssistantShare,
   publishReportShare,
@@ -27,6 +30,7 @@ import {
   type MeetingReport,
   type TranscriptSegment,
 } from "@/types/assistant";
+import { aiFeatures } from "@test/fixtures/ai-features";
 import { menteeMeetingFixture } from "@test/fixtures/mentee-home";
 import { InLocale } from "@test/test-utils";
 
@@ -36,6 +40,12 @@ const calendar = vi.hoisted(() => ({
   refetch: vi.fn(),
 }));
 
+vi.mock("@/hooks/use-ai-features", () => ({
+  useAiFeatures: vi.fn(),
+  useAiFeatureRefusal: () => refused,
+}));
+
+const refused = vi.fn();
 vi.mock("@/hooks/use-meetings", () => ({
   useMeetings: () => ({
     data: calendar.meetings,
@@ -125,6 +135,7 @@ describe("useMeetingAssistant", () => {
     vi.setSystemTime(NOW);
     calendar.meetings = [];
     calendar.loading = false;
+    vi.mocked(useAiFeatures).mockReturnValue(aiFeatures());
     vi.mocked(getAssistantShare).mockResolvedValue(share());
     vi.mocked(fetchTranscript).mockResolvedValue([]);
     vi.mocked(updateMeeting).mockResolvedValue(calendarMeeting());
@@ -505,6 +516,23 @@ describe("useMeetingAssistant", () => {
       expect(result.current.reportStatus).toBe(BotStatus.Ok);
     });
 
+    it("never asks for a report, on its own or by hand, when meeting reports are switched off", async () => {
+      vi.mocked(useAiFeatures).mockReturnValue(
+        aiFeatures({ meetingReport: false }),
+      );
+      vi.mocked(fetchTranscript).mockResolvedValue([segment("a", "Merhaba")]);
+      const { result } = renderAssistant("cal-1");
+      await flush();
+      await flush(4_000);
+      act(() => result.current.regenerateReport());
+      await flush();
+
+      expect(result.current.canReport).toBe(false);
+      expect(generateMeetingReport).not.toHaveBeenCalled();
+      expect(result.current.reportStatus).toBeNull();
+      expect(result.current.visibleTranscript).toHaveLength(1);
+    });
+
     it("asks for a transcript first when regenerating with none", async () => {
       const { result } = renderAssistant("cal-1");
       await flush();
@@ -518,6 +546,21 @@ describe("useMeetingAssistant", () => {
       expect(generateMeetingReport).not.toHaveBeenCalled();
       await flush(6_000);
       expect(result.current.reportStatus).toBeNull();
+    });
+
+    it("hands a switched-off refusal of the report on so the switches are read again", async () => {
+      const refusal = new ClientApiError(
+        "off",
+        403,
+        BackendErrorCode.AiFeatureDisabled,
+      );
+      vi.mocked(fetchTranscript).mockResolvedValue([segment("a", "Merhaba")]);
+      vi.mocked(generateMeetingReport).mockRejectedValue(refusal);
+      renderAssistant("cal-1");
+      await flush();
+      await flush(4_000);
+
+      expect(refused).toHaveBeenCalledWith(refusal);
     });
 
     it("shows why the report failed and lets it be tried again", async () => {
