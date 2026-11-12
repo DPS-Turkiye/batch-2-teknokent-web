@@ -12,6 +12,7 @@ import {
 import {
   addChoice,
   choiceKey,
+  COORDINATOR_SEARCH_DELAY_MS,
   CoordinatorChoiceKind,
   existingChoice,
   inviteCandidateEmail,
@@ -29,7 +30,6 @@ export const COORDINATOR_SEARCH_QUERY_KEY = [
 export const COORDINATOR_INVITE_CHECK_QUERY_KEY = [
   "admin-coordinator-invite-check",
 ] as const;
-const SEARCH_DELAY_MS = 300;
 
 /**
  * The admin's coordinator email field: nobody is listed until at least three characters are typed, then approved
@@ -54,7 +54,7 @@ export function useCoordinatorPicker({
   useEffect(() => {
     const timer = setTimeout(
       () => setSettledQuery(query.trim()),
-      SEARCH_DELAY_MS,
+      COORDINATOR_SEARCH_DELAY_MS,
     );
     return () => clearTimeout(timer);
   }, [query]);
