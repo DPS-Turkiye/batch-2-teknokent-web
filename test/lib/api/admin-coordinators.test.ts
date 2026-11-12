@@ -5,6 +5,7 @@ import {
   addCoordinator,
   fetchCoordinatorCandidate,
   resendCoordinatorPasswordSetup,
+  searchCoordinators,
   setCoordinatorAccess,
 } from "@/lib/api/admin-coordinators";
 import { backendRequest } from "@/lib/server/backend-client";
@@ -27,6 +28,15 @@ const cases: RequestCase[] = [
       method: "GET",
       url: "/api/admin/coordinators/candidate",
       params: { actorId: "admin-1", email: "new@x.demo" },
+    },
+  ],
+  [
+    "searches coordinators by e-mail prefix as the actor",
+    () => searchCoordinators("admin-1", { q: "ays", programId: "program-1" }),
+    {
+      method: "GET",
+      url: "/api/admin/coordinators/search",
+      params: { actorId: "admin-1", q: "ays", programId: "program-1" },
     },
   ],
   [

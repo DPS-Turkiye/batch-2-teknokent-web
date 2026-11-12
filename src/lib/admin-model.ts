@@ -12,12 +12,6 @@ export function coordinatorsOf(data: AdminOverview) {
   return data.users.filter((user) => user.role === UserRole.Coordinator);
 }
 
-export function approvedCoordinatorsOf(data: AdminOverview) {
-  return coordinatorsOf(data).filter(
-    (user) => user.status === UserAccountStatus.Approved,
-  );
-}
-
 export function mentorsOf(data: AdminOverview) {
   return data.users.filter((user) => user.role === UserRole.Mentor);
 }
