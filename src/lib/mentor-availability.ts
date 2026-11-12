@@ -9,6 +9,13 @@ import {
 import { formatDateRange } from "@/lib/format";
 import { calendarDay } from "@/lib/utils";
 
+/** The weekly-availability weekday a local date falls on (getDay() counts from Sunday, the week from Monday). */
+export function weekdayOf(date: Date): Weekday {
+  const weekday = WEEKDAY_ORDER[(date.getDay() + 6) % 7];
+  if (weekday === undefined) throw new Error("A date always has a weekday");
+  return weekday;
+}
+
 /** One weekly time range as the editor holds it; `key` is stable across edits. */
 export type AvailabilityRange = {
   key: string;

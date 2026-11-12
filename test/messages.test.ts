@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { IA_MESSAGES } from "@/i18n/ia-messages";
+import { Locale } from "@/lib/i18n";
 import en from "@/messages/en.json";
 import tr from "@/messages/tr.json";
 
@@ -34,5 +36,11 @@ function leaves(value: unknown, path = ""): Record<string, string[]> {
 describe("messages", () => {
   it("gives English every Turkish key, list item and placeholder", () => {
     expect(leaves(en)).toEqual(leaves(tr));
+  });
+
+  it("gives English every Turkish key of the IA Revizyon catalogs", () => {
+    expect(leaves(IA_MESSAGES[Locale.En])).toEqual(
+      leaves(IA_MESSAGES[Locale.Tr]),
+    );
   });
 });
