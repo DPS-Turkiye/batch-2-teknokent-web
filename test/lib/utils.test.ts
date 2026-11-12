@@ -12,6 +12,7 @@ import {
   httpUrlOrNull,
   isAdminArea,
   isUuid,
+  minutesOfDay,
   splitFullName,
 } from "@/lib/utils";
 
@@ -133,5 +134,13 @@ describe("splitFullName", () => {
 describe("formatTime", () => {
   it("gives the short time of an instant", () => {
     expect(formatTime("2026-11-12T11:05:00Z", "tr")).toMatch(/^\d{2}:\d{2}$/);
+  });
+});
+
+describe("minutesOfDay", () => {
+  it("counts minutes since midnight of an HH:mm time", () => {
+    expect(minutesOfDay("00:00")).toBe(0);
+    expect(minutesOfDay("09:30")).toBe(570);
+    expect(minutesOfDay("23:59")).toBe(1439);
   });
 });
