@@ -28,7 +28,7 @@ function wizard(programId: string) {
   return signupWizardStub({
     draft: signupDraft({
       personal: { firstName: "Ayşe", lastName: "Yılmaz", role: "Öğrenci" },
-      startup: { startupLater: true, programId },
+      startup: { programId, name: "GreenLoop", tagline: "Atığı azaltır" },
     }),
   });
 }
@@ -38,15 +38,16 @@ describe("ReviewStep", () => {
     render(<ReviewStep wizard={wizard("individual-1")} />);
 
     expect(screen.getByText("ODTÜ Ofis Saatleri")).toBeInTheDocument();
-    expect(
-      screen.queryByText("Daha sonra oluşturulacak"),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText("GreenLoop")).not.toBeInTheDocument();
   });
 
-  it("still says the startup comes later in a startup program", () => {
+  it("shows the founder's startup in a startup program", () => {
     render(<ReviewStep wizard={wizard("startups-1")} />);
 
-    expect(screen.getByText("Growth Circuit 2026")).toBeInTheDocument();
-    expect(screen.getByText("Daha sonra oluşturulacak")).toBeInTheDocument();
+    expect(screen.getByText("GreenLoop")).toBeInTheDocument();
+    expect(screen.getByText("Atığı azaltır")).toBeInTheDocument();
+    expect(
+      screen.getByText("Growth Circuit 2026", { exact: false }),
+    ).toBeInTheDocument();
   });
 });

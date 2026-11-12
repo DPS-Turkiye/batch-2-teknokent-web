@@ -30,7 +30,7 @@ export function emptySignupDraft(): SignupDraft {
       website: "",
       foundedYear: "",
       programId: null,
-      startupLater: false,
+      individualProgram: false,
       maturity: "",
       teamMembers: [],
       supportAreas: [],
