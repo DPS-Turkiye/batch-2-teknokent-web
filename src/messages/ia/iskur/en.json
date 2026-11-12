@@ -1,1 +1,237 @@
-{}
+{
+  "requestStatus": {
+    "PENDING": "Awaiting approval",
+    "MORE_INFO_REQUESTED": "More info requested",
+    "COUNTER_PROPOSED": "New proposal",
+    "ACCEPTED": "Accepted",
+    "DECLINED": "Declined",
+    "WITHDRAWN": "Withdrawn"
+  },
+  "give": {
+    "loading": "Loading…",
+    "noBadge": {
+      "title": "Complete the training to become a mentor",
+      "body": "To become a peer mentor, complete your program's mentoring training (a short video and a 10-question quiz) and earn the badge. Once the badge is verified this area opens by itself; no extra approval is needed.",
+      "training": "Go to training",
+      "trainingReason": {
+        "loading": "Loading training details…",
+        "notAvailable": "Your program's training isn't published yet.",
+        "unavailable": "The training can't be opened right now."
+      }
+    },
+    "journey": {
+      "heading": "Steps to becoming a mentor",
+      "youAreHere": "You are here",
+      "earnBadge": {
+        "title": "Earn your badge",
+        "hint": "Complete the training"
+      },
+      "badgeVerified": {
+        "title": "Badge verified",
+        "hint": "Verified when you finish the training"
+      },
+      "createProfile": {
+        "title": "Create your mentor profile",
+        "hint": "Topics, experience and availability"
+      },
+      "published": {
+        "title": "Profile published",
+        "hint": "Students can discover you"
+      }
+    },
+    "cards": {
+      "keepGetting": {
+        "title": "Keep getting mentoring",
+        "body": "On the Get mentoring tab you can keep discovering mentors and following your requests."
+      },
+      "badgeMissing": {
+        "title": "Badge not showing?",
+        "body": "The badge is awarded as soon as you complete the training. If it isn't showing, refresh the page; if the problem persists, write to your program coordinator."
+      },
+      "oneAccount": {
+        "title": "One account",
+        "body": "Becoming a mentor doesn't create a separate account; your mentee and mentor activity stay in the same account."
+      }
+    },
+    "revoked": {
+      "title": "Your badge was revoked",
+      "expiredTitle": "Your badge has expired",
+      "body": "Without the Peer Mentor badge you can't mentor right now. Talk to your program coordinator about your ongoing mentorships.",
+      "reason": "Reason: {reason}"
+    },
+    "earned": {
+      "title": "Your badge is verified",
+      "body": "You can now be a peer mentor. Create your mentor profile; once it's published, students in your program can discover you.",
+      "createProfile": "Create your mentor profile",
+      "signInAgain": "Your badge was just awarded. Sign out and back in to start mentoring."
+    },
+    "tabs": {
+      "label": "Give mentoring",
+      "requests": "Mentoring requests",
+      "mentees": "My mentees",
+      "availability": "Availability and capacity",
+      "profile": "My mentor profile"
+    },
+    "requests": {
+      "empty": "No requests waiting for an answer.",
+      "sentAt": "Mentoring request · {date}",
+      "quote": "“{message}”",
+      "accept": "Accept",
+      "decline": "Decline"
+    },
+    "mentees": {
+      "empty": "You haven't accepted a request yet."
+    },
+    "capacity": {
+      "title": "Your capacity",
+      "ofCapacity": "/ {capacity} mentees",
+      "noLimit": "mentees",
+      "note": {
+        "unset": "You haven't set a capacity, so new requests keep coming. You can set it on the Availability and capacity tab.",
+        "open": "You can accept new requests.",
+        "lastPlace": "Accepting one more request fills your capacity. New requests won't reach you until a place opens.",
+        "full": "Your capacity is full. New requests won't reach you until a place opens."
+      },
+      "valueText": "{used} of {capacity} mentees"
+    },
+    "profileCard": {
+      "title": "Your mentor profile",
+      "published": "Published",
+      "edit": "Edit profile"
+    },
+    "profilePanel": {
+      "topics": "Topics you can help with",
+      "helpWith": "How can you help students?",
+      "edit": "Edit profile"
+    },
+    "availability": {
+      "save": "Save",
+      "saving": "Saving…"
+    }
+  },
+  "wizard": {
+    "title": "Create your mentor profile",
+    "editTitle": "Edit your mentor profile",
+    "progress": "Create your mentor profile · {number}/{total}",
+    "stepsLabel": "Mentor profile steps",
+    "steps": {
+      "categories": "Mentoring categories",
+      "subtopics": "Sub-topics and expertise",
+      "experience": "Relevant experience",
+      "helpWith": "How can you help?",
+      "documents": "Documents and evidence",
+      "availability": "Availability and capacity",
+      "preview": "Preview"
+    },
+    "headings": {
+      "categories": {
+        "title": "Which topics can you mentor in?",
+        "subtitle": "Only the categories active in your program are listed. Pick at least one."
+      },
+      "subtopics": {
+        "title": "Which sub-topics can you support?",
+        "subtitle": "Tick the sub-topics in the categories you picked."
+      },
+      "experience": {
+        "title": "Share your experience in these topics",
+        "subtitle": "Add the courses you're strong in, your projects and any exchange experience."
+      },
+      "helpWith": {
+        "title": "How can you help students?",
+        "subtitle": "This text stands out on your profile. Students look at it most when choosing a mentor."
+      },
+      "documents": {
+        "title": "Back your experience with documents",
+        "subtitle": "For now you can add your links; document upload is coming soon."
+      },
+      "availability": {
+        "title": "When are you available?",
+        "subtitle": "Set your weekly availability and how many mentees you can work with at once."
+      },
+      "preview": {
+        "title": "This is how students will see your profile",
+        "subtitle": "Check it before publishing. You can edit it any time from My mentor profile."
+      }
+    },
+    "badge": {
+      "title": "Your badge is verified",
+      "body": "Once you publish your profile, students can discover you."
+    },
+    "matchingNote": "Matching uses category, sub-topic, experience and availability. A CV alone doesn't decide it.",
+    "noCategories": "Your program has no active category yet. They appear here once your program coordinator turns them on.",
+    "noSubtopics": "The categories you picked have no sub-topics.",
+    "subtopicCount": "{count} sub-topics selected",
+    "subtopicsNote": "In the next step you can share your experience in these topics.",
+    "soon": "Coming soon",
+    "level": {
+      "label": "Your level",
+      "basic": "Basic",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced"
+    },
+    "experience": {
+      "title": "Your experience",
+      "strongCourses": "Courses you're strong in",
+      "projects": "Your projects",
+      "erasmus": "Abroad / exchange experience (optional)",
+      "onePerLine": "One per line.",
+      "cardsSoon": "Adding internships, clubs and jobs as cards with their documents is coming soon."
+    },
+    "helpWith": {
+      "tipsTitle": "For a good description",
+      "tips": {
+        "concrete": "Say where you have hands-on experience",
+        "who": "Say who you can help most",
+        "how": "Explain how you work in meetings",
+        "noContact": "Don't share personal contact details"
+      },
+      "label": "Your description",
+      "counter": "At least {min} characters · {length} / {max}"
+    },
+    "documents": {
+      "linksTitle": "Portfolio and links",
+      "linkedin": "LinkedIn",
+      "linkedinPlaceholder": "https://www.linkedin.com/in/…",
+      "soonTitle": "Document upload coming soon",
+      "soonBody": "You'll be able to upload a transcript, CV, certificates and other documents and choose what shows on your profile.",
+      "kinds": {
+        "transcript": "Student certificate or transcript",
+        "cv": "CV",
+        "certificate": "Licence or certificate",
+        "other": "Other materials"
+      }
+    },
+    "availability": {
+      "title": "Weekly availability"
+    },
+    "preview": {
+      "classYear": "Year {classYear}",
+      "peer": "Peer mentoring",
+      "badgeVerified": "Badge verified",
+      "topics": "Topics they can help with",
+      "helpWith": "How can I help students?",
+      "hours": "Availability",
+      "hoursRange": "{day} {start} – {end}",
+      "noHours": "No weekly hours added",
+      "capacity": "Capacity",
+      "capacityValue": "{capacity} mentees at a time",
+      "noCapacity": "Not set",
+      "links": "Your links",
+      "linkShown": "Shown on my profile",
+      "noLinks": "No links added"
+    },
+    "back": "Back",
+    "next": "Continue",
+    "publish": "Publish profile",
+    "publishing": "Publishing…",
+    "saveDraft": "Save as draft",
+    "draftSoon": "Saving a draft is coming soon.",
+    "published": "Your mentor profile is live.",
+    "publishFailed": "Your profile couldn't be published.",
+    "errors": {
+      "categories": "Pick at least one category.",
+      "helpWith": "This text must be at least {min} characters.",
+      "link": "The link must start with http:// or https://."
+    }
+  }
+}

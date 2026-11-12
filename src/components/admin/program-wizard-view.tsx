@@ -5,9 +5,11 @@ import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { CoordinatorPicker } from "@/components/admin/coordinator-picker";
 import { ProgramTypeChip } from "@/components/coordinator/program-type-chip";
 import { useAdminProgramWizard } from "@/hooks/use-admin-program-wizard";
 import { WIZARD_STEPS, WizardStep } from "@/lib/admin-program-wizard";
+import { choiceKey, CoordinatorChoiceKind } from "@/lib/coordinator-picker";
 import { formatLongDate } from "@/lib/utils";
 
 // TEST UI: placeholder until the design team's screen; replace when it arrives.
@@ -281,53 +283,11 @@ function InfoStep({ wizard }: { wizard: Wizard }) {
 }
 
 function CoordinatorsStep({ wizard }: { wizard: Wizard }) {
-  const t = useTranslations("adminProgramWizard");
-  if (wizard.coordinatorsLoading) return null;
-  if (wizard.coordinatorsError) {
-    return (
-      <div className="flex flex-wrap items-center gap-3 text-[13.5px]">
-        <p role="alert" className="text-[#d9464b]">
-          {wizard.coordinatorsError}
-        </p>
-        <button
-          type="button"
-          onClick={wizard.retryCoordinators}
-          className="rounded-full border border-[#e9ecef] px-4 py-2 font-medium text-[#22262b]"
-        >
-          {t("retry")}
-        </button>
-      </div>
-    );
-  }
-  if (wizard.coordinators.length === 0) {
-    return (
-      <p className="text-[13.5px] text-[#676e78]">{t("noCoordinators")}</p>
-    );
-  }
   return (
-    <fieldset className="grid gap-2 sm:grid-cols-2">
-      <legend className="sr-only">{t("coordinatorsLabel")}</legend>
-      {wizard.coordinators.map((coordinator) => (
-        <label
-          key={coordinator.id}
-          className="flex cursor-pointer items-center gap-3 rounded-2xl border border-[#e9ecef] px-4 py-3"
-        >
-          <input
-            type="checkbox"
-            checked={wizard.draft.coordinatorIds.includes(coordinator.id)}
-            onChange={() => wizard.toggleCoordinator(coordinator.id)}
-          />
-          <span className="min-w-0">
-            <span className="block truncate text-[13.5px] text-[#22262b]">
-              {coordinator.fullName}
-            </span>
-            <span className="block truncate text-[12px] text-[#858c96]">
-              {coordinator.email}
-            </span>
-          </span>
-        </label>
-      ))}
-    </fieldset>
+    <CoordinatorPicker
+      chosen={wizard.draft.coordinators}
+      onChange={wizard.setCoordinators}
+    />
   );
 }
 
@@ -349,7 +309,19 @@ function SummaryStep({ wizard }: { wizard: Wizard }) {
       <dd className="text-[#22262b]">{dates || t("noDates")}</dd>
       <dt className="text-[#858c96]">{t("summaryCoordinators")}</dt>
       <dd className="text-[#22262b]">
-        {wizard.chosenCoordinators.map((user) => user.fullName).join(", ")}
+        <ul className="space-y-1">
+          {draft.coordinators.map((choice) => (
+            <li key={choiceKey(choice)}>
+              {choice.fullName}{" "}
+              <span className="text-[#858c96]">{choice.email}</span>
+              {choice.kind === CoordinatorChoiceKind.Invited ? (
+                <span className="ml-2 rounded-full bg-[#fff4e0] px-2 py-0.5 text-[11.5px] text-[#b7791f]">
+                  {t("invitedTag")}
+                </span>
+              ) : null}
+            </li>
+          ))}
+        </ul>
       </dd>
       <dt className="text-[#858c96]">{t("summaryStatus")}</dt>
       <dd className="text-[#22262b]">{t("draft")}</dd>

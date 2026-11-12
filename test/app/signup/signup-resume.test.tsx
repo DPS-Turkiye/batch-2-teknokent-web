@@ -58,6 +58,9 @@ beforeEach(() => {
   vi.mocked(registerMentor).mockResolvedValue(
     backendUser({ role: UserRole.Mentor }),
   );
+  vi.mocked(fetchAccountStatus).mockRejectedValue(
+    new ClientApiError("Registration required", 401),
+  );
 });
 
 describe("SignupFlow resume", () => {
@@ -162,6 +165,93 @@ describe("SignupFlow resume", () => {
       "gulse@dongu.co",
     );
     expect(replace).toHaveBeenCalledWith("/signup?role=founder&resume=1");
+  });
+
+  it("sends a founder whose login already has an account to sign in instead of the wizard", async () => {
+    searchParams.set("resume", "1");
+    searchParams.set("role", "founder");
+    vi.mocked(currentFirebaseAccount).mockResolvedValue({
+      email: "gulse@dongu.co",
+      fullName: "Gülse Yılmaz",
+      verified: true,
+    });
+    vi.mocked(fetchAccountStatus).mockResolvedValue(backendUser());
+
+    render(<SignupFlow edition={Edition.Teknokent} />);
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "Bu e-postayla zaten bir hesabın var",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/gulse@dongu.co adresiyle kayıtlı/),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Giriş yap" })).toHaveAttribute(
+      "href",
+      "/login",
+    );
+    expect(screen.queryByTestId("wizard")).not.toBeInTheDocument();
+  });
+
+  it("sends an ODTÜ-edition founder whose login already has an account to sign in", async () => {
+    searchParams.set("resume", "1");
+    searchParams.set("role", "founder");
+    vi.mocked(currentFirebaseAccount).mockResolvedValue({
+      email: "ogrenci@metu.edu.tr",
+      fullName: "Deniz Öğrenci",
+      verified: true,
+    });
+    vi.mocked(fetchAccountStatus).mockResolvedValue(backendUser());
+
+    render(<SignupFlow edition={Edition.Odtu} />);
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "Bu e-postayla zaten bir hesabın var",
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Giriş yap" })).toHaveAttribute(
+      "href",
+      "/login",
+    );
+    expect(screen.queryByTestId("wizard")).not.toBeInTheDocument();
+  });
+
+  it("opens the wizard for a new ODTÜ-edition founder once the check finds no account", async () => {
+    searchParams.set("resume", "1");
+    searchParams.set("role", "founder");
+    vi.mocked(currentFirebaseAccount).mockResolvedValue({
+      email: "ogrenci@metu.edu.tr",
+      fullName: "Deniz Öğrenci",
+      verified: true,
+    });
+
+    render(<SignupFlow edition={Edition.Odtu} />);
+
+    expect(await screen.findByTestId("wizard")).toHaveTextContent(
+      "ogrenci@metu.edu.tr",
+    );
+    expect(fetchAccountStatus).toHaveBeenCalledWith("id-token");
+  });
+
+  it("still opens the wizard when the account check itself fails", async () => {
+    searchParams.set("resume", "1");
+    searchParams.set("role", "founder");
+    vi.mocked(currentFirebaseAccount).mockResolvedValue({
+      email: "gulse@dongu.co",
+      fullName: "Gülse Yılmaz",
+      verified: true,
+    });
+    vi.mocked(fetchAccountStatus).mockRejectedValue(
+      new ClientApiError("Sunucuya ulaşılamadı.", 503),
+    );
+
+    render(<SignupFlow edition={Edition.Teknokent} />);
+
+    expect(await screen.findByTestId("wizard")).toHaveTextContent(
+      "gulse@dongu.co",
+    );
   });
 
   it("collects missing identity and registers a mentor resumed in another session", async () => {

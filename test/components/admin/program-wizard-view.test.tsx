@@ -3,10 +3,13 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ProgramWizardView } from "@/components/admin/program-wizard-view";
-import type { AdminOverview, AdminUser } from "@/interfaces/admin-overview";
+import { CoordinatorCandidateStatus } from "@/interfaces/admin-coordinator";
 import { Edition } from "@/interfaces/edition";
 import { ProgramType } from "@/interfaces/program";
-import { UserAccountStatus, UserRole } from "@/interfaces/session";
+import {
+  getCoordinatorCandidate,
+  searchCoordinators,
+} from "@/lib/client/admin-coordinators";
 import { createCoordinatorProgram } from "@/lib/client/coordinator-programs";
 import { coordinatorProgramDetail } from "@test/fixtures/coordinator-programs";
 import { renderWithQueryClient } from "@test/test-utils";
@@ -20,36 +23,15 @@ vi.mock("next/navigation", () => ({
 vi.mock("@/lib/client/coordinator-programs", () => ({
   createCoordinatorProgram: vi.fn(),
 }));
+vi.mock("@/lib/client/admin-coordinators", () => ({
+  searchCoordinators: vi.fn(),
+  getCoordinatorCandidate: vi.fn(),
+}));
 
-function user(overrides: Partial<AdminUser>): AdminUser {
-  return {
-    id: "coordinator-1",
-    email: "elif@odtu.test",
-    fullName: "Elif Demir",
-    role: UserRole.Coordinator,
-    status: UserAccountStatus.Approved,
-    organizationId: null,
-    organizationName: null,
-    jobTitle: null,
-    ...overrides,
-  };
-}
-
-const overview: AdminOverview = {
-  programs: [],
-  users: [
-    user({}),
-    user({
-      id: "coordinator-2",
-      fullName: "Burcu Şen",
-      status: UserAccountStatus.Pending,
-    }),
-    user({ id: "mentor-1", fullName: "Ece Mentor", role: UserRole.Mentor }),
-  ],
-  mentorships: [],
-  requests: [],
-  bottlenecks: [],
-  meetingsLast8Weeks: 0,
+const elif = {
+  id: "coordinator-1",
+  fullName: "Elif Demir",
+  email: "elif@odtu.test",
 };
 
 const editionState = vi.hoisted(() => ({ current: "ODTU" }));
@@ -58,34 +40,22 @@ vi.mock("@/hooks/use-edition", () => ({
   useEdition: () => editionState.current,
 }));
 
-const overviewState = vi.hoisted(() => ({
-  error: null as Error | null,
-  refetch: vi.fn(),
-}));
-
-vi.mock("@/hooks/use-admin-overview", () => ({
-  ADMIN_OVERVIEW_QUERY_KEY: ["admin-overview"],
-  useAdminOverview: () => ({
-    data: overviewState.error ? undefined : overview,
-    isLoading: false,
-    error: overviewState.error,
-    refetch: overviewState.refetch,
-  }),
-}));
-
 async function reachSummary(clicker: ReturnType<typeof userEvent.setup>) {
   await clicker.click(screen.getByRole("radio", { name: /Office Hours/ }));
   await clicker.click(screen.getByRole("button", { name: /Devam/ }));
   await clicker.type(screen.getByLabelText("Program adı"), "ODTÜ OH 2027");
   await clicker.click(screen.getByRole("button", { name: /Devam/ }));
-  await clicker.click(screen.getByRole("checkbox", { name: /Elif Demir/ }));
+  await clicker.type(screen.getByLabelText("Koordinatör e-postası"), "eli");
+  await clicker.click(
+    await screen.findByRole("button", { name: "Elif Demir ekle" }),
+  );
   await clicker.click(screen.getByRole("button", { name: /Devam/ }));
 }
 
 describe("admin Yeni Program Oluştur", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    overviewState.error = null;
+    vi.mocked(searchCoordinators).mockResolvedValue([elif]);
     editionState.current = Edition.Odtu;
   });
 
@@ -119,6 +89,39 @@ describe("admin Yeni Program Oluştur", () => {
     );
   });
 
+  it("saves a Teknokent draft on its only type with a coordinator picked by email", async () => {
+    editionState.current = Edition.Teknokent;
+    const detail = coordinatorProgramDetail();
+    vi.mocked(createCoordinatorProgram).mockResolvedValue({
+      ...detail,
+      program: { ...detail.program, id: "new-tk" },
+    });
+    const clicker = userEvent.setup();
+    renderWithQueryClient(<ProgramWizardView />);
+
+    await clicker.click(screen.getByRole("button", { name: /Devam/ }));
+    await clicker.type(screen.getByLabelText("Program adı"), "Teknokent 2027");
+    await clicker.click(screen.getByRole("button", { name: /Devam/ }));
+    await clicker.type(screen.getByLabelText("Koordinatör e-postası"), "eli");
+    await clicker.click(
+      await screen.findByRole("button", { name: "Elif Demir ekle" }),
+    );
+    await clicker.click(screen.getByRole("button", { name: /Devam/ }));
+    await clicker.click(
+      screen.getByRole("button", { name: "Taslak olarak kaydet" }),
+    );
+
+    expect(createCoordinatorProgram).toHaveBeenCalledWith({
+      type: ProgramType.StartupMentoring,
+      name: "Teknokent 2027",
+      description: null,
+      startDate: null,
+      endDate: null,
+      coordinatorIds: ["coordinator-1"],
+      newCoordinators: [],
+    });
+  });
+
   it("walks type, details, coordinators and summary, then saves a draft", async () => {
     const detail = coordinatorProgramDetail();
     vi.mocked(createCoordinatorProgram).mockResolvedValue({
@@ -143,14 +146,15 @@ describe("admin Yeni Program Oluştur", () => {
     );
     await clicker.click(screen.getByRole("button", { name: /Devam/ }));
 
-    expect(screen.getByText("Elif Demir")).toBeInTheDocument();
-    expect(screen.queryByText("Burcu Şen")).not.toBeInTheDocument();
-    expect(screen.queryByText("Ece Mentor")).not.toBeInTheDocument();
+    expect(screen.queryByText("Elif Demir")).not.toBeInTheDocument();
     await clicker.click(screen.getByRole("button", { name: /Devam/ }));
     expect(screen.getByRole("alert")).toHaveTextContent(
-      "En az bir koordinatör seç.",
+      "En az bir koordinatör ekle.",
     );
-    await clicker.click(screen.getByRole("checkbox", { name: /Elif Demir/ }));
+    await clicker.type(screen.getByLabelText("Koordinatör e-postası"), "eli");
+    await clicker.click(
+      await screen.findByRole("button", { name: "Elif Demir ekle" }),
+    );
     await clicker.click(screen.getByRole("button", { name: /Devam/ }));
 
     expect(screen.getByText("Akran Mentörlüğü")).toBeInTheDocument();
@@ -166,6 +170,7 @@ describe("admin Yeni Program Oluştur", () => {
       startDate: null,
       endDate: null,
       coordinatorIds: ["coordinator-1"],
+      newCoordinators: [],
     });
     expect(push).toHaveBeenCalledWith("/admin/programs/new-1");
   });
@@ -213,8 +218,17 @@ describe("admin Yeni Program Oluştur", () => {
     expect(createCoordinatorProgram).toHaveBeenCalledTimes(2);
   });
 
-  it("says the coordinators did not load instead of saying there are none", async () => {
-    overviewState.error = new Error("Sunucuya ulaşılamadı.");
+  it("invites an e-mail with no account and sends it with the program", async () => {
+    vi.mocked(searchCoordinators).mockResolvedValue([]);
+    vi.mocked(getCoordinatorCandidate).mockResolvedValue({
+      email: "yeni@odtu.test",
+      status: CoordinatorCandidateStatus.New,
+      userId: null,
+      fullName: null,
+      role: null,
+    });
+    const detail = coordinatorProgramDetail();
+    vi.mocked(createCoordinatorProgram).mockResolvedValue(detail);
     const clicker = userEvent.setup();
     renderWithQueryClient(<ProgramWizardView />);
     await clicker.click(screen.getByRole("radio", { name: /Office Hours/ }));
@@ -222,13 +236,26 @@ describe("admin Yeni Program Oluştur", () => {
     await clicker.type(screen.getByLabelText("Program adı"), "ODTÜ OH 2027");
     await clicker.click(screen.getByRole("button", { name: /Devam/ }));
 
-    expect(screen.getByRole("alert")).toHaveTextContent(
-      "Sunucuya ulaşılamadı.",
+    await clicker.type(
+      screen.getByLabelText("Koordinatör e-postası"),
+      "yeni@odtu.test",
     );
-    expect(
-      screen.queryByText(/Onaylı koordinatör yok/),
-    ).not.toBeInTheDocument();
-    await clicker.click(screen.getByRole("button", { name: "Tekrar dene" }));
-    expect(overviewState.refetch).toHaveBeenCalled();
+    await clicker.type(await screen.findByLabelText("Ad soyad"), "Yeni Kişi");
+    await clicker.click(screen.getByRole("button", { name: "Davet et" }));
+    await clicker.click(screen.getByRole("button", { name: /Devam/ }));
+
+    expect(screen.getByText("Davet edilecek")).toBeInTheDocument();
+    await clicker.click(
+      screen.getByRole("button", { name: "Taslak olarak kaydet" }),
+    );
+    expect(createCoordinatorProgram).toHaveBeenCalledWith({
+      type: ProgramType.OfficeHours,
+      name: "ODTÜ OH 2027",
+      description: null,
+      startDate: null,
+      endDate: null,
+      coordinatorIds: [],
+      newCoordinators: [{ fullName: "Yeni Kişi", email: "yeni@odtu.test" }],
+    });
   });
 });
