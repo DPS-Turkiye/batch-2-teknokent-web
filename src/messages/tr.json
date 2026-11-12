@@ -6863,5 +6863,70 @@
     "availabilityDaysOff": "Yaklaşan izin günleri",
     "availabilityExtraSlots": "Ek zamanlar",
     "availabilityExtraSlot": "{day} · {time} ({minutes} dk)"
+  },
+  "odtuLanding": {
+    "navLabel": "Giriş ve yardım",
+    "help": "Yardım",
+    "overline": "ODTÜ için menton",
+    "title": "Office Hours ve akran mentörlüğü tek yerde",
+    "intro": "Akademisyenlerinden randevu al, rozeti doğrulanmış İŞKUR öğrencilerinden akran mentörlüğü iste ve tüm randevularını tek takvimde izle.",
+    "signupAction": "İŞKUR öğrencisi olarak kaydol",
+    "noSignupTag": "Kayıt gerekmez",
+    "noSignupText": "ODTÜ öğrencisi veya akademisyeniysen ODTÜ hesabınla giriş yapman yeterli.",
+    "featuresTitle": "Neler yapabilirsin?",
+    "features": {
+      "officeHours": {
+        "title": "Randevu talep et",
+        "caption": "Office Hours"
+      },
+      "peerMentoring": {
+        "title": "Mentor bul",
+        "caption": "Akran Mentörlüğü"
+      },
+      "appointments": {
+        "title": "Randevularını izle",
+        "caption": "Randevularım"
+      },
+      "advisor": {
+        "title": "Danışmanına ulaş",
+        "caption": "Akademik danışmanlık"
+      }
+    },
+    "audienceTitle": "Kimler için?",
+    "audience": {
+      "student": {
+        "badge": "Öğrenci",
+        "title": "ODTÜ öğrencileri",
+        "points": {
+          "first": "Office Hours randevusu al",
+          "second": "Sana uygun akran mentorunu bul",
+          "third": "Randevularını tek takvimde izle"
+        }
+      },
+      "iskur": {
+        "badge": "İŞKUR Öğrencisi",
+        "title": "Akran mentorları",
+        "points": {
+          "first": "Mentorluk eğitimini tamamla, rozetini al",
+          "second": "Mentorluk taleplerini yanıtla",
+          "third": "Görüşmelerini ve randevularını yönet"
+        }
+      },
+      "academic": {
+        "badge": "Akademisyen",
+        "title": "ODTÜ akademisyenleri",
+        "points": {
+          "first": "Haftalık müsaitliğini ekle",
+          "second": "Gelen randevu taleplerini yanıtla",
+          "third": "Danışan öğrencilerini tek yerde gör"
+        }
+      }
+    },
+    "banner": {
+      "title": "ODTÜ öğrencisi veya akademisyeni misin?",
+      "text": "ODTÜ hesabınla giriş yap. Office Hours, Akran Mentörlüğü ve akademik danışmanın hesabındaki bilgilere göre açılır."
+    },
+    "footer": "menton · ODTÜ",
+    "metaTitle": "menton · ODTÜ"
   }
 }
