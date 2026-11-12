@@ -123,7 +123,15 @@ describe("AppShell navigation", () => {
     expect(screen.getByRole("banner").closest(".mentor-home")).toBeNull();
     expect(screen.getByRole("main")).toHaveClass("mentor-home");
     expect(screen.getByRole("banner")).not.toHaveClass("border-b");
-    expect(nav.getAllByRole("link")).toHaveLength(4);
+    expect(nav.getAllByRole("link")).toHaveLength(5);
+    expect(nav.getByRole("link", { name: "Asistan" })).toHaveAttribute(
+      "href",
+      "/assistant",
+    );
+    expect(nav.getByRole("link", { name: "Asistan" })).toHaveAttribute(
+      "data-tour",
+      "nav-assistant",
+    );
     expect(nav.getByRole("link", { name: "Anasayfa" })).toHaveAttribute(
       "aria-current",
       "page",
@@ -148,6 +156,41 @@ describe("AppShell navigation", () => {
       "href",
       "/mentor-profile",
     );
+  });
+
+  it("marks Asistan as the mentor's current page on the meeting assistant", () => {
+    mockuseAppSession.mockReturnValue(mentorSession());
+    render(
+      <AppShell active={AppArea.Assistant}>
+        <p>Assistant</p>
+      </AppShell>,
+    );
+
+    const nav = within(screen.getByRole("navigation", { name: "Ana menü" }));
+    const assistant = nav.getByRole("link", { name: "Asistan" });
+    expect(assistant).toHaveAttribute("aria-current", "page");
+    expect(assistant).toHaveClass("bg-[#26a4ff]", "text-white");
+  });
+
+  it("gives the meeting assistant a top-bar item to mentors only", () => {
+    for (const role of [
+      UserRole.Mentee,
+      UserRole.Coordinator,
+      UserRole.Admin,
+    ]) {
+      mockuseAppSession.mockReturnValue({ ...mentorSession(), role });
+      const { unmount } = render(
+        <AppShell active={AppArea.Assistant} menteeHome={false}>
+          <p>Assistant</p>
+        </AppShell>,
+      );
+      expect(
+        within(
+          screen.getByRole("navigation", { name: "Ana menü" }),
+        ).queryByRole("link", { name: "Asistan" }),
+      ).toBeNull();
+      unmount();
+    }
   });
 
   it("uses the revised active pill on the mentor messages page", () => {
@@ -299,7 +342,7 @@ describe("AppShell navigation", () => {
       "dialog",
     );
     const mentorNav = screen.getByRole("navigation", { name: "Ana menü" });
-    expect(within(mentorNav).getAllByRole("link")).toHaveLength(4);
+    expect(within(mentorNav).getAllByRole("link")).toHaveLength(5);
     expect(
       screen.queryByRole("link", { name: /Not Defterlerim/ }),
     ).not.toBeInTheDocument();
@@ -379,7 +422,7 @@ describe("AppShell navigation", () => {
     );
 
     const mentorNav = screen.getByRole("navigation", { name: "Ana menü" });
-    expect(within(mentorNav).getAllByRole("link")).toHaveLength(4);
+    expect(within(mentorNav).getAllByRole("link")).toHaveLength(5);
     expect(
       within(mentorNav).getByRole("link", { name: /Mentorlüklerim/ }),
     ).toHaveAttribute("href", "/mentorships");
@@ -694,7 +737,7 @@ describe("AppShell mobile drawer", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("uses the four revised mentor destinations in the drawer", async () => {
+  it("uses the five revised mentor destinations in the drawer", async () => {
     const user = userEvent.setup();
     mockuseAppSession.mockReturnValue(mentorSession());
 
@@ -710,13 +753,13 @@ describe("AppShell mobile drawer", () => {
       .closest("aside")!;
     const drawerNav = within(drawer).getByRole("navigation");
 
-    expect(within(drawerNav).getAllByRole("link")).toHaveLength(4);
+    expect(within(drawerNav).getAllByRole("link")).toHaveLength(5);
     expect(
       within(drawerNav).getByRole("link", { name: /Mentorlüklerim/ }),
     ).toHaveAttribute("href", "/mentorships");
     expect(
-      within(drawerNav).queryByRole("link", { name: /Toplantı Asistanı/ }),
-    ).not.toBeInTheDocument();
+      within(drawerNav).getByRole("link", { name: /Asistan/ }),
+    ).toHaveAttribute("href", "/assistant");
     expect(
       within(drawerNav).queryByRole("link", { name: /Not Defterlerim/ }),
     ).not.toBeInTheDocument();

@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Bot,
   CalendarDays,
   ClipboardList,
   FolderKanban,
@@ -152,6 +153,13 @@ function buildNavigation(
         href: "/mentor-dashboard/messages",
         icon: MessageCircle,
       },
+      // Mentors get the meeting assistant in the top bar; everyone else opens it from a meeting.
+      {
+        id: AppArea.Assistant,
+        label: "assistant",
+        href: "/assistant",
+        icon: Bot,
+      },
     ];
   const workspaceNav = MENTEE_WORKSPACE_NAV[workspace];
   const menteeNavigation: NavigationItem[] = [
@@ -258,6 +266,7 @@ export function AppShell({
                   key={`${item.label}-${item.href}`}
                   href={item.href}
                   aria-current={selected ? "page" : undefined}
+                  data-tour={`nav-${item.label}`}
                   className={`flex items-center justify-center gap-2 rounded-full text-[13px] font-medium transition ${usesRevisedNav ? (isMentor ? "h-[42px] w-[160px] px-3" : "h-[42px] px-3.5") : "h-10 gap-1.5 px-3 xl:gap-2 xl:px-4"} ${selected ? (isMentor ? "bg-[#26a4ff] text-white" : menteeFrame ? "bg-[#e5701d] text-white" : "bg-[#fdebdd] text-[#c85816]") : "text-[#676e78] hover:bg-white hover:text-[#22262b]"}`}
                 >
                   <Icon className="size-4" strokeWidth={1.8} aria-hidden />

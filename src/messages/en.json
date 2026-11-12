@@ -819,7 +819,8 @@
       "mentors": "Mentors",
       "programs": "Programs",
       "applications": "Applications",
-      "project": "My project"
+      "project": "My project",
+      "assistant": "Assistant"
     },
     "mainMenu": "Main menu",
     "openMenu": "Open menu",
