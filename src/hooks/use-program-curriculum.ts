@@ -4,6 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
+import { useAiFeatureRefusal, useAiFeatures } from "@/hooks/use-ai-features";
 import { useProgramCache } from "@/hooks/use-coordinator-program";
 import type { CoordinatorProgramDetail } from "@/interfaces/coordinator-program";
 import type { ProgramPlanWeek } from "@/interfaces/program-week";
@@ -46,6 +47,7 @@ type Review = { documentId: string; phases: WizardPhase[] };
  * replaced as a whole, so every save sends the full list with the one change applied.
  * While phases read from the file are under review, edits stay in the review until it is saved,
  * and it cannot be saved while a phase from the file has no dates (as in the launch wizard).
+ * Where syllabus reading is switched off there is no file to read: phases and weeks are entered by hand.
  */
 export function useProgramCurriculum(
   programId: string,
@@ -55,6 +57,8 @@ export function useProgramCurriculum(
   const t = useTranslations("programCurriculum");
   const cache = useProgramCache(programId);
   const { showToast } = useToast();
+  const canReadFile = useAiFeatures().syllabus;
+  const refused = useAiFeatureRefusal();
   const today = isoDay(new Date());
   const saved = savedPhases(detail);
   const [editing, setEditing] = useState<Editing | null>(null);
@@ -103,7 +107,10 @@ export function useProgramCurriculum(
       startReview({ documentId, phases: proposedPhases(result.phases) });
       if (result.weeks?.length) onWeeksProposed?.(result.weeks);
     },
-    onError: fail(t("readFailed")),
+    onError: (failure) => {
+      refused(failure);
+      fail(t("readFailed"))(failure);
+    },
   });
 
   const upload = useMutation({
@@ -152,7 +159,9 @@ export function useProgramCurriculum(
     },
     discardReview: () => startReview(null),
     readingFile: upload.isPending || extract.isPending,
+    canReadFile,
     chooseFile: (file: File) => {
+      if (!canReadFile) return;
       const problem = syllabusFileProblem(file);
       if (problem) {
         showToast({
@@ -167,7 +176,7 @@ export function useProgramCurriculum(
       upload.mutate(file);
     },
     reread: () => {
-      if (detail.syllabus) extract.mutate(detail.syllabus.id);
+      if (canReadFile && detail.syllabus) extract.mutate(detail.syllabus.id);
     },
     canAdd: listed.length < MAX_PHASES,
     move: (from: number, to: number) => {

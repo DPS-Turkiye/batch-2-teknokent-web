@@ -48,6 +48,57 @@ describe("IA kit", () => {
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
   });
 
+  it("passes native attributes through on both the button and the link", () => {
+    render(
+      <>
+        <Button aria-label="Programı kaydet" data-tour="save" name="save">
+          Kaydet
+        </Button>
+        <Button
+          href="/admin/programs"
+          aria-label="Programlara dön"
+          data-tour="back"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Geri
+        </Button>
+      </>,
+    );
+
+    const button = screen.getByRole("button", { name: "Programı kaydet" });
+    expect(button).toHaveAttribute("data-tour", "save");
+    expect(button).toHaveAttribute("name", "save");
+    expect(button).toHaveAttribute("type", "button");
+    const link = screen.getByRole("link", { name: "Programlara dön" });
+    expect(link).toHaveAttribute("data-tour", "back");
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(link).toHaveAttribute("rel", "noreferrer");
+  });
+
+  it("keeps aria and data attributes on a disabled link but drops link-only ones and the click", async () => {
+    const onClick = vi.fn();
+    render(
+      <Button
+        href="/student"
+        disabled
+        aria-label="Kaydı sil"
+        data-tour="delete"
+        target="_blank"
+        onClick={onClick}
+      >
+        Sil
+      </Button>,
+    );
+
+    const button = screen.getByRole("button", { name: "Kaydı sil" });
+    expect(button).toBeDisabled();
+    expect(button).toHaveAttribute("data-tour", "delete");
+    expect(button).not.toHaveAttribute("target");
+    await userEvent.click(button);
+    expect(onClick).not.toHaveBeenCalled();
+  });
+
   it("announces an error alert as an alert and other tones as status", () => {
     render(
       <>
@@ -89,6 +140,15 @@ describe("IA kit", () => {
     expect(screen.getByRole("listitem", { current: "step" })).toHaveTextContent(
       "Program bilgileri",
     );
+    // Pending steps use text-secondary: text-muted on background-muted is 4.02:1, under AA.
+    const pending = steps[2]!;
+    const pill = pending.querySelector(":scope > span:last-child");
+    expect(pill).toHaveClass("text-text-secondary");
+    expect(pill?.querySelector(":scope > span")).toHaveClass(
+      "bg-background-muted",
+      "text-text-secondary",
+    );
+    expect(pending.querySelector(".text-text-muted")).toBeNull();
   });
 
   it("names a program type in the reader's language", () => {
@@ -162,7 +222,11 @@ describe("IA kit", () => {
 
     rerender(
       <InLocale locale="tr">
-        <SimpleHeader onLogout={onLogout} loggingOut />
+        <SimpleHeader
+          helpHref="mailto:info@menton.com.tr"
+          onLogout={onLogout}
+          loggingOut
+        />
       </InLocale>,
     );
     expect(
@@ -171,9 +235,13 @@ describe("IA kit", () => {
 
     rerender(
       <InLocale locale="tr">
-        <SimpleHeader />
+        <SimpleHeader helpHref="mailto:info@iskur.example" />
       </InLocale>,
     );
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Yardım" })).toHaveAttribute(
+      "href",
+      "mailto:info@iskur.example",
+    );
   });
 });

@@ -6,6 +6,12 @@ export function dayPart(now = new Date()) {
   return "evening";
 }
 
+/** Minutes since midnight of an "HH:mm" time, for comparing and measuring time ranges. */
+export function minutesOfDay(time: string) {
+  const [hours = 0, minutes = 0] = time.split(":").map(Number);
+  return hours * 60 + minutes;
+}
+
 /** A calendar-day string ("2026-09-15") at local midnight, so it never shows as the day before. */
 export function calendarDay(value: string) {
   return new Date(`${value}T00:00:00`);
