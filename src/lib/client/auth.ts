@@ -10,13 +10,12 @@ import type { Locale } from "@/lib/i18n";
 export type FounderRegistration = {
   fullName: string;
   email: string;
-  /** Required unless startupLater. */
+  /** Required except in an individual-mentee program, where the backend names the team after the person. */
   organizationName?: string | undefined;
   description?: string | undefined;
   jobTitle?: string | undefined;
   phone?: string | undefined;
   programId?: string | null | undefined;
-  startupLater?: boolean | undefined;
   bio?: string | undefined;
   linkedinUrl?: string | undefined;
   expertise?: string[] | undefined;

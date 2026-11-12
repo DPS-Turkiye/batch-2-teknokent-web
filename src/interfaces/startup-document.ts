@@ -14,6 +14,7 @@ export enum DocumentKind {
   ProfilePdf = "profile-pdf",
   RequestedDoc = "requested-doc",
   Syllabus = "syllabus",
+  WeeklyProgram = "weekly-program",
 }
 
 export interface DocumentShare {
