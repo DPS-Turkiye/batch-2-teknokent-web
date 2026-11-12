@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { notFound, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { AddCoordinatorDialog } from "@/components/admin/add-coordinator-dialog";
@@ -84,8 +84,6 @@ export function UsersView({ tab }: { tab: UserTab }) {
   const focusUserId = useSearchParams().get("user");
   const [inviteOpen, setInviteOpen] = useState(false);
   const offeredTabs = useAdminUserTabs();
-  // Another edition's tab answers like a page that does not exist, as the proxy does for whole page trees.
-  if (!offeredTabs.includes(tab)) notFound();
   if (!query.data) {
     return <QueryNotice isLoading={query.isLoading} error={query.error} />;
   }

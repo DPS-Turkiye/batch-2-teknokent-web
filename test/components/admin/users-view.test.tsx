@@ -43,9 +43,6 @@ vi.mock("@/hooks/use-edition", () => ({
   useEdition: () => editionState.current,
 }));
 vi.mock("next/navigation", () => ({
-  notFound: () => {
-    throw new Error("NEXT_NOT_FOUND");
-  },
   useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
   useSearchParams: () => new URLSearchParams(),
   usePathname: () => "/admin/users",
@@ -94,14 +91,6 @@ describe("UsersView", () => {
       "/admin/users/mentors",
       "/admin/users/teams",
     ]);
-  });
-
-  it("answers another edition's tab like a page that does not exist", () => {
-    editionState.current = Edition.Teknokent;
-
-    expect(() =>
-      renderWithQueryClient(<UsersView tab={UserTab.Students} />),
-    ).toThrow("NEXT_NOT_FOUND");
   });
 
   it("has an Akademisyenler tab that shows the institution's academicians", async () => {
