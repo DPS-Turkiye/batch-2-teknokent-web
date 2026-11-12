@@ -81,9 +81,10 @@ export type OfficeHoursProfile = {
   contactEmail: string | null;
 };
 
-/** A listed academician as a student browses them. */
+/** A listed academician as a student browses them; `accountId` tells the student's advisor apart. */
 export type OfficeHoursListedAcademician = {
   id: string;
+  accountId: string;
   fullName: string;
   academicTitle: string | null;
   department: string | null;
