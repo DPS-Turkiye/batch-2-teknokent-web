@@ -7,9 +7,11 @@ import { PeerMentorGateState } from "@/interfaces/peer-mentoring";
 import {
   latestGateAward,
   PEER_REQUEST_STATUS_TONE,
+  peerMentorCapacity,
   peerMentorGateState,
   peerMentoringSide,
 } from "@/lib/peer-mentoring";
+import { PeerCapacityNote } from "@/types/iskur-student";
 
 describe("peerMentoringSide", () => {
   it("opens Mentorluk Ver only for as=MENTOR", () => {
@@ -106,5 +108,54 @@ describe("latestGateAward", () => {
       ])?.id,
     ).toBe("new");
     expect(latestGateAward([])).toBeNull();
+  });
+});
+
+describe("peerMentorCapacity", () => {
+  it("has no bar while no capacity is set (null, zero or negative)", () => {
+    expect(peerMentorCapacity(2, null)).toEqual({
+      used: 2,
+      capacity: null,
+      filled: 2,
+      percent: 0,
+      note: PeerCapacityNote.Unset,
+    });
+    expect(peerMentorCapacity(0, 0).note).toBe(PeerCapacityNote.Unset);
+    expect(peerMentorCapacity(1, -3).note).toBe(PeerCapacityNote.Unset);
+  });
+
+  it("warns when accepting one more request fills the last place", () => {
+    expect(peerMentorCapacity(3, 4)).toEqual({
+      used: 3,
+      capacity: 4,
+      filled: 3,
+      percent: 75,
+      note: PeerCapacityNote.LastPlace,
+    });
+    expect(peerMentorCapacity(0, 1).note).toBe(PeerCapacityNote.LastPlace);
+  });
+
+  it("stays open with places to spare and never rounds an open capacity up to a full bar", () => {
+    expect(peerMentorCapacity(1, 4).note).toBe(PeerCapacityNote.Open);
+    expect(peerMentorCapacity(1, 3).percent).toBe(33);
+    expect(peerMentorCapacity(198, 200)).toMatchObject({
+      percent: 99,
+      note: PeerCapacityNote.Open,
+    });
+  });
+
+  it("is full at capacity, and holds the bar at capacity when a lowered capacity leaves extra mentees", () => {
+    expect(peerMentorCapacity(4, 4)).toMatchObject({
+      filled: 4,
+      percent: 100,
+      note: PeerCapacityNote.Full,
+    });
+    expect(peerMentorCapacity(5, 4)).toEqual({
+      used: 5,
+      capacity: 4,
+      filled: 4,
+      percent: 100,
+      note: PeerCapacityNote.Full,
+    });
   });
 });

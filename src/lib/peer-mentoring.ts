@@ -8,6 +8,7 @@ import {
   PeerMentorGateState,
   type PeerTopicCategory,
 } from "@/interfaces/peer-mentoring";
+import { PeerCapacityNote } from "@/types/iskur-student";
 
 type Tone = ComponentProps<typeof StatusChip>["tone"];
 
@@ -33,6 +34,9 @@ export const PEER_MENTOR_TRAINING_HREF = "/student/peer-mentoring/training";
 
 /** `/student/peer-mentoring?as=MENTOR` opens Mentorluk Ver, so notifications can deep-link to it. */
 export const PEER_MENTORING_SIDE_PARAM = "as";
+
+/** Mentorluk Ver: where the wizard returns and the home's mentor blocks link to. */
+export const PEER_MENTOR_GIVE_HREF = `/student/peer-mentoring?${PEER_MENTORING_SIDE_PARAM}=${AppointmentSide.Mentor}`;
 
 export function peerMentoringSide(value: string | null): AppointmentSide {
   return value === AppointmentSide.Mentor
@@ -85,4 +89,47 @@ export function sharedInterests(
   interests: readonly PeerTopicCategory[],
 ) {
   return mentorCategories.filter((category) => interests.includes(category));
+}
+
+export type PeerMentorCapacity = {
+  used: number;
+  capacity: number | null;
+  /** `used` held at the capacity, for the bar (a lowered capacity can leave more mentees than places). */
+  filled: number;
+  /** Bar fill, 0–100; only a full capacity shows 100. */
+  percent: number;
+  note: PeerCapacityNote;
+};
+
+/**
+ * The "Kapasiten" card: accepted mentees against the mentor's capacity. No capacity (null, or a non-positive value the
+ * backend should never send) means no limit.
+ */
+export function peerMentorCapacity(
+  mentees: number,
+  capacity: number | null,
+): PeerMentorCapacity {
+  if (capacity === null || capacity <= 0) {
+    return {
+      used: mentees,
+      capacity: null,
+      filled: mentees,
+      percent: 0,
+      note: PeerCapacityNote.Unset,
+    };
+  }
+  const filled = Math.min(mentees, capacity);
+  const note =
+    mentees >= capacity
+      ? PeerCapacityNote.Full
+      : mentees + 1 === capacity
+        ? PeerCapacityNote.LastPlace
+        : PeerCapacityNote.Open;
+  return {
+    used: mentees,
+    capacity,
+    filled,
+    percent: Math.floor((filled / capacity) * 100),
+    note,
+  };
 }
