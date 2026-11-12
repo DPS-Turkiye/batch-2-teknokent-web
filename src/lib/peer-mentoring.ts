@@ -325,7 +325,10 @@ export function mentorshipSince(acceptedAt: string): {
  * past meeting is never "Sıradaki görüşme".
  */
 export function nextSessionsByRequest<
-  T extends Pick<Appointment, "requestId" | "status" | "startsAt" | "endsAt">,
+  T extends Pick<
+    Appointment,
+    "requestId" | "status" | "startsAt" | "endsAt" | "alternative"
+  >,
 >(appointments: readonly T[], now: Date): Map<string, T> {
   const next = new Map<string, T>();
   for (const item of appointments) {
