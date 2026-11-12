@@ -29,6 +29,7 @@ vi.mock("next/navigation", () => ({
 }));
 vi.mock("@/components/providers/session-provider", () => ({
   useAppSession: () => session,
+  useSession: () => ({ session, refresh: vi.fn(async () => null) }),
 }));
 vi.mock("@/lib/client/badges", () => ({
   getMyBadges: vi.fn(async () => []),
@@ -93,11 +94,23 @@ describe("PeerMentorProfileWizard", () => {
     const user = userEvent.setup();
     renderWithQueryClient(<PeerMentorProfileWizard />);
     const next = () =>
-      user.click(screen.getByRole("button", { name: "Devam et" }));
+      user.click(screen.getByRole("button", { name: "Devam Et" }));
 
     expect(
-      await screen.findByRole("heading", { name: "Mentor profilini oluştur" }),
+      await screen.findByRole("heading", {
+        name: "Hangi konularda mentorluk verebilirsin?",
+      }),
     ).toBeVisible();
+    expect(
+      screen.getByRole("group", { name: "Mentor profilini oluştur" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Mentorluk kategorileri").closest("li"),
+    ).toHaveAttribute("aria-current", "step");
+    // Saving a draft waits on the backend, so it is shown but off.
+    expect(
+      screen.getByRole("button", { name: "Taslak olarak kaydet" }),
+    ).toBeDisabled();
     await screen.findByRole("checkbox", { name: "Kariyer ve Staj" });
     await next();
     expect(screen.getByRole("alert")).toHaveTextContent(
@@ -109,6 +122,8 @@ describe("PeerMentorProfileWizard", () => {
     await user.click(
       screen.getByRole("checkbox", { name: "Örnek: CV hazırlama" }),
     );
+    expect(screen.getByText("1 alt konu seçildi")).toBeVisible();
+    expect(screen.getByText("Deneyim düzeyin")).toBeVisible();
     await next();
 
     await user.type(
@@ -117,26 +132,27 @@ describe("PeerMentorProfileWizard", () => {
     );
     await next();
 
-    await user.type(screen.getByLabelText(/Neye yardım edebilirsin/), "Kısa");
+    await user.type(screen.getByLabelText(/Açıklaman/), "Kısa");
+    expect(screen.getByText("En az 20 karakter · 4 / 2000")).toBeVisible();
     await next();
     expect(screen.getByRole("alert")).toHaveTextContent("en az 20 karakter");
     await user.type(
-      screen.getByLabelText(/Neye yardım edebilirsin/),
+      screen.getByLabelText(/Açıklaman/),
       " değil: staj başvurusu ve CV hazırlığı.",
     );
     await next();
 
     await user.type(
-      screen.getByLabelText("LinkedIn adresin"),
+      screen.getByLabelText("LinkedIn"),
       "linkedin.com/in/zeynep",
     );
     await next();
     expect(screen.getByRole("alert")).toHaveTextContent(
       "http:// veya https://",
     );
-    await user.clear(screen.getByLabelText("LinkedIn adresin"));
+    await user.clear(screen.getByLabelText("LinkedIn"));
     await user.type(
-      screen.getByLabelText("LinkedIn adresin"),
+      screen.getByLabelText("LinkedIn"),
       "https://linkedin.com/in/zeynep",
     );
     await next();
@@ -147,23 +163,20 @@ describe("PeerMentorProfileWizard", () => {
     await next();
 
     expect(
-      await screen.findByText("Öğrenciler seni böyle görecek."),
+      await screen.findByRole("heading", {
+        name: "Profilin öğrencilere böyle görünecek",
+      }),
     ).toBeVisible();
     expect(screen.getByRole("heading", { name: "Zeynep Demir" })).toBeVisible();
     expect(
       screen.getByText("Kısa değil: staj başvurusu ve CV hazırlığı."),
     ).toBeVisible();
-    expect(screen.getByText(/1 haftalık saat aralığı/)).toBeVisible();
+    expect(screen.getByText(/^Salı \d{2}:\d{2} – \d{2}:\d{2}$/)).toBeVisible();
+    expect(screen.getByText("Aynı anda 3 mentee")).toBeVisible();
+    expect(screen.getByText("https://linkedin.com/in/zeynep")).toBeVisible();
     expect(savePeerMentorProfile).not.toHaveBeenCalled();
 
-    // The step's main action stands out from Geri and Vazgeç.
-    expect(screen.getByRole("button", { name: "Yayınla" })).toHaveClass(
-      "bg-[#22262b]",
-    );
-    expect(screen.getByRole("button", { name: "Geri" })).not.toHaveClass(
-      "bg-[#22262b]",
-    );
-    await user.click(screen.getByRole("button", { name: "Yayınla" }));
+    await user.click(screen.getByRole("button", { name: "Profili Yayınla" }));
 
     await waitFor(() =>
       expect(push).toHaveBeenCalledWith("/student/peer-mentoring?as=MENTOR"),
@@ -202,8 +215,13 @@ describe("PeerMentorProfileWizard", () => {
     renderWithQueryClient(<PeerMentorProfileWizard />);
 
     expect(
-      await screen.findByRole("heading", { name: "Mentor profilini düzenle" }),
-    ).toBeVisible();
+      await screen.findByRole("group", { name: "Mentor profilini düzenle" }),
+    ).toBeInTheDocument();
+    // Geri on the first step leaves the wizard for Mentorluk Ver.
+    expect(screen.getByRole("link", { name: "Geri" })).toHaveAttribute(
+      "href",
+      "/student/peer-mentoring?as=MENTOR",
+    );
     expect(
       screen.getByRole("checkbox", { name: "Uluslararası Fırsatlar" }),
     ).toBeChecked();

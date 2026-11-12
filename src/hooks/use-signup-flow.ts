@@ -56,6 +56,8 @@ export function useSignupFlow() {
   const [mentorRegistration, setMentorRegistration] = useState(
     MentorRegistration.Idle,
   );
+  // null until a founder's login has been checked, so the wizard never opens for an existing account.
+  const [existingAccount, setExistingAccount] = useState<boolean | null>(null);
   const [mentorRegistrationError, setMentorRegistrationError] = useState("");
 
   const isMentor = role === SignupRole.Mentor;
@@ -151,6 +153,28 @@ export function useSignupFlow() {
     needsEmailVerification,
   ]);
 
+  // A founder whose login already reaches an account (say, a login deleted and made again for the same
+  // address) is sent to sign in now, not refused only after the whole wizard.
+  const isFounder = role !== null && !isMentor;
+  useEffect(() => {
+    if (!account || !isFounder || needsEmailVerification) return;
+    const cancellation = new AbortController();
+    void (async () => {
+      let exists = false;
+      try {
+        const idToken = await currentIdToken();
+        if (idToken) {
+          await fetchAccountStatus(idToken);
+          exists = true;
+        }
+      } catch {
+        // No account yet (401) is the normal case; any other failure is left to the final submit, which says why.
+      }
+      if (!cancellation.signal.aborted) setExistingAccount(exists);
+    })();
+    return () => cancellation.abort();
+  }, [account, isFounder, needsEmailVerification]);
+
   const retryMentorRegistration = useCallback(
     () => setMentorRegistration(MentorRegistration.Idle),
     [],
@@ -180,6 +204,7 @@ export function useSignupFlow() {
     needsEmailVerification,
     mentorRegistration,
     mentorRegistrationError,
+    existingAccount,
     chooseRole,
     createAccount,
     finishAfterEmail,

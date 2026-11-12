@@ -6,6 +6,7 @@ import { SignupWizardView } from "@/components/signup/signup-wizard";
 import type { RegisteredAccount } from "@/interfaces/auth";
 import { ContactPreference } from "@/interfaces/signup";
 import { DocumentKind } from "@/interfaces/startup-document";
+import { ClientApiError } from "@/lib/client/api";
 import { getProgramEligibility, registerFounder } from "@/lib/client/auth";
 import { listDocuments, uploadDocument } from "@/lib/client/documents";
 import { parseCv } from "@/lib/client/profile-analysis";
@@ -389,6 +390,53 @@ describe("Signup wizard", () => {
     expect(
       screen.getByRole("link", { name: "Gönderilen profili görüntüle" }),
     ).toHaveAttribute("href", "/application-status");
+  });
+
+  it("names the fields the backend refused instead of a generic message", async () => {
+    vi.mocked(registerFounder).mockRejectedValueOnce(
+      new ClientApiError("Gönderilen bilgiler geçersiz.", 400, undefined, {
+        phone: "must match",
+        "teamMembers[0].email": "must be a well-formed email address",
+      }),
+    );
+    const user = userEvent.setup();
+    render(<SignupWizardView account={ACCOUNT} />);
+
+    await reachReview(user);
+    await user.click(screen.getByRole("checkbox"));
+    await user.click(
+      screen.getByRole("button", { name: "Koordinatöre gönder" }),
+    );
+
+    expect(
+      await screen.findByText(
+        "Şu alanlar geçersiz: Telefon, Ekip üyeleri. Düzeltip tekrar gönder.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("shows the backend's reason when the address already has an account", async () => {
+    vi.mocked(registerFounder).mockRejectedValueOnce(
+      new ClientApiError(
+        "Bu e-posta adresiyle kayıtlı bir hesap zaten var. Kayıt olmak yerine giriş yap.",
+        400,
+        "EMAIL_ALREADY_REGISTERED",
+      ),
+    );
+    const user = userEvent.setup();
+    render(<SignupWizardView account={ACCOUNT} />);
+
+    await reachReview(user);
+    await user.click(screen.getByRole("checkbox"));
+    await user.click(
+      screen.getByRole("button", { name: "Koordinatöre gönder" }),
+    );
+
+    expect(
+      await screen.findByText(
+        "Bu e-posta adresiyle kayıtlı bir hesap zaten var. Kayıt olmak yerine giriş yap.",
+      ),
+    ).toBeInTheDocument();
   });
 
   it("keeps the wizard open and explains a failed submission", async () => {

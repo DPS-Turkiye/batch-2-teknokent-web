@@ -94,6 +94,32 @@ describe("currentTime and ordering with another time proposed", () => {
   });
 });
 
+describe("isUpcoming on a partial row (#358's Pick) with another time proposed", () => {
+  const row = (alternativeEnd: string | null) => ({
+    status: AppointmentStatus.AlternativeProposed,
+    endsAt: "2026-11-10T08:30:00.000Z",
+    alternative:
+      alternativeEnd === null
+        ? null
+        : {
+            startsAt: new Date(
+              Date.parse(alternativeEnd) - 30 * 60_000,
+            ).toISOString(),
+            endsAt: alternativeEnd,
+          },
+  });
+  const now = new Date("2026-11-12T12:00:00.000Z");
+
+  it("stays upcoming when the asked-for time passed but the proposed time is ahead", () => {
+    expect(isUpcoming(row("2026-11-14T08:30:00.000Z"), now)).toBe(true);
+  });
+
+  it("is over once the proposed time passed, and falls back to its own end without one", () => {
+    expect(isUpcoming(row("2026-11-11T08:30:00.000Z"), now)).toBe(false);
+    expect(isUpcoming(row(null), now)).toBe(false);
+  });
+});
+
 describe("APPOINTMENT_STATUS_TONE", () => {
   it("never shows a request that is still open in the confirmed colour", () => {
     const confirmed = APPOINTMENT_STATUS_TONE[AppointmentStatus.Confirmed];

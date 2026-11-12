@@ -6,6 +6,7 @@ import {
   AppointmentStatus,
   type Appointment,
   type AppointmentSide,
+  type AppointmentTime,
 } from "@/interfaces/appointment";
 
 type AppointmentTone = ComponentProps<typeof StatusChip>["tone"];
@@ -39,15 +40,23 @@ const OPEN_STATUSES = new Set([
   AppointmentStatus.Confirmed,
 ]);
 
-/** The time an appointment stands at now: the proposed one while another time is on the table, else its own. */
-export function currentTime(appointment: Appointment) {
+/**
+ * The time an appointment stands at now: the proposed one while another time is on the table, else its own. Takes
+ * any shape with a status and an alternative, so partial rows (`isUpcoming`'s Pick) work too.
+ */
+export function currentTime<
+  T extends Pick<Appointment, "status" | "alternative">,
+>(appointment: T): T | AppointmentTime {
   return appointment.status === AppointmentStatus.AlternativeProposed &&
     appointment.alternative
     ? appointment.alternative
     : appointment;
 }
 
-export function isUpcoming(appointment: Appointment, now: Date) {
+export function isUpcoming(
+  appointment: Pick<Appointment, "status" | "endsAt" | "alternative">,
+  now: Date,
+) {
   return (
     OPEN_STATUSES.has(appointment.status) &&
     Date.parse(currentTime(appointment).endsAt) > now.getTime()
