@@ -11,6 +11,7 @@ import {
   type PeerMentoringRequest,
   type PeerMentorProfile,
 } from "@/interfaces/peer-mentoring";
+import { getAvailabilitySettings } from "@/lib/client/mentor-profile";
 import { decideMentorRequest } from "@/lib/client/mentor-requests";
 import {
   getPeerMentorProfile,
@@ -48,6 +49,10 @@ vi.mock("@/hooks/use-peer-mentor-give", async (importOriginal) => ({
 vi.mock("@/lib/client/peer-mentoring", () => ({
   getPeerMentorProfile: vi.fn(),
   getReceivedPeerRequests: vi.fn(),
+}));
+vi.mock("@/lib/client/mentor-profile", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/client/mentor-profile")>()),
+  getAvailabilitySettings: vi.fn(),
 }));
 vi.mock("@/lib/client/mentor-requests", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/client/mentor-requests")>()),
@@ -87,6 +92,13 @@ beforeEach(() => {
   vi.clearAllMocks();
   gate.state = PeerMentorGateState.Earned;
   vi.mocked(getPeerMentorProfile).mockResolvedValue(PROFILE);
+  vi.mocked(getAvailabilitySettings).mockResolvedValue({
+    rules: [],
+    exceptions: [],
+    menteeCapacity: 4,
+    defaultMeetingDurationMinutes: 30,
+    meetingBufferMinutes: 0,
+  });
   vi.mocked(getReceivedPeerRequests).mockResolvedValue([
     received("r1", "Zeynep Koç", MentorshipRequestStatus.Pending),
     received("r2", "Can Tekin", MentorshipRequestStatus.Pending),
@@ -160,6 +172,20 @@ describe("IskurHomeView", () => {
     expect(await within(card).findByText("0 / 4 mentee")).toBeVisible();
   });
 
+  it("reads the capacity from the saved availability settings, like the Mentorluk Ver card", async () => {
+    vi.mocked(getAvailabilitySettings).mockResolvedValue({
+      rules: [],
+      exceptions: [],
+      menteeCapacity: 6,
+      defaultMeetingDurationMinutes: 30,
+      meetingBufferMinutes: 0,
+    });
+    renderWithQueryClient(<IskurHomeView />);
+
+    const card = await screen.findByRole("region", { name: "Mentor profilin" });
+    expect(await within(card).findByText("1 / 6 mentee")).toBeVisible();
+  });
+
   it("points a badge holder without a profile to the wizard", async () => {
     vi.mocked(getPeerMentorProfile).mockResolvedValue(null);
     renderWithQueryClient(<IskurHomeView />);
@@ -169,6 +195,7 @@ describe("IskurHomeView", () => {
     ).toHaveAttribute("href", "/student/peer-mentoring/profile");
     expect(screen.getByTestId("home-main")).toBeEmptyDOMElement();
     expect(getReceivedPeerRequests).not.toHaveBeenCalled();
+    expect(getAvailabilitySettings).not.toHaveBeenCalled();
   });
 
   it("keeps the shared home when the profile can't be read, instead of offering the wizard", async () => {

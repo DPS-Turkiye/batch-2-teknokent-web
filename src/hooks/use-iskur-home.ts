@@ -1,5 +1,8 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
+
+import { MENTOR_AVAILABILITY_SETTINGS_QUERY_KEY } from "@/hooks/use-mentor-profile";
 import {
   usePeerMentorGate,
   usePeerMentorProfile,
@@ -11,6 +14,7 @@ import {
   PeerMentorGateState,
   type PeerMentoringRequest,
 } from "@/interfaces/peer-mentoring";
+import { getAvailabilitySettings } from "@/lib/client/mentor-profile";
 import { iskurHomeMode, peerMentorCapacity } from "@/lib/peer-mentoring";
 import { IskurHomeMode } from "@/types/iskur-student";
 
@@ -27,6 +31,17 @@ export function useIskurHome() {
   const profile = usePeerMentorProfile(earned);
   const hasProfile = Boolean(profile.data);
   const received = useReceivedPeerRequests(hasProfile);
+  // Capacity is saved with the availability settings (Mentorluk Ver's availability tab), not the profile, so read it
+  // there like the Mentorluk Ver card does; only a published mentor has settings to read.
+  const settings = useQuery({
+    queryKey: MENTOR_AVAILABILITY_SETTINGS_QUERY_KEY,
+    queryFn: getAvailabilitySettings,
+    enabled: hasProfile,
+  });
+  const menteeCapacity =
+    settings.data === undefined
+      ? (profile.data?.menteeCapacity ?? null)
+      : settings.data.menteeCapacity;
   const decision = usePeerRequestDecision();
   const loaded = received.query.data !== undefined;
   return {
@@ -46,10 +61,7 @@ export function useIskurHome() {
       request.status === MentorshipRequestStatus.Pending,
     // Until the requests load the mentee count is unknown, so the card waits instead of showing 0.
     capacity: loaded
-      ? peerMentorCapacity(
-          received.mentees.length,
-          profile.data?.menteeCapacity ?? null,
-        )
+      ? peerMentorCapacity(received.mentees.length, menteeCapacity)
       : null,
   };
 }
