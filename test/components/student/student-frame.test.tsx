@@ -118,13 +118,12 @@ describe("StudentFrame", () => {
 });
 
 const ACADEMICIAN_SCREENS_BUILT = [
-  "Randevu Talepleri",
   "Randevularım",
-  "Takvim",
   "Danışan Öğrencilerim",
   "Profilim",
 ];
-const ACADEMICIAN_SCREENS_SOON: string[] = [];
+// The IA redesign folds Talepler and Takvim into Randevularım.
+const ACADEMICIAN_SCREENS_GONE = ["Randevu Talepleri", "Takvim"];
 
 describe("AcademicianFrame", () => {
   it("does not open for a student who is not an academician", () => {
@@ -146,7 +145,7 @@ describe("AcademicianFrame", () => {
     for (const label of ACADEMICIAN_SCREENS_BUILT) {
       expect(within(nav).getByRole("link", { name: label })).toBeVisible();
     }
-    for (const label of ACADEMICIAN_SCREENS_SOON) {
+    for (const label of ACADEMICIAN_SCREENS_GONE) {
       expect(within(nav).queryByRole("link", { name: label })).toBeNull();
     }
     expect(screen.getByText("Akademisyen")).toBeInTheDocument();
