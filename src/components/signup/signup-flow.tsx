@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 import { useState, type SubmitEvent } from "react";
 
 import { AuthShell } from "@/components/auth/auth-shell";
@@ -78,6 +79,29 @@ function ResumeLoading({ message }: { message: string }) {
   );
 }
 
+// TEST UI: placeholder until the design team's screen; replace when it arrives.
+function ExistingAccountNotice({ email }: { email: string }) {
+  const copy = useTranslations("signupFlow");
+  return (
+    <AuthShell>
+      <div className="flex flex-col gap-4 py-10 text-center">
+        <h1 className="text-2xl font-bold leading-9 text-[#111827]">
+          {copy("existingAccountTitle")}
+        </h1>
+        <p className="text-sm text-[#6b7280]">
+          {copy("existingAccountBody", { email })}
+        </p>
+        <Link
+          href="/login"
+          className="mx-auto rounded-[10px] bg-[#e5701d] px-5 py-2.5 text-sm font-semibold text-white"
+        >
+          {copy("existingAccountSignIn")}
+        </Link>
+      </div>
+    </AuthShell>
+  );
+}
+
 export function SignupFlow() {
   const copy = useTranslations("signupFlow");
   const flow = useSignupFlow();
@@ -132,6 +156,10 @@ export function SignupFlow() {
       );
     }
     return <ResumeLoading message={copy("preparingMentor")} />;
+  }
+
+  if (!isMentor && flow.existingAccount) {
+    return <ExistingAccountNotice email={account.email} />;
   }
 
   return isMentor ? (

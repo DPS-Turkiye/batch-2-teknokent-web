@@ -56,6 +56,7 @@ export function useSignupFlow() {
   const [mentorRegistration, setMentorRegistration] = useState(
     MentorRegistration.Idle,
   );
+  const [existingAccount, setExistingAccount] = useState(false);
   const [mentorRegistrationError, setMentorRegistrationError] = useState("");
 
   const isMentor = role === SignupRole.Mentor;
@@ -151,6 +152,25 @@ export function useSignupFlow() {
     needsEmailVerification,
   ]);
 
+  // A founder whose login already reaches an account (say, a login deleted and made again for the same
+  // address) is sent to sign in now, not refused only after the whole wizard.
+  const isFounder = role !== null && !isMentor;
+  useEffect(() => {
+    if (!account || !isFounder || needsEmailVerification) return;
+    const cancellation = new AbortController();
+    void (async () => {
+      const idToken = await currentIdToken();
+      if (!idToken) return;
+      try {
+        await fetchAccountStatus(idToken);
+        if (!cancellation.signal.aborted) setExistingAccount(true);
+      } catch {
+        // No account yet (401) is the normal case; any other failure is left to the final submit, which says why.
+      }
+    })();
+    return () => cancellation.abort();
+  }, [account, isFounder, needsEmailVerification]);
+
   const retryMentorRegistration = useCallback(
     () => setMentorRegistration(MentorRegistration.Idle),
     [],
@@ -180,6 +200,7 @@ export function useSignupFlow() {
     needsEmailVerification,
     mentorRegistration,
     mentorRegistrationError,
+    existingAccount,
     chooseRole,
     createAccount,
     finishAfterEmail,

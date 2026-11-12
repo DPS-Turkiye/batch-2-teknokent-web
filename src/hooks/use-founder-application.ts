@@ -7,10 +7,32 @@ import { startupRequestFields } from "@/hooks/use-startup-draft";
 import type { RegisteredAccount } from "@/interfaces/auth";
 import { StartupDocumentKind, type SignupDraft } from "@/interfaces/signup";
 import { DocumentKind } from "@/interfaces/startup-document";
+import { ClientApiError } from "@/lib/client/api";
 import { registerFounder } from "@/lib/client/auth";
 import { uploadDocument } from "@/lib/client/documents";
-import { isEnumValue } from "@/lib/enum";
+import { isEnumValue, isOneOf } from "@/lib/enum";
+import { invalidFieldNames } from "@/lib/field-errors";
 import { currentIdToken } from "@/lib/firebase/auth";
+
+/** Request fields the wizard can name when the backend refuses one; others are shown as sent. */
+const NAMED_FIELDS = [
+  "fullName",
+  "email",
+  "phone",
+  "jobTitle",
+  "bio",
+  "linkedinUrl",
+  "contactPreferences",
+  "programId",
+  "organizationName",
+  "description",
+  "website",
+  "mvpUrl",
+  "foundedYear",
+  "maturity",
+  "supportAreas",
+  "teamMembers",
+] as const;
 
 export function signupFullName(draft: SignupDraft) {
   return [draft.personal.firstName, draft.personal.lastName]
@@ -25,7 +47,23 @@ export function useFounderApplication(account: RegisteredAccount) {
   const tWizard = useTranslations("signupWizard");
   const [submittedAt, setSubmittedAt] = useState<Date | null>(null);
 
-  const submitApplication = useCallback(
+  // A validation 400 names its fields; the generic "check the fields" leaves the founder guessing which.
+  const namingFields = useCallback(
+    (error: unknown) => {
+      if (!(error instanceof ClientApiError)) return error;
+      const names = invalidFieldNames(error.fieldErrors);
+      if (names.length === 0) return error;
+      const fields = names
+        .map((name) =>
+          isOneOf(NAMED_FIELDS, name) ? tWizard(`fieldNames.${name}`) : name,
+        )
+        .join(", ");
+      return new Error(tWizard("invalidFields", { fields }));
+    },
+    [tWizard],
+  );
+
+  const sendApplication = useCallback(
     async (draft: SignupDraft) => {
       const idToken = await currentIdToken();
       if (!idToken) {
@@ -74,6 +112,17 @@ export function useFounderApplication(account: RegisteredAccount) {
       setSubmittedAt(new Date());
     },
     [account, tErrors, tWizard],
+  );
+
+  const submitApplication = useCallback(
+    async (draft: SignupDraft) => {
+      try {
+        await sendApplication(draft);
+      } catch (error) {
+        throw namingFields(error);
+      }
+    },
+    [namingFields, sendApplication],
   );
 
   return { submitApplication, submittedAt };

@@ -57,6 +57,9 @@ beforeEach(() => {
   vi.mocked(registerMentor).mockResolvedValue(
     backendUser({ role: UserRole.Mentor }),
   );
+  vi.mocked(fetchAccountStatus).mockRejectedValue(
+    new ClientApiError("Registration required", 401),
+  );
 });
 
 describe("SignupFlow resume", () => {
@@ -161,6 +164,33 @@ describe("SignupFlow resume", () => {
       "gulse@dongu.co",
     );
     expect(replace).toHaveBeenCalledWith("/signup?role=founder&resume=1");
+  });
+
+  it("sends a founder whose login already has an account to sign in instead of the wizard", async () => {
+    searchParams.set("resume", "1");
+    searchParams.set("role", "founder");
+    vi.mocked(currentFirebaseAccount).mockResolvedValue({
+      email: "gulse@dongu.co",
+      fullName: "Gülse Yılmaz",
+      verified: true,
+    });
+    vi.mocked(fetchAccountStatus).mockResolvedValue(backendUser());
+
+    render(<SignupFlow />);
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "Bu e-postayla zaten bir hesabın var",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/gulse@dongu.co adresiyle kayıtlı/),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Giriş yap" })).toHaveAttribute(
+      "href",
+      "/login",
+    );
+    expect(screen.queryByTestId("wizard")).not.toBeInTheDocument();
   });
 
   it("collects missing identity and registers a mentor resumed in another session", async () => {
