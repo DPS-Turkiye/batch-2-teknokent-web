@@ -1,7 +1,7 @@
 import type { ComponentProps } from "react";
 
 import type { StatusChip } from "@/components/admin/admin-ui";
-import { AppointmentSide } from "@/interfaces/appointment";
+import { AppointmentSide, type Appointment } from "@/interfaces/appointment";
 import { BadgeCode, BadgeStatus, type BadgeAward } from "@/interfaces/badges";
 import {
   WEEKDAY_ORDER,
@@ -17,6 +17,7 @@ import {
   type PeerTopicLevels,
 } from "@/interfaces/peer-mentoring";
 import type { ProfileCompletionCategory } from "@/interfaces/student-profile-completion";
+import { isUpcoming } from "@/lib/appointments";
 import { toTimeInput } from "@/lib/mentor-availability";
 import {
   ExperienceCardProblem,
@@ -49,6 +50,9 @@ export const PEER_MENTOR_TRAINING_HREF = "/student/peer-mentoring/training";
 
 /** `/student/peer-mentoring?as=MENTOR` opens Mentorluk Ver, so notifications can deep-link to it. */
 export const PEER_MENTORING_SIDE_PARAM = "as";
+
+/** Mentorluk Ver: where the wizard returns and the home's mentor blocks link to. */
+export const PEER_MENTOR_GIVE_HREF = `/student/peer-mentoring?${PEER_MENTORING_SIDE_PARAM}=${AppointmentSide.Mentor}`;
 
 export function peerMentoringSide(value: string | null): AppointmentSide {
   return value === AppointmentSide.Mentor
@@ -246,11 +250,16 @@ export function splitPeerRequests<
   };
 }
 
-/** An open request comes first: the student already asked this mentor, full or not. */
+/**
+ * Whether the student can ask this mentor now. A running mentorship comes first, then an open request (the student
+ * already asked, full or not), then a full capacity.
+ */
 export function peerRequestAvailability(
   hasOpenRequest: boolean,
   capacityFull: boolean,
+  isMentoring = false,
 ): PeerRequestAvailability {
+  if (isMentoring) return PeerRequestAvailability.Mentoring;
   if (hasOpenRequest) return PeerRequestAvailability.Requested;
   if (capacityFull) return PeerRequestAvailability.Full;
   return PeerRequestAvailability.Open;
@@ -414,4 +423,22 @@ export function experienceProblemField(
     case ExperienceCardProblem.EndBeforeStart:
       return "endedOn";
   }
+}
+
+/**
+ * Each peer request's next meeting: the earliest one still to come (not refused, called off or over). A cancelled or
+ * past meeting is never "Sıradaki görüşme".
+ */
+export function nextSessionsByRequest<
+  T extends Pick<Appointment, "requestId" | "status" | "startsAt" | "endsAt">,
+>(appointments: readonly T[], now: Date): Map<string, T> {
+  const next = new Map<string, T>();
+  for (const item of appointments) {
+    if (!item.requestId || !isUpcoming(item, now)) continue;
+    const current = next.get(item.requestId);
+    if (!current || Date.parse(item.startsAt) < Date.parse(current.startsAt)) {
+      next.set(item.requestId, item);
+    }
+  }
+  return next;
 }

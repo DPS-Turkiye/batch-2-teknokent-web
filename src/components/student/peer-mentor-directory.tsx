@@ -357,9 +357,11 @@ export function RequestButton({
   }
   return (
     <Button disabled fullWidth={fullWidth} className="flex-1">
-      {availability === PeerRequestAvailability.Requested
-        ? t("requested")
-        : t("full")}
+      {availability === PeerRequestAvailability.Mentoring
+        ? t("mentoring")
+        : availability === PeerRequestAvailability.Requested
+          ? t("requested")
+          : t("full")}
     </Button>
   );
 }

@@ -314,6 +314,10 @@ function PublishedView({ profile }: { profile: PeerMentorProfile }) {
             id={PeerGiveTab.Mentees}
             selected={view.tab === PeerGiveTab.Mentees}
           >
+            {/* The requests tab carries the loading notice; an error shows on both tabs. */}
+            {received.query.error ? (
+              <QueryNotice isLoading={false} error={received.query.error} />
+            ) : null}
             {loaded ? (
               <RequestList
                 requests={received.mentees}
