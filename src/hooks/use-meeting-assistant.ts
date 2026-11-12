@@ -17,7 +17,9 @@ import {
   stopMeetingBot,
 } from "@/lib/assistant";
 import {
+  assistantLinkBoxValue,
   isAssistantCalendarMeeting,
+  isForeignMeetingLink,
   matchCalendarMeetingId,
   platformLabel,
   toAssistantMeeting,
@@ -161,6 +163,8 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
     setSelectedId(requestedMeetingId ?? "");
   }
   const [meetingUrl, setMeetingUrl] = useState("");
+  // What the user typed into the add-bot box; null until they touch it, so the prefill never overwrites their input.
+  const [typedUrl, setTypedUrl] = useState<string | null>(null);
   const [botStatus, setBotStatus] = useState<BotStatus | null>(null);
   const [botError, setBotError] = useState<string | null>(null);
   const [transcriptByMeeting, setTranscriptByMeeting] = useState<
@@ -227,6 +231,11 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
         .find((item) => item.id === selected.id)
         ?.meetLink?.trim() ?? "")
     : "";
+  const linkBoxValue = assistantLinkBoxValue(
+    typedUrl,
+    selectedMeetLink || meetingUrl,
+  );
+  const linkNotInCalendar = isForeignMeetingLink(calendarItems, typedUrl);
 
   useEffect(() => {
     if (!selected || !canPersist(selected.id) || shareLoadedFor[selected.id]) {
@@ -482,7 +491,7 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
     : MEETING_STATUS_META[MeetingStatus.Scheduled];
   const addBot = async (event?: SubmitEvent) => {
     event?.preventDefault();
-    await sendBotForUrl(selectedMeetLink || meetingUrl);
+    if (await sendBotForUrl(linkBoxValue)) setTypedUrl(null);
   };
 
   const requestMeetingReport = useCallback(
@@ -699,8 +708,9 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
     meetings,
     selected,
     setSelectedId,
-    meetingUrl: selectedMeetLink || meetingUrl,
-    setMeetingUrl,
+    meetingUrl: linkBoxValue,
+    setMeetingUrl: setTypedUrl,
+    linkNotInCalendar,
     botStatus,
     botError,
     visibleTranscript,

@@ -194,6 +194,50 @@ describe("useMeetingAssistant", () => {
     });
   });
 
+  describe("the link box", () => {
+    const OTHER = "https://meet.google.com/zzz-zzzz-zzz";
+
+    it("shows the selected meeting's link until the user types, then keeps their input", async () => {
+      calendar.meetings = [calendarMeeting()];
+      const { result } = renderAssistant();
+      await flush();
+      expect(result.current.meetingUrl).toBe(LINK);
+
+      act(() => result.current.setMeetingUrl(""));
+      await flush(60_000);
+      expect(result.current.meetingUrl).toBe("");
+
+      act(() => result.current.setMeetingUrl(OTHER));
+      await flush(60_000);
+      expect(result.current.meetingUrl).toBe(OTHER);
+    });
+
+    it("says when a pasted link is not one of the user's calendar meetings", async () => {
+      calendar.meetings = [calendarMeeting()];
+      const { result } = renderAssistant();
+      await flush();
+      expect(result.current.linkNotInCalendar).toBe(false);
+
+      act(() => result.current.setMeetingUrl(OTHER));
+      expect(result.current.linkNotInCalendar).toBe(true);
+
+      act(() => result.current.setMeetingUrl(LINK));
+      expect(result.current.linkNotInCalendar).toBe(false);
+    });
+
+    it("sends the link the user typed, not the selected meeting's", async () => {
+      calendar.meetings = [calendarMeeting()];
+      const { result } = renderAssistant();
+      await flush();
+
+      act(() => result.current.setMeetingUrl(OTHER));
+      await act(() => result.current.addBot());
+
+      expect(addMeetingBot).toHaveBeenCalledWith(OTHER);
+      expect(result.current.linkNotInCalendar).toBe(false);
+    });
+  });
+
   describe("sending the bot to a calendar meeting on its own", () => {
     it("sends it a minute before a transcribed meeting and marks the meeting", async () => {
       calendar.meetings = [

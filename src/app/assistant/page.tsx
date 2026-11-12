@@ -37,6 +37,7 @@ function MeetingAssistantWorkspace() {
     setSelectedId,
     meetingUrl,
     setMeetingUrl,
+    linkNotInCalendar,
     botStatus,
     botError,
     visibleTranscript,
@@ -125,6 +126,15 @@ function MeetingAssistantWorkspace() {
                     {botStatus === BotStatus.Sending ? "…" : t("addBot")}
                   </button>
                 </div>
+                {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+                {linkNotInCalendar ? (
+                  <p
+                    role="alert"
+                    className="mt-1.5 text-[11px] leading-snug text-[var(--ma-danger)]"
+                  >
+                    {t("linkNotInCalendar")}
+                  </p>
+                ) : null}
                 <BotStatusRenderer status={botStatus} error={botError} />
               </form>
 
