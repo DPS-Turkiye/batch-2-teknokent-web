@@ -155,7 +155,6 @@ describe("RoleFrame workspace switch", () => {
     role: UserRole.Academician,
     permissions: [UserRole.Mentee, UserRole.Academician],
     institutionKinds: [IdentityKind.Student, IdentityKind.Academic],
-    // The ODTÜ workspaces exist only on the ODTÜ edition.
     edition: Edition.Odtu,
   };
   const frame = (

@@ -115,6 +115,8 @@
     "lastNamePlaceholder": "Soyadınız",
     "email": "E-posta",
     "emailPlaceholder": "ornek@email.com",
+    "emailDomainHint": "Kayıt için {domains} uzantılı e-posta adresini kullan.",
+    "emailDomainNotAllowed": "Bu adresle kayıt olunamaz; {domains} uzantılı e-posta adresini kullan.",
     "phone": "Telefon",
     "password": "Şifre",
     "passwordConfirm": "Şifre tekrar",
@@ -293,12 +295,10 @@
     "sendToCoordinator": "Koordinatöre gönder",
     "continue": "Devam et",
     "draftSaved": "Taslak kaydedildi.",
-    "soloSubmittedTitle": "Başvurun koordinatöre gönderildi",
-    "soloLastStepLabel": "Startup'ını oluşturur ya da bir takıma katılırsın",
-    "soloNextSteps": [
-      "Onaylanırsa Startup'ım sayfasından kendi startup'ını oluşturabilir ya da takımının koduyla katılabilirsin.",
-      "Düzenleme istenirse e-postayla bilgilendirilirsin.",
-      "Mentor talebi, startup'ın onaylandıktan sonra açılır."
+    "individualSubmittedTitle": "Başvurun alındı; koordinatör onayından sonra akran mentörlüğü alanın açılacak.",
+    "individualLastStepLabel": "Akran mentörlüğü alanın açılır",
+    "individualNextSteps": [
+      "Düzenleme istenirse e-postayla bilgilendirilirsin."
     ]
   },
   "signupSteps": {
@@ -343,8 +343,6 @@
     "supportAreasSubtitle": "En fazla {max} alan seç. Mentor önerileri buna göre sıralanır.",
     "supportAreasLimit": "En fazla {max} alan seçebilirsin. Değiştirmek için birini kaldır.",
     "programSubtitle": "Başvurun bu programın koordinatörüne gider.",
-    "startupLater": "Startup'ı daha sonra oluşturacağım",
-    "startupLaterHint": "Onaylandıktan sonra Startup'ım sayfasından startup'ını oluşturabilir ya da bir takıma katılabilirsin.",
     "individualProgram": "Bu programa bireysel katılıyorsun; startup bilgisi gerekmez.",
     "programEligibilityChecking": "Bu programa katılıp katılamayacağın kontrol ediliyor…",
     "programEligibilityRefused": "Bu programa bu e-posta adresiyle katılamazsın. Program koordinatörüne başvur ya da başka bir program seç.",
@@ -384,8 +382,7 @@
     "missingTitle": "Pitch deck ve prototip yüklemeden de gönderebilirsin",
     "missingBody": "Ancak mentorlar startupını değerlendirirken en çok bu iki dosyaya bakıyor. Sonradan da ekleyebilirsin.",
     "consent": "Verdiğim bilgilerin doğru olduğunu onaylıyorum ve profilin koordinatör tarafından incelenmesini kabul ediyorum.",
-    "program": "Program",
-    "startupLater": "Daha sonra oluşturulacak"
+    "program": "Program"
   },
   "onboarding": {
     "exiting": "Çıkılıyor…",
@@ -3307,6 +3304,7 @@
     "meetingsTab": "Toplantılar",
     "meetingsHeading": "toplantılar",
     "linkPlaceholder": "Toplantı linki yapıştır…",
+    "linkNotInCalendar": "Bu bağlantı takviminde bir toplantıya ait değil; asistan yalnızca Menton takvimindeki toplantılara katılabilir.",
     "addBot": "Bot ekle",
     "loadingMeetings": "Toplantılar yükleniyor…",
     "noMeetings": "Kayıtlı toplantı yok. Takvimden toplantı oluştur veya link yapıştır.",
@@ -6785,6 +6783,12 @@
     "completedMentorships": "Tamamlanan mentorluk",
     "registered": "Kayıt tarihi",
     "open": "Profili gör",
-    "openFor": "Profili gör: {name}"
+    "openFor": "Profili gör: {name}",
+    "availability": "Müsait zamanlar",
+    "availabilityEmpty": "Henüz müsait zaman eklenmemiş.",
+    "availabilityWeekly": "Haftalık",
+    "availabilityDaysOff": "Yaklaşan izin günleri",
+    "availabilityExtraSlots": "Ek zamanlar",
+    "availabilityExtraSlot": "{day} · {time} ({minutes} dk)"
   }
 }
