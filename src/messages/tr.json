@@ -6370,28 +6370,8 @@
     "past": "Geçmiş"
   },
   "studentProfileCompletion": {
-    "title": "Profilini tamamla",
-    "subtitle": "İlgi alanlarını ve hedefini seç; Profilim'den istediğin zaman değiştirebilirsin.",
-    "loading": "Profil yükleniyor…",
-    "loadError": "Profil yüklenemedi.",
-    "retry": "Tekrar dene",
-    "saved": "Profilin tamamlandı.",
-    "skipped": "Şimdilik atladın. İstersen daha sonra profilini tamamlayabilirsin.",
-    "home": "Ana sayfaya dön",
-    "step": "Adım {number} / 3",
-    "steps": {
-      "0": "İlgi alanların",
-      "1": "Alt konular",
-      "2": "Hedefin (isteğe bağlı)"
-    },
     "noTopics": "Henüz alan seçmedin. Geri dönebilir ya da seçim yapmadan devam edebilirsin.",
     "goal": "Hedefin (isteğe bağlı, en fazla 1000 karakter)",
-    "saveError": "Profilin kaydedilemedi. Tekrar deneyebilirsin.",
-    "back": "Geri",
-    "next": "Devam et",
-    "finish": "Profili tamamla",
-    "saving": "Kaydediliyor…",
-    "skip": "Şimdilik atla",
     "subtopics": {
       "study": "Örnek: Ders çalışma",
       "cv": "Örnek: CV hazırlama",

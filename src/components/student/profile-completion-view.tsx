@@ -1,111 +1,164 @@
 "use client";
 
-// TEST UI: placeholder until the design team's screen; replace when it arrives.
 import { useTranslations } from "next-intl";
-import Link from "next/link";
+import { useEffect, useRef, type ReactNode } from "react";
 
-import { PageHeading, Panel } from "@/components/admin/admin-ui";
-import {
-  GoalField,
-  SubtopicPicker,
-  TopicPicker,
-} from "@/components/student/interest-pickers";
+import { Button, ButtonVariant } from "@/components/ia/button";
+import { CompletionStepper } from "@/components/student/profile-completion/completion-stepper";
+import { GoalStep } from "@/components/student/profile-completion/goal-step";
+import { TopicsStep } from "@/components/student/profile-completion/topics-step";
+import { WelcomeStep } from "@/components/student/profile-completion/welcome-step";
 import { useStudentProfileCompletion } from "@/hooks/use-student-profile-completion";
 import { ProfileCompletionStep } from "@/interfaces/student-profile-completion";
+import { IaAccent } from "@/types/ia-theme";
 
-const buttonClass =
-  "rounded-full border border-[#d4d8dd] px-4 py-2 text-sm disabled:opacity-50";
+/** The ODTÜ student's first-run wizard (Figma "Profil Tamamlama — 1/2/3"); every step can be skipped. */
 export function StudentProfileCompletionView() {
-  const t = useTranslations("studentProfileCompletion");
-  const form = useStudentProfileCompletion();
   return (
-    <div className="max-w-3xl space-y-6">
-      <PageHeading title={t("title")} subtitle={t("subtitle")} />
-      {form.isLoading ? (
-        <p role="status">{t("loading")}</p>
-      ) : form.loadError ? (
-        <div role="alert">
-          <p>{t("loadError")}</p>
-          <button
-            type="button"
-            className={buttonClass}
-            disabled={form.isFetching}
-            onClick={form.retry}
+    <div data-ia-accent={IaAccent.Odtu}>
+      <CompletionWizard />
+    </div>
+  );
+}
+
+function CompletionWizard() {
+  const t = useTranslations("iaProfile");
+  const form = useStudentProfileCompletion();
+  const stepRef = useRef<HTMLDivElement>(null);
+  const shownStep = useRef(form.step);
+  // Next/Geri keep focus on the footer otherwise; land keyboard and screen-reader users on the new step.
+  useEffect(() => {
+    if (shownStep.current === form.step) return;
+    shownStep.current = form.step;
+    stepRef.current?.focus();
+  }, [form.step]);
+
+  if (form.isLoading) {
+    return <Notice role="status">{t("loading")}</Notice>;
+  }
+  if (form.loadError) {
+    return (
+      <Notice role="alert">
+        <p>{t("loadError")}</p>
+        <Button
+          variant={ButtonVariant.Ghost}
+          disabled={form.isFetching}
+          onClick={form.retry}
+        >
+          {t("retry")}
+        </Button>
+      </Notice>
+    );
+  }
+  if (form.finished) {
+    return (
+      <Notice role="status">
+        <p>{form.draft?.skipped ? t("skipped") : t("saved")}</p>
+        <Button href="/student">{t("home")}</Button>
+      </Notice>
+    );
+  }
+  const draft = form.draft;
+  if (!draft) return null;
+
+  const skip = (
+    <Button
+      variant={ButtonVariant.Ghost}
+      disabled={form.isSaving}
+      onClick={form.skip}
+    >
+      {t("skip")}
+    </Button>
+  );
+
+  return (
+    <form
+      className="flex flex-col"
+      onSubmit={(event) => {
+        event.preventDefault();
+        form.advance();
+      }}
+    >
+      <div className="flex flex-col gap-8 pb-8 lg:flex-row lg:items-start">
+        <CompletionStepper steps={form.steps} current={form.step} />
+        <fieldset
+          disabled={form.isSaving}
+          className="flex min-w-0 flex-1 flex-col gap-6"
+        >
+          <div
+            ref={stepRef}
+            tabIndex={-1}
+            className="flex flex-col gap-6 outline-none"
           >
-            {t("retry")}
-          </button>
-        </div>
-      ) : form.finished ? (
-        <Panel>
-          <div className="space-y-4 p-6">
-            <p role="status">
-              {form.draft?.skipped ? t("skipped") : t("saved")}
-            </p>
-            <Link className={buttonClass} href="/student">
-              {t("home")}
-            </Link>
+            {form.step === ProfileCompletionStep.Welcome ? (
+              <WelcomeStep welcome={form.welcome} photo={form.photo} />
+            ) : form.step === ProfileCompletionStep.Topics ? (
+              <TopicsStep
+                categories={form.categories}
+                groups={form.subtopicGroups}
+                topics={draft.topics}
+                subtopics={draft.subtopics}
+                onToggleTopic={form.toggleTopic}
+                onToggleSubtopic={form.toggleSubtopic}
+              />
+            ) : (
+              <GoalStep
+                goal={draft.goal}
+                summary={form.summary}
+                onGoalChange={form.setGoal}
+              />
+            )}
           </div>
-        </Panel>
-      ) : form.draft ? (
-        <Panel>
-          <form
-            className="space-y-6 p-6"
-            onSubmit={(event) => {
-              event.preventDefault();
-              if (form.step === ProfileCompletionStep.Goal) form.finish();
-              else form.next();
-            }}
+          {form.saveError ? (
+            <p
+              role="alert"
+              className="rounded-[12px] border border-status-error-border bg-status-error-bg px-4 py-3 type-body text-status-error-text"
+            >
+              {t("saveError")}
+            </p>
+          ) : null}
+        </fieldset>
+      </div>
+      <div className="sticky bottom-0 -mx-4 flex flex-wrap items-center justify-between gap-3 border-t border-border-subtle bg-background-surface px-4 py-4 sm:-mx-8 sm:px-8 lg:-mx-12 lg:px-12">
+        {form.step === ProfileCompletionStep.Welcome ? (
+          skip
+        ) : (
+          <Button
+            variant={ButtonVariant.Ghost}
+            disabled={form.isSaving}
+            onClick={form.back}
           >
-            <fieldset disabled={form.isSaving} className="min-w-0 space-y-5">
-              <legend className="mb-4 text-lg font-semibold">
-                {t("step", { number: form.step + 1 })}:{" "}
-                {t(`steps.${form.step}`)}
-              </legend>
-              {form.step === ProfileCompletionStep.Topics ? (
-                <TopicPicker
-                  categories={form.categories}
-                  selected={form.draft.topics}
-                  onToggle={form.toggleTopic}
-                />
-              ) : form.step === ProfileCompletionStep.Subtopics ? (
-                <SubtopicPicker
-                  groups={form.subtopicGroups}
-                  selected={form.draft.subtopics}
-                  onToggle={form.toggleSubtopic}
-                />
-              ) : (
-                <GoalField value={form.draft.goal} onChange={form.setGoal} />
-              )}
-              {form.saveError ? <p role="alert">{t("saveError")}</p> : null}
-              <div className="flex flex-wrap gap-3">
-                {form.step > ProfileCompletionStep.Topics ? (
-                  <button
-                    type="button"
-                    className={buttonClass}
-                    onClick={form.back}
-                  >
-                    {t("back")}
-                  </button>
-                ) : null}
-                <button type="submit" className={buttonClass}>
-                  {form.isSaving
-                    ? t("saving")
-                    : form.step === ProfileCompletionStep.Goal
-                      ? t("finish")
-                      : t("next")}
-                </button>
-                <button
-                  type="button"
-                  className={buttonClass}
-                  onClick={form.skip}
-                >
-                  {t("skip")}
-                </button>
-              </div>
-            </fieldset>
-          </form>
-        </Panel>
-      ) : null}
+            {t("back")}
+          </Button>
+        )}
+        <div className="flex flex-wrap gap-3">
+          {form.step === ProfileCompletionStep.Welcome ? null : skip}
+          <Button type="submit" disabled={form.isSaving}>
+            {form.isSaving
+              ? t("saving")
+              : form.isLastStep
+                ? t("finish")
+                : t("next")}
+          </Button>
+        </div>
+      </div>
+    </form>
+  );
+}
+
+function Notice({
+  role,
+  children,
+}: {
+  role: "status" | "alert";
+  children: ReactNode;
+}) {
+  return (
+    <div
+      role={role}
+      className="mx-auto flex max-w-xl flex-col items-start gap-4 rounded-[20px] border border-border-subtle bg-background-surface p-6 type-body text-text-primary"
+    >
+      {children}
     </div>
   );
 }
