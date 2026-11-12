@@ -7,6 +7,9 @@ import { isEmailAddress } from "@/lib/utils";
 /** The backend refuses shorter searches, so nobody is listed before the admin has typed this much. */
 export const COORDINATOR_SEARCH_MIN_LENGTH = 3;
 
+/** How long the e-mail field waits after the last keystroke before it searches. */
+export const COORDINATOR_SEARCH_DELAY_MS = 300;
+
 export enum CoordinatorChoiceKind {
   Existing = "EXISTING",
   Invited = "INVITED",

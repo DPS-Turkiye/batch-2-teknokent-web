@@ -32,6 +32,7 @@ import * as proposals from "@/lib/api/meeting-proposals";
 import * as announcements from "@/lib/api/program-announcements";
 import * as peerCategories from "@/lib/api/program-peer-categories";
 import * as training from "@/lib/api/training";
+import { requireAdminSession } from "@/lib/server/require-admin";
 import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 import {
   answerAllWith200,
@@ -50,10 +51,14 @@ vi.mock("@/lib/api/training");
 vi.mock("@/lib/server/require-coordinator", () => ({
   requireCoordinatorOrAdminSession: vi.fn(),
 }));
+vi.mock("@/lib/server/require-admin", () => ({
+  requireAdminSession: vi.fn(),
+}));
 
 const program = { params: Promise.resolve({ id: "program-1" }) };
 const mentorship = { params: Promise.resolve({ id: "mentorship-1" }) };
 const ME = "coordinator-1";
+const COORDINATOR_ID = "5d0c1e6a-0f43-4c4b-9a54-6f2d6c1b7e21";
 
 const rules = {
   name: "METU",
@@ -296,14 +301,15 @@ const cases: BodyCase[] = [
   {
     route: "POST /api/coordinator/programs/[id]/coordinators",
     send: (request) => addCoordinatorRoute(request, program),
-    valid: { userId: "c-2" },
+    valid: { userId: COORDINATOR_ID },
     backend: programs.addProgramCoordinator,
-    expected: [ME, "program-1", { userId: "c-2" }],
+    expected: [ME, "program-1", { userId: COORDINATOR_ID }],
     invalid: {
       "a user id of the wrong type": { userId: 2 },
+      "a user id that is not an id": { userId: "c-2" },
       "neither a user nor an invite": {},
       "both a user and an invite": {
-        userId: "c-2",
+        userId: COORDINATOR_ID,
         invite: { fullName: "Yeni", email: "yeni@x.org" },
       },
       "an invite whose e-mail is not one": {
@@ -444,6 +450,10 @@ describe.each(cases)("$route", (bodyCase) => {
     vi.mocked(requireCoordinatorOrAdminSession).mockResolvedValue({
       ok: true,
       session: appSession({ userId: ME, role: UserRole.Coordinator }),
+    });
+    vi.mocked(requireAdminSession).mockResolvedValue({
+      ok: true,
+      session: appSession({ userId: ME, role: UserRole.Admin }),
     });
     answerAllWith200(
       badges,

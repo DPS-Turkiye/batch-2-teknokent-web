@@ -1,5 +1,4 @@
 import { screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ProgramWizardView } from "@/components/admin/program-wizard-view";
@@ -10,11 +9,9 @@ import {
   searchCoordinators,
 } from "@/lib/client/admin-coordinators";
 import { createCoordinatorProgram } from "@/lib/client/coordinator-programs";
+import { pickerUser, settleSearch } from "@test/fixtures/coordinator-picker";
 import { coordinatorProgramDetail } from "@test/fixtures/coordinator-programs";
 import { renderWithQueryClient } from "@test/test-utils";
-
-// The e-mail field waits for typing to settle before it searches; leave room on a busy machine.
-const PICKER_WAIT = 3000;
 
 const push = vi.fn();
 vi.mock("next/navigation", () => ({
@@ -36,18 +33,15 @@ const elif = {
   email: "elif@odtu.test",
 };
 
-async function reachSummary(clicker: ReturnType<typeof userEvent.setup>) {
+async function reachSummary(clicker: ReturnType<typeof pickerUser>) {
   await clicker.click(screen.getByRole("radio", { name: /Office Hours/ }));
   await clicker.click(screen.getByRole("button", { name: /Devam/ }));
   await clicker.type(screen.getByLabelText("Program adı"), "ODTÜ OH 2027");
   await clicker.click(screen.getByRole("button", { name: /Devam/ }));
   await clicker.type(screen.getByLabelText("Koordinatör e-postası"), "eli");
+  await settleSearch();
   await clicker.click(
-    await screen.findByRole(
-      "button",
-      { name: "Elif Demir ekle" },
-      { timeout: PICKER_WAIT },
-    ),
+    await screen.findByRole("button", { name: "Elif Demir ekle" }),
   );
   await clicker.click(screen.getByRole("button", { name: /Devam/ }));
 }
@@ -64,7 +58,7 @@ describe("admin Yeni Program Oluştur", () => {
       ...detail,
       program: { ...detail.program, id: "new-1", name: "ODTÜ Akran 2027" },
     });
-    const clicker = userEvent.setup();
+    const clicker = pickerUser();
     renderWithQueryClient(<ProgramWizardView />);
 
     await clicker.click(screen.getByRole("button", { name: /Devam/ }));
@@ -88,12 +82,9 @@ describe("admin Yeni Program Oluştur", () => {
       "En az bir koordinatör ekle.",
     );
     await clicker.type(screen.getByLabelText("Koordinatör e-postası"), "eli");
+    await settleSearch();
     await clicker.click(
-      await screen.findByRole(
-        "button",
-        { name: "Elif Demir ekle" },
-        { timeout: PICKER_WAIT },
-      ),
+      await screen.findByRole("button", { name: "Elif Demir ekle" }),
     );
     await clicker.click(screen.getByRole("button", { name: /Devam/ }));
 
@@ -121,7 +112,7 @@ describe("admin Yeni Program Oluştur", () => {
       ...detail,
       program: { ...detail.program, id: "new-2" },
     });
-    const clicker = userEvent.setup();
+    const clicker = pickerUser();
     renderWithQueryClient(<ProgramWizardView />);
     await reachSummary(clicker);
 
@@ -138,7 +129,7 @@ describe("admin Yeni Program Oluştur", () => {
     vi.mocked(createCoordinatorProgram).mockRejectedValueOnce(
       new Error("Aynı adda bir program var."),
     );
-    const clicker = userEvent.setup();
+    const clicker = pickerUser();
     renderWithQueryClient(<ProgramWizardView />);
     await reachSummary(clicker);
 
@@ -169,7 +160,7 @@ describe("admin Yeni Program Oluştur", () => {
     });
     const detail = coordinatorProgramDetail();
     vi.mocked(createCoordinatorProgram).mockResolvedValue(detail);
-    const clicker = userEvent.setup();
+    const clicker = pickerUser();
     renderWithQueryClient(<ProgramWizardView />);
     await clicker.click(screen.getByRole("radio", { name: /Office Hours/ }));
     await clicker.click(screen.getByRole("button", { name: /Devam/ }));
@@ -180,10 +171,8 @@ describe("admin Yeni Program Oluştur", () => {
       screen.getByLabelText("Koordinatör e-postası"),
       "yeni@odtu.test",
     );
-    await clicker.type(
-      await screen.findByLabelText("Ad soyad", {}, { timeout: PICKER_WAIT }),
-      "Yeni Kişi",
-    );
+    await settleSearch();
+    await clicker.type(await screen.findByLabelText("Ad soyad"), "Yeni Kişi");
     await clicker.click(screen.getByRole("button", { name: "Davet et" }));
     await clicker.click(screen.getByRole("button", { name: /Devam/ }));
 

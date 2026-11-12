@@ -18,14 +18,12 @@ import {
   setCoordinatorProgramArchived,
   updateCoordinatorProgram,
 } from "@/lib/client/coordinator-programs";
+import { pickerUser, settleSearch } from "@test/fixtures/coordinator-picker";
 import {
   coordinatorProgramDetail,
   phase,
 } from "@test/fixtures/coordinator-programs";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
-
-// The e-mail field waits for typing to settle before it searches; leave room on a busy machine.
-const PICKER_WAIT = 3000;
 
 vi.mock("next/navigation", () => ({
   usePathname: vi.fn(() => "/coordinator/programs/program-1"),
@@ -508,7 +506,7 @@ describe("coordinator program detail", () => {
       { id: "coordinator-3", fullName: "Can Yılmaz", email: "can@x.org" },
     ]);
     vi.mocked(addProgramCoordinator).mockResolvedValue([]);
-    const user = userEvent.setup();
+    const user = pickerUser();
     renderWithQueryClient(<ProgramSettingsView programId="program-1" />);
 
     const current = await screen.findByRole("list", {
@@ -523,12 +521,9 @@ describe("coordinator program detail", () => {
     await user.click(screen.getByRole("button", { name: /Koordinatör ekle/ }));
     expect(screen.queryByText("Can Yılmaz")).not.toBeInTheDocument();
     await user.type(screen.getByLabelText("Koordinatör e-postası"), "can");
+    await settleSearch();
     await user.click(
-      await screen.findByRole(
-        "button",
-        { name: "Can Yılmaz ekle" },
-        { timeout: PICKER_WAIT },
-      ),
+      await screen.findByRole("button", { name: "Can Yılmaz ekle" }),
     );
 
     expect(searchCoordinators).toHaveBeenCalledWith("can", "program-1");

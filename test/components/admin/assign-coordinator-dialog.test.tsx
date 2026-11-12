@@ -1,5 +1,4 @@
 import { screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AssignCoordinatorDialog } from "@/components/admin/assign-coordinator-dialog";
@@ -13,10 +12,8 @@ import {
   addProgramCoordinator,
   inviteProgramCoordinator,
 } from "@/lib/client/coordinator-programs";
+import { pickerUser, settleSearch } from "@test/fixtures/coordinator-picker";
 import { renderWithQueryClient } from "@test/test-utils";
-
-// The e-mail field waits for typing to settle before it searches; leave room on a busy machine.
-const PICKER_WAIT = 3000;
 
 vi.mock("@/lib/client/admin-coordinators", () => ({
   searchCoordinators: vi.fn(),
@@ -51,19 +48,16 @@ describe("AssignCoordinatorDialog", () => {
     vi.mocked(searchCoordinators).mockResolvedValue([
       { id: "c-2", fullName: "Mert Kaya", email: "mert@teknokent.org" },
     ]);
-    const user = userEvent.setup();
+    const user = pickerUser();
     const onClose = renderDialog();
 
     expect(screen.getByText(/Hızlandırma 2026 programına/)).toBeInTheDocument();
     expect(screen.queryByText("Mert Kaya")).not.toBeInTheDocument();
 
     await user.type(screen.getByLabelText("Koordinatör e-postası"), "mer");
+    await settleSearch();
     await user.click(
-      await screen.findByRole(
-        "button",
-        { name: "Mert Kaya ekle" },
-        { timeout: PICKER_WAIT },
-      ),
+      await screen.findByRole("button", { name: "Mert Kaya ekle" }),
     );
 
     expect(searchCoordinators).toHaveBeenCalledWith("mer", "p-1");
@@ -79,17 +73,15 @@ describe("AssignCoordinatorDialog", () => {
       fullName: null,
       role: null,
     });
-    const user = userEvent.setup();
+    const user = pickerUser();
     const onClose = renderDialog();
 
     await user.type(
       screen.getByLabelText("Koordinatör e-postası"),
       "yeni@teknokent.org",
     );
-    await user.type(
-      await screen.findByLabelText("Ad soyad", {}, { timeout: PICKER_WAIT }),
-      "Yeni Kişi",
-    );
+    await settleSearch();
+    await user.type(await screen.findByLabelText("Ad soyad"), "Yeni Kişi");
     await user.click(screen.getByRole("button", { name: "Davet et" }));
 
     expect(inviteProgramCoordinator).toHaveBeenCalledWith("p-1", {
@@ -108,13 +100,14 @@ describe("AssignCoordinatorDialog", () => {
       fullName: "Ece Mentor",
       role: UserRole.Mentor,
     });
-    const user = userEvent.setup();
+    const user = pickerUser();
     renderDialog();
 
     await user.type(
       screen.getByLabelText("Koordinatör e-postası"),
       "ece@mentor.org",
     );
+    await settleSearch();
 
     expect(
       await screen.findByText(/Ece Mentor menton'da mentor olarak kayıtlı/),
@@ -131,16 +124,13 @@ describe("AssignCoordinatorDialog", () => {
     vi.mocked(addProgramCoordinator).mockRejectedValue(
       new Error("Bu koordinatör programı zaten yürütüyor."),
     );
-    const user = userEvent.setup();
+    const user = pickerUser();
     const onClose = renderDialog();
 
     await user.type(screen.getByLabelText("Koordinatör e-postası"), "mer");
+    await settleSearch();
     await user.click(
-      await screen.findByRole(
-        "button",
-        { name: "Mert Kaya ekle" },
-        { timeout: PICKER_WAIT },
-      ),
+      await screen.findByRole("button", { name: "Mert Kaya ekle" }),
     );
 
     await waitFor(() => expect(addProgramCoordinator).toHaveBeenCalled());

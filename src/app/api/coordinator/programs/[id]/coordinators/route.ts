@@ -12,11 +12,12 @@ import {
 } from "@/lib/server/api-response";
 import type { BackendResponse } from "@/lib/server/backend-client";
 import { readJsonBody } from "@/lib/server/request-body";
+import { requireAdminSession } from "@/lib/server/require-admin";
 import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 
 /** An approved coordinator by id, or an email to invite: exactly one, as the backend requires. */
 const addCoordinatorSchema = z.union([
-  z.object({ userId: z.string(), invite: z.never().optional() }),
+  z.object({ userId: z.uuid(), invite: z.never().optional() }),
   z.object({
     invite: z.object({
       fullName: z.string().trim().min(1).max(255),
@@ -43,9 +44,10 @@ export async function GET(_request: Request, { params }: Params) {
   }
 }
 
+// Only admins change who runs a program (the backend refuses anyone else); coordinators may still list them.
 export async function POST(request: Request, { params }: Params) {
   try {
-    const auth = await requireCoordinatorOrAdminSession();
+    const auth = await requireAdminSession();
     if (!auth.ok) return auth.response;
     const { id } = await params;
     const body = await readJsonBody(request, addCoordinatorSchema);
