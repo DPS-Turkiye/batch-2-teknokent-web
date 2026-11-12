@@ -2593,7 +2593,8 @@
     "status": {
       "PENDING": "Under coordinator review",
       "APPROVED": "Approved",
-      "REJECTED": "Not approved"
+      "REJECTED": "Not approved",
+      "DELETED": "Deleted"
     },
     "loading": "Loading...",
     "signedOutTitle": "Sign in to see your application status",
@@ -4870,6 +4871,32 @@
     "rejected": "{name} was rejected.",
     "approved": "{name} was approved.",
     "decideFailed": "Couldn't save the decision.",
+    "deleteUser": {
+      "title": "Delete user",
+      "body": "The account, its login and personal data are deleted for good. This cannot be undone.",
+      "button": "Delete user",
+      "dialogTitle": "Delete this user for good?",
+      "dialogBody": "{name}'s account will be deleted. This cannot be undone.",
+      "deletedHeading": "What is deleted",
+      "deleted": {
+        "account": "The account and its login (the same e-mail can sign up again)",
+        "profile": "Profile, notifications and other personal data",
+        "documents": "The CV, photo and personal files the person uploaded"
+      },
+      "keptHeading": "What stays",
+      "kept": {
+        "history": "History shared with others (meetings, requests, messages); the person shows as “Silinmiş kullanıcı”",
+        "teams": "Teams that have other members, with their files; a startup whose only member this is gets archived"
+      },
+      "emailLabel": "Type the user's e-mail to confirm",
+      "confirm": "Delete for good",
+      "deleting": "Deleting…",
+      "cancel": "Cancel",
+      "done": "User deleted.",
+      "donePending": "User deleted; removing the login and files will finish in the background.",
+      "failed": "Couldn't delete the user.",
+      "signInAgain": "You need to sign in again for this action."
+    },
     "revokeSignIns": {
       "button": "End all sign-ins",
       "confirm": "{name} will be signed out on every device and has to sign in again. Continue?",
@@ -5987,6 +6014,7 @@
     "statusMustBeDecision": "The status must be APPROVED or REJECTED.",
     "accountStatusUpdateFailed": "Could not update the account status.",
     "signInRevokeFailed": "Could not end the sign-ins.",
+    "userDeleteFailed": "Couldn't delete the user.",
     "noActiveMentorship": "You have no active mentorship with this startup.",
     "meetingStartupRequired": "Choose a startup for the meeting.",
     "notInProgram": "You are not part of this program.",
@@ -6814,7 +6842,8 @@
     "statuses": {
       "APPROVED": "Approved",
       "PENDING": "Awaiting approval",
-      "REJECTED": "Rejected"
+      "REJECTED": "Rejected",
+      "DELETED": "Deleted"
     },
     "linkedin": "LinkedIn profile",
     "about": "About",
