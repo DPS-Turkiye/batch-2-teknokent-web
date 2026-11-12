@@ -1927,7 +1927,7 @@
     "nameFallback": "Startup",
     "logo": "{name} logo",
     "fallbackName": "My startup",
-    "stage": "{stage} stage",
+    "stage": "Phase: {stage}",
     "tabsLabel": "Startup tabs",
     "tabs": {
       "profile": "Profile",
@@ -2087,15 +2087,6 @@
     "syllabus": "Syllabus",
     "weekly-program": "Weekly program"
   },
-  "startupStages": {
-    "PROBLEM": "Problem",
-    "SOLUTION": "Solution",
-    "MVP": "MVP",
-    "BUSINESS_MODEL": "Business model",
-    "MARKET": "Market",
-    "FINANCE": "Finance",
-    "PITCH": "Pitch"
-  },
   "startupFiles": {
     "filters": {
       "all": "All",
@@ -2186,7 +2177,7 @@
       "CANCELLED": "Cancelled"
     },
     "action": {
-      "current": "Current stage",
+      "current": "Current phase",
       "completed": "Completed",
       "continue": "Continue",
       "start": "Start"
@@ -2203,20 +2194,23 @@
     "upload": "Upload assignment",
     "uploadLabel": "Upload the assignment for {title}",
     "loading": "Loading the process…",
-    "stages": "Stages",
+    "stages": "Phases",
     "focus": "Focus round",
-    "noRound": "No round planned for this stage yet.",
-    "assignments": "Your assignments in this stage",
+    "noRound": "No round is planned for this phase yet.",
+    "assignments": "Your assignments in this phase",
     "assignmentsHint": "Each row says who the assignment came from and what it belongs to.",
-    "thisStage": "This stage →",
+    "thisStage": "This phase →",
     "all": "All ({count}) →",
-    "stageEmpty": "No assignments for this stage yet.",
-    "completedStages": "Completed stages",
-    "noCompleted": "No completed stages yet.",
+    "stageEmpty": "No assignments here yet.",
+    "completedStages": "Completed phases",
+    "noCompleted": "No phase completed yet.",
     "completedCount": "{count, plural, one {# assignment done} other {# assignments done}}",
     "uploaded": "Assignment uploaded.",
     "uploadFailed": "Couldn't upload the assignment.",
-    "stageUpdated": "Stage updated."
+    "noPhases": "The program's phases haven't been added yet. Your assignments are below.",
+    "unphased": "Assignments without a phase ({count})",
+    "unphasedTitle": "Assignments without a phase",
+    "allAssignmentsTitle": "Your assignments"
   },
   "personalProfile": {
     "comingSoon": "This section is coming soon.",
@@ -4292,7 +4286,7 @@
       "codeHint": "The lead shares this code with the team members",
       "membersJoined": "{count, plural, one {# member} other {# members}} joined",
       "copy": "Copy",
-      "stage": "Process stage",
+      "stage": "Process phase",
       "members": "Team members · {count}",
       "noMembers": "No members have joined yet.",
       "joinedOn": "Joined · {date}",
@@ -4304,15 +4298,11 @@
       "messageTeam": "Message the team"
     },
     "stage": {
-      "loading": "Loading the stage…",
-      "loadFailed": "Couldn't load the stage.",
-      "none": "No stage chosen",
-      "update": "Update the stage",
-      "newStage": "New stage",
-      "cancel": "Cancel",
-      "saving": "Saving…",
-      "save": "Save",
-      "saveFailed": "Couldn't update the stage. Try again."
+      "loading": "Loading the phase…",
+      "loadFailed": "Couldn't load the team's phase.",
+      "none": "No phase is running today",
+      "noPhases": "The program has no phases yet",
+      "byDate": "The phase follows the program's phases and dates; change them in Program Settings."
     }
   },
   "programLaunch": {
@@ -5865,9 +5855,7 @@
     "mentorDetailsLoadFailed": "Could not load the mentor's details.",
     "programReportLoadFailed": "Could not load the program report.",
     "teamDetailLoadFailed": "Could not load the team's details.",
-    "teamStageLoadFailed": "Could not load the team's stage.",
-    "stageInvalid": "Choose a valid stage.",
-    "stageUpdateFailed": "Could not update the stage.",
+    "teamStageLoadFailed": "Couldn't load the team's phase.",
     "teamsLoadFailed": "Could not load the teams.",
     "teamsAddFailed": "Could not add the teams.",
     "teamUpdateFailed": "Could not update the team.",

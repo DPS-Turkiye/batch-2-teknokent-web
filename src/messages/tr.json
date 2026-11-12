@@ -1929,7 +1929,7 @@
     "nameFallback": "Startup",
     "logo": "{name} logosu",
     "fallbackName": "Startup’ım",
-    "stage": "{stage} aşaması",
+    "stage": "Faz: {stage}",
     "tabsLabel": "Startup sekmeleri",
     "tabs": {
       "profile": "Profil",
@@ -2089,15 +2089,6 @@
     "syllabus": "Müfredat",
     "weekly-program": "Haftalık program"
   },
-  "startupStages": {
-    "PROBLEM": "Problem",
-    "SOLUTION": "Çözüm",
-    "MVP": "MVP",
-    "BUSINESS_MODEL": "İş Modeli",
-    "MARKET": "Pazar",
-    "FINANCE": "Finans",
-    "PITCH": "Pitch"
-  },
   "startupFiles": {
     "filters": {
       "all": "Tümü",
@@ -2188,7 +2179,7 @@
       "CANCELLED": "İptal edildi"
     },
     "action": {
-      "current": "Mevcut aşama",
+      "current": "Mevcut faz",
       "completed": "Tamamlandı",
       "continue": "Devam et",
       "start": "Başla"
@@ -2205,20 +2196,23 @@
     "upload": "Ödev yükle",
     "uploadLabel": "{title} için ödev yükle",
     "loading": "Süreç yükleniyor…",
-    "stages": "Aşamalar",
+    "stages": "Fazlar",
     "focus": "Odak turu",
-    "noRound": "Bu aşama için henüz bir tur planlanmadı.",
-    "assignments": "Bu aşamadaki ödevlerin",
+    "noRound": "Bu faz için henüz bir tur planlanmadı.",
+    "assignments": "Bu fazdaki ödevlerin",
     "assignmentsHint": "Her ödevin kimden geldiği ve neye bağlı olduğu satırda yazıyor.",
-    "thisStage": "Bu aşama →",
+    "thisStage": "Bu faz →",
     "all": "Tümü ({count}) →",
-    "stageEmpty": "Bu aşama için henüz ödev yok.",
-    "completedStages": "Tamamlanan aşamalar",
-    "noCompleted": "Henüz tamamlanan bir aşama yok.",
+    "stageEmpty": "Burada henüz ödev yok.",
+    "completedStages": "Tamamlanan fazlar",
+    "noCompleted": "Henüz tamamlanan bir faz yok.",
     "completedCount": "{count} ödev tamamlandı",
     "uploaded": "Ödev yüklendi.",
     "uploadFailed": "Ödev yüklenemedi.",
-    "stageUpdated": "Aşama güncellendi."
+    "noPhases": "Programın fazları henüz eklenmedi. Ödevlerin aşağıda.",
+    "unphased": "Fazsız görevler ({count})",
+    "unphasedTitle": "Fazsız görevler",
+    "allAssignmentsTitle": "Ödevlerin"
   },
   "personalProfile": {
     "comingSoon": "Bu bölüm yakında eklenecek.",
@@ -4294,7 +4288,7 @@
       "codeHint": "Yetkili bu kodu ekip üyeleriyle paylaşır",
       "membersJoined": "{count} üye katıldı",
       "copy": "Kopyala",
-      "stage": "Süreç aşaması",
+      "stage": "Süreç fazı",
       "members": "Ekip üyeleri · {count}",
       "noMembers": "Henüz katılan üye yok.",
       "joinedOn": "Katıldı · {date}",
@@ -4306,15 +4300,11 @@
       "messageTeam": "Takıma mesaj gönder"
     },
     "stage": {
-      "loading": "Aşama yükleniyor…",
-      "loadFailed": "Aşama yüklenemedi.",
-      "none": "Aşama seçilmedi",
-      "update": "Aşamayı güncelle",
-      "newStage": "Yeni aşama",
-      "cancel": "Vazgeç",
-      "saving": "Kaydediliyor…",
-      "save": "Kaydet",
-      "saveFailed": "Aşama güncellenemedi. Tekrar dene."
+      "loading": "Faz yükleniyor…",
+      "loadFailed": "Takımın fazı yüklenemedi.",
+      "none": "Bugün süren bir faz yok",
+      "noPhases": "Programın henüz fazı yok",
+      "byDate": "Faz, programın fazlarına ve tarihlerine göre ilerler; Program Ayarları'ndan değişir."
     }
   },
   "programLaunch": {
@@ -5867,9 +5857,7 @@
     "mentorDetailsLoadFailed": "Mentor bilgileri yüklenemedi.",
     "programReportLoadFailed": "Program raporu yüklenemedi.",
     "teamDetailLoadFailed": "Takım detayı yüklenemedi.",
-    "teamStageLoadFailed": "Takımın aşaması yüklenemedi.",
-    "stageInvalid": "Geçerli bir aşama seç.",
-    "stageUpdateFailed": "Aşama güncellenemedi.",
+    "teamStageLoadFailed": "Takımın fazı yüklenemedi.",
     "teamsLoadFailed": "Takımlar yüklenemedi.",
     "teamsAddFailed": "Takımlar eklenemedi.",
     "teamUpdateFailed": "Takım güncellenemedi.",

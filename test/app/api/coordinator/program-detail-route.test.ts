@@ -90,7 +90,10 @@ describe("coordinator program detail routes", () => {
   it("forwards phases, archiving and coordinator changes", async () => {
     await phases(
       body({
-        phases: [{ name: "Başvuru", expectedOutput: "Form", extra: "x" }],
+        phases: [
+          { name: "Başvuru", expectedOutput: "Form", extra: "x" },
+          { id: "phase-2", name: "Seçim" },
+        ],
         syllabusDocumentId: "doc-1",
       }),
       params,
@@ -100,10 +103,19 @@ describe("coordinator program detail routes", () => {
       "program-1",
       [
         {
+          id: null,
           name: "Başvuru",
           startDate: null,
           endDate: null,
           expectedOutput: "Form",
+        },
+        // A saved phase keeps its id, so the backend keeps the phase and what is linked to it.
+        {
+          id: "phase-2",
+          name: "Seçim",
+          startDate: null,
+          endDate: null,
+          expectedOutput: null,
         },
       ],
       "doc-1",

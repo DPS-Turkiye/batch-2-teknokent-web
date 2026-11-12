@@ -1,11 +1,9 @@
 import type { AxiosRequestConfig } from "axios";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { StartupStage } from "@/interfaces/startup-process";
 import {
   fetchStartupProcess,
   submitProcessAssignment,
-  updateProcessStage,
 } from "@/lib/api/startup-process";
 import { backendRequest } from "@/lib/server/backend-client";
 
@@ -36,15 +34,6 @@ const cases: RequestCase[] = [
       method: "PUT",
       url: "/api/organizations/org%2F1/process/assignments/asg%201/submission",
       data: { actorId: "member-1", documentId: "doc-1" },
-    },
-  ],
-  [
-    "moves the startup to another stage",
-    () => updateProcessStage("org/1", "member-1", StartupStage.Mvp),
-    {
-      method: "PUT",
-      url: "/api/organizations/org%2F1/process/stage",
-      data: { actorId: "member-1", stage: StartupStage.Mvp },
     },
   ],
 ];

@@ -99,6 +99,7 @@ const cases: BodyCase[] = [
         newCoordinators: [],
         phases: [
           {
+            id: null,
             name: "Başvuru",
             startDate: "2026-09-01",
             endDate: null,
@@ -207,6 +208,7 @@ const cases: BodyCase[] = [
       "program-1",
       [
         {
+          id: null,
           name: "Doğrulama",
           startDate: null,
           endDate: null,

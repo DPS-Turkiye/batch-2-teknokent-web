@@ -57,7 +57,7 @@ describe("StartupPageFrame", () => {
       screen.getByRole("heading", { level: 1, name: "Döngü" }),
     ).toBeInTheDocument();
     expect(screen.getByText("METU Stars 2026")).toBeInTheDocument();
-    expect(screen.getByText("MVP aşaması")).toBeInTheDocument();
+    expect(screen.getByText("Faz: MVP")).toBeInTheDocument();
     expect(screen.getByText("Pre-seed")).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Dosya yükle" }),
@@ -102,7 +102,7 @@ describe("StartupPageFrame", () => {
       screen.getByRole("heading", { level: 1, name: "Projem" }),
     ).toBeInTheDocument();
     expect(screen.getByText("METU Stars 2026")).toBeInTheDocument();
-    expect(screen.queryByText("MVP aşaması")).not.toBeInTheDocument();
+    expect(screen.queryByText("Faz: MVP")).not.toBeInTheDocument();
     expect(screen.queryByText("Pre-seed")).not.toBeInTheDocument();
     expect(
       screen.queryByRole("link", { name: "Profil" }),
@@ -136,7 +136,7 @@ describe("StartupPageFrame", () => {
       </StartupPageFrame>,
     );
 
-    expect(screen.queryByText(/aşaması$/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^Faz:/)).not.toBeInTheDocument();
     expect(screen.queryByText("Pre-seed")).not.toBeInTheDocument();
   });
 });
