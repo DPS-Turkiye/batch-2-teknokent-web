@@ -12,14 +12,18 @@ import { Card } from "@/components/ia/card";
 import { InlineAlert } from "@/components/ia/inline-alert";
 import { StatusBadge, StatusTone } from "@/components/ia/status-badge";
 import { StepPills } from "@/components/ia/step-pills";
-import { InitialsAvatar, Tag, TagTone } from "@/components/student/iskur-ui";
+import {
+  CATEGORY_ART,
+  InitialsAvatar,
+  Tag,
+  TagTone,
+} from "@/components/student/iskur-ui";
 import {
   PEER_MENTOR_WIZARD_STEPS,
   PeerMentorWizardStep,
   usePeerMentorPreviewPerson,
   usePeerMentorWizard,
 } from "@/hooks/use-peer-mentor-give";
-import { PeerTopicCategory } from "@/interfaces/peer-mentoring";
 import { PEER_MENTOR_GIVE_HREF } from "@/lib/peer-mentoring";
 
 const STEP_KEY = {
@@ -31,32 +35,6 @@ const STEP_KEY = {
   [PeerMentorWizardStep.Availability]: "availability",
   [PeerMentorWizardStep.Preview]: "preview",
 } as const;
-
-/** The design's illustrations; categories without one show their name alone. */
-const CATEGORY_ART: Partial<
-  Record<PeerTopicCategory, { src: string; width: number; height: number }>
-> = {
-  [PeerTopicCategory.CareerInternship]: {
-    src: "/ia/iskur/categories/career.png",
-    width: 63,
-    height: 63,
-  },
-  [PeerTopicCategory.TechnicalDigital]: {
-    src: "/ia/iskur/categories/technical.png",
-    width: 63,
-    height: 63,
-  },
-  [PeerTopicCategory.AcademicDevelopment]: {
-    src: "/ia/iskur/categories/academic.png",
-    width: 63,
-    height: 47,
-  },
-  [PeerTopicCategory.CampusLife]: {
-    src: "/ia/iskur/categories/campus.png",
-    width: 63,
-    height: 61,
-  },
-};
 
 const DOCUMENT_KINDS = ["transcript", "cv", "certificate", "other"] as const;
 const HELP_TIPS = ["concrete", "who", "how", "noContact"] as const;

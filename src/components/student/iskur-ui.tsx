@@ -4,6 +4,7 @@ import { useRef, type KeyboardEvent, type ReactNode } from "react";
 
 import { StatusBadge, StatusTone } from "@/components/ia/status-badge";
 import type { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
+import { PeerTopicCategory } from "@/interfaces/peer-mentoring";
 import { PEER_REQUEST_STATUS_TONE } from "@/lib/peer-mentoring";
 
 /*
@@ -292,6 +293,83 @@ export function InfoCard({
         {title}
       </h3>
       <p className="type-body-sm text-text-secondary">{children}</p>
+    </div>
+  );
+}
+
+/** The design's illustrations; categories without one show their name alone. */
+export const CATEGORY_ART: Partial<
+  Record<PeerTopicCategory, { src: string; width: number; height: number }>
+> = {
+  [PeerTopicCategory.CareerInternship]: {
+    src: "/ia/iskur/categories/career.png",
+    width: 63,
+    height: 63,
+  },
+  [PeerTopicCategory.TechnicalDigital]: {
+    src: "/ia/iskur/categories/technical.png",
+    width: 63,
+    height: 63,
+  },
+  [PeerTopicCategory.AcademicDevelopment]: {
+    src: "/ia/iskur/categories/academic.png",
+    width: 63,
+    height: 47,
+  },
+  [PeerTopicCategory.CampusLife]: {
+    src: "/ia/iskur/categories/campus.png",
+    width: 63,
+    height: 61,
+  },
+};
+
+export type SegmentOption<T extends string> = {
+  id: T;
+  label: string;
+  /** A product-tour anchor on this segment. */
+  tour?: string;
+};
+
+/**
+ * A two-or-three way segmented switch (Figma "Segment"): toggle buttons in a group, the pressed one raised and
+ * accented. Not tabs: it swaps whole views, not panels.
+ */
+export function Segmented<T extends string>({
+  label,
+  options,
+  selected,
+  onSelect,
+}: {
+  label: string;
+  options: readonly SegmentOption<T>[];
+  selected: T;
+  onSelect: (id: T) => void;
+}) {
+  return (
+    <div
+      role="group"
+      aria-label={label}
+      className="inline-flex gap-1 rounded-[14px] bg-background-muted p-1"
+    >
+      {options.map((option) => {
+        const active = option.id === selected;
+        return (
+          <button
+            key={option.id}
+            type="button"
+            aria-pressed={active}
+            data-tour={option.tour}
+            onClick={() => onSelect(option.id)}
+            className={`h-9 rounded-full px-4 type-label focus-visible:outline-2 focus-visible:outline-border-selected ${
+              active
+                ? "bg-background-surface text-text-accent shadow-raised"
+                : "text-text-secondary"
+            }`}
+          >
+            {option.label}
+          </button>
+        );
+      })}
     </div>
   );
 }
