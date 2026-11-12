@@ -329,11 +329,6 @@ function AdvisorCard({ record }: { record: InstitutionRecord }) {
               .filter(Boolean)
               .join(" ")}
           </h2>
-          {record.departmentName ? (
-            <p className="type-caption text-text-muted">
-              {record.departmentName}
-            </p>
-          ) : null}
         </div>
       </div>
       <p className="type-caption text-text-secondary">{t("note")}</p>
