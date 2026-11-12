@@ -22,6 +22,8 @@ const TEKNOKENT_PAGES = [
   "/assistant",
   "/auth/otg/start",
   "/auth/otg/callback",
+  "/invite",
+  "/invite/",
 ];
 const SHARED_PAGES = [
   "/",
@@ -38,6 +40,7 @@ const SHARED_PAGES = [
   "/mobile",
   "/assistants",
   "/login/odtuX",
+  "/invitations",
   "/%E0%A4%A",
 ];
 

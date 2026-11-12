@@ -1,0 +1,12 @@
+{
+  "simpleHeader": {
+    "help": "Yardım",
+    "logout": "Çıkış yap",
+    "loggingOut": "Çıkış yapılıyor…",
+    "label": "Hesap"
+  },
+  "stepPills": {
+    "step": "(adım {step})",
+    "done": "(adım {step}, tamamlandı)"
+  }
+}
