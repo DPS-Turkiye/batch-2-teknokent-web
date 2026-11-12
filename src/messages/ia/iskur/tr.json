@@ -271,7 +271,8 @@
       "mentorCount": "{count} mentor",
       "subTopicFilter": "Alt konu",
       "allSubTopics": "Tüm alt konular",
-      "availableThisWeek": "Bu hafta müsait"
+      "availableThisWeek": "Bu hafta müsait",
+      "mentoring": "Zaten mentorun"
     },
     "profile": {
       "back": "Akran Mentörlüğü",

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { AppointmentSide } from "@/interfaces/appointment";
+import { AppointmentSide, AppointmentStatus } from "@/interfaces/appointment";
 import { BadgeCode, BadgeStatus } from "@/interfaces/badges";
 import { Weekday } from "@/interfaces/mentor";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
@@ -13,6 +13,7 @@ import {
   chosenSubtopics,
   latestGateAward,
   mentorshipSince,
+  nextSessionsByRequest,
   offeredSubTopics,
   PEER_REQUEST_STATUS_TONE,
   peerMentorCapacity,
@@ -310,6 +311,9 @@ describe("peerRequestAvailability", () => {
     expect(peerRequestAvailability(false, false)).toBe(
       PeerRequestAvailability.Open,
     );
+    expect(peerRequestAvailability(true, true, true)).toBe(
+      PeerRequestAvailability.Mentoring,
+    );
   });
 });
 
@@ -370,5 +374,39 @@ describe("mentorshipSince", () => {
       month: "nov",
     });
     expect(mentorshipSince("2026-10-15T12:00:00+03:00").month).toBe("oct");
+  });
+});
+
+describe("nextSessionsByRequest", () => {
+  const now = new Date("2026-11-09T09:00:00.000Z");
+  const session = (
+    requestId: string | null,
+    startsAt: string,
+    status = AppointmentStatus.Confirmed,
+  ) => ({
+    requestId,
+    status,
+    startsAt,
+    endsAt: new Date(Date.parse(startsAt) + 30 * 60_000).toISOString(),
+  });
+
+  it("keeps each request's earliest meeting still to come", () => {
+    const later = session("r1", "2026-11-14T09:00:00.000Z");
+    const sooner = session("r1", "2026-11-10T09:00:00.000Z");
+    const next = nextSessionsByRequest([later, sooner], now);
+    expect(next.get("r1")).toBe(sooner);
+  });
+
+  it("skips cancelled, refused and past meetings, and appointments without a request", () => {
+    const next = nextSessionsByRequest(
+      [
+        session("r1", "2026-11-10T09:00:00.000Z", AppointmentStatus.Cancelled),
+        session("r2", "2026-11-10T09:00:00.000Z", AppointmentStatus.Rejected),
+        session("r3", "2026-11-02T09:00:00.000Z"),
+        session(null, "2026-11-10T09:00:00.000Z"),
+      ],
+      now,
+    );
+    expect(next.size).toBe(0);
   });
 });

@@ -24,8 +24,7 @@ import {
   usePeerMentorPreviewPerson,
   usePeerMentorWizard,
 } from "@/hooks/use-peer-mentor-give";
-
-const CANCEL_HREF = "/student/peer-mentoring?as=MENTOR";
+import { PEER_MENTOR_GIVE_HREF } from "@/lib/peer-mentoring";
 
 const STEP_KEY = {
   [PeerMentorWizardStep.Categories]: "categories",
@@ -135,7 +134,10 @@ export function PeerMentorProfileWizard() {
           </fieldset>
           <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-border-subtle pt-4">
             {wizard.isFirst ? (
-              <Button href={CANCEL_HREF} variant={ButtonVariant.Ghost}>
+              <Button
+                href={PEER_MENTOR_GIVE_HREF}
+                variant={ButtonVariant.Ghost}
+              >
                 {t("back")}
               </Button>
             ) : (
