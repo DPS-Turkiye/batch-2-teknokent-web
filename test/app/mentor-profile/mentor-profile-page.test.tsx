@@ -59,6 +59,7 @@ vi.mock("@/hooks/use-mentor-cv", () => ({
     storedName: "nihan-cv.pdf",
     storedIsPdf: true,
     choose: vi.fn(),
+    canRead: true,
     canFill: true,
     fillFromStored,
     isUploading: false,
