@@ -390,11 +390,14 @@ export function toProfileDraft(
     helpWith: draft.helpWith,
     linkedinUrl: draft.linkedinUrl,
     levels: levelsFor(draft.levels, draft.topics),
-    experiences: draft.experiences,
+    experiences: withoutKeys(draft.experiences),
   };
 }
 
-/** A saved draft back in the wizard; a card missing what a card needs is left out. */
+/**
+ * A saved draft back in the wizard; a card without a title is left out, and one without a start month comes back
+ * to be completed, as an older published card does.
+ */
 function fromProfileDraft(saved: PeerMentorProfileDraft): WizardDraft {
   return {
     topics: saved.categories ?? [],
@@ -405,19 +408,21 @@ function fromProfileDraft(saved: PeerMentorProfileDraft): WizardDraft {
     helpWith: saved.helpWith ?? "",
     linkedinUrl: saved.linkedinUrl ?? "",
     levels: saved.levels ?? {},
-    experiences: (saved.experiences ?? []).flatMap((card) =>
-      card.title && card.startedOn
-        ? [
-            {
-              kind: card.kind ?? PeerExperienceKind.Other,
-              title: card.title,
-              organization: card.organization,
-              startedOn: card.startedOn,
-              endedOn: card.endedOn,
-              summary: card.summary,
-            },
-          ]
-        : [],
+    experiences: withKeys(
+      (saved.experiences ?? []).flatMap((card) =>
+        card.title
+          ? [
+              {
+                kind: card.kind ?? PeerExperienceKind.Other,
+                title: card.title,
+                organization: card.organization,
+                startedOn: card.startedOn ?? null,
+                endedOn: card.endedOn,
+                summary: card.summary,
+              },
+            ]
+          : [],
+      ),
     ),
   };
 }
@@ -470,13 +475,17 @@ export function usePeerMentorWizard() {
   const [error, setError] = useState<string | null>(null);
   const [availabilityDraft, setAvailabilityDraft] =
     useState<UpdateMentorAvailabilitySettingsPayload | null>(null);
-  const draft =
-    edits ??
-    (resumed
-      ? fromProfileDraft(resumed.draft)
-      : existing
-        ? toDraft(existing)
-        : EMPTY_DRAFT);
+  // Built once per loaded draft or profile, so the cards keep their row keys until the first edit takes over.
+  const loaded = useMemo(
+    () =>
+      resumed
+        ? fromProfileDraft(resumed.draft)
+        : existing
+          ? toDraft(existing)
+          : EMPTY_DRAFT,
+    [resumed, existing],
+  );
+  const draft = edits ?? loaded;
   const categories = catalogue.data ?? [];
 
   const availabilitySettings = useMemo(
