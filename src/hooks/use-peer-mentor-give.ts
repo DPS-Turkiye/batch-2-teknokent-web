@@ -390,7 +390,12 @@ export function usePeerMentorWizard() {
   const [error, setError] = useState<string | null>(null);
   const [availabilityDraft, setAvailabilityDraft] =
     useState<UpdateMentorAvailabilitySettingsPayload | null>(null);
-  const draft = edits ?? (existing ? toDraft(existing) : EMPTY_DRAFT);
+  // Built once per loaded profile, so the cards keep their row keys until the first edit takes over.
+  const loaded = useMemo(
+    () => (existing ? toDraft(existing) : EMPTY_DRAFT),
+    [existing],
+  );
+  const draft = edits ?? loaded;
   const categories = catalogue.data ?? [];
 
   const availabilitySettings = useMemo(
