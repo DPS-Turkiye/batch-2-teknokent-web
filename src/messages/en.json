@@ -6755,6 +6755,7 @@
     "keepPast": "Keep past weeks and completed phases",
     "keepPastHint": "Weeks 1–{week} and finished phases stay as they are; the plan changes from week {next}.",
     "keepPastNothing": "The program is in its first week; there are no past weeks to keep.",
+    "keepPastEnded": "The program has ended; every week and finished phase stays as it is.",
     "confirm": "I confirm replacing the saved plan",
     "discard": "Discard",
     "save": "Save plan",

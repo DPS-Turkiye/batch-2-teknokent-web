@@ -187,12 +187,14 @@ export function WeeklyProgramReview({ weekly }: { weekly: Import }) {
               <span>
                 {t("keepPast")}
                 <span className="block text-[12px] text-[#676e78]">
-                  {weekly.lastKeptWeek !== null
-                    ? t("keepPastHint", {
-                        week: weekly.lastKeptWeek,
-                        next: weekly.lastKeptWeek + 1,
-                      })
-                    : t("keepPastNothing")}
+                  {weekly.keepsEveryWeek
+                    ? t("keepPastEnded")
+                    : weekly.lastKeptWeek !== null
+                      ? t("keepPastHint", {
+                          week: weekly.lastKeptWeek,
+                          next: weekly.lastKeptWeek + 1,
+                        })
+                      : t("keepPastNothing")}
                 </span>
               </span>
             </label>

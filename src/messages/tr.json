@@ -6755,6 +6755,7 @@
     "keepPast": "Geçmiş haftaları ve tamamlanan fazları koru",
     "keepPastHint": "Hafta 1–{week} ve bitmiş fazlar olduğu gibi kalır; plan {next}. haftadan itibaren değişir.",
     "keepPastNothing": "Program henüz ilk haftasında; korunacak geçmiş hafta yok.",
+    "keepPastEnded": "Program bitti; tüm haftalar ve bitmiş fazlar olduğu gibi kalır.",
     "confirm": "Kayıtlı planın yerini almasını onaylıyorum",
     "discard": "Vazgeç",
     "save": "Planı kaydet",

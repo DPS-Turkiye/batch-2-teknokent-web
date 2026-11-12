@@ -5,6 +5,7 @@ import { ClientApiError } from "@/lib/client/api";
 import { weekDraftOf } from "@/lib/program-week";
 import {
   isStalePlanError,
+  keepsEveryWeek,
   lastKeptWeek,
   moveWeekToPhase,
   phaseIndexOfWeek,
@@ -124,6 +125,19 @@ describe("lastKeptWeek", () => {
     expect(lastKeptWeek(existing, false)).toBeNull();
     expect(lastKeptWeek({ ...existing, currentWeek: null }, true)).toBeNull();
     expect(lastKeptWeek({ ...existing, currentWeek: 1 }, true)).toBeNull();
+  });
+});
+
+describe("keepsEveryWeek", () => {
+  it("keeps every week only once the program has ended", () => {
+    expect(
+      keepsEveryWeek(
+        lastKeptWeek({ phaseCount: 0, weekCount: 11, currentWeek: 12 }, true),
+        11,
+      ),
+    ).toBe(true);
+    expect(keepsEveryWeek(10, 11)).toBe(false);
+    expect(keepsEveryWeek(null, 11)).toBe(false);
   });
 });
 
