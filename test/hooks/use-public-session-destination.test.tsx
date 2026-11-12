@@ -3,7 +3,8 @@ import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { usePublicSessionDestination } from "@/hooks/use-public-session-destination";
-import { UserRole, type AppSession } from "@/interfaces/session";
+import { Edition } from "@/interfaces/edition";
+import { IdentityKind, UserRole, type AppSession } from "@/interfaces/session";
 import { InLocale } from "@test/test-utils";
 
 let session: AppSession | null = null;
@@ -18,6 +19,22 @@ beforeEach(() => {
 });
 
 describe("usePublicSessionDestination", () => {
+  it("sends a signed-in ODTÜ student to their workspace, not the startup dashboard", () => {
+    session = {
+      userId: "s-1",
+      email: "ayse@metu.edu.tr",
+      fullName: "Ayşe Yılmaz",
+      jobTitle: "",
+      role: UserRole.Mentee,
+      institutionKinds: [IdentityKind.Student],
+      edition: Edition.Odtu,
+    };
+    const { result } = renderHook(() => usePublicSessionDestination());
+
+    expect(result.current.href).toBe("/student");
+    expect(result.current.primaryAction.href).toBe("/student");
+  });
+
   it.each([
     ["tr", "Kayıt Ol"],
     ["en", "Sign up"],
