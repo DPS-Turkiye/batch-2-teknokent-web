@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import AcademicianLayout from "@/app/academician/layout";
 import StudentLayout from "@/app/student/layout";
@@ -23,21 +23,15 @@ vi.mock("@/components/academician/academician-frame", () => ({
   ),
 }));
 
-const original = process.env.ODTU_WORKSPACES_ENABLED;
-
-beforeEach(() => {
-  delete process.env.ODTU_WORKSPACES_ENABLED;
-});
 afterEach(() => {
-  if (original === undefined) delete process.env.ODTU_WORKSPACES_ENABLED;
-  else process.env.ODTU_WORKSPACES_ENABLED = original;
+  vi.unstubAllEnvs();
 });
 
 describe("ODTÜ workspace layouts", () => {
-  it.each([undefined, "", "false", "1", "TRUE"])(
-    "answer like a missing route while the flag is %s",
+  it.each([undefined, "", "TEKNOKENT", "teknokent"])(
+    "answer like a missing route in the Teknokent edition (APP_EDITION=%s)",
     async (value) => {
-      if (value !== undefined) process.env.ODTU_WORKSPACES_ENABLED = value;
+      vi.stubEnv("APP_EDITION", value);
       await expect(StudentLayout({ children: <p>x</p> })).rejects.toThrow(
         NotFound,
       );
@@ -47,14 +41,14 @@ describe("ODTÜ workspace layouts", () => {
     },
   );
 
-  it("open the student workspace in its frame once the flag is on", async () => {
-    process.env.ODTU_WORKSPACES_ENABLED = "true";
+  it("open the student workspace in its frame in the ODTÜ edition", async () => {
+    vi.stubEnv("APP_EDITION", "ODTU");
     render(await StudentLayout({ children: <p>Ana Sayfa</p> }));
     expect(screen.getByTestId("student-frame")).toHaveTextContent("Ana Sayfa");
   });
 
-  it("open the academician workspace in its frame once the flag is on", async () => {
-    process.env.ODTU_WORKSPACES_ENABLED = "true";
+  it("open the academician workspace in its frame in the ODTÜ edition", async () => {
+    vi.stubEnv("APP_EDITION", "ODTU");
     render(await AcademicianLayout({ children: <p>Randevu Talepleri</p> }));
     expect(screen.getByTestId("academician-frame")).toHaveTextContent(
       "Randevu Talepleri",

@@ -90,3 +90,26 @@ export function matchCalendarMeetingId(
 ): string | undefined {
   return meetings.find((item) => sameMeetingUrl(item.meetLink, meetingUrl))?.id;
 }
+
+/**
+ * The link the add-bot box shows: what the user typed (even an empty box), or, while they have not touched it, the
+ * selected or due meeting's link.
+ */
+export function assistantLinkBoxValue(
+  typed: string | null,
+  prefill: string,
+): string {
+  return typed ?? prefill;
+}
+
+/**
+ * True for a complete Meet link that is none of the user's Menton calendar meetings: the backend sends the assistant
+ * only into those, so the user is told before the send fails.
+ */
+export function isForeignMeetingLink(
+  meetings: MeetingItem[],
+  typed: string | null,
+): boolean {
+  if (!typed || !parseMeetingUrl(typed)) return false;
+  return matchCalendarMeetingId(meetings, typed) === undefined;
+}

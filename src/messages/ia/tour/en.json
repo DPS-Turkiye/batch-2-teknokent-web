@@ -1,1 +1,137 @@
-{}
+{
+  "card": {
+    "progress": "Step {current} / {total}",
+    "progressLabel": "Tour progress",
+    "close": "Close the tour",
+    "skip": "Skip the tour",
+    "next": "Next",
+    "finish": "Finish tour",
+    "missingTarget": "This step's area is not on the screen right now; continue with Next.",
+    "announce": "Step {current} / {total}: {title}"
+  },
+  "welcome": {
+    "later": "Skip for now",
+    "start": "Start the tour"
+  },
+  "end": {
+    "title": "You're ready!"
+  },
+  "replay": "Watch the tour again",
+  "roles": {
+    "ODTU_STUDENT": {
+      "welcome": {
+        "title": "Let's book your first appointment together",
+        "body": "The quickest way to learn menton is to send an appointment request. We'll show you where to click, step by step; it takes a minute.",
+        "outline": {
+          "first": "Go to Office Hours",
+          "second": "Pick an academic and a time",
+          "third": "Write a title and description and send the request"
+        }
+      },
+      "end": {
+        "body": "Find a mentor in Peer Mentoring and follow all your appointments in My Appointments.",
+        "replayHint": "You can watch the tour again from My Profile.",
+        "exit": "Back to Home"
+      }
+    },
+    "ISKUR_STUDENT": {
+      "welcome": {
+        "title": "Let's answer your first mentoring request",
+        "body": "With one account you can both receive and give mentoring. Let's answer a request sent to you together.",
+        "outline": {
+          "first": "Go to Peer Mentoring",
+          "second": "Switch to the Give Mentoring side",
+          "third": "Accept the request"
+        }
+      },
+      "end": {
+        "body": "You can also answer new requests from Home. Keep your availability and capacity up to date in My Mentor Profile.",
+        "replayHint": "You can watch the tour again from My Profile.",
+        "exit": "Back to Home"
+      }
+    },
+    "ODTU_ACADEMICIAN": {
+      "welcome": {
+        "title": "Let's get ready for Office Hours",
+        "body": "You are in the programme automatically. Two steps and you're ready: add your availability and answer your first request.",
+        "outline": {
+          "first": "Add your availability",
+          "second": "Open a request in the calendar",
+          "third": "Accept the request"
+        }
+      },
+      "end": {
+        "body": "New requests show on Home and in the My Appointments calendar. Just keep your availability up to date.",
+        "replayHint": "You can open these tips again from My Profile.",
+        "exit": "Back to My Appointments"
+      }
+    }
+  },
+  "steps": {
+    "officeHours": {
+      "title": "Go to Office Hours",
+      "body": "Appointment requests to academics are sent from Office Hours.",
+      "hint": "Click Office Hours"
+    },
+    "pickAcademician": {
+      "title": "Pick an academic",
+      "body": "Your advisor is at the top. There's no department limit; you can look at any academic's open hours.",
+      "hint": "Click an academic"
+    },
+    "pickSlot": {
+      "title": "Pick a day and time",
+      "body": "Faded times are taken. The time you pick is not final until the academic approves it.",
+      "hint": "Pick a time and click Continue"
+    },
+    "sendRequest": {
+      "title": "Write your topic and send",
+      "body": "The coordinator also sees the title; only the academic sees the description.",
+      "hint": "Send the request"
+    },
+    "requestSent": {
+      "title": "Your request was sent",
+      "body": "It shows \"Awaiting approval\" until the academic answers. You'll be notified when they accept or suggest a new time.",
+      "hint": "Click Finish tour"
+    },
+    "peerMentoring": {
+      "title": "Go to Peer Mentoring",
+      "body": "Everything you receive and give as a mentor is here.",
+      "hint": "Click Peer Mentoring"
+    },
+    "giveSide": {
+      "title": "The Give Mentoring side",
+      "body": "This switch moves you between Get Mentoring and Give Mentoring. No second account needed.",
+      "hint": "Click Give Mentoring"
+    },
+    "acceptRequest": {
+      "title": "Accept the request",
+      "body": "Accepting starts the mentoring and takes one place of your capacity. If it doesn't suit you, choose Decline.",
+      "hint": "Click Accept"
+    },
+    "appointmentsList": {
+      "title": "Your appointments in one list",
+      "body": "The \"As mentor\" and \"As mentee\" tags show which role you have in each appointment.",
+      "hint": "Click Finish tour"
+    },
+    "addAvailability": {
+      "title": "Add your availability",
+      "body": "Students can only request appointments in the hours you open.",
+      "hint": "Click Add availability"
+    },
+    "weeklyHours": {
+      "title": "Add your weekly hours",
+      "body": "Your hours that repeat every week are here. One-off hours and days you're unavailable are on the same page.",
+      "hint": "Click your weekly hours"
+    },
+    "openRequest": {
+      "title": "Open the incoming request",
+      "body": "Requests show in the calendar with a dashed border; they're not final until approved.",
+      "hint": "Click the request"
+    },
+    "answerRequest": {
+      "title": "Answer the request",
+      "body": "Accept, Decline or Suggest another time. A time you suggest is confirmed once the student accepts it.",
+      "hint": "Click Accept"
+    }
+  }
+}

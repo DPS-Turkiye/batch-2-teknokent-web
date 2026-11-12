@@ -4,13 +4,14 @@ import createNextIntlPlugin from "next-intl/plugin";
 // Uploads and CV parsing go from the browser straight to the backend, so its
 // origin has to be reachable. Deployed it is HTTPS and already covered by the
 // blanket source; locally it is plain HTTP on another port, which nothing in
-// the policy allows.
-const LOCAL_BACKEND_ORIGINS = [
-  "http://localhost:8080",
-  "http://127.0.0.1:8080",
-  "ws://localhost:8080",
-  "ws://127.0.0.1:8080",
-];
+// the policy allows. 8090 is the ODTÜ edition's backend when both editions run
+// side by side (the backend's dev/editions).
+const LOCAL_BACKEND_ORIGINS = [8080, 8090].flatMap((port) => [
+  `http://localhost:${port}`,
+  `http://127.0.0.1:${port}`,
+  `ws://localhost:${port}`,
+  `ws://127.0.0.1:${port}`,
+]);
 
 export function buildContentSecurityPolicy(isDevelopment: boolean) {
   // Development builds evaluate modules for hot reload.

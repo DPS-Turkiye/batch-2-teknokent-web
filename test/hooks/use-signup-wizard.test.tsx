@@ -130,12 +130,12 @@ describe("useSignupWizard", () => {
     expect(result.current.canContinue).toBe(true);
   });
 
-  it("skips the documents step for someone creating their startup later", async () => {
+  it("skips the documents step in an individual program", async () => {
     const { result } = await renderWizard();
     fillPersonal(result);
     act(() => result.current.goNext());
     act(() => result.current.updateStartup("programId", "program-1"));
-    act(() => result.current.updateStartup("startupLater", true));
+    act(() => result.current.updateStartup("individualProgram", true));
 
     expect(result.current.canContinue).toBe(true);
     expect(result.current.steps).not.toContain(SignupStep.Documents);
@@ -303,6 +303,59 @@ describe("useSignupWizard", () => {
     );
     expect(result.current.step).toBe(SignupStep.StartupProfile);
     expect(result.current.draft.startup.name).toBe("Döngü");
+  });
+
+  it("sends a draft saved at the review without a startup back to the startup step", async () => {
+    // Saved with the removed "create it later": a program, no startup.
+    vi.mocked(fetchOnboardingDraft).mockResolvedValue({
+      kind: "signup-wizard",
+      step: "4",
+      payload: {
+        personal: { firstName: "Gülse", lastName: "Buran", role: "Designer" },
+        startup: { programId: "program-1", startupLater: true },
+      },
+    });
+
+    const { result } = await renderWizard();
+
+    await waitFor(() =>
+      expect(result.current.draft.startup.programId).toBe("program-1"),
+    );
+    expect(result.current.step).toBe(SignupStep.StartupProfile);
+    expect(result.current.canContinue).toBe(false);
+  });
+
+  it("resumes a complete draft where it was saved", async () => {
+    vi.mocked(fetchOnboardingDraft).mockResolvedValue({
+      kind: "signup-wizard",
+      step: "4",
+      payload: {
+        personal: { firstName: "Gülse", lastName: "Buran", role: "Designer" },
+        startup: {
+          programId: "program-1",
+          name: "Döngü",
+          tagline: "Gönüllüleri eşleştirir",
+        },
+      },
+    });
+
+    const { result } = await renderWizard();
+
+    await waitFor(() => expect(result.current.step).toBe(SignupStep.Review));
+  });
+
+  it("resumes an individual-program draft at the review", async () => {
+    vi.mocked(fetchOnboardingDraft).mockResolvedValue({
+      kind: "signup-wizard",
+      step: "4",
+      payload: {
+        startup: { programId: "iskur", individualProgram: true },
+      },
+    });
+
+    const { result } = await renderWizard();
+
+    await waitFor(() => expect(result.current.step).toBe(SignupStep.Review));
   });
 
   it("saves team members without their React keys and gives restored ones fresh keys", async () => {
