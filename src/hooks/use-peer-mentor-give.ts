@@ -15,6 +15,7 @@ import {
   MENTOR_AVAILABILITY_QUERY_KEY,
   MENTOR_AVAILABILITY_SETTINGS_QUERY_KEY,
   MENTOR_PROFILE_QUERY_KEY,
+  useMentorAvailabilitySettings,
 } from "@/hooks/use-mentor-profile";
 import {
   PEER_MENTORING_REQUESTS_QUERY_KEY,
@@ -56,6 +57,7 @@ import {
   PEER_ERASMUS_MAX,
   PEER_HELP_WITH_MAX,
   PEER_HELP_WITH_MIN,
+  PEER_MENTOR_GIVE_HREF,
   PEER_MENTOR_TRAINING_HREF,
   PEER_PROFILE_TEXT_MAX,
   peerMentorCapacity,
@@ -213,10 +215,16 @@ export function usePeerRequestDecision() {
  * Mentorluk Ver once the profile is published: the open tab (requests first), the received requests, the decision
  * actions and the "Kapasiten" card's numbers.
  */
-export function usePeerGivePublished(menteeCapacity: number | null) {
+export function usePeerGivePublished(profileCapacity: number | null) {
   const [tab, setTab] = useState(PeerGiveTab.Requests);
   const received = useReceivedPeerRequests();
   const decision = usePeerRequestDecision();
+  // The availability tab saves the capacity to the settings, not the profile; read it there so the card follows a save.
+  const settings = useMentorAvailabilitySettings();
+  const menteeCapacity =
+    settings.data === undefined
+      ? profileCapacity
+      : settings.data.menteeCapacity;
   const loaded = received.query.data !== undefined;
   return {
     tab,
@@ -440,7 +448,7 @@ export function usePeerMentorWizard() {
         void queryClient.invalidateQueries({ queryKey });
       }
       showToast({ message: t("published"), tone: ToastTone.Success });
-      router.push("/student/peer-mentoring?as=MENTOR");
+      router.push(PEER_MENTOR_GIVE_HREF);
     },
     onError: (publishError) =>
       setError(errorMessage(publishError, t("publishFailed"))),

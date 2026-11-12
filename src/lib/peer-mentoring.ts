@@ -45,6 +45,9 @@ export const PEER_MENTOR_TRAINING_HREF = "/student/peer-mentoring/training";
 /** `/student/peer-mentoring?as=MENTOR` opens Mentorluk Ver, so notifications can deep-link to it. */
 export const PEER_MENTORING_SIDE_PARAM = "as";
 
+/** Mentorluk Ver: where the wizard returns and the home's mentor blocks link to. */
+export const PEER_MENTOR_GIVE_HREF = `/student/peer-mentoring?${PEER_MENTORING_SIDE_PARAM}=${AppointmentSide.Mentor}`;
+
 export function peerMentoringSide(value: string | null): AppointmentSide {
   return value === AppointmentSide.Mentor
     ? AppointmentSide.Mentor
