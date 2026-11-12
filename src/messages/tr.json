@@ -6761,6 +6761,12 @@
     "completedMentorships": "Tamamlanan mentorluk",
     "registered": "Kayıt tarihi",
     "open": "Profili gör",
-    "openFor": "Profili gör: {name}"
+    "openFor": "Profili gör: {name}",
+    "availability": "Müsait zamanlar",
+    "availabilityEmpty": "Henüz müsait zaman eklenmemiş.",
+    "availabilityWeekly": "Haftalık",
+    "availabilityDaysOff": "Yaklaşan izin günleri",
+    "availabilityExtraSlots": "Ek zamanlar",
+    "availabilityExtraSlot": "{day} · {time} ({minutes} dk)"
   }
 }
