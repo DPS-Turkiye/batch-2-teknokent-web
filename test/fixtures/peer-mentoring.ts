@@ -133,7 +133,7 @@ export function peerMentorsFixture({
       (!category || mentor.categories.includes(category)) &&
       (!subTopic ||
         (PEER_MENTOR_SUBTOPICS[mentor.mentorId] ?? []).includes(subTopic)) &&
-      (!availableThisWeek || mentor.availableThisWeek === true) &&
+      (!availableThisWeek || mentor.availableThisWeek) &&
       (!needle ||
         [mentor.fullName, mentor.department ?? "", mentor.helpWith].some(
           (text) => text.toLocaleLowerCase("tr").includes(needle),
