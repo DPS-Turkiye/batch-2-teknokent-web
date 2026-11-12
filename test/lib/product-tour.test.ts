@@ -1,12 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { Workspace } from "@/interfaces/workspace";
 import {
   anchorSelector,
   CARD_WIDTH,
   grow,
+  interactiveTarget,
   isInteractiveElement,
   isOnRoute,
+  isShown,
   panesAround,
   placeCard,
   TOUR_ILLUSTRATIONS,
@@ -82,6 +84,25 @@ describe("TOURS", () => {
     );
   });
 
+  it("waits for the success banner after the send, and lets the weekly hours card keep its own clicks", () => {
+    expect(TOURS[TourRole.Student].steps[3]?.advance).toBe(TourAdvance.Arrival);
+    expect(TOURS[TourRole.Student].steps[4]?.anchor).toBe(
+      TourAnchor.AppointmentRequestSent,
+    );
+    expect(TOURS[TourRole.Academician].steps[1]?.advance).toBe(
+      TourAdvance.Next,
+    );
+  });
+
+  it("gives the step after a menu step its page, for phones where the menu is a closed drawer", () => {
+    expect(TOURS[TourRole.Student].steps[1]?.route).toBe(
+      "/student/office-hours",
+    );
+    expect(TOURS[TourRole.IskurStudent].steps[1]?.route).toBe(
+      "/student/peer-mentoring",
+    );
+  });
+
   it("uses each step's copy once within a tour", () => {
     for (const tour of Object.values(TOURS)) {
       const keys = tour.steps.map((step) => step.key);
@@ -143,6 +164,57 @@ describe("isInteractiveElement", () => {
     expect(isInteractiveElement(element('<div role="region">x</div>'))).toBe(
       false,
     );
+  });
+});
+
+describe("interactiveTarget", () => {
+  function wrapper(html: string) {
+    const host = document.createElement("div");
+    host.innerHTML = html;
+    return host;
+  }
+
+  it("is the anchor itself when it is a control", () => {
+    const button = document.createElement("button");
+    expect(interactiveTarget(button)).toBe(button);
+  });
+
+  it("is the first enabled control inside a wrapper", () => {
+    const host = wrapper(
+      '<span>Başlık</span><button disabled>Kapalı</button><a href="/x">Aç</a>',
+    );
+    expect(interactiveTarget(host)?.textContent).toBe("Aç");
+  });
+
+  it("skips elements taken out of the tab order and finds role controls", () => {
+    const host = wrapper(
+      '<div tabindex="-1">x</div><div role="switch" tabindex="0">Ver</div>',
+    );
+    expect(interactiveTarget(host)?.textContent).toBe("Ver");
+  });
+
+  it("is null when nothing inside can be pressed", () => {
+    expect(interactiveTarget(wrapper("<p>Sadece metin</p>"))).toBeNull();
+  });
+});
+
+describe("isShown", () => {
+  it("asks checkVisibility where the browser has it", () => {
+    const host = document.createElement("div");
+    host.innerHTML = "<nav hidden><a href='/x'>x</a></nav><a href='/y'>y</a>";
+    document.body.append(host);
+    const [hidden, shown] = [...host.querySelectorAll("a")];
+    expect(hidden && isShown(hidden)).toBe(false);
+    expect(shown && isShown(shown)).toBe(true);
+    host.remove();
+  });
+
+  it("falls back to layout boxes where checkVisibility is missing (Safari before 17.4)", () => {
+    const element = document.createElement("div");
+    Object.defineProperty(element, "checkVisibility", { value: undefined });
+    const rects = vi.spyOn(element, "getClientRects");
+    expect(isShown(element)).toBe(false);
+    expect(rects).toHaveBeenCalled();
   });
 });
 

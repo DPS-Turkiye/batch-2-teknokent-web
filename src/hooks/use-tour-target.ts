@@ -8,7 +8,7 @@ import {
   useSyncExternalStore,
 } from "react";
 
-import { anchorSelector, isInteractiveElement } from "@/lib/product-tour";
+import { anchorSelector, interactiveTarget, isShown } from "@/lib/product-tour";
 import type { Box, TourAnchor } from "@/types/product-tour";
 
 /** How long a step waits for its element (a page loading, a list filling) before it carries on without it. */
@@ -67,7 +67,7 @@ function visibleAnchor(anchor: TourAnchor) {
   const matches = document.querySelectorAll<HTMLElement>(
     anchorSelector(anchor),
   );
-  return [...matches].find((element) => element.checkVisibility()) ?? null;
+  return [...matches].find(isShown) ?? null;
 }
 
 function subscribeToViewport(onChange: () => void) {
@@ -198,7 +198,16 @@ export function useTourTarget(
     viewport: { width, height },
     /** The element did not turn up in time: the step carries on without a highlight. */
     missing: element === null && anchor !== null && expiredWait === waitKey,
-    /** Whether a keyboard user can press the element; otherwise the card also offers "İleri". */
-    interactive: element !== null && isInteractiveElement(element),
+    /** The control a keyboard user presses: the element or the first control inside it; null offers "İleri". */
+    control: element === null ? null : interactiveTarget(element),
   };
+}
+
+/** Whether an anchor is on screen now, for a step that moves on when the next screen shows up. */
+export function useAnchorShown(anchor: TourAnchor | null) {
+  return useSyncExternalStore(
+    subscribeToPage,
+    () => anchor !== null && visibleAnchor(anchor) !== null,
+    () => false,
+  );
 }

@@ -190,14 +190,17 @@ describe("ProductTour steps", () => {
     expect(within(stepCard()).getByText("Adım 2 / 5")).toBeInTheDocument();
   });
 
-  it("offers İleri when the element is not a control a keyboard can press", async () => {
+  it("moves on from the weekly hours only with İleri, so the card's own buttons stay usable", async () => {
     session = ACADEMICIAN;
     pathname = "/academician/availability";
     seedTourStep("academic-1", TourRole.Academician, 1);
     const user = userEvent.setup();
     renderTour(
       Workspace.OdtuAcademician,
-      <section data-tour="availability-weekly">Haftalık saatler</section>,
+      <section data-tour="availability-weekly">
+        Haftalık saatler
+        <button type="button">+ Ekle</button>
+      </section>,
     );
     const card = await screen.findByRole("dialog", {
       name: "Haftalık saatlerini ekle",
@@ -207,9 +210,98 @@ describe("ProductTour steps", () => {
         name: "Haftalık saatlerine tıkla",
       }),
     ).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "+ Ekle" }));
+    expect(
+      screen.getByRole("dialog", { name: "Haftalık saatlerini ekle" }),
+    ).toBeInTheDocument();
+
     await user.click(within(card).getByRole("button", { name: "İleri" }));
     expect(
       screen.getByRole("dialog", { name: "Gelen talebi aç" }),
+    ).toBeInTheDocument();
+  });
+
+  it("offers İleri when nothing in the element can be pressed", async () => {
+    session = ACADEMICIAN;
+    pathname = "/academician";
+    seedTourStep("academic-1", TourRole.Academician, 0);
+    const user = userEvent.setup();
+    renderTour(
+      Workspace.OdtuAcademician,
+      <div data-tour="availability-add">Müsaitlik</div>,
+    );
+    const card = await screen.findByRole("dialog", {
+      name: "Müsaitliğini ekle",
+    });
+    expect(
+      within(card).queryByRole("button", { name: "Müsaitlik Ekle'ye tıkla" }),
+    ).not.toBeInTheDocument();
+    await user.click(within(card).getByRole("button", { name: "İleri" }));
+    expect(
+      screen.getByRole("dialog", { name: "Haftalık saatlerini ekle" }),
+    ).toBeInTheDocument();
+  });
+
+  it("points the hint at the button inside a wrapper that carries the anchor", async () => {
+    session = ACADEMICIAN;
+    pathname = "/academician";
+    seedTourStep("academic-1", TourRole.Academician, 0);
+    const user = userEvent.setup();
+    renderTour(
+      Workspace.OdtuAcademician,
+      <div data-tour="availability-add">
+        <button type="button" disabled>
+          Kapalı
+        </button>
+        <button type="button">Müsaitlik Ekle</button>
+      </div>,
+    );
+    const card = await screen.findByRole("dialog", {
+      name: "Müsaitliğini ekle",
+    });
+    expect(
+      within(card).queryByRole("button", { name: "İleri" }),
+    ).not.toBeInTheDocument();
+    await user.click(
+      within(card).getByRole("button", { name: "Müsaitlik Ekle'ye tıkla" }),
+    );
+    expect(
+      screen.getByRole("button", { name: "Müsaitlik Ekle" }),
+    ).toHaveFocus();
+    await user.click(screen.getByRole("button", { name: "Müsaitlik Ekle" }));
+    expect(
+      screen.getByRole("dialog", { name: "Haftalık saatlerini ekle" }),
+    ).toBeInTheDocument();
+  });
+
+  it("waits for the success banner after the send button, so a failed send keeps the form", async () => {
+    pathname = "/student/office-hours/academic-9";
+    seedTourStep("student-1", TourRole.Student, 3);
+    const user = userEvent.setup();
+    const { rerender } = renderTour(
+      Workspace.OdtuStudent,
+      <button type="button" data-tour="appointment-request-submit">
+        Talep Gönder
+      </button>,
+    );
+    await screen.findByRole("dialog", { name: "Konunu yaz ve gönder" });
+    await user.click(screen.getByRole("button", { name: "Talep Gönder" }));
+    expect(
+      screen.getByRole("dialog", { name: "Konunu yaz ve gönder" }),
+    ).toBeInTheDocument();
+
+    pathname = "/student/appointments";
+    rerender(
+      <InLocale locale="tr">
+        <div data-tour="appointment-request-sent">
+          Randevu talebin gönderildi
+        </div>
+        <ProductTour workspace={Workspace.OdtuStudent} />
+      </InLocale>,
+    );
+    expect(
+      await screen.findByRole("dialog", { name: "Talebin gönderildi" }),
     ).toBeInTheDocument();
   });
 
@@ -240,6 +332,23 @@ describe("ProductTour steps", () => {
     expect(
       screen.getByRole("dialog", { name: "Haftalık saatlerini ekle" }),
     ).toBeInTheDocument();
+  });
+
+  it("opens Office Hours itself when step 1 ended with İleri (the menu is a closed drawer on a phone)", async () => {
+    vi.useFakeTimers();
+    seedTourStep("student-1", TourRole.Student, 1);
+    renderTour(Workspace.OdtuStudent);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    expect(
+      screen.getByRole("dialog", { name: "Bir akademisyen seç" }),
+    ).toBeInTheDocument();
+    expect(push).not.toHaveBeenCalled();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(TARGET_WAIT_MS);
+    });
+    expect(push).toHaveBeenCalledWith("/student/office-hours");
   });
 
   it("skips the tour with Turu atla and remembers it", async () => {
@@ -299,6 +408,10 @@ describe("ProductTour end", () => {
     expect(
       within(end).getByText("Turu Profilim'den tekrar izleyebilirsin."),
     ).toBeInTheDocument();
+    // Saved already: closing the tab here must not bring the tour back.
+    expect(readTourOutcome("student-1", TourRole.Student)).toBe(
+      TourOutcome.Completed,
+    );
     await user.click(
       within(end).getByRole("button", { name: "Ana Sayfa'ya Dön" }),
     );

@@ -42,9 +42,18 @@ export enum TourStepKey {
   AnswerRequest = "answerRequest",
 }
 
-/** How a step moves on: the user clicks the highlighted element, or presses "Turu Bitir" on the last one. */
+/** How a step moves on. */
 export enum TourAdvance {
+  /** The user clicks the highlighted element (a menu item, a button that opens the next screen). */
   Click = "CLICK",
+  /**
+   * The next step's element shows up: a submit that can fail must not move the tour on by itself, so the step
+   * waits for the success screen (the "Talebin gönderildi" banner).
+   */
+  Arrival = "ARRIVAL",
+  /** "İleri" on the card: an area with controls of its own inside, where a click is not a "go on". */
+  Next = "NEXT",
+  /** "Turu Bitir" on the last step. */
   Finish = "FINISH",
 }
 

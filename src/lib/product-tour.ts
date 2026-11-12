@@ -11,6 +11,8 @@ import {
 } from "@/types/product-tour";
 
 const STUDENT_HOME = "/student";
+const STUDENT_OFFICE_HOURS = "/student/office-hours";
+const STUDENT_PEER_MENTORING = "/student/peer-mentoring";
 const STUDENT_APPOINTMENTS = "/student/appointments";
 const ACADEMICIAN_HOME = "/academician";
 const ACADEMICIAN_APPOINTMENTS = "/academician/appointments";
@@ -32,6 +34,8 @@ export const TOURS: Readonly<Record<TourRole, TourDefinition>> = {
         key: TourStepKey.PickAcademician,
         anchor: TourAnchor.OfficeHoursAcademician,
         advance: TourAdvance.Click,
+        // Below lg the menu sits in a closed drawer, so step 1 ends with "İleri" and this page has to be opened.
+        route: STUDENT_OFFICE_HOURS,
       },
       {
         key: TourStepKey.PickSlot,
@@ -41,7 +45,7 @@ export const TOURS: Readonly<Record<TourRole, TourDefinition>> = {
       {
         key: TourStepKey.SendRequest,
         anchor: TourAnchor.AppointmentRequestSubmit,
-        advance: TourAdvance.Click,
+        advance: TourAdvance.Arrival,
       },
       {
         key: TourStepKey.RequestSent,
@@ -66,6 +70,7 @@ export const TOURS: Readonly<Record<TourRole, TourDefinition>> = {
         key: TourStepKey.GiveSide,
         anchor: TourAnchor.PeerMentoringGiveToggle,
         advance: TourAdvance.Click,
+        route: STUDENT_PEER_MENTORING,
       },
       {
         key: TourStepKey.AcceptRequest,
@@ -94,7 +99,7 @@ export const TOURS: Readonly<Record<TourRole, TourDefinition>> = {
       {
         key: TourStepKey.WeeklyHours,
         anchor: TourAnchor.AvailabilityWeekly,
-        advance: TourAdvance.Click,
+        advance: TourAdvance.Next,
       },
       {
         key: TourStepKey.OpenRequest,
@@ -166,6 +171,41 @@ export function isInteractiveElement(element: Element) {
   if (role !== null && INTERACTIVE_ROLES.has(role)) return true;
   const tabIndex = element.getAttribute("tabindex");
   return tabIndex !== null && Number(tabIndex) >= 0;
+}
+
+const INTERACTIVE_SELECTOR = [
+  "a[href]",
+  "button",
+  "input",
+  "select",
+  "textarea",
+  "summary",
+  "[tabindex]",
+  ...[...INTERACTIVE_ROLES].map((role) => `[role="${role}"]`),
+].join(", ");
+
+/**
+ * The control a step's "… tıkla" hint focuses: the anchor itself, or the first control inside it. Screens put
+ * `data-tour` on a wrapper when their button component does not pass data attributes on.
+ */
+export function interactiveTarget(element: HTMLElement): HTMLElement | null {
+  if (isInteractiveElement(element)) return element;
+  return (
+    [...element.querySelectorAll<HTMLElement>(INTERACTIVE_SELECTOR)].find(
+      (child) => isInteractiveElement(child) && !child.matches(":disabled"),
+    ) ?? null
+  );
+}
+
+/**
+ * Whether the element is on screen at all (not `display: none` itself or through a parent). Browsers without
+ * `checkVisibility` (Safari before 17.4) answer from the element's layout boxes instead.
+ */
+export function isShown(element: Element) {
+  const supported: Partial<Pick<Element, "checkVisibility">> = element;
+  return typeof supported.checkVisibility === "function"
+    ? element.checkVisibility()
+    : element.getClientRects().length > 0;
 }
 
 export const CARD_WIDTH = 340;

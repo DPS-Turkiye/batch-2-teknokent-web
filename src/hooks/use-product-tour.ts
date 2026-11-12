@@ -5,7 +5,7 @@ import { useEffect } from "react";
 
 import { useAppSession } from "@/components/providers/session-provider";
 import { useInstitutionRecord } from "@/hooks/use-institution-record";
-import { useTourTarget } from "@/hooks/use-tour-target";
+import { useAnchorShown, useTourTarget } from "@/hooks/use-tour-target";
 import { Workspace } from "@/interfaces/workspace";
 import { isOnRoute, tourRoleOf, TOURS } from "@/lib/product-tour";
 import { readTourOutcome, writeTourOutcome } from "@/lib/product-tour-storage";
@@ -76,6 +76,25 @@ export function useProductTour(workspace: Workspace) {
     step?.advance === TourAdvance.Click ? next : null,
   );
 
+  // An "Arrival" step (sending a request) moves on only once the next step's element appears (the success
+  // banner): a failed send keeps the user on the form instead of carrying them off.
+  const arrived = useAnchorShown(
+    step?.advance === TourAdvance.Arrival
+      ? (definition?.steps[stepIndex + 1]?.anchor ?? null)
+      : null,
+  );
+  useEffect(() => {
+    if (arrived) actions.next(stepCount, stepIndex);
+  }, [actions, arrived, stepCount, stepIndex]);
+
+  // Reaching "Hazırsın!" counts as finished even if the tab is closed before the dialog is.
+  const done = run?.phase === TourPhase.Done;
+  useEffect(() => {
+    if (done && userId !== null && role !== null) {
+      writeTourOutcome(userId, role, TourOutcome.Completed);
+    }
+  }, [done, role, userId]);
+
   // The step's own page, when its element did not turn up where the user is (a reload, a page that does not
   // lead there by itself).
   const route = step?.route;
@@ -84,6 +103,10 @@ export function useProductTour(workspace: Workspace) {
       router.push(route);
     }
   }, [pathname, route, router, target.missing]);
+
+  const waitsForPress =
+    step?.advance === TourAdvance.Click ||
+    step?.advance === TourAdvance.Arrival;
 
   function leave(outcome: TourOutcome) {
     if (role === null) return;
@@ -98,13 +121,15 @@ export function useProductTour(workspace: Workspace) {
     stepNumber: (run?.stepIndex ?? 0) + 1,
     stepCount,
     target,
-    /** "… tıkla": the element is there and can be pressed; the hint also moves keyboard focus to it. */
-    offersHint: step?.advance === TourAdvance.Click && target.interactive,
-    /** Show "İleri": the element is missing, or a keyboard cannot press it. */
+    /** "… tıkla": there is a control to press; the hint also moves keyboard focus to it. */
+    offersHint: waitsForPress && target.control !== null,
+    /** "İleri": the step asks for it, or its element is missing, or nothing in it can be pressed. */
     offersNext:
-      step?.advance === TourAdvance.Click &&
-      (target.missing || (target.element !== null && !target.interactive)),
-    focusTarget: () => target.element?.focus(),
+      step?.advance === TourAdvance.Next ||
+      (waitsForPress &&
+        (target.missing ||
+          (target.element !== null && target.control === null))),
+    focusTarget: () => target.control?.focus(),
     start: actions.start,
     next,
     finish: actions.finish,
