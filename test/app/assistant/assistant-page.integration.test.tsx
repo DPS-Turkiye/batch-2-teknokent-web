@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import AssistantPage from "@/app/assistant/page";
+import { useAiFeatures } from "@/hooks/use-ai-features";
 import { useMeetings } from "@/hooks/use-meetings";
 import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import {
@@ -15,6 +16,7 @@ import {
 } from "@/lib/const";
 import { currentIdToken } from "@/lib/firebase/auth";
 import { httpClient } from "@/lib/http-client";
+import { aiFeatures } from "@test/fixtures/ai-features";
 import { createAxiosResponse } from "@test/fixtures/health";
 import { successQuery } from "@test/mocks/query-results";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
@@ -38,6 +40,13 @@ vi.mock("next/navigation", async (importOriginal) => ({
 vi.mock("@/hooks/use-meetings", () => ({
   useMeetings: vi.fn(),
 }));
+
+vi.mock("@/hooks/use-ai-features", () => ({
+  useAiFeatures: vi.fn(),
+  useAiFeatureRefusal: () => refused,
+}));
+
+const refused = vi.fn();
 
 vi.mock("@/lib/firebase/auth", () => ({ currentIdToken: vi.fn() }));
 
@@ -82,6 +91,7 @@ describe("AssistantPage integration", () => {
     vi.mocked(httpClient.patch).mockResolvedValue(
       createAxiosResponse({ id: "meeting-1" }, 200),
     );
+    vi.mocked(useAiFeatures).mockReturnValue(aiFeatures());
   });
 
   it("reads in English", () => {
@@ -189,6 +199,19 @@ describe("AssistantPage integration", () => {
     ).toHaveTextContent("Kayıt botu bekleme odasında.");
   });
 
+  it("keeps a pasted link and warns when it is not a meeting in the calendar", async () => {
+    const user = userEvent.setup();
+    renderWithQueryClient(<AssistantPage />);
+
+    const box = screen.getByPlaceholderText("Toplantı linki yapıştır…");
+    await user.type(box, "https://meet.google.com/zzz-zzzz-zzz");
+
+    expect(box).toHaveValue("https://meet.google.com/zzz-zzzz-zzz");
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Bu bağlantı takviminde bir toplantıya ait değil; asistan yalnızca Menton takvimindeki toplantılara katılabilir.",
+    );
+  });
+
   it("stops an added meeting then generates a report from the transcript", async () => {
     const user = userEvent.setup();
     const segments = [
@@ -274,6 +297,69 @@ describe("AssistantPage integration", () => {
     expect(screen.getByText("Düzenlenebilir")).toBeInTheDocument();
     expect(screen.getByText("Mentorluk Gorusmesi")).toBeInTheDocument();
     expect(screen.getByText("Toplanti verimli gecti.")).toBeInTheDocument();
+  });
+
+  it("keeps only the transcript, with no report button, when meeting reports are switched off", async () => {
+    vi.mocked(useAiFeatures).mockReturnValue(
+      aiFeatures({ meetingReport: false }),
+    );
+    const user = userEvent.setup();
+    vi.mocked(httpClient.get).mockResolvedValue(
+      createAxiosResponse(
+        {
+          segments: [
+            { id: "s1", speaker: "Ayşe", text: "Merhaba", at: "00:10" },
+          ],
+        },
+        200,
+      ),
+    );
+    vi.mocked(httpClient.post).mockImplementation(async (url: string) => {
+      if (url === getBotApiUrl()) {
+        return createAxiosResponse(
+          {
+            id: "bot-1",
+            platform: "google_meet",
+            nativeMeetingId: "abc-defg-hij",
+            status: "scheduled",
+            title: "Yeni Test Toplantisi",
+          },
+          201,
+        );
+      }
+      throw new Error(`Unexpected POST URL: ${url}`);
+    });
+    vi.mocked(httpClient.delete).mockResolvedValue(
+      createAxiosResponse({}, 204),
+    );
+
+    renderWithQueryClient(<AssistantPage />);
+    await user.type(
+      screen.getByPlaceholderText("Toplantı linki yapıştır…"),
+      "https://meet.google.com/abc-defg-hij",
+    );
+    await user.click(screen.getByRole("button", { name: "Bot ekle" }));
+    await waitFor(() => {
+      expect(
+        screen.getAllByText("Yeni Test Toplantisi").length,
+      ).toBeGreaterThan(0);
+    });
+    await user.click(screen.getByRole("button", { name: "Asistanı durdur" }));
+    await waitFor(() => {
+      expect(httpClient.delete).toHaveBeenCalled();
+    });
+
+    expect(
+      await screen.findByText(
+        "Bu sistemde toplantı raporu üretilmiyor; yalnızca transkript tutulur.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Rapor üret" })).toBeNull();
+    expect(httpClient.post).not.toHaveBeenCalledWith(
+      getMeetingReportApiUrl("google_meet", "abc-defg-hij"),
+      undefined,
+      expect.anything(),
+    );
   });
 
   it("does not generate a report after stop when the transcript is empty", async () => {

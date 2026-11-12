@@ -8,6 +8,8 @@ import { useMemo } from "react";
 import { useOptionLabel } from "@/hooks/use-option-label";
 import { ClientApiError } from "@/lib/client/api";
 import { getPersonSummary } from "@/lib/client/person-summary";
+import { exceptionLabel } from "@/lib/mentor-availability";
+import { slotDayLabel, slotTimeLabel } from "@/lib/mentor-availability-days";
 import { personSummaryModel } from "@/lib/person-summary";
 import { formatShortDate, isAdminArea } from "@/lib/utils";
 import {
@@ -31,6 +33,7 @@ export function usePersonSummary(userId: string) {
   const router = useRouter();
   const t = useTranslations("personSummary");
   const tLanguage = useTranslations("options.language");
+  const tWeekday = useTranslations("options.weekday");
   const optionLabel = useOptionLabel();
   const locale = useLocale();
   const query = useQuery({
@@ -93,6 +96,26 @@ export function usePersonSummary(userId: string) {
             offerings: model.mentor.offerings,
             experiences: model.mentor.experiences,
             educations: model.mentor.educations,
+            availability: {
+              isEmpty: model.mentor.availability.isEmpty,
+              days: model.mentor.availability.days.map((day) => ({
+                key: day.day,
+                label: tWeekday(day.day),
+                value: day.ranges.map((range) => range.value).join(", "),
+              })),
+              daysOff: model.mentor.availability.daysOff.map((dayOff) => ({
+                key: dayOff.key,
+                value: exceptionLabel({ ...dayOff, reason: null }, locale),
+              })),
+              extraSlots: model.mentor.availability.extraSlots.map((slot) => ({
+                key: slot.key,
+                value: t("availabilityExtraSlot", {
+                  day: slotDayLabel(slot.startsAt, locale),
+                  time: slotTimeLabel(slot.startsAt, locale),
+                  minutes: slot.durationMinutes,
+                }),
+              })),
+            },
           }
         : null,
       showStartup: model.showStartup,
@@ -108,7 +131,7 @@ export function usePersonSummary(userId: string) {
       activity: model.activity.map(factText),
       showTeamHistory: model.showTeamHistory,
     };
-  }, [query.data, t, tLanguage, optionLabel, locale, programsHref]);
+  }, [query.data, t, tLanguage, tWeekday, optionLabel, locale, programsHref]);
 
   function goBack() {
     if (window.history.length > 1) router.back();

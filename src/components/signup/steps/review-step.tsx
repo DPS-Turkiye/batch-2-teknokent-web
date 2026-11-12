@@ -23,16 +23,9 @@ type ReviewRow = { label: string; value: string };
  * instead of another branch inside the card.
  */
 enum StartupSummary {
-  /** An individual program gives each student a team of one, so there is no startup to show or create later. */
+  /** An individual program gives each student a team of one, so there is no startup to show. */
   Individual = "INDIVIDUAL",
-  Later = "LATER",
   Startup = "STARTUP",
-}
-
-function startupSummaryOf(startupLater: boolean, individual: boolean) {
-  if (!startupLater) return StartupSummary.Startup;
-  if (individual) return StartupSummary.Individual;
-  return StartupSummary.Later;
 }
 
 export function ReviewStep({ wizard }: { wizard: SignupWizard }) {
@@ -48,10 +41,9 @@ export function ReviewStep({ wizard }: { wizard: SignupWizard }) {
     (candidate) => candidate.id === startup.programId,
   );
   const programName = program?.name ?? "";
-  const summary = startupSummaryOf(
-    startup.startupLater ?? false,
-    program?.individualMentees ?? false,
-  );
+  const summary = program?.individualMentees
+    ? StartupSummary.Individual
+    : StartupSummary.Startup;
 
   function fileName(kind: StartupDocumentKind) {
     return (
@@ -74,11 +66,6 @@ export function ReviewStep({ wizard }: { wizard: SignupWizard }) {
     switch (summary) {
       case StartupSummary.Individual:
         return [programRow];
-      case StartupSummary.Later:
-        return [
-          programRow,
-          { label: copy("startupName"), value: copy("startupLater") },
-        ];
       case StartupSummary.Startup:
         return [
           { label: copy("startupName"), value: startup.name.trim() },

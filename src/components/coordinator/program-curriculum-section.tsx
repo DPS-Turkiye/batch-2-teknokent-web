@@ -209,47 +209,54 @@ function SyllabusCard({
         <span className="block truncate text-[13.5px] font-medium text-[#22262b]">
           {syllabus ? syllabus.filename : t("noFile")}
         </span>
+        {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
         <span className="block text-[12px] text-[#858c96]">
           {curriculum.readingFile
             ? t("reading")
-            : syllabus
-              ? t("uploaded", {
-                  date: formatLongDate(syllabus.uploadedAt, locale),
-                })
-              : t("noFileHint")}
+            : !curriculum.canReadFile
+              ? t("manualHint")
+              : syllabus
+                ? t("uploaded", {
+                    date: formatLongDate(syllabus.uploadedAt, locale),
+                  })
+                : t("noFileHint")}
         </span>
       </span>
-      <input
-        ref={input}
-        type="file"
-        accept="application/pdf,.pdf"
-        className="sr-only"
-        disabled={busy}
-        aria-label={t("chooseFile")}
-        onChange={(event) => {
-          const file = event.target.files?.[0];
-          if (file) curriculum.chooseFile(file);
-          event.target.value = "";
-        }}
-      />
-      <button
-        type="button"
-        disabled={busy}
-        onClick={() => input.current?.click()}
-        className={OUTLINE_BUTTON}
-      >
-        {syllabus ? t("replaceFile") : t("uploadFile")}
-      </button>
-      {syllabus ? (
-        <button
-          type="button"
-          disabled={busy}
-          onClick={curriculum.reread}
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-[14px] py-2 text-[12.5px] font-medium text-[#22262b] disabled:text-[#aeb4bc]"
-        >
-          <RefreshCw aria-hidden className="size-[15px]" />
-          {t("reread")}
-        </button>
+      {curriculum.canReadFile ? (
+        <>
+          <input
+            ref={input}
+            type="file"
+            accept="application/pdf,.pdf"
+            className="sr-only"
+            disabled={busy}
+            aria-label={t("chooseFile")}
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              if (file) curriculum.chooseFile(file);
+              event.target.value = "";
+            }}
+          />
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => input.current?.click()}
+            className={OUTLINE_BUTTON}
+          >
+            {syllabus ? t("replaceFile") : t("uploadFile")}
+          </button>
+          {syllabus ? (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={curriculum.reread}
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-[14px] py-2 text-[12.5px] font-medium text-[#22262b] disabled:text-[#aeb4bc]"
+            >
+              <RefreshCw aria-hidden className="size-[15px]" />
+              {t("reread")}
+            </button>
+          ) : null}
+        </>
       ) : null}
     </div>
   );

@@ -39,6 +39,7 @@ function MeetingAssistantWorkspace() {
     setSelectedId,
     meetingUrl,
     setMeetingUrl,
+    linkNotInCalendar,
     botStatus,
     botError,
     visibleTranscript,
@@ -50,6 +51,7 @@ function MeetingAssistantWorkspace() {
     addBot,
     stopBot,
     meetingReport,
+    canReport,
     reportStatus,
     reportError,
     regenerateReport,
@@ -61,7 +63,7 @@ function MeetingAssistantWorkspace() {
     shareError,
     sendTranscript,
     sendReport,
-  } = useMeetingAssistant(requestedMeetingId);
+  } = useMeetingAssistant(requestedMeetingId, session?.role);
   const { botNotice, botNoticeTone } = useMeetingBotState(selected);
 
   return (
@@ -107,6 +109,10 @@ function MeetingAssistantWorkspace() {
                   <input
                     value={meetingUrl}
                     onChange={(e) => setMeetingUrl(e.target.value)}
+                    aria-invalid={linkNotInCalendar}
+                    aria-describedby={
+                      linkNotInCalendar ? "assistant-link-hint" : undefined
+                    }
                     placeholder={t("linkPlaceholder")}
                     className="min-w-0 flex-1 rounded-[7px] border border-[var(--ma-line2)] bg-[var(--ma-panel)] px-2 py-1.5 text-xs text-[var(--ma-t1)] outline-none placeholder:text-[var(--ma-t3)]"
                   />
@@ -128,6 +134,16 @@ function MeetingAssistantWorkspace() {
                     {botStatus === BotStatus.Sending ? "…" : t("addBot")}
                   </button>
                 </div>
+                {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+                {linkNotInCalendar ? (
+                  <p
+                    id="assistant-link-hint"
+                    role="alert"
+                    className="mt-1.5 text-[11px] leading-snug text-[var(--ma-danger)]"
+                  >
+                    {t("linkNotInCalendar")}
+                  </p>
+                ) : null}
                 <BotStatusRenderer status={botStatus} error={botError} />
               </form>
 
@@ -383,20 +399,22 @@ function MeetingAssistantWorkspace() {
                           {t("report")}
                         </span>
                         <span className="h-px flex-1 bg-[var(--ma-line)]" />
-                        <button
-                          type="button"
-                          onClick={() => regenerateReport()}
-                          disabled={
-                            reportStatus === BotStatus.Sending ||
-                            !selected.platformKey ||
-                            !selected.nativeMeetingId
-                          }
-                          className="rounded-[7px] border border-[var(--ma-line2)] px-2 py-0.5 text-[11px] font-medium text-[var(--ma-t2)] disabled:opacity-50"
-                        >
-                          {reportStatus === BotStatus.Sending
-                            ? t("generating")
-                            : t("generate")}
-                        </button>
+                        {canReport ? (
+                          <button
+                            type="button"
+                            onClick={() => regenerateReport()}
+                            disabled={
+                              reportStatus === BotStatus.Sending ||
+                              !selected.platformKey ||
+                              !selected.nativeMeetingId
+                            }
+                            className="rounded-[7px] border border-[var(--ma-line2)] px-2 py-0.5 text-[11px] font-medium text-[var(--ma-t2)] disabled:opacity-50"
+                          >
+                            {reportStatus === BotStatus.Sending
+                              ? t("generating")
+                              : t("generate")}
+                          </button>
+                        ) : null}
                       </div>
                       <BotStatusRenderer
                         status={reportStatus}
@@ -408,11 +426,12 @@ function MeetingAssistantWorkspace() {
                           {t("reportFromRecording")}
                         </p>
                       ) : null}
+                      {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
                       {meetingReport ? (
                         <MeetingReportView report={meetingReport} />
                       ) : (
                         <p className="text-[12.5px] leading-relaxed text-[var(--ma-t3)]">
-                          {t("reportEmpty")}
+                          {canReport ? t("reportEmpty") : t("reportOff")}
                         </p>
                       )}
                     </div>
