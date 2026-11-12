@@ -50,6 +50,11 @@ const overview: AdminOverview = {
   meetingsLast8Weeks: 0,
 };
 
+// The Mentorlar and Takımlar tabs exist on the Teknokent edition.
+vi.mock("@/hooks/use-edition", async () => {
+  const { Edition } = await import("@/interfaces/edition");
+  return { useEdition: () => Edition.Teknokent };
+});
 vi.mock("@/hooks/use-admin-overview", () => ({
   useAdminOverview: () => ({ data: overview, isLoading: false, error: null }),
 }));

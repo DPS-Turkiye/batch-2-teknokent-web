@@ -27,9 +27,12 @@ export type ProgramWizardDraft = {
   coordinators: CoordinatorChoice[];
 };
 
-export function emptyWizardDraft(): ProgramWizardDraft {
+/** A new draft; when the edition offers a single program type, it is already chosen. */
+export function emptyWizardDraft(
+  programTypes: readonly ProgramType[],
+): ProgramWizardDraft {
   return {
-    type: null,
+    type: programTypes.length === 1 ? (programTypes[0] ?? null) : null,
     name: "",
     description: "",
     startDate: "",

@@ -20,6 +20,7 @@ import { TeamHistory } from "@/components/common/team-history";
 import { ProfileLink } from "@/components/people/profile-link";
 import { useAdminOverview } from "@/hooks/use-admin-overview";
 import {
+  useAdminUserTabs,
   useCoordinatorsTable,
   useMentorsTable,
   useTeamsTable,
@@ -56,6 +57,7 @@ import {
   TEAM_FILTERS,
   TEAM_SECTIONS,
   teamHealth,
+  USER_TAB_HREFS,
   type FilterCounts,
 } from "@/lib/admin-users";
 import { initials } from "@/lib/utils";
@@ -67,6 +69,13 @@ import {
   type UserFilter,
 } from "@/types/admin-users";
 
+type TabLink = {
+  href: string;
+  label: string;
+  count: number | null;
+  dot?: string;
+};
+
 type AccountDecision = UserAccountStatus.Approved | UserAccountStatus.Rejected;
 
 export function UsersView({ tab }: { tab: UserTab }) {
@@ -74,44 +83,41 @@ export function UsersView({ tab }: { tab: UserTab }) {
   const query = useAdminOverview();
   const focusUserId = useSearchParams().get("user");
   const [inviteOpen, setInviteOpen] = useState(false);
+  const offeredTabs = useAdminUserTabs();
   if (!query.data) {
     return <QueryNotice isLoading={query.isLoading} error={query.error} />;
   }
   const data = query.data;
-  const tabs = [
-    {
-      id: UserTab.Coordinators,
-      href: "/admin/users",
+  const tabLinks: Record<UserTab, TabLink> = {
+    [UserTab.Coordinators]: {
+      href: USER_TAB_HREFS[UserTab.Coordinators],
       label: t("tabs.coordinators"),
       count: coordinatorsOf(data).length,
     },
-    {
-      id: UserTab.Mentors,
-      href: "/admin/users/mentors",
+    [UserTab.Mentors]: {
+      href: USER_TAB_HREFS[UserTab.Mentors],
       label: t("tabs.mentors"),
       count: mentorsOf(data).length,
       dot: "#26a4ff",
     },
-    {
-      id: UserTab.Teams,
-      href: "/admin/users/teams",
+    [UserTab.Teams]: {
+      href: USER_TAB_HREFS[UserTab.Teams],
       label: t("tabs.teams"),
       count: startupsOf(data).length,
       dot: "#ff6a3d",
     },
-    {
-      id: UserTab.Students,
-      href: "/admin/users/students",
+    [UserTab.Students]: {
+      href: USER_TAB_HREFS[UserTab.Students],
       label: t("tabs.students"),
       count: null,
     },
-    {
-      id: UserTab.Academics,
-      href: "/admin/users/academics",
+    [UserTab.Academics]: {
+      href: USER_TAB_HREFS[UserTab.Academics],
       label: t("tabs.academics"),
       count: null,
     },
-  ];
+  };
+  const tabs = offeredTabs.map((id) => ({ id, ...tabLinks[id] }));
 
   return (
     <div className="space-y-6">

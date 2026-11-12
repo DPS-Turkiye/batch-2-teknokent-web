@@ -11,6 +11,7 @@ import {
   COORDINATOR_SEARCH_QUERY_KEY,
 } from "@/hooks/use-coordinator-picker";
 import { coordinatorProgramQueryKey } from "@/hooks/use-coordinator-program";
+import { useEdition } from "@/hooks/use-edition";
 import type { ProgramType } from "@/interfaces/program";
 import { ToastTone } from "@/interfaces/toast";
 import {
@@ -24,20 +25,25 @@ import {
 } from "@/lib/admin-program-wizard";
 import { createCoordinatorProgram } from "@/lib/client/coordinator-programs";
 import type { CoordinatorChoice } from "@/lib/coordinator-picker";
+import { programTypesOf } from "@/lib/edition-screens";
 import { errorMessage } from "@/lib/utils";
 import { useToast } from "@/stores/toast-store";
 
 /**
- * The admin's "Yeni Program Oluştur": type, details, coordinators, summary; saved as a draft at the end. Coordinators
- * are picked by email search or invited by email; invited people get their account when the program is saved.
+ * The admin's "Yeni Program Oluştur": type, details, coordinators, summary; saved as a draft at the end. Only the
+ * deployment's own program types are offered; the backend refuses the others. Coordinators are picked by email search
+ * or invited by email; invited people get their account when the program is saved.
  */
 export function useAdminProgramWizard() {
   const t = useTranslations("adminProgramWizard");
   const router = useRouter();
   const queryClient = useQueryClient();
   const { showToast } = useToast();
+  const programTypes = programTypesOf(useEdition());
   const [step, setStep] = useState(WizardStep.Type);
-  const [draft, setDraft] = useState<ProgramWizardDraft>(emptyWizardDraft);
+  const [draft, setDraft] = useState<ProgramWizardDraft>(() =>
+    emptyWizardDraft(programTypes),
+  );
   const [problem, setProblem] = useState<WizardProblem | null>(null);
   const stepIndex = WIZARD_STEPS.indexOf(step);
 
@@ -76,6 +82,7 @@ export function useAdminProgramWizard() {
     step,
     stepIndex,
     last: stepIndex === WIZARD_STEPS.length - 1,
+    programTypes,
     draft,
     update,
     setCoordinators: (coordinators: CoordinatorChoice[]) =>

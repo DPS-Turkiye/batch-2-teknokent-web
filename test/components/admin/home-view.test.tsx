@@ -11,6 +11,7 @@ import {
   type AdminRequest,
   type AdminUser,
 } from "@/interfaces/admin-overview";
+import { Edition } from "@/interfaces/edition";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { ProgramMentorStatus, ProgramStatus } from "@/interfaces/program";
 import { UserAccountStatus, UserRole } from "@/interfaces/session";
@@ -34,9 +35,18 @@ const overviewState = vi.hoisted(() => {
   return state;
 });
 
+const editionState = vi.hoisted(() => ({ current: "TEKNOKENT" }));
+
+vi.mock("@/hooks/use-edition", () => ({
+  useEdition: () => editionState.current,
+}));
 vi.mock("@/hooks/use-admin-overview", () => ({
   useAdminOverview: () => overviewState.current,
 }));
+
+beforeEach(() => {
+  editionState.current = Edition.Teknokent;
+});
 
 function membership(fullName: string): AdminMentorMembership {
   return {
@@ -332,6 +342,25 @@ describe("AdminHomeView", () => {
         interventionRow("Growth 2025 · davet kabul edilmedi").getByText(
           "Koordinatör",
         ),
+      ).toBeInTheDocument();
+    });
+
+    it("leaves out ODTÜ's links to the Mentorlar tab it does not show", () => {
+      editionState.current = Edition.Odtu;
+      show(overview());
+
+      expect(
+        screen
+          .getAllByRole("link")
+          .filter(
+            (link) => link.getAttribute("href") === "/admin/users/mentors",
+          ),
+      ).toEqual([]);
+      expect(
+        screen.queryByText("ODTÜ Stars 2026 · davet kabul edilmedi"),
+      ).toBeNull();
+      expect(
+        screen.getByText("20 gündür görüşme yok — Ayşe Demir ↔ Lumen"),
       ).toBeInTheDocument();
     });
 

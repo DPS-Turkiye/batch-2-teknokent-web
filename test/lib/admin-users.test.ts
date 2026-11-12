@@ -32,8 +32,9 @@ import {
   teamKey,
   teamRow,
   USERS_PAGE_SIZE,
+  withoutClosedTabLinks,
 } from "@/lib/admin-users";
-import { TeamHealth, UserFilter } from "@/types/admin-users";
+import { TeamHealth, UserFilter, UserTab } from "@/types/admin-users";
 import {
   adminMentorship,
   adminProgram,
@@ -441,5 +442,35 @@ describe("admin users relative time", () => {
 
   it("measures from the current time by default", () => {
     expect(relativeTime(new Date().toISOString(), t)?.label).toBe("Az önce");
+  });
+});
+
+describe("withoutClosedTabLinks", () => {
+  const links = [
+    { href: "/admin/users/mentors?user=m1" },
+    { href: "/admin/users/students#top" },
+    { href: "/admin/users" },
+    { href: "/admin/programs" },
+  ];
+
+  it("drops links to tabs the deployment hides, whatever their query or fragment", () => {
+    expect(
+      withoutClosedTabLinks(links, [
+        UserTab.Coordinators,
+        UserTab.Students,
+        UserTab.Academics,
+      ]),
+    ).toEqual([
+      { href: "/admin/users/students#top" },
+      { href: "/admin/users" },
+      { href: "/admin/programs" },
+    ]);
+  });
+
+  it("keeps every link when all tabs are open, and links outside Kullanıcılar always", () => {
+    expect(withoutClosedTabLinks(links, Object.values(UserTab))).toEqual(links);
+    expect(withoutClosedTabLinks(links, [])).toEqual([
+      { href: "/admin/programs" },
+    ]);
   });
 });
