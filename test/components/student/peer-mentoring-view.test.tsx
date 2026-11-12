@@ -204,6 +204,18 @@ describe("PeerMentoringView › Keşfet", () => {
     ).toBeVisible();
   });
 
+  it("leaves the counts off the category cards when they can't be read", async () => {
+    const { getPeerMentorCounts } = await import("@/lib/client/peer-mentoring");
+    vi.mocked(getPeerMentorCounts).mockRejectedValueOnce(new Error("down"));
+    renderWithQueryClient(<PeerMentoringView />);
+    await mentorCard("Deniz Kaya");
+
+    expect(
+      screen.getByRole("button", { name: "Kariyer ve Staj" }),
+    ).toBeVisible();
+    expect(screen.queryByText("1 mentor")).toBeNull();
+  });
+
   it("filters by a sub-topic and by a free slot this week", async () => {
     const user = userEvent.setup();
     const { getPeerMentors } = await import("@/lib/client/peer-mentoring");

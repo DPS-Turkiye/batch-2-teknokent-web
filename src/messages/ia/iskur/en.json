@@ -292,7 +292,8 @@
       "hoursRange": "{start} – {end}",
       "thisWeek": "This week",
       "thisWeekOpen": "Free slots",
-      "thisWeekFull": "No free slots"
+      "thisWeekFull": "No free slots",
+      "newTab": "(opens in a new tab)"
     },
     "dialog": {
       "title": "Send a mentoring request",

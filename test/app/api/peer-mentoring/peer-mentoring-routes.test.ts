@@ -23,7 +23,7 @@ import {
 } from "@/lib/api/peer-mentoring";
 import { getSessionUser } from "@/lib/session";
 import { peerMentorDetailFixture } from "@test/fixtures/peer-mentoring";
-import { backendResponse } from "@test/fixtures/route-handlers";
+import { backendRefusal, backendResponse } from "@test/fixtures/route-handlers";
 
 vi.mock("@/lib/api/peer-mentoring", () => ({
   fetchPeerMentor: vi.fn(),
@@ -153,6 +153,31 @@ describe("peer-mentoring proxy routes", () => {
         .status,
     ).toBe(401);
     expect(fetchPeerMentor).toHaveBeenCalledTimes(1);
+  });
+
+  it("act as the session user even when the URL names another actor, and pass the backend's 404 on", async () => {
+    const mentorId = "8c5f0f0e-6a3e-4c55-9d2d-2a7c7b1f0a11";
+    vi.mocked(fetchPeerMentor).mockResolvedValueOnce(backendRefusal(404));
+
+    const response = await getMentor(
+      new Request(
+        `http://localhost/api/peer-mentoring/mentors/${mentorId}?actorId=someone-else`,
+      ),
+      { params: Promise.resolve({ mentorId }) },
+    );
+
+    expect(response.status).toBe(404);
+    expect(fetchPeerMentor).toHaveBeenCalledWith("student-1", mentorId);
+  });
+
+  it("treat a blank sub-topic as no sub-topic", async () => {
+    await getMentors(request("/api/peer-mentoring/mentors?subTopic=%20%20"));
+    expect(fetchPeerMentors).toHaveBeenLastCalledWith("student-1", {
+      category: undefined,
+      q: undefined,
+      subTopic: undefined,
+      availableThisWeek: undefined,
+    });
   });
 
   it("read the mentor counts for the signed-in student", async () => {

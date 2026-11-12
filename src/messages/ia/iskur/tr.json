@@ -292,7 +292,8 @@
       "hoursRange": "{start} – {end}",
       "thisWeek": "Bu hafta",
       "thisWeekOpen": "Boş saat var",
-      "thisWeekFull": "Boş saat yok"
+      "thisWeekFull": "Boş saat yok",
+      "newTab": "(yeni sekmede açılır)"
     },
     "dialog": {
       "title": "Mentorluk talebi gönder",

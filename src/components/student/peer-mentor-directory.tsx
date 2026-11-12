@@ -189,12 +189,15 @@ export function PeerMentorDirectory() {
             type="button"
             aria-pressed={directory.availableThisWeek}
             onClick={directory.toggleAvailableThisWeek}
-            className={`${FILTER_BASE} ${
+            className={`${FILTER_BASE} inline-flex items-center gap-1.5 ${
               directory.availableThisWeek
                 ? "border-brand-odtu-primary text-text-accent"
                 : "border-border-default text-text-primary"
             }`}
           >
+            {directory.availableThisWeek ? (
+              <Check aria-hidden className="size-4" />
+            ) : null}
             {t("availableThisWeek")}
           </button>
         </div>

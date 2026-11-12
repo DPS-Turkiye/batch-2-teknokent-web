@@ -79,6 +79,15 @@ const cases: RequestCase[] = [
     },
   ],
   [
+    "escapes the mentor id in the path",
+    () => fetchPeerMentor("student-1", "a/../b"),
+    {
+      method: "GET",
+      url: "/api/peer-mentoring/mentors/a%2F..%2Fb",
+      params: { actorId: "student-1" },
+    },
+  ],
+  [
     "reads the mentors per category of the actor's program",
     () => fetchPeerMentorCounts("student-1"),
     {

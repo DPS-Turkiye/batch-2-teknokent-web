@@ -14,7 +14,7 @@ import {
 } from "@/components/student/peer-mentor-directory";
 import { PeerMentorRequestDialog } from "@/components/student/peer-mentor-request-dialog";
 import { usePeerMentor } from "@/hooks/use-peer-mentoring";
-import { initials } from "@/lib/utils";
+import { httpUrlOrNull, initials } from "@/lib/utils";
 
 const BACK_HREF = "/student/peer-mentoring";
 
@@ -30,6 +30,7 @@ export function PeerMentorPublicProfile({ mentorId }: { mentorId: string }) {
   const tDay = useTranslations("options.weekday");
   const view = usePeerMentor(mentorId);
   const { mentor } = view;
+  const linkedinUrl = httpUrlOrNull(mentor?.linkedinUrl);
 
   return (
     <div className="space-y-8">
@@ -125,19 +126,19 @@ export function PeerMentorPublicProfile({ mentorId }: { mentorId: string }) {
                 </dl>
               </section>
             ) : null}
-            {mentor.linkedinUrl ? (
+            {linkedinUrl ? (
               <section aria-labelledby="mentor-links" className="space-y-2">
                 <h2 id="mentor-links" className="type-label text-text-primary">
                   {t("links")}
                 </h2>
                 <a
-                  href={mentor.linkedinUrl}
+                  href={linkedinUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 type-label text-text-accent hover:underline"
                 >
                   <Link2 aria-hidden className="size-4" />
-                  {t("linkedin")}
+                  {t("linkedin")} <span className="sr-only">{t("newTab")}</span>
                 </a>
               </section>
             ) : null}
@@ -159,7 +160,7 @@ export function PeerMentorPublicProfile({ mentorId }: { mentorId: string }) {
                 <dl className="space-y-3">
                   {view.weeklyHours.map((range) => (
                     <div
-                      key={`${range.dayOfWeek}-${range.start}`}
+                      key={`${range.dayOfWeek}-${range.start}-${range.end}`}
                       className="flex items-center justify-between gap-4"
                     >
                       <dt className="type-body-sm text-text-secondary">

@@ -305,10 +305,15 @@ export function usePeerMentorRequestForm(
   const send = useMutation({
     mutationFn: (input: CreatePeerMentoringRequestInput) =>
       createPeerMentoringRequest(input),
+    // The mentor's places and free slots may have changed with this request.
     onSuccess: () =>
-      queryClient.invalidateQueries({
-        queryKey: PEER_MENTORING_REQUESTS_QUERY_KEY,
-      }),
+      Promise.all(
+        [
+          PEER_MENTORING_REQUESTS_QUERY_KEY,
+          PEER_MENTOR_QUERY_KEY,
+          PEER_MENTORS_QUERY_KEY,
+        ].map((queryKey) => queryClient.invalidateQueries({ queryKey })),
+      ),
   });
 
   const changeMessage = (value: string) => {

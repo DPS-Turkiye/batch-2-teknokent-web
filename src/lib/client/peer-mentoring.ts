@@ -39,6 +39,7 @@ export async function getPeerMentor(
       ),
     );
   } catch (error) {
+    // The proxy answers 400 only for an id that isn't a uuid, which can't name a listed mentor either.
     if (
       error instanceof ClientApiError &&
       (error.status === 404 || error.status === 400)

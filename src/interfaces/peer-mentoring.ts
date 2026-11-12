@@ -40,11 +40,8 @@ export type PeerMentorCard = {
   capacityFull: boolean;
   /** Active badges; a card shows the achievements. */
   badges: PublicBadge[];
-  /**
-   * A free slot in the coming seven days ("Bu hafta müsait"). The backend always sends it; optional so cards built
-   * before it existed (other screens' fixtures) still type-check.
-   */
-  availableThisWeek?: boolean;
+  /** A free slot in the coming seven days ("Bu hafta müsait"). */
+  availableThisWeek: boolean;
 };
 
 export type PeerMentorFilter = {

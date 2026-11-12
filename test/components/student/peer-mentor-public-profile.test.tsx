@@ -129,7 +129,9 @@ describe("PeerMentorPublicProfile", () => {
     ).toBeVisible();
     expect(within(experience).getByText("TU Delft, 2025 bahar")).toBeVisible();
 
-    const linkedin = screen.getByRole("link", { name: "LinkedIn profili" });
+    const linkedin = screen.getByRole("link", {
+      name: "LinkedIn profili (yeni sekmede açılır)",
+    });
     expect(linkedin).toHaveAttribute(
       "href",
       "https://www.linkedin.com/in/deniz-kaya",
@@ -150,10 +152,49 @@ describe("PeerMentorPublicProfile", () => {
     await screen.findByRole("heading", { level: 1, name: "Elif Şahin" });
 
     expect(screen.queryByRole("region", { name: "İlgili deneyim" })).toBeNull();
-    expect(screen.queryByRole("link", { name: "LinkedIn profili" })).toBeNull();
+    expect(screen.queryByRole("link", { name: /LinkedIn profili/ })).toBeNull();
     const hours = screen.getByRole("region", { name: "Müsaitlik" });
     expect(within(hours).getByText("Haftalık saat eklenmemiş.")).toBeVisible();
     expect(within(hours).getByText("Boş saat yok")).toBeVisible();
+  });
+
+  it("never turns a LinkedIn value that isn't a web link into a link", async () => {
+    const deniz = peerMentorDetailFixture("fixture-peer-1");
+    if (!deniz) throw new Error("fixture mentor missing");
+    vi.mocked(getPeerMentor).mockResolvedValueOnce({
+      ...deniz,
+      linkedinUrl: "javascript:alert(1)",
+    });
+    renderWithQueryClient(
+      <PeerMentorPublicProfile mentorId="fixture-peer-1" />,
+    );
+    await screen.findByRole("heading", { level: 1, name: "Deniz Kaya" });
+
+    expect(screen.queryByRole("link", { name: /LinkedIn profili/ })).toBeNull();
+  });
+
+  it("reloads the mentor after a request is sent, since their places may have changed", async () => {
+    const user = userEvent.setup();
+    renderWithQueryClient(
+      <PeerMentorPublicProfile mentorId="fixture-peer-1" />,
+    );
+    await user.click(
+      await screen.findByRole("button", {
+        name: "Mentorluk Talebi Gönder, Deniz Kaya",
+      }),
+    );
+    const dialog = screen.getByRole("dialog", {
+      name: "Mentorluk talebi gönder",
+    });
+    await user.type(
+      within(dialog).getByLabelText("Kısa mesaj"),
+      "Staj başvurusunda CV'mi birlikte gözden geçirebilir miyiz?",
+    );
+    await user.click(
+      within(dialog).getByRole("button", { name: "Mentorluk Talebi Gönder" }),
+    );
+
+    await waitFor(() => expect(getPeerMentor).toHaveBeenCalledTimes(2));
   });
 
   it("says why a request can't be sent to a mentor already asked", async () => {
