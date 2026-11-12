@@ -74,7 +74,7 @@ describe("admin Yeni Program Oluştur", () => {
 
   it("starts Teknokent on its only type, so the admin can go straight on", async () => {
     editionState.current = Edition.Teknokent;
-    const clicker = userEvent.setup();
+    const clicker = pickerUser();
     renderWithQueryClient(<ProgramWizardView />);
 
     expect(
