@@ -4,6 +4,7 @@ import { z } from "zod";
 import {
   jsonObjectSchema,
   readJsonBody,
+  readSearchParams,
   stringOrNullSchema,
 } from "@/lib/server/request-body";
 import tr from "@/messages/tr.json";
@@ -105,5 +106,33 @@ describe("readJsonBody", () => {
     expect(
       await readJsonBody(post(JSON.stringify({ a: 1 })), jsonObjectSchema),
     ).toEqual({ ok: true, data: { a: 1 } });
+  });
+});
+
+describe("readSearchParams", () => {
+  const querySchema = z.object({
+    q: z.string().trim().min(3),
+    page: z.string().optional(),
+  });
+
+  it("answers the checked parameters, without ones the schema does not know", async () => {
+    const result = await readSearchParams(
+      new URLSearchParams({ q: "  ayse ", extra: "dropped" }),
+      querySchema,
+    );
+
+    expect(result).toEqual({ ok: true, data: { q: "ayse" } });
+  });
+
+  it("refuses a missing or invalid parameter, naming it", async () => {
+    for (const params of [new URLSearchParams(), new URLSearchParams("q=ay")]) {
+      const result = await readSearchParams(params, querySchema);
+      expect(result.ok).toBe(false);
+      expect(await refusal(result)).toEqual({
+        code: "INVALID_REQUEST",
+        message: tr.apiErrors.invalidRequestFields,
+        fields: ["q"],
+      });
+    }
   });
 });

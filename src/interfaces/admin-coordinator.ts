@@ -27,3 +27,16 @@ export type CoordinatorAccount = {
   status: UserAccountStatus;
   outcome: CoordinatorCandidateStatus | null;
 };
+
+/** `GET /api/admin/coordinators/search?q=`: an approved coordinator whose email starts with what was typed. */
+export type CoordinatorSearchResult = {
+  id: string;
+  fullName: string;
+  email: string;
+};
+
+/** An email with no menton account, invited as a coordinator when the program is saved. */
+export type NewCoordinatorInput = {
+  fullName: string;
+  email: string;
+};

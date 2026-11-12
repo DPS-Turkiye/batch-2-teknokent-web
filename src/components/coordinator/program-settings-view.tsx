@@ -4,6 +4,7 @@ import { Plus } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
+import { CoordinatorPicker } from "@/components/admin/coordinator-picker";
 import { ProgramCurriculumSection } from "@/components/coordinator/program-curriculum-section";
 import { ProgramDetailFrame } from "@/components/coordinator/program-detail-frame";
 import { ProgramPeerCategories } from "@/components/coordinator/program-peer-categories-section";
@@ -22,6 +23,7 @@ import {
   type CoordinatorProgramDetail,
 } from "@/interfaces/coordinator-program";
 import { ProgramType } from "@/interfaces/program";
+import { NO_COORDINATOR_CHOICES } from "@/lib/coordinator-picker";
 import {
   ProgramTab,
   RULE_LIMITS,
@@ -469,26 +471,13 @@ function CoordinatorsSection({
           </p>
         ) : team.picking ? (
           <div className="space-y-2">
-            {team.candidatesLoading ? (
-              <p className="text-[13px] text-[#858c96]">{t("loading")}</p>
-            ) : team.candidates.length === 0 ? (
-              <p className="text-[13px] text-[#858c96]">{t("noCandidates")}</p>
-            ) : (
-              <ul aria-label={t("candidates")} className="flex flex-wrap gap-2">
-                {team.candidates.map((candidate) => (
-                  <li key={candidate.id}>
-                    <button
-                      type="button"
-                      disabled={team.busy}
-                      onClick={() => team.add(candidate.id)}
-                      className="rounded-full border border-[#e9ecef] px-3 py-1.5 text-[13px] text-[#22262b]"
-                    >
-                      + {candidate.fullName}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
+            {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+            <CoordinatorPicker
+              chosen={NO_COORDINATOR_CHOICES}
+              onChange={team.pick}
+              programId={programId}
+              disabled={team.busy}
+            />
             <button
               type="button"
               onClick={team.closePicker}
