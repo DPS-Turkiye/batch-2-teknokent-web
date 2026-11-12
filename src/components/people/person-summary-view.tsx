@@ -186,6 +186,7 @@ function MentorSections({
           </div>
         ) : null}
       </Section>
+      <AvailabilitySection availability={mentor.availability} />
       {mentor.experiences.length > 0 ? (
         <Section title={t("experience")}>
           <ul className="space-y-3">
@@ -212,6 +213,64 @@ function MentorSections({
         </Section>
       ) : null}
     </>
+  );
+}
+
+// TEST UI: placeholder until the design team's screen; replace when it arrives.
+function AvailabilitySection({
+  availability,
+}: {
+  availability: NonNullable<SummaryView["mentor"]>["availability"];
+}) {
+  const t = useTranslations("personSummary");
+  return (
+    <Section title={t("availability")}>
+      {availability.isEmpty ? (
+        <p className="text-[13.5px] text-[#858c96]">{t("availabilityEmpty")}</p>
+      ) : (
+        <div className="space-y-4">
+          {availability.days.length > 0 ? (
+            <div className="space-y-2">
+              <p className="text-[12px] text-[#858c96]">
+                {t("availabilityWeekly")}
+              </p>
+              <dl className="grid gap-y-1.5 text-[13.5px] sm:grid-cols-[140px_minmax(0,1fr)]">
+                {availability.days.map((day) => (
+                  <div key={day.key} className="contents">
+                    <dt className="text-[#676e78]">{day.label}</dt>
+                    <dd className="text-[#22262b]">{day.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          ) : null}
+          {availability.daysOff.length > 0 ? (
+            <div className="space-y-2">
+              <p className="text-[12px] text-[#858c96]">
+                {t("availabilityDaysOff")}
+              </p>
+              <ul className="space-y-1 text-[13.5px] text-[#22262b]">
+                {availability.daysOff.map((dayOff) => (
+                  <li key={dayOff.key}>{dayOff.value}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          {availability.extraSlots.length > 0 ? (
+            <div className="space-y-2">
+              <p className="text-[12px] text-[#858c96]">
+                {t("availabilityExtraSlots")}
+              </p>
+              <ul className="space-y-1 text-[13.5px] text-[#22262b]">
+                {availability.extraSlots.map((slot) => (
+                  <li key={slot.key}>{slot.value}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </div>
+      )}
+    </Section>
   );
 }
 

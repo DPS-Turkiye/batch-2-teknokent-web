@@ -72,7 +72,12 @@
     "signUp": "Kayıt Ol",
     "invite": "Bir davet aldın mı? Davet kodunla devam et",
     "odtu": "ODTÜ Hesabıyla Giriş Yap",
-    "otg": "ODTÜ TEKNOKENT Girişimcilik ile giriş yap"
+    "otg": "ODTÜ TEKNOKENT Girişimcilik ile giriş yap",
+    "odtuIntro": "ODTÜ öğrencisi veya akademisyeniysen ODTÜ hesabınla giriş yap. Ayrı bir kayıt gerekmez.",
+    "or": "veya",
+    "staffQuestion": "Koordinatör, admin veya girişim programı hesabın mı var?",
+    "emailLogin": "E-posta ile giriş yap",
+    "help": "Giriş yapamıyor musun? Yardım al"
   },
   "otgLogin": {
     "signingIn": "ODTÜ TEKNOKENT Girişimcilik hesabınla giriş yapılıyor…",
@@ -110,6 +115,8 @@
     "lastNamePlaceholder": "Soyadınız",
     "email": "E-posta",
     "emailPlaceholder": "ornek@email.com",
+    "emailDomainHint": "Kayıt için {domains} uzantılı e-posta adresini kullan.",
+    "emailDomainNotAllowed": "Bu adresle kayıt olunamaz; {domains} uzantılı e-posta adresini kullan.",
     "phone": "Telefon",
     "password": "Şifre",
     "passwordConfirm": "Şifre tekrar",
@@ -216,7 +223,24 @@
           "Koordinatör onayı"
         ],
         "action": "Mentor olarak devam et"
+      },
+      "student": {
+        "badge": "İŞKUR Öğrencisi",
+        "title": "Akran mentoru olmak istiyorum",
+        "description": "Profilini ve programını seçersin; koordinatör onayından sonra mentorluk eğitimini tamamlayıp rozetini aldığında ODTÜ öğrencilerine akran mentorluğu verirsin.",
+        "steps": [
+          "Kişisel profil",
+          "Program seçimi",
+          "Koordinatör onayı",
+          "Eğitim ve rozet"
+        ],
+        "action": "İŞKUR öğrencisi olarak devam et"
       }
+    },
+    "odtuBanner": {
+      "title": "ODTÜ öğrencisi veya akademisyeni misin?",
+      "tag": "Kayıt gerekmez",
+      "text": "ODTÜ hesabınla giriş yap. Office Hours, Akran Mentörlüğü ve akademik danışmanın hesabındaki bilgilere göre açılır."
     }
   },
   "signupFlow": {
@@ -271,12 +295,10 @@
     "sendToCoordinator": "Koordinatöre gönder",
     "continue": "Devam et",
     "draftSaved": "Taslak kaydedildi.",
-    "soloSubmittedTitle": "Başvurun koordinatöre gönderildi",
-    "soloLastStepLabel": "Startup'ını oluşturur ya da bir takıma katılırsın",
-    "soloNextSteps": [
-      "Onaylanırsa Startup'ım sayfasından kendi startup'ını oluşturabilir ya da takımının koduyla katılabilirsin.",
-      "Düzenleme istenirse e-postayla bilgilendirilirsin.",
-      "Mentor talebi, startup'ın onaylandıktan sonra açılır."
+    "individualSubmittedTitle": "Başvurun alındı; koordinatör onayından sonra akran mentörlüğü alanın açılacak.",
+    "individualLastStepLabel": "Akran mentörlüğü alanın açılır",
+    "individualNextSteps": [
+      "Düzenleme istenirse e-postayla bilgilendirilirsin."
     ]
   },
   "signupSteps": {
@@ -321,8 +343,6 @@
     "supportAreasSubtitle": "En fazla {max} alan seç. Mentor önerileri buna göre sıralanır.",
     "supportAreasLimit": "En fazla {max} alan seçebilirsin. Değiştirmek için birini kaldır.",
     "programSubtitle": "Başvurun bu programın koordinatörüne gider.",
-    "startupLater": "Startup'ı daha sonra oluşturacağım",
-    "startupLaterHint": "Onaylandıktan sonra Startup'ım sayfasından startup'ını oluşturabilir ya da bir takıma katılabilirsin.",
     "individualProgram": "Bu programa bireysel katılıyorsun; startup bilgisi gerekmez.",
     "programEligibilityChecking": "Bu programa katılıp katılamayacağın kontrol ediliyor…",
     "programEligibilityRefused": "Bu programa bu e-posta adresiyle katılamazsın. Program koordinatörüne başvur ya da başka bir program seç.",
@@ -362,8 +382,7 @@
     "missingTitle": "Pitch deck ve prototip yüklemeden de gönderebilirsin",
     "missingBody": "Ancak mentorlar startupını değerlendirirken en çok bu iki dosyaya bakıyor. Sonradan da ekleyebilirsin.",
     "consent": "Verdiğim bilgilerin doğru olduğunu onaylıyorum ve profilin koordinatör tarafından incelenmesini kabul ediyorum.",
-    "program": "Program",
-    "startupLater": "Daha sonra oluşturulacak"
+    "program": "Program"
   },
   "onboarding": {
     "exiting": "Çıkılıyor…",
@@ -2044,7 +2063,8 @@
     "avatar": "Profil fotoğrafı",
     "profile-pdf": "Profil PDF'i",
     "requested-doc": "İstenen belge",
-    "syllabus": "Müfredat"
+    "syllabus": "Müfredat",
+    "weekly-program": "Haftalık program"
   },
   "startupStages": {
     "PROBLEM": "Problem",
@@ -3284,6 +3304,7 @@
     "meetingsTab": "Toplantılar",
     "meetingsHeading": "toplantılar",
     "linkPlaceholder": "Toplantı linki yapıştır…",
+    "linkNotInCalendar": "Bu bağlantı takviminde bir toplantıya ait değil; asistan yalnızca Menton takvimindeki toplantılara katılabilir.",
     "addBot": "Bot ekle",
     "loadingMeetings": "Toplantılar yükleniyor…",
     "noMeetings": "Kayıtlı toplantı yok. Takvimden toplantı oluştur veya link yapıştır.",
@@ -5987,6 +6008,8 @@
     "academicsLoadFailed": "Akademisyenler yüklenemedi.",
     "weekPlanLoadFailed": "Haftalık plan yüklenemedi.",
     "weekPlanSaveFailed": "Haftalık plan kaydedilemedi.",
+    "weeklyProgramReadFailed": "Haftalık program okunamadı.",
+    "weeklyProgramSaveFailed": "Haftalık program kaydedilemedi.",
     "programThisWeekLoadFailed": "Bu haftanın planı yüklenemedi.",
     "sessionRefreshFailed": "Oturum bilgilerin güncellenemedi.",
     "personSummaryLoadFailed": "Profil yüklenemedi.",
@@ -6760,6 +6783,12 @@
     "completedMentorships": "Tamamlanan mentorluk",
     "registered": "Kayıt tarihi",
     "open": "Profili gör",
-    "openFor": "Profili gör: {name}"
+    "openFor": "Profili gör: {name}",
+    "availability": "Müsait zamanlar",
+    "availabilityEmpty": "Henüz müsait zaman eklenmemiş.",
+    "availabilityWeekly": "Haftalık",
+    "availabilityDaysOff": "Yaklaşan izin günleri",
+    "availabilityExtraSlots": "Ek zamanlar",
+    "availabilityExtraSlot": "{day} · {time} ({minutes} dk)"
   }
 }

@@ -15,7 +15,7 @@ const academician: AppSession = {
   role: UserRole.Academician,
   permissions: [UserRole.Academician],
   institutionKinds: [IdentityKind.Academic],
-  // The academician workspace exists only on the ODTÜ edition.
+  // The academician workspace exists only in the ODTÜ deployment.
   edition: Edition.Odtu,
 };
 vi.mock("next/navigation", () => ({

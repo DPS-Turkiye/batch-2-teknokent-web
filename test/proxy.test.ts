@@ -335,7 +335,13 @@ describe("proxy per edition", () => {
     "/lti/launch",
     "/login/odtu/dev",
   ];
-  const TEKNOKENT_PAGES = ["/m", "/m/login", "/assistant", "/auth/otg/start"];
+  const TEKNOKENT_PAGES = [
+    "/m",
+    "/m/login",
+    "/assistant",
+    "/auth/otg/start",
+    "/invite",
+  ];
 
   function rewrittenTo(response: Response) {
     return response.headers.get("x-middleware-rewrite");

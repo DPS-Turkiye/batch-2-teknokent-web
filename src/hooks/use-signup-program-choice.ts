@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 
 import { useProgramEligibility } from "@/hooks/use-program-eligibility";
 import { useProgramNames } from "@/hooks/use-programs";
@@ -24,14 +24,18 @@ export function useSignupProgramChoice(wizard: SignupWizard) {
       const match = programs.data?.find((program) => program.name === name);
       if (!match) return;
       updateStartup("programId", match.id);
-      if (match.individualMentees) {
-        updateStartup("startupLater", true);
-      } else if (individual) {
-        updateStartup("startupLater", false);
-      }
+      updateStartup("individualProgram", match.individualMentees);
     },
-    [individual, programs.data, updateStartup],
+    [programs.data, updateStartup],
   );
+
+  // A draft saved before the program list loaded (or by an older version) learns the program's kind here.
+  const marked = draft.startup.individualProgram ?? false;
+  useEffect(() => {
+    if (selected && marked !== individual) {
+      updateStartup("individualProgram", individual);
+    }
+  }, [individual, marked, selected, updateStartup]);
 
   return {
     loading: programs.isLoading,
