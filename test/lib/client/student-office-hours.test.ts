@@ -149,6 +149,32 @@ describe("student Office Hours client", () => {
     ]);
   });
 
+  it("never offers a time already past, and none once the academician is no longer listed", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-11-23T12:00:00+03:00"));
+    vi.mocked(getAcademicianOpenSlots).mockResolvedValueOnce([
+      {
+        startsAt: "2026-11-23T09:00:00+03:00",
+        endsAt: "2026-11-23T09:30:00+03:00",
+      },
+      {
+        startsAt: "2026-11-23T15:00:00+03:00",
+        endsAt: "2026-11-23T15:30:00+03:00",
+      },
+    ]);
+    const from = new Date("2026-11-23T00:00:00+03:00");
+
+    expect(
+      (await getOfficeHoursSlots("oh-1", from, 7)).map((slot) => slot.startsAt),
+    ).toEqual(["2026-11-23T15:00:00+03:00"]);
+
+    vi.mocked(getAcademicianOpenSlots).mockRejectedValueOnce(
+      new ClientApiError("Academician not found.", 404),
+    );
+    expect(await getOfficeHoursSlots("oh-1", from, 7)).toEqual([]);
+    vi.useRealTimers();
+  });
+
   it("sends a request for the picked slot and shows it as a pending Office Hours appointment", async () => {
     vi.mocked(sendOfficeHoursRequest).mockResolvedValue(request());
 

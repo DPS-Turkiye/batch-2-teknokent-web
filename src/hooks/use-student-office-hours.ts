@@ -104,16 +104,25 @@ function useAcademicianEntry(id: string) {
     queryFn: () => getOfficeHoursAcademician(id),
     enabled: !isAdvisor,
   });
+  // On the "advisor" route, the advisor's own listing (times, booking, history) once they opted in.
+  const listed = useQuery({
+    queryKey: OFFICE_HOURS_ACADEMICIANS_QUERY_KEY,
+    queryFn: getOfficeHoursAcademicians,
+    enabled: isAdvisor,
+  });
+  const advisorAccount = record.data?.advisor?.userId ?? null;
+  const listedAdvisor =
+    isAdvisor && advisorAccount !== null
+      ? listed.data?.find((item) => item.accountId === advisorAccount)
+      : undefined;
   const source = isAdvisor ? record : sample;
   const academician = isAdvisor
-    ? record.data
-      ? advisorAcademician(record.data)
-      : null
+    ? (listedAdvisor ?? (record.data ? advisorAcademician(record.data) : null))
     : (sample.data ?? null);
   return {
     academician,
-    /** Whose appointments are "with them": the advisor's own account id, not the route's "advisor". */
-    counterpartId: isAdvisor ? (record.data?.advisor?.userId ?? null) : id,
+    /** Whose appointments are "with them": the listing's id, as the requests name it. */
+    counterpartId: listedAdvisor?.id ?? (isAdvisor ? advisorAccount : id),
     isLoading: source.isLoading,
     error: source.error,
     notFound: source.isSuccess && academician === null,
@@ -142,10 +151,10 @@ export function useStudentOfficeHours() {
     department: null,
     availableOnly: true,
   });
-  const everyone = [
-    ...(advisor ? [advisor] : []),
-    ...(academicians.data ?? []),
-  ];
+  const directory = (academicians.data ?? []).filter(
+    (item) => item.id !== listedAdvisor?.id,
+  );
+  const everyone = [...(advisor ? [advisor] : []), ...directory];
   const slots = useQueries({
     queries: everyone.map((item) =>
       slotsQuery(item, from, OFFICE_HOURS_LOOKAHEAD_DAYS),
@@ -158,9 +167,6 @@ export function useStudentOfficeHours() {
     ]),
   );
   const freeOf = (id: string) => free.get(id) ?? [];
-  const directory = (academicians.data ?? []).filter(
-    (item) => item !== listedAdvisor,
-  );
 
   return {
     isLoading: academicians.isLoading,
@@ -386,6 +392,10 @@ export function useOfficeHoursAlternativeAnswer(appointment: Appointment) {
           queryKey: STUDENT_APPOINTMENTS_QUERY_KEY,
         }),
         queryClient.invalidateQueries({ queryKey: STUDENT_HOME_QUERY_KEY }),
+        // Withdrawing frees the time; taking another one books it.
+        queryClient.invalidateQueries({
+          queryKey: OFFICE_HOURS_SLOTS_QUERY_KEY,
+        }),
       ]),
   });
   const respond = async (accept: boolean) => {

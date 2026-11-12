@@ -110,7 +110,10 @@ export async function getOfficeHoursAcademician(
   }
 }
 
-/** The academician's open slots from `from` for `days` days, each as long as their slot. */
+/**
+ * The academician's open slots from `from` (never before now) for `days` days, each as long as their slot; none
+ * once they are no longer listed.
+ */
 export async function getOfficeHoursSlots(
   academicianId: string,
   from: Date,
@@ -118,12 +121,19 @@ export async function getOfficeHoursSlots(
 ): Promise<StudentOfficeHoursSlot[]> {
   const until = new Date(from);
   until.setDate(until.getDate() + days);
-  return (await getAcademicianOpenSlots(academicianId))
-    .filter((slot) => {
-      const startsAt = new Date(slot.startsAt);
-      return startsAt >= from && startsAt < until;
-    })
-    .map((slot) => ({ ...slot, available: true }));
+  const now = new Date();
+  const start = from > now ? from : now;
+  try {
+    return (await getAcademicianOpenSlots(academicianId))
+      .filter((slot) => {
+        const startsAt = new Date(slot.startsAt);
+        return startsAt >= start && startsAt < until;
+      })
+      .map((slot) => ({ ...slot, available: true }));
+  } catch (error) {
+    if (isNotFound(error)) return [];
+    throw error;
+  }
 }
 
 export async function requestOfficeHours(

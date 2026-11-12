@@ -7,6 +7,7 @@ import { fetchInstitutionRecord } from "@/lib/client/institution";
 import { getStudentAppointments } from "@/lib/client/student-appointments";
 import { peerAppointment } from "@test/fixtures/student-appointments";
 import { STUDENT_RECORD } from "@test/fixtures/student-home";
+import { listAdvisorAs } from "@test/fixtures/student-office-hours-client";
 import { renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/student-appointments", () => ({
@@ -46,6 +47,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.useRealTimers();
+  listAdvisorAs(null);
 });
 
 describe("OfficeHoursProfileView", () => {
@@ -75,6 +77,20 @@ describe("OfficeHoursProfileView", () => {
       "href",
       "/student/office-hours/sample-academician-kaya/book",
     );
+  });
+
+  it("opens the advisor's own listing on the advisor's page once they list their office hours", async () => {
+    vi.mocked(fetchInstitutionRecord).mockResolvedValue(STUDENT_RECORD);
+    listAdvisorAs("academician-1");
+    renderWithQueryClient(<OfficeHoursProfileView academicianId="advisor" />);
+
+    expect(
+      await screen.findByRole("heading", { name: /Ahmet Kaya/ }),
+    ).toBeVisible();
+    const week = await screen.findByRole("region", {
+      name: "Bu hafta müsait saatler",
+    });
+    expect(await within(week).findAllByRole("listitem")).not.toHaveLength(0);
   });
 
   it("lists this week's free times and the earlier sessions with them", async () => {
