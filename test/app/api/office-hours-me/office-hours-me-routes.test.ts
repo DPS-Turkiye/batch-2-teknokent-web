@@ -23,7 +23,7 @@ import { Weekday } from "@/interfaces/mentor";
 import { UserRole } from "@/interfaces/session";
 import * as officeHours from "@/lib/api/office-hours-me";
 import { getSessionUser } from "@/lib/session";
-import { backendResponse } from "@test/fixtures/route-handlers";
+import { backendRefusal, backendResponse } from "@test/fixtures/route-handlers";
 
 vi.mock("@/lib/api/office-hours-me", () => ({
   fetchMyOfficeHoursAvailability: vi.fn(),
@@ -196,7 +196,7 @@ describe("office hours (Menton account) proxy routes", () => {
 
   it("passes a refusal from the backend through as it is", async () => {
     vi.mocked(officeHours.fetchMyOfficeHoursAvailability).mockResolvedValue(
-      backendResponse({ message: "Office hours not found." }, 404),
+      backendRefusal(404, { message: "Office hours not found." }),
     );
     expect((await getAvailability()).status).toBe(404);
   });
