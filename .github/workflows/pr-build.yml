@@ -1,9 +1,8 @@
 name: PR Build Check
 
 on:
+  # Every PR, not only those into main: stacked PRs target feature branches and would otherwise merge unchecked.
   pull_request:
-    branches:
-      - main
   push:
     branches:
       - main

@@ -10,6 +10,7 @@ import type {
   StudentOnboardingDraft,
   WeeklyAvailability,
 } from "@/interfaces/mentor-onboarding";
+import { minutesOfDay } from "@/lib/utils";
 
 const SHORT_DAY: Record<Weekday, string> = {
   [Weekday.Monday]: "Pzt",
@@ -20,11 +21,6 @@ const SHORT_DAY: Record<Weekday, string> = {
   [Weekday.Saturday]: "Cmt",
   [Weekday.Sunday]: "Paz",
 };
-
-function minutesOf(time: string) {
-  const [hours = 0, minutes = 0] = time.split(":").map(Number);
-  return hours * 60 + (minutes || 0);
-}
 
 function hourLabel(time: string) {
   const [hours, minutes] = time.split(":");
@@ -40,7 +36,7 @@ export function openDays(week: WeeklyAvailability) {
 /** An open day whose end is not after its start can't be saved. */
 export function invalidDays(week: WeeklyAvailability) {
   return openDays(week).filter(
-    (day) => minutesOf(week[day].end) <= minutesOf(week[day].start),
+    (day) => minutesOfDay(week[day].end) <= minutesOfDay(week[day].start),
   );
 }
 
@@ -61,13 +57,13 @@ export function weeklyCapacity(draft: MentorOnboardingDraft) {
       total +
       Math.max(
         0,
-        minutesOf(draft.week[day].end) - minutesOf(draft.week[day].start),
+        minutesOfDay(draft.week[day].end) - minutesOfDay(draft.week[day].start),
       ),
     0,
   );
   const perDay = openDays(draft.week).reduce((total, day) => {
     const span =
-      minutesOf(draft.week[day].end) - minutesOf(draft.week[day].start);
+      minutesOfDay(draft.week[day].end) - minutesOfDay(draft.week[day].start);
     const slot = draft.durationMinutes + draft.bufferMinutes;
     return total + Math.max(0, Math.floor((span + draft.bufferMinutes) / slot));
   }, 0);

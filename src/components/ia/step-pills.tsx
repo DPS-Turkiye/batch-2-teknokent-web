@@ -40,7 +40,7 @@ export function StepPills({
                   ? "bg-background-inverse text-text-inverse"
                   : done
                     ? "text-text-primary"
-                    : "text-text-muted"
+                    : "text-text-secondary"
               }`}
             >
               <span
@@ -50,7 +50,7 @@ export function StepPills({
                     ? "bg-background-surface text-text-primary"
                     : done
                       ? "bg-status-success-icon"
-                      : "bg-background-muted text-text-muted"
+                      : "bg-background-muted text-text-secondary"
                 }`}
               >
                 {done ? (
