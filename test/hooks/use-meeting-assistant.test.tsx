@@ -37,6 +37,7 @@ import { InLocale } from "@test/test-utils";
 const calendar = vi.hoisted(() => ({
   meetings: [] as MeetingItem[],
   loading: false,
+  failed: false,
   refetch: vi.fn(),
 }));
 
@@ -50,6 +51,7 @@ vi.mock("@/hooks/use-meetings", () => ({
   useMeetings: () => ({
     data: calendar.meetings,
     isLoading: calendar.loading,
+    isSuccess: !calendar.loading && !calendar.failed,
     refetch: calendar.refetch,
   }),
 }));
@@ -135,6 +137,7 @@ describe("useMeetingAssistant", () => {
     vi.setSystemTime(NOW);
     calendar.meetings = [];
     calendar.loading = false;
+    calendar.failed = false;
     vi.mocked(useAiFeatures).mockReturnValue(aiFeatures());
     vi.mocked(getAssistantShare).mockResolvedValue(share());
     vi.mocked(fetchTranscript).mockResolvedValue([]);
@@ -284,6 +287,48 @@ describe("useMeetingAssistant", () => {
       act(() => result.current.setMeetingUrl(OTHER));
 
       expect(result.current.linkNotInCalendar).toBe(false);
+    });
+
+    it("does not warn when the calendar could not be loaded", async () => {
+      calendar.failed = true;
+      const { result } = renderAssistant();
+
+      act(() => result.current.setMeetingUrl(OTHER));
+
+      expect(result.current.linkNotInCalendar).toBe(false);
+    });
+
+    it("keeps a link typed while the bot was being sent", async () => {
+      const NEXT = "https://meet.google.com/ccc-dddd-eee";
+      let finish: (
+        value: Awaited<ReturnType<typeof addMeetingBot>>,
+      ) => void = () => undefined;
+      vi.mocked(addMeetingBot).mockReturnValue(
+        new Promise((resolve) => {
+          finish = resolve;
+        }),
+      );
+      const { result } = renderAssistant();
+      act(() => result.current.setMeetingUrl(OTHER));
+
+      let sending: Promise<void> = Promise.resolve();
+      act(() => {
+        sending = result.current.addBot();
+      });
+      act(() => result.current.setMeetingUrl(NEXT));
+      await act(async () => {
+        finish({
+          id: "bot-1",
+          platform: "google_meet",
+          nativeMeetingId: "zzz-zzzz-zzz",
+          status: "joining",
+          title: "Bot",
+        });
+        await sending;
+      });
+
+      expect(addMeetingBot).toHaveBeenCalledWith(OTHER);
+      expect(result.current.meetingUrl).toBe(NEXT);
     });
 
     it("does not warn an admin, who may send the assistant into any meeting", async () => {

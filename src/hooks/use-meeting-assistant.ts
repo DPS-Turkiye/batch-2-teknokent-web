@@ -247,7 +247,7 @@ export function useMeetingAssistant(
   );
   const linkNotInCalendar =
     role !== UserRole.Admin &&
-    !platformMeetingsQuery.isLoading &&
+    platformMeetingsQuery.isSuccess &&
     isForeignMeetingLink(calendarItems, typedUrl);
   // Picking a meeting loads its link into the box again.
   const selectMeeting = useCallback((id: string) => {
@@ -509,7 +509,11 @@ export function useMeetingAssistant(
     : MEETING_STATUS_META[MeetingStatus.Scheduled];
   const addBot = async (event?: SubmitEvent) => {
     event?.preventDefault();
-    if (await sendBotForUrl(linkBoxValue)) setTypedUrl(null);
+    const sent = linkBoxValue;
+    if (await sendBotForUrl(sent)) {
+      // A link typed while the bot was being sent stays in the box.
+      setTypedUrl((current) => (current === sent ? null : current));
+    }
   };
 
   const requestMeetingReport = useCallback(
