@@ -98,6 +98,53 @@ describe("PersonSummaryView", () => {
     ).toBeInTheDocument();
   });
 
+  it("shows the times a mentor opened, grouped by day, with days off and extra slots", async () => {
+    vi.mocked(getPersonSummary).mockResolvedValue(mentorSummary());
+    renderWithQueryClient(<PersonSummaryView userId="mentor-1" />);
+
+    const card = within(
+      await screen.findByRole("region", { name: "Müsait zamanlar" }),
+    );
+    expect(card.getByText("Pazartesi")).toBeInTheDocument();
+    expect(card.getByText("09:00–10:00")).toBeInTheDocument();
+    expect(card.getByText("Salı")).toBeInTheDocument();
+    expect(card.getByText("14:00–15:00, 10:00–12:00")).toBeInTheDocument();
+    expect(card.getByText("Yaklaşan izin günleri")).toBeInTheDocument();
+    expect(card.getByText(/20.*22 Kasım/)).toBeInTheDocument();
+    expect(card.getByText("Ek zamanlar")).toBeInTheDocument();
+    expect(card.getByText(/12:00 \(45 dk\)$/)).toBeInTheDocument();
+  });
+
+  it("says so when a mentor has not set any times", async () => {
+    const mentor = mentorSummary().mentor;
+    vi.mocked(getPersonSummary).mockResolvedValue(
+      mentorSummary({
+        mentor: mentor && {
+          ...mentor,
+          availability: { weekly: [], daysOff: [], extraSlots: [] },
+        },
+      }),
+    );
+    renderWithQueryClient(<PersonSummaryView userId="mentor-1" />);
+
+    const card = within(
+      await screen.findByRole("region", { name: "Müsait zamanlar" }),
+    );
+    expect(
+      card.getByText("Henüz müsait zaman eklenmemiş."),
+    ).toBeInTheDocument();
+  });
+
+  it("shows no availability card for a mentee, who keeps none", async () => {
+    vi.mocked(getPersonSummary).mockResolvedValue(menteeSummary());
+    renderWithQueryClient(<PersonSummaryView userId="mentee-1" />);
+
+    await screen.findByRole("heading", { name: "Ece Kaya" });
+    expect(
+      screen.queryByRole("region", { name: "Müsait zamanlar" }),
+    ).toBeNull();
+  });
+
   it("never turns a non-web LinkedIn or website value into a link", async () => {
     vi.mocked(getPersonSummary).mockResolvedValue(
       menteeSummary({

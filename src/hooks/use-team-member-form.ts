@@ -3,12 +3,20 @@
 import { useCallback, useState } from "react";
 
 import type { TeamMemberDraft } from "@/interfaces/signup";
+import { ALLOWED_EMAIL_DOMAINS } from "@/lib/const";
+import {
+  EMAIL_PATTERN,
+  formatEmailDomains,
+  isAllowedEmailDomain,
+} from "@/lib/email";
 
 const EMPTY: TeamMemberDraft = { fullName: "", jobTitle: "", email: "" };
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /** The inline "+ Üye ekle" form on the startup step. */
-export function useTeamMemberForm(onAdd: (member: TeamMemberDraft) => void) {
+export function useTeamMemberForm(
+  onAdd: (member: TeamMemberDraft) => void,
+  allowedEmailDomains: readonly string[] = ALLOWED_EMAIL_DOMAINS,
+) {
   const [open, setOpen] = useState(false);
   const [member, setMember] = useState<TeamMemberDraft>(EMPTY);
   const [error, setError] = useState("");
@@ -38,9 +46,15 @@ export function useTeamMemberForm(onAdd: (member: TeamMemberDraft) => void) {
       setError("Geçerli bir e-posta adresi yaz.");
       return;
     }
+    if (email && !isAllowedEmailDomain(email, allowedEmailDomains)) {
+      setError(
+        `Üyenin ${formatEmailDomains(allowedEmailDomains)} uzantılı e-posta adresini yaz.`,
+      );
+      return;
+    }
     onAdd({ fullName, jobTitle: member.jobTitle.trim(), email });
     cancel();
-  }, [cancel, member, onAdd]);
+  }, [allowedEmailDomains, cancel, member, onAdd]);
 
   return { open, openForm, member, error, update, submit, cancel };
 }
