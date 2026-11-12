@@ -56,5 +56,56 @@
       "reply": "Reply",
       "waiting": "Awaiting reply"
     }
+  },
+  "profile": {
+    "title": "My profile",
+    "subtitle": "Mentor suggestions are based on your interests and goal.",
+    "interests": {
+      "title": "My interests and goals",
+      "edit": "Edit",
+      "loading": "Loading your interests…",
+      "loadError": "Your interests could not be loaded.",
+      "retry": "Try again",
+      "topics": "Topics you want support with",
+      "goal": "Your goal",
+      "noGoal": "You haven't written a goal yet.",
+      "empty": "You haven't picked any interests yet. Press Edit to pick some.",
+      "save": "Save",
+      "saving": "Saving…",
+      "cancel": "Cancel",
+      "saveError": "Could not save. Try again."
+    },
+    "institution": {
+      "title": "Institutional details",
+      "source": "From ODTÜ · read-only",
+      "locked": "Not editable",
+      "loading": "Loading institutional details…",
+      "missingTitle": "No institutional record",
+      "missingBody": "Your account didn't match an ODTÜ record; it shows here once you sign in with ODTÜ.",
+      "loadError": "Institutional details could not be loaded.",
+      "retry": "Try again",
+      "fullName": "Full name",
+      "email": "Institutional e-mail",
+      "department": "Department",
+      "classYear": "Year",
+      "classYearValue": "Year {year}",
+      "unknown": "Unknown"
+    },
+    "photo": {
+      "title": "Profile photo",
+      "optional": "Optional",
+      "upload": "Upload photo",
+      "uploading": "Uploading…",
+      "formats": "JPG, PNG or WEBP · up to 5 MB",
+      "note": "Only your mentors and the academicians you ask for an appointment see your photo. Without one, your initials show."
+    },
+    "advisor": {
+      "label": "My academic advisor",
+      "note": "The advisor relationship comes from the institutional record; it can't be changed in menton."
+    },
+    "visibility": {
+      "title": "Where do your details show?",
+      "body": "A mentor you send a request to sees your interests and goal. Your institutional details are shared only as your name and department."
+    }
   }
 }
