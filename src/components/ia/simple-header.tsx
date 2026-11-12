@@ -3,7 +3,6 @@
 import { useTranslations } from "next-intl";
 
 import { MentonWordmark } from "@/components/common/menton-wordmark";
-import { ONBOARDING_HELP_HREF } from "@/components/onboarding/onboarding-tone";
 
 /**
  * The plain top bar of flows outside a workspace (Figma "Header / Basit", 79:2): the wordmark, "Yardım" and, when
@@ -11,12 +10,13 @@ import { ONBOARDING_HELP_HREF } from "@/components/onboarding/onboarding-tone";
  */
 export function SimpleHeader({
   homeHref = "/",
-  helpHref = ONBOARDING_HELP_HREF,
+  helpHref,
   onLogout,
   loggingOut = false,
 }: {
   homeHref?: string | undefined;
-  helpHref?: string | undefined;
+  /** Each flow names its own contact: an İŞKUR flow must not mail ODTÜ. */
+  helpHref: string;
   onLogout?: (() => void) | undefined;
   loggingOut?: boolean | undefined;
 }) {

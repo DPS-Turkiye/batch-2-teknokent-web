@@ -5,19 +5,17 @@ import { useTranslations } from "next-intl";
 import { useState, type SubmitEvent } from "react";
 
 import type { AcademicianAppointment } from "@/interfaces/academician-office-hours";
-import { AppointmentStatus } from "@/interfaces/appointment";
 import { ToastTone } from "@/interfaces/toast";
-import { ACADEMICIAN_OFFICE_HOURS_QUERY_KEY } from "@/lib/academician-office-hours";
+import {
+  ACADEMICIAN_APPOINTMENTS_QUERY_KEY,
+  ACADEMICIAN_OFFICE_HOURS_QUERY_KEY,
+  groupAppointments,
+} from "@/lib/academician-office-hours";
 import {
   cancelAcademicianAppointment,
   getAcademicianAppointments,
 } from "@/lib/client/academician-office-hours";
 import { useToast } from "@/stores/toast-store";
-
-export const ACADEMICIAN_APPOINTMENTS_QUERY_KEY = [
-  ...ACADEMICIAN_OFFICE_HOURS_QUERY_KEY,
-  "appointments",
-] as const;
 
 export enum AppointmentsView {
   Upcoming = "upcoming",
@@ -27,30 +25,6 @@ export enum AppointmentsView {
 
 /** Cancelling closer than this to the start needs a reason for the student. */
 export const LATE_CANCEL_MS = 24 * 60 * 60 * 1000;
-
-const byStart = (a: AcademicianAppointment, b: AcademicianAppointment) =>
-  Date.parse(a.startsAt) - Date.parse(b.startsAt);
-
-/** Splits the academician's appointments into upcoming, past and cancelled, as of `now`. */
-export function groupAppointments(
-  appointments: AcademicianAppointment[],
-  now: number,
-) {
-  const live = appointments.filter(
-    (item) => item.status === AppointmentStatus.Confirmed,
-  );
-  return {
-    upcoming: live
-      .filter((item) => Date.parse(item.endsAt) > now)
-      .toSorted(byStart),
-    past: live
-      .filter((item) => Date.parse(item.endsAt) <= now)
-      .toSorted((a, b) => byStart(b, a)),
-    cancelled: appointments
-      .filter((item) => item.status === AppointmentStatus.Cancelled)
-      .toSorted(byStart),
-  };
-}
 
 /** Randevularım: confirmed appointments and cancelling one where the source allows it. */
 export function useAcademicianAppointments() {
