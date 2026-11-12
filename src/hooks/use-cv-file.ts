@@ -3,6 +3,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
+import { useAiFeatureRefusal, useAiFeatures } from "@/hooks/use-ai-features";
 import {
   STORED_DOCUMENTS_QUERY_KEY,
   useStoredDocuments,
@@ -15,7 +16,8 @@ import type { CvSource } from "@/lib/client/profile-analysis";
 /**
  * A profile's CV in edit mode: the one on file, replacing it, and reading it.
  * A chosen file is stored straight away; what is read goes to `onRead`, which
- * only fills the form, so the profile changes on Kaydet.
+ * only fills the form, so the profile changes on Kaydet. Where profile parsing
+ * is switched off the file is only stored and the form is filled by hand.
  */
 export function useCvFile<T>({
   read,
@@ -25,10 +27,17 @@ export function useCvFile<T>({
   onRead: (result: T) => void;
 }) {
   const queryClient = useQueryClient();
+  const canRead = useAiFeatures().profileParsing;
+  const refused = useAiFeatureRefusal();
   const storedCv = useStoredDocuments().byKind(DocumentKind.Cv);
   const [selected, setSelected] = useState<UploadedFile | null>(null);
   const [filled, setFilled] = useState(false);
-  const parse = useMutation({ mutationFn: read });
+  const parse = useMutation({
+    mutationFn: read,
+    onError: (error) => {
+      refused(error);
+    },
+  });
   const upload = useMutation({
     mutationFn: (file: File) => uploadDocument(file, DocumentKind.Cv),
     onSuccess: () =>
@@ -46,12 +55,14 @@ export function useCvFile<T>({
     const raw = file?.file;
     if (!raw) return;
     upload.mutate(raw, {
-      onSuccess: () => parse.mutate(raw, { onSuccess: fill }),
+      onSuccess: () => {
+        if (canRead) parse.mutate(raw, { onSuccess: fill });
+      },
     });
   }
 
   function fillFromStored() {
-    if (!storedCv) return;
+    if (!storedCv || !canRead) return;
     setFilled(false);
     parse.mutate({ documentId: storedCv.id }, { onSuccess: fill });
   }
@@ -67,7 +78,8 @@ export function useCvFile<T>({
     storedName: storedCv?.originalFilename ?? null,
     storedIsPdf,
     choose,
-    canFill: storedIsPdf && !isBusy,
+    canRead,
+    canFill: canRead && storedIsPdf && !isBusy,
     fillFromStored,
     isUploading: upload.isPending,
     isParsing: parse.isPending,

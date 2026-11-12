@@ -155,7 +155,6 @@ describe("RoleFrame workspace switch", () => {
     role: UserRole.Academician,
     permissions: [UserRole.Mentee, UserRole.Academician],
     institutionKinds: [IdentityKind.Student, IdentityKind.Academic],
-    edition: Edition.Odtu,
   };
   const frame = (
     <RoleFrame
@@ -203,10 +202,9 @@ describe("RoleFrame theme", () => {
     role: UserRole.Mentee,
     permissions: [UserRole.Mentee],
     institutionKinds: [IdentityKind.Student],
-    edition: Edition.Odtu,
   };
 
-  it("paints the student workspace in ODTÜ red and staff frames in ink", () => {
+  it("paints the ODTÜ workspaces in ODTÜ red and staff frames in ink", () => {
     gate.forceAllowed = true;
     current = student;
     const { container, unmount } = renderWithQueryClient(
@@ -224,6 +222,35 @@ describe("RoleFrame theme", () => {
       IaAccent.Odtu,
     );
     unmount();
+
+    // Figma "Nav / Akademisyen" (78:838) uses the same red pill as the student nav.
+    const academician = renderWithQueryClient(
+      <RoleFrame
+        workspace={Workspace.OdtuAcademician}
+        homeHref="/academician"
+        menuLabel="academicianMenu"
+        nav={[]}
+      >
+        <p>Academician</p>
+      </RoleFrame>,
+    );
+    expect(
+      academician.container.querySelector("[data-ia-accent]"),
+    ).toHaveAttribute("data-ia-accent", IaAccent.Odtu);
+    academician.unmount();
+
+    const coordinator = renderWithQueryClient(
+      <RoleFrame
+        workspace={Workspace.Coordinator}
+        homeHref="/coordinator"
+        menuLabel="adminMenu"
+        nav={[]}
+      >
+        <p>Coordinator</p>
+      </RoleFrame>,
+    );
+    expect(coordinator.container.querySelector("[data-ia-accent]")).toBeNull();
+    coordinator.unmount();
 
     current = admin;
     const staff = renderWithQueryClient(
