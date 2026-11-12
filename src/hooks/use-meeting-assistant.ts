@@ -8,8 +8,10 @@ import {
   type SubmitEvent,
 } from "react";
 
+import { useAiFeatureRefusal, useAiFeatures } from "@/hooks/use-ai-features";
 import { useMeetings } from "@/hooks/use-meetings";
 import { MeetingStatus as CalendarMeetingStatus } from "@/interfaces/meeting";
+import { UserRole } from "@/interfaces/session";
 import {
   addMeetingBot,
   fetchTranscript,
@@ -17,7 +19,9 @@ import {
   stopMeetingBot,
 } from "@/lib/assistant";
 import {
+  assistantLinkBoxValue,
   isAssistantCalendarMeeting,
+  isForeignMeetingLink,
   matchCalendarMeetingId,
   platformLabel,
   toAssistantMeeting,
@@ -137,8 +141,15 @@ function publishableTranscript(lines: TranscriptLine[]) {
     }));
 }
 
-export function useMeetingAssistant(requestedMeetingId?: string) {
+/** `role` lets an admin, who may send the assistant into any meeting, paste links outside their own calendar. */
+export function useMeetingAssistant(
+  requestedMeetingId?: string,
+  role?: UserRole | null,
+) {
   const t = useTranslations("assistant");
+  // Off: no report is asked for, automatically or by hand; the transcript is still kept.
+  const canReport = useAiFeatures().meetingReport;
+  const refused = useAiFeatureRefusal();
   const locale = useLocale();
   const meetingTexts = useMemo(
     () => ({ meetingFallback: t("meetingFallback"), locale }),
@@ -155,10 +166,13 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
   const [adHocMeetings, setAdHocMeetings] = useState<Meeting[]>([]);
   const [overlays, setOverlays] = useState<Record<string, MeetingOverlay>>({});
   const [selectedId, setSelectedId] = useState(requestedMeetingId ?? "");
+  // What the user typed into the add-bot box; null until they touch it, so the prefill never overwrites their input.
+  const [typedUrl, setTypedUrl] = useState<string | null>(null);
   const [openedFor, setOpenedFor] = useState(requestedMeetingId);
   if (openedFor !== requestedMeetingId) {
     setOpenedFor(requestedMeetingId);
     setSelectedId(requestedMeetingId ?? "");
+    setTypedUrl(null);
   }
   const [meetingUrl, setMeetingUrl] = useState("");
   const [botStatus, setBotStatus] = useState<BotStatus | null>(null);
@@ -227,6 +241,19 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
         .find((item) => item.id === selected.id)
         ?.meetLink?.trim() ?? "")
     : "";
+  const linkBoxValue = assistantLinkBoxValue(
+    typedUrl,
+    selectedMeetLink || meetingUrl,
+  );
+  const linkNotInCalendar =
+    role !== UserRole.Admin &&
+    platformMeetingsQuery.isSuccess &&
+    isForeignMeetingLink(calendarItems, typedUrl);
+  // Picking a meeting loads its link into the box again.
+  const selectMeeting = useCallback((id: string) => {
+    setSelectedId(id);
+    setTypedUrl(null);
+  }, []);
 
   useEffect(() => {
     if (!selected || !canPersist(selected.id) || shareLoadedFor[selected.id]) {
@@ -482,13 +509,17 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
     : MEETING_STATUS_META[MeetingStatus.Scheduled];
   const addBot = async (event?: SubmitEvent) => {
     event?.preventDefault();
-    await sendBotForUrl(selectedMeetLink || meetingUrl);
+    const sent = linkBoxValue;
+    if (await sendBotForUrl(sent)) {
+      // A link typed while the bot was being sent stays in the box.
+      setTypedUrl((current) => (current === sent ? null : current));
+    }
   };
 
   const requestMeetingReport = useCallback(
     async (lines?: TranscriptLine[], meeting?: Meeting) => {
       const target = meeting ?? selected;
-      if (!target?.platformKey || !target.nativeMeetingId) return;
+      if (!canReport || !target?.platformKey || !target.nativeMeetingId) return;
       const segments = (
         lines ??
         transcriptByMeetingRef.current[target.id] ??
@@ -522,6 +553,7 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
           setReportStatus(BotStatus.Ok);
           window.setTimeout(() => setReportStatus(null), 4000);
         } catch (error) {
+          refused(error);
           autoReportAttemptedRef.current[target.id] = false;
           setReportStatus(BotStatus.Err);
           setReportError(
@@ -535,7 +567,7 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
       reportInFlightRef.current[target.id] = run;
       return run;
     },
-    [selected, t],
+    [selected, t, canReport, refused],
   );
 
   const selectedTranscriptFingerprint = selectedTranscript
@@ -698,9 +730,10 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
   return {
     meetings,
     selected,
-    setSelectedId,
-    meetingUrl: selectedMeetLink || meetingUrl,
-    setMeetingUrl,
+    setSelectedId: selectMeeting,
+    meetingUrl: linkBoxValue,
+    setMeetingUrl: setTypedUrl,
+    linkNotInCalendar,
     botStatus,
     botError,
     visibleTranscript,
@@ -712,6 +745,7 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
     addBot,
     stopBot,
     meetingReport,
+    canReport,
     reportStatus,
     reportError,
     regenerateReport: () => {

@@ -7,6 +7,7 @@ import { ProgramOverviewView } from "@/components/coordinator/program-overview-v
 import { ProgramSettingsView } from "@/components/coordinator/program-settings-view";
 import { ProgramLifecycle } from "@/interfaces/coordinator-program";
 import { ProgramStatus, ProgramType } from "@/interfaces/program";
+import { DocumentKind } from "@/interfaces/startup-document";
 import { searchCoordinators } from "@/lib/client/admin-coordinators";
 import {
   addProgramCoordinator,
@@ -383,6 +384,7 @@ describe("coordinator program detail", () => {
         filename: "mufredat.pdf",
         sizeBytes: 19_540,
         uploadedAt: "2026-06-01T09:00:00Z",
+        kind: DocumentKind.Syllabus,
       },
     });
     vi.mocked(getCoordinatorProgram).mockResolvedValue(detail);
@@ -427,6 +429,7 @@ describe("coordinator program detail", () => {
         filename: "mufredat.pdf",
         sizeBytes: 19_540,
         uploadedAt: "2026-06-01T09:00:00Z",
+        kind: DocumentKind.Syllabus,
       },
     });
     vi.mocked(getCoordinatorProgram).mockResolvedValue(detail);

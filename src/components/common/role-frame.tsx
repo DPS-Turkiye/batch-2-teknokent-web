@@ -12,15 +12,27 @@ import { NotificationMenu } from "@/components/common/notification-menu";
 import { FeedbackButton } from "@/components/dashboard/feedback-button";
 import { AccountSettingsDialog } from "@/components/hoc/account-dialogs";
 import { WorkspaceSwitcher } from "@/components/hoc/workspace-switcher";
+import { ProductTour } from "@/components/product-tour/product-tour";
 import {
   useAppSession,
   useSession,
 } from "@/components/providers/session-provider";
 import { useRoleGate } from "@/hooks/use-role-gate";
 import { UserRole } from "@/interfaces/session";
-import type { Workspace } from "@/interfaces/workspace";
+import { Workspace } from "@/interfaces/workspace";
 import { initials } from "@/lib/utils";
 import type messages from "@/messages/tr.json";
+import { IaAccent } from "@/types/ia-theme";
+
+/** ODTÜ red for the ODTÜ workspaces (Figma "Nav / Öğrenci" and "Nav / Akademisyen"); the neutral theme otherwise. */
+const WORKSPACE_ACCENT: Record<Workspace, IaAccent | null> = {
+  [Workspace.Admin]: null,
+  [Workspace.Coordinator]: null,
+  [Workspace.OdtuAcademician]: IaAccent.Odtu,
+  [Workspace.OdtuStudent]: IaAccent.Odtu,
+  [Workspace.GirisimMentor]: null,
+  [Workspace.GirisimMentee]: null,
+};
 
 export type RoleMenuLabel = Extract<
   keyof (typeof messages)["roleFrame"],
@@ -74,23 +86,30 @@ export function RoleFrame({
 
   return (
     <RoleShell
+      accent={
+        workspace ? (WORKSPACE_ACCENT[workspace] ?? undefined) : undefined
+      }
       homeHref={homeHref}
       menuLabel={menuLabel}
       nav={nav}
       roleLabel={roleLabel}
     >
       {children}
+      {workspace ? <ProductTour workspace={workspace} /> : null}
     </RoleShell>
   );
 }
 
 function RoleShell({
+  accent,
   homeHref,
   menuLabel,
   nav,
   roleLabel: workspaceLabel,
   children,
 }: {
+  /** The design-system theme: ODTÜ red for the ODTÜ workspaces, the neutral ink theme otherwise. */
+  accent?: IaAccent | undefined;
   homeHref: string;
   menuLabel: RoleMenuLabel;
   nav: RoleNavItem[];
@@ -117,13 +136,16 @@ function RoleShell({
   }
 
   return (
-    <div className="min-h-screen bg-white text-[#22262b]">
+    <div
+      data-ia-accent={accent}
+      className="min-h-screen bg-white text-[#22262b]"
+    >
       <header className="sticky top-0 z-40 border-b border-transparent bg-white/95 backdrop-blur">
         <div className="mx-auto flex h-[76px] max-w-[1440px] items-center justify-between gap-3 px-4 sm:h-[106px] sm:px-8 lg:px-12">
           <MentonWordmark href={homeHref} />
           <nav
             aria-label={tFrame(menuLabel)}
-            className="hidden items-center gap-1 rounded-full border border-[#f0f2f4] bg-[#fcfcfd] p-2 shadow-[0_8px_24px_rgba(33,38,43,0.06)] lg:flex"
+            className="hidden items-center gap-0.5 rounded-full border border-border-subtle bg-background-surface p-1.5 shadow-hover lg:flex"
           >
             {nav.map((item) => (
               <NavLink
@@ -144,7 +166,7 @@ function RoleShell({
                 onClick={() => setAccountOpen((open) => !open)}
                 className="flex items-center gap-2.5 rounded-full py-1 pl-1 pr-1 sm:pr-2"
               >
-                <span className="grid size-8 place-items-center rounded-full bg-[#fbe2d0] text-[11px] leading-[1.3] font-semibold text-[#a8480e]">
+                <span className="grid size-8 place-items-center rounded-full bg-background-selected type-label-sm text-text-accent">
                   {mark}
                 </span>
                 {/* Between lg and xl the name gives its room to the nav, which shares the row. */}
@@ -234,8 +256,8 @@ function RoleShell({
                   aria-current={item.match(pathname) ? "page" : undefined}
                   className={`flex items-center gap-2 rounded-2xl px-3 py-3 text-sm ${
                     item.match(pathname)
-                      ? "bg-[#22262b] text-white"
-                      : "text-[#676e78]"
+                      ? "bg-action-accent text-text-inverse"
+                      : "text-text-muted"
                   }`}
                 >
                   <NavGlyph src={item.icon} />
@@ -267,8 +289,9 @@ function NavLink({ item, active }: { item: RoleNavItem; active: boolean }) {
     return (
       <span
         aria-disabled="true"
+        data-tour={`nav-${item.label}`}
         title={t("soon")}
-        className="flex cursor-default items-center gap-2 whitespace-nowrap rounded-full px-3 py-[11px] text-[14px] leading-[1.3] text-[#cfd4da] xl:px-[18px]"
+        className="flex cursor-default items-center gap-2 whitespace-nowrap rounded-full px-3 py-[11px] text-[14px] leading-[1.3] text-[#cfd4da] xl:px-4"
       >
         <NavGlyph src={item.icon} className="hidden xl:block" />
         {t(`nav.${item.label}`)}
@@ -279,10 +302,11 @@ function NavLink({ item, active }: { item: RoleNavItem; active: boolean }) {
     <Link
       href={item.href}
       aria-current={active ? "page" : undefined}
-      className={`flex items-center gap-2 whitespace-nowrap rounded-full px-3 py-[11px] text-[14px] leading-[1.3] xl:px-[18px] ${
+      data-tour={`nav-${item.label}`}
+      className={`flex items-center gap-2 whitespace-nowrap rounded-full px-3 py-[11px] type-label xl:px-4 ${
         active
-          ? "bg-[#22262b] font-medium text-white"
-          : "font-normal text-[#aeb4bc] hover:text-[#676e78]"
+          ? "bg-action-accent text-text-inverse"
+          : "text-text-muted hover:text-text-primary"
       }`}
     >
       <NavGlyph src={item.icon} className="hidden xl:block" />

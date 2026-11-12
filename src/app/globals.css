@@ -1,5 +1,246 @@
 @import "tailwindcss";
 
+/*
+ * menton design system v1.1 (Figma "IA Revizyon" and "Design System v1.2"). Token names mirror the Figma
+ * variables, so `var(--color-text-primary, #1c2026)` in a design becomes `text-text-primary`. The defaults are the
+ * neutral theme (admin, coordinator); `data-ia-accent="odtu"` switches the accent to ODTÜ red.
+ */
+@font-face {
+  font-family: "Manrope";
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url("/fonts/manrope-latin-ext-wght.woff2") format("woff2");
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304,
+    U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB,
+    U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Manrope";
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url("/fonts/manrope-latin-wght.woff2") format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
+
+@theme {
+  --font-display:
+    "Manrope", var(--font-mentor-inter), ui-sans-serif, system-ui, sans-serif;
+
+  --color-text-primary: #1c2026;
+  --color-text-secondary: #575f69;
+  --color-text-muted: #6e7681;
+  --color-text-disabled: #9ca4ae;
+  --color-text-placeholder: #6e7681;
+  --color-text-inverse: #ffffff;
+  --color-text-accent: #1c2026;
+  --color-text-link: #1c2026;
+
+  --color-background-surface: #ffffff;
+  --color-background-elevated: #ffffff;
+  --color-background-subtle: #f4f6f8;
+  --color-background-muted: #edf0f3;
+  --color-background-disabled: #edf0f3;
+  --color-background-inverse: #1c2026;
+  --color-background-selected: #edf0f3;
+
+  --color-border-subtle: #e5e9ed;
+  --color-border-default: #dce1e6;
+  --color-border-strong: #868f99;
+  --color-border-control: #868f99;
+  --color-border-selected: #1c2026;
+
+  --color-icon-default: #575f69;
+  --color-icon-muted: #6e7681;
+  --color-icon-strong: #1c2026;
+  --color-icon-accent: #1c2026;
+  --color-icon-inverse: #ffffff;
+
+  --color-action-primary-bg: #1c2026;
+  --color-action-primary-fg: #ffffff;
+  --color-action-secondary-bg: #edf0f3;
+  --color-action-secondary-fg: #1c2026;
+  --color-action-secondary-border: #dce1e6;
+  --color-action-accent: #1c2026;
+  --color-action-destructive-bg: #9f1f2e;
+
+  --color-card-featured-bg: #f4f6f8;
+  --color-card-featured-border: #dce1e6;
+
+  --color-brand-odtu-primary: #d0112b;
+  --color-brand-odtu-strong: #d0112b;
+  --color-brand-odtu-bg: #fdedef;
+  --color-brand-mentee-primary: #d0112b;
+  --color-brand-mentee-strong: #d0112b;
+  --color-brand-mentee-bg: #fdedef;
+  --color-brand-mentor-primary: #26a4ff;
+  --color-brand-mentor-strong: #156cad;
+  --color-brand-mentor-bg: #eaf6ff;
+
+  --color-status-success-bg: #eefaf3;
+  --color-status-success-text: #0f7a4d;
+  --color-status-success-icon: #18a066;
+  --color-status-success-border: #c9eeda;
+  --color-status-warning-bg: #fff8e1;
+  --color-status-warning-text: #8a6100;
+  --color-status-warning-icon: #9c7000;
+  --color-status-warning-border: #f7e3a3;
+  --color-status-error-bg: #fbf0f1;
+  --color-status-error-text: #6e0816;
+  --color-status-error-icon: #8f0b1d;
+  --color-status-error-border: #e8b3ba;
+  --color-status-info-bg: #eef0fd;
+  --color-status-info-text: #3b45b5;
+  --color-status-info-icon: #5b67e0;
+  --color-status-info-border: #c5caf5;
+  --color-status-neutral-bg: #edf0f3;
+  --color-status-neutral-text: #40464f;
+  --color-status-neutral-icon: #575f69;
+  --color-status-neutral-border: #dce1e6;
+
+  --radius-button-sm: 12px;
+  --radius-button: 14px;
+  --radius-button-lg: 16px;
+  --radius-input: 12px;
+  --radius-card: 24px;
+  --radius-featured: 28px;
+
+  --shadow-raised:
+    0 1px 2px 0 rgb(28 32 38 / 0.04), 0 1px 3px 0 rgb(28 32 38 / 0.05);
+  --shadow-hover:
+    0 2px 4px -1px rgb(28 32 38 / 0.04), 0 8px 20px -4px rgb(28 32 38 / 0.08);
+  --shadow-modal:
+    0 8px 16px -4px rgb(28 32 38 / 0.06), 0 28px 56px -12px rgb(28 32 38 / 0.22);
+}
+
+/* The ODTÜ (student, academician) theme: the same tokens with the red accent. */
+[data-ia-accent="odtu"] {
+  --color-text-accent: #d0112b;
+  --color-text-link: #d0112b;
+  --color-background-selected: #fdedef;
+  --color-border-selected: #d0112b;
+  --color-icon-accent: #d0112b;
+  --color-action-primary-bg: #d0112b;
+  --color-action-secondary-bg: #fdedef;
+  --color-action-secondary-fg: #b00e24;
+  --color-action-secondary-border: #f9c9cf;
+  --color-action-accent: #d0112b;
+  --color-card-featured-bg: #fdedef;
+  --color-card-featured-border: #f9c9cf;
+}
+
+/* Text styles, named as in Figma (v1.1/Heading/H1 → type-h1). */
+@utility type-display {
+  font-family: var(--font-display);
+  font-size: 44px;
+  font-weight: 800;
+  line-height: 52px;
+  letter-spacing: -0.02em;
+}
+@utility type-h1 {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 40px;
+  letter-spacing: -0.015em;
+}
+@utility type-h2 {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 32px;
+  letter-spacing: -0.01em;
+}
+@utility type-h3 {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 28px;
+  letter-spacing: -0.005em;
+}
+@utility type-h4 {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 26px;
+  letter-spacing: -0.003em;
+}
+@utility type-title-card {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 22px;
+  letter-spacing: -0.002em;
+}
+@utility type-body-lg {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+}
+@utility type-body {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 22px;
+}
+@utility type-body-sm {
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 20px;
+}
+@utility type-label-lg {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 22px;
+  letter-spacing: -0.001em;
+}
+@utility type-label {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: -0.001em;
+}
+@utility type-label-sm {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+@utility type-caption {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  letter-spacing: 0.001em;
+}
+@utility type-overline {
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+@utility type-button-sm {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
+}
+@utility type-button {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  letter-spacing: -0.001em;
+}
+@utility type-button-lg {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  letter-spacing: -0.002em;
+}
+
 @keyframes feedback-tray-in {
   from {
     opacity: 0;

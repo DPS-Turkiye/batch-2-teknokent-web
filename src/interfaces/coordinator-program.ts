@@ -2,6 +2,7 @@ import type { NewCoordinatorInput } from "@/interfaces/admin-coordinator";
 import type { CoordinatorMentorship } from "@/interfaces/coordinator-mentorship";
 import type { ProgramStatus, ProgramType } from "@/interfaces/program";
 import type { ProgramPlanWeek } from "@/interfaces/program-week";
+import type { DocumentKind } from "@/interfaces/startup-document";
 
 export enum ProgramLifecycle {
   Draft = "DRAFT",
@@ -20,12 +21,13 @@ export type ProgramPhase = {
   expectedOutput?: string | null;
 };
 
-/** The syllabus file a program's phases were taken from. */
+/** The file a program's plan was read from: a weekly program, or an older syllabus (`kind` tells which). */
 export type ProgramSyllabus = {
   id: string;
   filename: string;
   sizeBytes: number;
   uploadedAt: string;
+  kind: DocumentKind;
 };
 
 /** A program as its coordinator sees it (`GET /api/coordinator/programs`). */
