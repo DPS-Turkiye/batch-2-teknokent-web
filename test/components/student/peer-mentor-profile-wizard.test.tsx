@@ -382,6 +382,32 @@ describe("PeerMentorProfileWizard", () => {
     expect(savePeerMentorProfile).not.toHaveBeenCalled();
   });
 
+  it("shows a draft load failure before allowing edits", async () => {
+    vi.mocked(getPeerMentorDraft).mockRejectedValue(
+      new Error("Draft unavailable"),
+    );
+    renderWithQueryClient(<PeerMentorProfileWizard />);
+    expect(await screen.findByText("Draft unavailable")).toBeVisible();
+    expect(
+      screen.queryByRole("button", { name: "Taslak olarak kaydet" }),
+    ).toBeNull();
+  });
+
+  it("keeps navigation disabled until a draft save finishes", async () => {
+    vi.mocked(savePeerMentorDraft).mockImplementation(
+      () => new Promise(() => {}),
+    );
+    const user = userEvent.setup();
+    renderWithQueryClient(<PeerMentorProfileWizard />);
+    await user.click(
+      await screen.findByRole("checkbox", { name: "Kariyer ve Staj" }),
+    );
+    await user.click(
+      screen.getByRole("button", { name: "Taslak olarak kaydet" }),
+    );
+    expect(screen.getByRole("button", { name: "Devam Et" })).toBeDisabled();
+  });
+
   it("reopens a saved draft on its step with its answers, and can delete it", async () => {
     const user = userEvent.setup();
     vi.mocked(getPeerMentorDraft).mockResolvedValue({

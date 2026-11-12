@@ -89,7 +89,7 @@ export const PEER_MENTOR_PROFILE_QUERY_KEY = [
   "peer-mentoring",
   "profile",
 ] as const;
-export const PEER_MENTOR_DRAFT_QUERY_KEY = ["peer-mentor-draft"] as const;
+export const PEER_MENTOR_DRAFT_QUERY_KEY = ["peer-mentoring", "draft"] as const;
 export const RECEIVED_PEER_REQUESTS_QUERY_KEY = [
   "peer-mentoring",
   "received",
@@ -571,7 +571,8 @@ export function usePeerMentorWizard() {
   };
 
   const saveDraft = useMutation({
-    mutationFn: () => savePeerMentorDraft(toProfileDraft(draft, step)),
+    mutationFn: (current: PeerMentorProfileDraft) =>
+      savePeerMentorDraft(current),
     onSuccess: (saved) => {
       queryClient.setQueryData(PEER_MENTOR_DRAFT_QUERY_KEY, saved);
       showToast({ message: t("draftSaved"), tone: ToastTone.Success });
@@ -585,6 +586,8 @@ export function usePeerMentorWizard() {
     onSuccess: () => {
       queryClient.setQueryData(PEER_MENTOR_DRAFT_QUERY_KEY, null);
       setEdits(null);
+      setAvailabilityDraft(null);
+      experienceCards.cancel();
       setStep(PeerMentorWizardStep.Categories);
     },
     onError: (discardError) =>
@@ -597,7 +600,8 @@ export function usePeerMentorWizard() {
     existing,
     error,
     isLoading: profile.isLoading || catalogue.isLoading || savedDraft.isLoading,
-    loadError: profile.error ?? catalogue.error,
+    // Without the saved draft, a save could overwrite it with an empty one.
+    loadError: profile.error ?? catalogue.error ?? savedDraft.error,
     categories,
     categoryOptions: categories.map((item) => ({
       id: item.id,
@@ -658,7 +662,15 @@ export function usePeerMentorWizard() {
     },
     publish: () => publish.mutate(),
     isPublishing: publish.isPending,
-    saveDraft: () => saveDraft.mutate(),
+    saveDraft: () => {
+      // The open card isn't part of the draft yet; saving now would drop it without a word.
+      if (experienceCards.form !== null) {
+        setError(t("errors.experienceOpen"));
+        return;
+      }
+      setError(null);
+      saveDraft.mutate(toProfileDraft(draft, step));
+    },
     isSavingDraft: saveDraft.isPending,
     /** When the draft was last saved; null without one. */
     draftSavedAt: resumed?.updatedAt ?? null,

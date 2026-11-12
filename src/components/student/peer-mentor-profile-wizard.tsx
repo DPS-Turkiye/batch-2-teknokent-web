@@ -165,7 +165,7 @@ export function PeerMentorProfileWizard() {
             <div className="flex flex-wrap items-center gap-3">
               {wizard.draftSavedAt ? (
                 <>
-                  <span role="status" className="type-caption text-text-muted">
+                  <span className="type-caption text-text-muted">
                     {t("draftSavedAt", {
                       time: formatTime(wizard.draftSavedAt, locale),
                     })}
@@ -187,7 +187,7 @@ export function PeerMentorProfileWizard() {
               >
                 {wizard.isSavingDraft ? t("savingDraft") : t("saveDraft")}
               </Button>
-              <Button type="submit" disabled={wizard.isPublishing}>
+              <Button type="submit" disabled={draftBusy}>
                 {wizard.isPublishing
                   ? t("publishing")
                   : wizard.isLast
