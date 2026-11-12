@@ -2,6 +2,7 @@ import { screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AcademicianFrame } from "@/components/academician/academician-frame";
+import { Edition } from "@/interfaces/edition";
 import { IdentityKind, UserRole, type AppSession } from "@/interfaces/session";
 import { renderWithQueryClient } from "@test/test-utils";
 
@@ -14,6 +15,8 @@ const academician: AppSession = {
   role: UserRole.Academician,
   permissions: [UserRole.Academician],
   institutionKinds: [IdentityKind.Academic],
+  // The academician workspace exists only on the ODTÜ edition.
+  edition: Edition.Odtu,
 };
 vi.mock("next/navigation", () => ({
   usePathname: () => pathname,
