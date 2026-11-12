@@ -93,6 +93,10 @@ describe("profile completion wizard", () => {
     // The first step has nothing to go back to.
     expect(screen.queryByRole("button", { name: "Geri" })).toBeNull();
     expect(screen.getByText("AY")).toBeVisible();
+    // The size limit comes from PROFILE_PHOTO_MAX_BYTES, not the copy.
+    expect(
+      screen.getByText("JPG, PNG veya WebP · en fazla 5 MB"),
+    ).toBeVisible();
   });
 
   it("walks the three steps and saves the choices with a trimmed goal", async () => {

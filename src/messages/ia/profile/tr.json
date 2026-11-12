@@ -53,7 +53,7 @@
     "replace": "Fotoğrafı değiştir",
     "uploading": "Yükleniyor…",
     "current": "Profil fotoğrafın",
-    "hint": "JPG, PNG veya WebP · en fazla 5 MB",
+    "hint": "JPG, PNG veya WebP · en fazla {size}",
     "privacy": "Fotoğrafın profilinde görünür. Yüklemezsen baş harflerin görünür."
   },
   "topicsStep": {

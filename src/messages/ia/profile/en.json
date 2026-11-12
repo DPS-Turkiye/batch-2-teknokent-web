@@ -53,7 +53,7 @@
     "replace": "Change photo",
     "uploading": "Uploading…",
     "current": "Your profile photo",
-    "hint": "JPG, PNG or WebP · up to 5 MB",
+    "hint": "JPG, PNG or WebP · up to {size}",
     "privacy": "Your photo appears on your profile. Without one, your initials are shown."
   },
   "topicsStep": {

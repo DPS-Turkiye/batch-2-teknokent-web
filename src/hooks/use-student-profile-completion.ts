@@ -17,6 +17,7 @@ import {
   getStudentProfileCompletion,
   saveStudentProfileCompletion,
 } from "@/lib/client/student-profile-completion";
+import { PROFILE_PHOTO_MAX_BYTES } from "@/lib/personal-profile";
 import {
   completionStepState,
   completionSummary,
@@ -30,7 +31,7 @@ import {
   toggleInterestSubtopic,
   toggleInterestTopic,
 } from "@/lib/student-interests";
-import { initials, splitFullName } from "@/lib/utils";
+import { formatFileSize, initials, splitFullName } from "@/lib/utils";
 
 export const PROFILE_COMPLETION_QUERY_KEY = [
   "student-profile-completion",
@@ -133,6 +134,7 @@ export function useStudentProfileCompletion() {
     photo: {
       url: photo.photoUrl,
       initials: initials(fullName),
+      maxSize: formatFileSize(PROFILE_PHOTO_MAX_BYTES),
       isUploading: photo.isUploading,
       upload: photo.upload,
     },

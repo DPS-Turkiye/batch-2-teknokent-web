@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 
+import { PhotoAvatar } from "@/components/common/avatar";
 import {
   Button,
   buttonClasses,
@@ -100,50 +101,61 @@ function RecordCard({ welcome }: { welcome: Completion["welcome"] }) {
           {t("readOnly")}
         </StatusBadge>
       </div>
-      {welcome.isLoading ? (
-        <p
-          role="status"
-          className="border-t border-border-subtle px-6 py-4 type-body text-text-secondary"
-        >
-          {t("loading")}
-        </p>
-      ) : welcome.missing ? (
-        <p className="border-t border-border-subtle px-6 py-4 type-body text-text-secondary">
-          {t("missing")}
-        </p>
-      ) : welcome.error ? (
-        <div
-          role="alert"
-          className="flex flex-wrap items-center justify-between gap-3 border-t border-border-subtle px-6 py-4 type-body text-status-error-text"
-        >
-          <p>{t("loadError")}</p>
-          <Button
-            variant={ButtonVariant.Ghost}
-            size={ButtonSize.Small}
-            disabled={welcome.isFetching}
-            onClick={welcome.retry}
-          >
-            {t("retry")}
-          </Button>
-        </div>
-      ) : welcome.facts ? (
-        <dl>
-          {welcome.facts.map((fact) => (
-            <div
-              key={fact.key}
-              className="flex flex-wrap items-center justify-between gap-x-6 gap-y-1 border-t border-border-subtle px-6 py-4"
-            >
-              <dt className="type-body text-text-secondary">
-                {t(`facts.${fact.key}`)}
-              </dt>
-              <dd className="min-w-0 break-words type-label text-text-primary">
-                {fact.value ?? t("unknown")}
-              </dd>
-            </div>
-          ))}
-        </dl>
-      ) : null}
+      <RecordBody welcome={welcome} />
     </section>
+  );
+}
+
+function RecordBody({ welcome }: { welcome: Completion["welcome"] }) {
+  const t = useTranslations("iaProfile.welcome");
+  const row = "border-t border-border-subtle px-6 py-4";
+  if (welcome.isLoading) {
+    return (
+      <p role="status" className={`${row} type-body text-text-secondary`}>
+        {t("loading")}
+      </p>
+    );
+  }
+  if (welcome.missing) {
+    return (
+      <p className={`${row} type-body text-text-secondary`}>{t("missing")}</p>
+    );
+  }
+  if (welcome.error) {
+    return (
+      <div
+        role="alert"
+        className={`${row} flex flex-wrap items-center justify-between gap-3 type-body text-status-error-text`}
+      >
+        <p>{t("loadError")}</p>
+        <Button
+          variant={ButtonVariant.Ghost}
+          size={ButtonSize.Small}
+          disabled={welcome.isFetching}
+          onClick={welcome.retry}
+        >
+          {t("retry")}
+        </Button>
+      </div>
+    );
+  }
+  if (!welcome.facts) return null;
+  return (
+    <dl>
+      {welcome.facts.map((fact) => (
+        <div
+          key={fact.key}
+          className={`${row} flex flex-wrap items-center justify-between gap-x-6 gap-y-1`}
+        >
+          <dt className="type-body text-text-secondary">
+            {t(`facts.${fact.key}`)}
+          </dt>
+          <dd className="min-w-0 break-words type-label text-text-primary">
+            {fact.value ?? t("unknown")}
+          </dd>
+        </div>
+      ))}
+    </dl>
   );
 }
 
@@ -158,21 +170,15 @@ function PhotoCard({ photo }: { photo: Completion["photo"] }) {
         <StatusBadge tone={StatusTone.Neutral}>{t("optional")}</StatusBadge>
       </div>
       <div className="flex items-center gap-4">
-        {photo.url ? (
-          <span
-            role="img"
-            aria-label={t("current")}
-            className="block size-[72px] shrink-0 rounded-full bg-brand-odtu-bg bg-cover bg-center"
-            style={{ backgroundImage: `url("${photo.url}")` }}
-          />
-        ) : (
-          <span
-            aria-hidden
-            className="grid size-[72px] shrink-0 place-items-center rounded-full border border-dashed border-border-default bg-brand-odtu-bg type-h3 text-brand-odtu-strong"
-          >
-            {photo.initials}
-          </span>
-        )}
+        <PhotoAvatar
+          initials={photo.initials}
+          photoUrl={photo.url}
+          label={t("current")}
+          colors="bg-brand-odtu-bg text-brand-odtu-strong"
+          className={`size-[72px] type-h3 ${
+            photo.url ? "" : "border border-dashed border-border-default"
+          }`}
+        />
         <div className="flex min-w-0 flex-col items-start gap-2">
           <label
             className={`${buttonClasses(ButtonVariant.Secondary, ButtonSize.Small)} cursor-pointer has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-border-selected ${
@@ -196,7 +202,9 @@ function PhotoCard({ photo }: { photo: Completion["photo"] }) {
                 ? t("replace")
                 : t("upload")}
           </label>
-          <p className="type-caption text-text-muted">{t("hint")}</p>
+          <p className="type-caption text-text-muted">
+            {t("hint", { size: photo.maxSize })}
+          </p>
         </div>
       </div>
       <p className="max-w-[600px] type-caption text-text-secondary">
