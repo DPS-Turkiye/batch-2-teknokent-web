@@ -33,9 +33,11 @@ import type {
 } from "@/interfaces/mentor";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import {
+  PeerExperienceKind,
   PeerMentorGateState,
   type PeerExperienceCard,
   type PeerMentorProfile,
+  type PeerMentorProfileDraft,
   type PeerTopicCategory,
   type PeerTopicLevel,
   type PeerTopicLevels,
@@ -50,8 +52,11 @@ import {
 } from "@/lib/client/mentor-profile";
 import { decideMentorRequest } from "@/lib/client/mentor-requests";
 import {
+  deletePeerMentorDraft,
+  getPeerMentorDraft,
   getPeerMentorProfile,
   getReceivedPeerRequests,
+  savePeerMentorDraft,
   savePeerMentorProfile,
 } from "@/lib/client/peer-mentoring";
 import { getPeerMentorCategories } from "@/lib/client/student-profile-completion";
@@ -84,6 +89,7 @@ export const PEER_MENTOR_PROFILE_QUERY_KEY = [
   "peer-mentoring",
   "profile",
 ] as const;
+export const PEER_MENTOR_DRAFT_QUERY_KEY = ["peer-mentor-draft"] as const;
 export const RECEIVED_PEER_REQUESTS_QUERY_KEY = [
   "peer-mentoring",
   "received",
@@ -343,6 +349,70 @@ export function toPeerMentorProfileInput(
   };
 }
 
+/** The step names a saved draft reopens on; a number would shift if a step were added. */
+const STEP_NAME: Record<PeerMentorWizardStep, string> = {
+  [PeerMentorWizardStep.Categories]: "categories",
+  [PeerMentorWizardStep.Subtopics]: "subtopics",
+  [PeerMentorWizardStep.Experience]: "experience",
+  [PeerMentorWizardStep.HelpWith]: "helpWith",
+  [PeerMentorWizardStep.Links]: "links",
+  [PeerMentorWizardStep.Availability]: "availability",
+  [PeerMentorWizardStep.Preview]: "preview",
+};
+
+function stepNamed(name: string | null): PeerMentorWizardStep | null {
+  return (
+    PEER_MENTOR_WIZARD_STEPS.find((step) => STEP_NAME[step] === name) ?? null
+  );
+}
+
+/** What "Taslak olarak kaydet" sends: the answers so far and the step to reopen on. */
+export function toProfileDraft(
+  draft: WizardDraft,
+  step: PeerMentorWizardStep,
+): PeerMentorProfileDraft {
+  return {
+    step: STEP_NAME[step],
+    categories: draft.topics,
+    subTopics: draft.subtopics,
+    strongCourses: lines(draft.strongCourses),
+    projects: lines(draft.projects),
+    erasmus: draft.erasmus,
+    helpWith: draft.helpWith,
+    linkedinUrl: draft.linkedinUrl,
+    levels: levelsFor(draft.levels, draft.topics),
+    experiences: draft.experiences,
+  };
+}
+
+/** A saved draft back in the wizard; a card missing what a card needs is left out. */
+function fromProfileDraft(saved: PeerMentorProfileDraft): WizardDraft {
+  return {
+    topics: saved.categories ?? [],
+    subtopics: saved.subTopics ?? [],
+    strongCourses: (saved.strongCourses ?? []).join("\n"),
+    projects: (saved.projects ?? []).join("\n"),
+    erasmus: saved.erasmus ?? "",
+    helpWith: saved.helpWith ?? "",
+    linkedinUrl: saved.linkedinUrl ?? "",
+    levels: saved.levels ?? {},
+    experiences: (saved.experiences ?? []).flatMap((card) =>
+      card.title && card.startedOn
+        ? [
+            {
+              kind: card.kind ?? PeerExperienceKind.Other,
+              title: card.title,
+              organization: card.organization,
+              startedOn: card.startedOn,
+              endedOn: card.endedOn,
+              summary: card.summary,
+            },
+          ]
+        : [],
+    ),
+  };
+}
+
 function toSettings(
   payload: UpdateMentorAvailabilitySettingsPayload,
 ): MentorAvailabilitySettings {
@@ -376,12 +446,28 @@ export function usePeerMentorWizard() {
     queryFn: getAvailabilitySettings,
     enabled: existing != null,
   });
-  const [step, setStep] = useState(PeerMentorWizardStep.Categories);
+  const savedDraft = useQuery({
+    queryKey: PEER_MENTOR_DRAFT_QUERY_KEY,
+    queryFn: getPeerMentorDraft,
+  });
+  const resumed = savedDraft.data ?? null;
+  // A saved draft reopens on its own step until the student moves.
+  const [chosenStep, setStep] = useState<PeerMentorWizardStep | null>(null);
+  const step =
+    chosenStep ??
+    stepNamed(resumed?.draft.step ?? null) ??
+    PeerMentorWizardStep.Categories;
   const [edits, setEdits] = useState<WizardDraft | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [availabilityDraft, setAvailabilityDraft] =
     useState<UpdateMentorAvailabilitySettingsPayload | null>(null);
-  const draft = edits ?? (existing ? toDraft(existing) : EMPTY_DRAFT);
+  const draft =
+    edits ??
+    (resumed
+      ? fromProfileDraft(resumed.draft)
+      : existing
+        ? toDraft(existing)
+        : EMPTY_DRAFT);
   const categories = catalogue.data ?? [];
 
   const availabilitySettings = useMemo(
@@ -455,6 +541,8 @@ export function usePeerMentorWizard() {
     },
     onSuccess: (saved) => {
       queryClient.setQueryData(PEER_MENTOR_PROFILE_QUERY_KEY, saved);
+      // Publishing removes the draft on the backend.
+      queryClient.setQueryData(PEER_MENTOR_DRAFT_QUERY_KEY, null);
       for (const queryKey of [
         MENTOR_AVAILABILITY_SETTINGS_QUERY_KEY,
         MENTOR_AVAILABILITY_QUERY_KEY,
@@ -473,12 +561,42 @@ export function usePeerMentorWizard() {
       setError(errorMessage(publishError, t("publishFailed"))),
   });
 
+  /** One step forward or back, never past the first or the last. */
+  const moveStep = (by: 1 | -1) => {
+    const at = PEER_MENTOR_WIZARD_STEPS.indexOf(step);
+    const last = PEER_MENTOR_WIZARD_STEPS.length - 1;
+    setStep(
+      PEER_MENTOR_WIZARD_STEPS[Math.min(last, Math.max(0, at + by))] ?? step,
+    );
+  };
+
+  const saveDraft = useMutation({
+    mutationFn: () => savePeerMentorDraft(toProfileDraft(draft, step)),
+    onSuccess: (saved) => {
+      queryClient.setQueryData(PEER_MENTOR_DRAFT_QUERY_KEY, saved);
+      showToast({ message: t("draftSaved"), tone: ToastTone.Success });
+    },
+    onError: (saveError) =>
+      setError(errorMessage(saveError, t("draftSaveFailed"))),
+  });
+
+  const discardDraft = useMutation({
+    mutationFn: deletePeerMentorDraft,
+    onSuccess: () => {
+      queryClient.setQueryData(PEER_MENTOR_DRAFT_QUERY_KEY, null);
+      setEdits(null);
+      setStep(PeerMentorWizardStep.Categories);
+    },
+    onError: (discardError) =>
+      setError(errorMessage(discardError, t("draftSaveFailed"))),
+  });
+
   return {
     step,
     draft,
     existing,
     error,
-    isLoading: profile.isLoading || catalogue.isLoading,
+    isLoading: profile.isLoading || catalogue.isLoading || savedDraft.isLoading,
     loadError: profile.error ?? catalogue.error,
     categories,
     categoryOptions: categories.map((item) => ({
@@ -532,15 +650,19 @@ export function usePeerMentorWizard() {
         void availability.save();
         return;
       }
-      setStep((current) => Math.min(PeerMentorWizardStep.Preview, current + 1));
+      moveStep(1);
     },
     back: () => {
       setError(null);
-      setStep((current) =>
-        Math.max(PeerMentorWizardStep.Categories, current - 1),
-      );
+      moveStep(-1);
     },
     publish: () => publish.mutate(),
     isPublishing: publish.isPending,
+    saveDraft: () => saveDraft.mutate(),
+    isSavingDraft: saveDraft.isPending,
+    /** When the draft was last saved; null without one. */
+    draftSavedAt: resumed?.updatedAt ?? null,
+    discardDraft: () => discardDraft.mutate(),
+    isDiscardingDraft: discardDraft.isPending,
   };
 }
