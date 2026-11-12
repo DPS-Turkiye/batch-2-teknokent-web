@@ -3338,7 +3338,8 @@
       "risks": "Risks / blockers",
       "nextSteps": "Next steps",
       "none": "None noted."
-    }
+    },
+    "reportOff": "Meeting reports are not generated on this system; only the transcript is kept."
   },
   "roleFrame": {
     "soon": "Coming soon",
@@ -6101,7 +6102,8 @@
     "readFailed": "Could not read the curriculum.",
     "uploadFailed": "Could not upload the file.",
     "pdfOnly": "Only PDF files can be uploaded.",
-    "tooLarge": "The file can be at most 10 MB."
+    "tooLarge": "The file can be at most 10 MB.",
+    "manualHint": "Syllabus files are not read automatically on this system; add the phases here and the weeks in the weekly plan by hand."
   },
   "teamHistory": {
     "show": "Team history",
