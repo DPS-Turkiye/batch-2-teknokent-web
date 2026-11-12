@@ -312,10 +312,12 @@ describe("PeerMentoringView › switch", () => {
 
     search = "as=MENTOR";
     renderWithQueryClient(<PeerMentoringView />);
-    expect(screen.getByText("Rozet Yok")).toBeVisible();
     expect(
-      screen.getByRole("button", { name: "Eğitimi başlat" }),
-    ).toBeDisabled();
+      screen.getByRole("heading", {
+        name: "Mentor olmak için eğitimi tamamla",
+      }),
+    ).toBeVisible();
+    expect(screen.getByRole("button", { name: "Eğitime Git" })).toBeDisabled();
   });
 
   it("reads in English", async () => {
