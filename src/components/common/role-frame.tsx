@@ -12,6 +12,7 @@ import { NotificationMenu } from "@/components/common/notification-menu";
 import { FeedbackButton } from "@/components/dashboard/feedback-button";
 import { AccountSettingsDialog } from "@/components/hoc/account-dialogs";
 import { WorkspaceSwitcher } from "@/components/hoc/workspace-switcher";
+import { ProductTour } from "@/components/product-tour/product-tour";
 import {
   useAppSession,
   useSession,
@@ -94,6 +95,7 @@ export function RoleFrame({
       roleLabel={roleLabel}
     >
       {children}
+      {workspace ? <ProductTour workspace={workspace} /> : null}
     </RoleShell>
   );
 }
