@@ -5974,6 +5974,7 @@
     "peerMentoringLoadFailed": "Akran mentörlüğü bilgileri yüklenemedi.",
     "peerMentoringRequestFailed": "Talep gönderilemedi.",
     "officeHoursFailed": "Ofis saatleri işlemi tamamlanamadı.",
+    "officeHoursLoadFailed": "Ofis saatleri yüklenemedi.",
     "invalidRequestBody": "İstek gövdesi okunamadı.",
     "invalidRequestFields": "İstekteki bazı bilgiler eksik ya da geçersiz.",
     "peerMentorProfileSaveFailed": "Mentor profilin kaydedilemedi.",

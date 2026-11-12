@@ -1,0 +1,24 @@
+import { fetchListedAcademician } from "@/lib/api/office-hours-me";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
+import { SessionRequiredError } from "@/lib/server/session-error";
+import { getSessionUser } from "@/lib/session";
+
+export async function GET(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    const session = await getSessionUser();
+    if (!session) throw new SessionRequiredError();
+    const { id } = await params;
+    return backendResponse(await fetchListedAcademician(session.userId, id));
+  } catch (error) {
+    return apiErrorResponse(error, {
+      message: await apiText("officeHoursLoadFailed"),
+    });
+  }
+}

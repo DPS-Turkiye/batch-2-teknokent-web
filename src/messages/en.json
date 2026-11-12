@@ -5972,6 +5972,7 @@
     "peerMentoringLoadFailed": "Couldn't load peer mentoring.",
     "peerMentoringRequestFailed": "Couldn't send the request.",
     "officeHoursFailed": "The office hours action could not be completed.",
+    "officeHoursLoadFailed": "Could not load office hours.",
     "invalidRequestBody": "The request body could not be read.",
     "invalidRequestFields": "Some fields in the request are missing or invalid.",
     "peerMentorProfileSaveFailed": "Couldn't save your mentor profile.",
