@@ -10,6 +10,7 @@ import {
 
 import { useMeetings } from "@/hooks/use-meetings";
 import { MeetingStatus as CalendarMeetingStatus } from "@/interfaces/meeting";
+import { UserRole } from "@/interfaces/session";
 import {
   addMeetingBot,
   fetchTranscript,
@@ -139,7 +140,11 @@ function publishableTranscript(lines: TranscriptLine[]) {
     }));
 }
 
-export function useMeetingAssistant(requestedMeetingId?: string) {
+/** `role` lets an admin, who may send the assistant into any meeting, paste links outside their own calendar. */
+export function useMeetingAssistant(
+  requestedMeetingId?: string,
+  role?: UserRole | null,
+) {
   const t = useTranslations("assistant");
   const locale = useLocale();
   const meetingTexts = useMemo(
@@ -157,14 +162,15 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
   const [adHocMeetings, setAdHocMeetings] = useState<Meeting[]>([]);
   const [overlays, setOverlays] = useState<Record<string, MeetingOverlay>>({});
   const [selectedId, setSelectedId] = useState(requestedMeetingId ?? "");
+  // What the user typed into the add-bot box; null until they touch it, so the prefill never overwrites their input.
+  const [typedUrl, setTypedUrl] = useState<string | null>(null);
   const [openedFor, setOpenedFor] = useState(requestedMeetingId);
   if (openedFor !== requestedMeetingId) {
     setOpenedFor(requestedMeetingId);
     setSelectedId(requestedMeetingId ?? "");
+    setTypedUrl(null);
   }
   const [meetingUrl, setMeetingUrl] = useState("");
-  // What the user typed into the add-bot box; null until they touch it, so the prefill never overwrites their input.
-  const [typedUrl, setTypedUrl] = useState<string | null>(null);
   const [botStatus, setBotStatus] = useState<BotStatus | null>(null);
   const [botError, setBotError] = useState<string | null>(null);
   const [transcriptByMeeting, setTranscriptByMeeting] = useState<
@@ -235,7 +241,15 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
     typedUrl,
     selectedMeetLink || meetingUrl,
   );
-  const linkNotInCalendar = isForeignMeetingLink(calendarItems, typedUrl);
+  const linkNotInCalendar =
+    role !== UserRole.Admin &&
+    !platformMeetingsQuery.isLoading &&
+    isForeignMeetingLink(calendarItems, typedUrl);
+  // Picking a meeting loads its link into the box again.
+  const selectMeeting = useCallback((id: string) => {
+    setSelectedId(id);
+    setTypedUrl(null);
+  }, []);
 
   useEffect(() => {
     if (!selected || !canPersist(selected.id) || shareLoadedFor[selected.id]) {
@@ -707,7 +721,7 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
   return {
     meetings,
     selected,
-    setSelectedId,
+    setSelectedId: selectMeeting,
     meetingUrl: linkBoxValue,
     setMeetingUrl: setTypedUrl,
     linkNotInCalendar,

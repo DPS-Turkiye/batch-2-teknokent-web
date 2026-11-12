@@ -60,7 +60,7 @@ function MeetingAssistantWorkspace() {
     shareError,
     sendTranscript,
     sendReport,
-  } = useMeetingAssistant(requestedMeetingId);
+  } = useMeetingAssistant(requestedMeetingId, session?.role);
 
   return (
     <AppShell active={AppArea.Assistant}>
@@ -105,6 +105,10 @@ function MeetingAssistantWorkspace() {
                   <input
                     value={meetingUrl}
                     onChange={(e) => setMeetingUrl(e.target.value)}
+                    aria-invalid={linkNotInCalendar}
+                    aria-describedby={
+                      linkNotInCalendar ? "assistant-link-hint" : undefined
+                    }
                     placeholder={t("linkPlaceholder")}
                     className="min-w-0 flex-1 rounded-[7px] border border-[var(--ma-line2)] bg-[var(--ma-panel)] px-2 py-1.5 text-xs text-[var(--ma-t1)] outline-none placeholder:text-[var(--ma-t3)]"
                   />
@@ -129,6 +133,7 @@ function MeetingAssistantWorkspace() {
                 {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
                 {linkNotInCalendar ? (
                   <p
+                    id="assistant-link-hint"
                     role="alert"
                     className="mt-1.5 text-[11px] leading-snug text-[var(--ma-danger)]"
                   >
