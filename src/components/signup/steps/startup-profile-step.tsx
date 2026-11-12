@@ -6,7 +6,6 @@ import { OnboardingTone } from "@/components/onboarding/onboarding-tone";
 import {
   OnboardingCard,
   OnboardingChips,
-  OnboardingConsent,
 } from "@/components/onboarding/onboarding-ui";
 import { StartupFields } from "@/components/signup/steps/startup-fields";
 import { useSignupProgramChoice } from "@/hooks/use-signup-program-choice";
@@ -15,8 +14,6 @@ import type { SignupWizard } from "@/hooks/use-signup-wizard";
 const TONE = OnboardingTone.Mentee;
 export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
   const copy = useTranslations("signupSteps");
-  const { draft, updateStartup } = wizard;
-  const { startup } = draft;
   const program = useSignupProgramChoice(wizard);
 
   return (
@@ -48,22 +45,9 @@ export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
           </p>
         ) : program.individual ? (
           <p className="text-xs text-[#676e78]">{copy("individualProgram")}</p>
-        ) : (
-          <OnboardingConsent
-            tone={TONE}
-            checked={startup.startupLater ?? false}
-            onChange={(checked) => updateStartup("startupLater", checked)}
-          >
-            <span className="flex flex-col gap-0.5">
-              <span className="font-medium text-[#22262b]">
-                {copy("startupLater")}
-              </span>
-              <span>{copy("startupLaterHint")}</span>
-            </span>
-          </OnboardingConsent>
-        )}
+        ) : null}
       </OnboardingCard>
-      {startup.startupLater || program.refusal !== null ? null : (
+      {program.individual || program.refusal !== null ? null : (
         <StartupFields form={wizard} />
       )}
     </>

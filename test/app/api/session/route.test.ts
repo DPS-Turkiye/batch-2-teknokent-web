@@ -113,6 +113,7 @@ describe("POST /api/session", () => {
   });
 
   it("opens the workspace the account last switched to, if it can still open it", async () => {
+    vi.stubEnv("APP_EDITION", "ODTU");
     answers({
       id: "user-2",
       email: "elif@odtu-dev.invalid",
@@ -132,5 +133,6 @@ describe("POST /api/session", () => {
     await signIn();
     expect(savedSessionUser().activeWorkspace).toBeUndefined();
     cookieValues.clear();
+    vi.unstubAllEnvs();
   });
 });

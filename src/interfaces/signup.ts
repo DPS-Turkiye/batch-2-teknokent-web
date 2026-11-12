@@ -103,8 +103,11 @@ export interface StartupProfileDraft {
   foundedYear: string;
   /** Required at signup; null until one is picked. */
   programId: string | null;
-  /** "Startup'ı daha sonra oluşturacağım": sign up into the program without a startup. */
-  startupLater?: boolean;
+  /**
+   * The chosen program is an individual-mentee one (İŞKUR): the backend gives the person a team of one, so the
+   * startup questions and files are skipped. Every other founder signs up with their startup.
+   */
+  individualProgram?: boolean;
   maturity: string;
   /** Rows carry React keys while edited (see keyed-list); the saved draft and the payloads leave them out. */
   teamMembers: Keyed<TeamMemberDraft>[];
