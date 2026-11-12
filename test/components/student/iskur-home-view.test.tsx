@@ -129,6 +129,37 @@ describe("IskurHomeView", () => {
     );
   });
 
+  it("marks only unanswered requests as new, and shows the capacity once the requests are in", async () => {
+    let answer: (requests: PeerMentoringRequest[]) => void = () => undefined;
+    vi.mocked(getReceivedPeerRequests).mockReturnValue(
+      new Promise((resolve) => {
+        answer = resolve;
+      }),
+    );
+    renderWithQueryClient(<IskurHomeView />);
+
+    const card = await screen.findByRole("region", { name: "Mentor profilin" });
+    expect(within(card).queryByText(/mentee$/)).toBeNull();
+    expect(within(card).queryByRole("progressbar")).toBeNull();
+
+    answer([
+      received("r1", "Zeynep Koç", MentorshipRequestStatus.Pending),
+      received("r2", "Can Tekin", MentorshipRequestStatus.MoreInfoRequested),
+    ]);
+    const giving = await screen.findByRole("region", {
+      name: "Mentorluk verdiğim",
+    });
+    const zeynep = (await within(giving).findByText("Zeynep Koç")).closest(
+      "li",
+    );
+    const can = within(giving).getByText("Can Tekin").closest("li");
+    if (!zeynep || !can) throw new Error("row missing");
+    expect(within(zeynep).getByText("Yeni talep")).toBeVisible();
+    expect(within(can).queryByText("Yeni talep")).toBeNull();
+    expect(within(can).getByText("Bilgi istendi")).toBeVisible();
+    expect(await within(card).findByText("0 / 4 mentee")).toBeVisible();
+  });
+
   it("points a badge holder without a profile to the wizard", async () => {
     vi.mocked(getPeerMentorProfile).mockResolvedValue(null);
     renderWithQueryClient(<IskurHomeView />);

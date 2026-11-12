@@ -7,13 +7,15 @@ import { Card } from "@/components/ia/card";
 import { StatusBadge, StatusTone } from "@/components/ia/status-badge";
 import { StudentHomeView } from "@/components/student/home-view";
 import { SectionHeader } from "@/components/student/ia/ui";
-import { InitialsAvatar } from "@/components/student/iskur-ui";
+import {
+  InitialsAvatar,
+  RequestStatusBadge,
+} from "@/components/student/iskur-ui";
 import { PEER_MENTOR_WIZARD_HREF } from "@/components/student/peer-mentor-give-view";
 import { useIskurHome } from "@/hooks/use-iskur-home";
+import { PEER_MENTOR_GIVE_HREF } from "@/lib/peer-mentoring";
 import { formatDateTime, initials } from "@/lib/utils";
 import { IskurHomeMode } from "@/types/iskur-student";
-
-const GIVE_HREF = "/student/peer-mentoring?as=MENTOR";
 
 /**
  * Ana Sayfa for İŞKUR students and peer mentors: the shared student home with "Mentorluk verdiğim" in the main
@@ -42,7 +44,7 @@ function Giving({ home }: { home: Home }) {
         id="iskur-giving"
         title={t("title")}
         hint={t("hint")}
-        action={{ href: GIVE_HREF, label: t("all") }}
+        action={{ href: PEER_MENTOR_GIVE_HREF, label: t("all") }}
       />
       {home.loaded && home.waiting.length === 0 ? (
         <p className="rounded-card border border-border-subtle p-5 type-body-sm text-text-muted">
@@ -63,7 +65,13 @@ function Giving({ home }: { home: Home }) {
                     <span className="truncate type-label text-text-primary">
                       {request.mentee.fullName}
                     </span>
-                    <StatusBadge tone={StatusTone.Info}>{t("new")}</StatusBadge>
+                    {home.isNew(request) ? (
+                      <StatusBadge tone={StatusTone.Info}>
+                        {t("new")}
+                      </StatusBadge>
+                    ) : (
+                      <RequestStatusBadge status={request.status} />
+                    )}
                   </p>
                   <p className="type-caption text-text-secondary">
                     {t("sentAt", {
@@ -113,7 +121,9 @@ function MentorSide({ home }: { home: Home }) {
       />
     );
   }
-  return <NextStep mode={IskurHomeMode.Training} href={GIVE_HREF} />;
+  return (
+    <NextStep mode={IskurHomeMode.Training} href={PEER_MENTOR_GIVE_HREF} />
+  );
 }
 
 function NextStep({
@@ -160,19 +170,23 @@ function MentorCard({ home }: { home: Home }) {
           <dt className="type-body-sm text-text-secondary">{t("badge")}</dt>
           <dd className="type-label text-text-primary">{t("badgeVerified")}</dd>
         </div>
-        <div className="flex justify-between gap-3">
-          <dt className="type-body-sm text-text-secondary">{t("capacity")}</dt>
-          <dd className="type-label text-text-primary">
-            {capacity.capacity === null
-              ? t("noCapacity")
-              : t("capacityValue", {
-                  used: capacity.used,
-                  capacity: capacity.capacity,
-                })}
-          </dd>
-        </div>
+        {capacity ? (
+          <div className="flex justify-between gap-3">
+            <dt className="type-body-sm text-text-secondary">
+              {t("capacity")}
+            </dt>
+            <dd className="type-label text-text-primary">
+              {capacity.capacity === null
+                ? t("noCapacity")
+                : t("capacityValue", {
+                    used: capacity.used,
+                    capacity: capacity.capacity,
+                  })}
+            </dd>
+          </div>
+        ) : null}
       </dl>
-      {capacity.capacity === null ? null : (
+      {typeof capacity?.capacity !== "number" ? null : (
         <div
           role="progressbar"
           aria-label={t("capacity")}
@@ -187,7 +201,11 @@ function MentorCard({ home }: { home: Home }) {
           />
         </div>
       )}
-      <Button href={GIVE_HREF} variant={ButtonVariant.Secondary} fullWidth>
+      <Button
+        href={PEER_MENTOR_GIVE_HREF}
+        variant={ButtonVariant.Secondary}
+        fullWidth
+      >
         {t("open")}
       </Button>
     </Card>
