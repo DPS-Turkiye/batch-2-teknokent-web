@@ -139,13 +139,13 @@ export function useSignupWizard(
 
   const editors = useStartupDraftEditors(setDraft);
 
-  // Without a startup there are no startup files to ask for.
+  // An individual program (İŞKUR) has no startup, so no startup files to ask for.
   const steps = useMemo(
     () =>
-      draft.startup.startupLater
+      draft.startup.individualProgram
         ? SIGNUP_STEP_ORDER.filter((item) => item !== SignupStep.Documents)
         : SIGNUP_STEP_ORDER,
-    [draft.startup.startupLater],
+    [draft.startup.individualProgram],
   );
 
   // A step is a new page to the applicant, so it should start at its heading
@@ -201,9 +201,10 @@ export function useSignupWizard(
       return Boolean(firstName.trim() && lastName.trim() && role.trim());
     }
     if (step === SignupStep.StartupProfile) {
-      const { name, tagline, programId, startupLater } = draft.startup;
+      const { name, tagline, programId, individualProgram } = draft.startup;
       return Boolean(
-        programId && (startupLater === true || (name.trim() && tagline.trim())),
+        programId &&
+        (individualProgram === true || (name.trim() && tagline.trim())),
       );
     }
     if (step === SignupStep.Review) return draft.consent;

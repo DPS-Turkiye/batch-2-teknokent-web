@@ -130,12 +130,12 @@ describe("useSignupWizard", () => {
     expect(result.current.canContinue).toBe(true);
   });
 
-  it("skips the documents step for someone creating their startup later", async () => {
+  it("skips the documents step in an individual program", async () => {
     const { result } = await renderWizard();
     fillPersonal(result);
     act(() => result.current.goNext());
     act(() => result.current.updateStartup("programId", "program-1"));
-    act(() => result.current.updateStartup("startupLater", true));
+    act(() => result.current.updateStartup("individualProgram", true));
 
     expect(result.current.canContinue).toBe(true);
     expect(result.current.steps).not.toContain(SignupStep.Documents);
