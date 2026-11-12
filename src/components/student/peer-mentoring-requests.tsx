@@ -13,7 +13,7 @@ import { NameSuffix } from "@/components/student/peer-mentor-directory";
 import { PeerSessionBookingDialog } from "@/components/student/peer-session-booking-dialog";
 import { useMyPeerMentorships } from "@/hooks/use-peer-mentoring";
 import type { PeerMentoringRequest } from "@/interfaces/peer-mentoring";
-import { peerMentorProfileHref } from "@/lib/peer-mentoring";
+import { mentorshipSince, peerMentorProfileHref } from "@/lib/peer-mentoring";
 import { formatDateTime, initials } from "@/lib/utils";
 
 const APPOINTMENTS_HREF = "/student/appointments";
@@ -164,6 +164,10 @@ function ActiveMentorship({
   const t = useTranslations("iaIskur.take.mine");
   const tTopic = useTranslations("peerTopics");
   const locale = useLocale();
+  const since = (acceptedAt: string) => {
+    const { day, month } = mentorshipSince(acceptedAt);
+    return t("since", { day, month: t(`sinceMonth.${month}`) });
+  };
   return (
     <article
       aria-label={request.mentor.fullName}
@@ -177,6 +181,7 @@ function ActiveMentorship({
           </h3>
           <p className="type-body-sm text-text-secondary">
             {tTopic(request.category)}
+            {request.acceptedAt ? ` · ${since(request.acceptedAt)}` : null}
           </p>
           {session ? (
             <p className="flex items-center gap-1.5 type-caption text-text-accent">

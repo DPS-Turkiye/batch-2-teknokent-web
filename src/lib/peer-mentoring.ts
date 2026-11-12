@@ -284,3 +284,29 @@ export function offeredSubTopics(
   );
   return ids.map((id) => ({ id, entry: byId.get(id) ?? null }));
 }
+
+const MONTH_KEYS = [
+  "jan",
+  "feb",
+  "mar",
+  "apr",
+  "may",
+  "jun",
+  "jul",
+  "aug",
+  "sep",
+  "oct",
+  "nov",
+  "dec",
+] as const;
+
+export type MonthKey = (typeof MONTH_KEYS)[number];
+
+/** The day and month a mentorship began, for "3 Kasım'dan beri": Turkish picks the suffix by month. */
+export function mentorshipSince(acceptedAt: string): {
+  day: number;
+  month: MonthKey;
+} {
+  const date = new Date(acceptedAt);
+  return { day: date.getDate(), month: MONTH_KEYS[date.getMonth()] ?? "jan" };
+}

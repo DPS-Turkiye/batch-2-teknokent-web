@@ -12,6 +12,7 @@ import type { ProfileCompletionCategory } from "@/interfaces/student-profile-com
 import {
   chosenSubtopics,
   latestGateAward,
+  mentorshipSince,
   offeredSubTopics,
   PEER_REQUEST_STATUS_TONE,
   peerMentorCapacity,
@@ -359,5 +360,15 @@ describe("sub-topic helpers", () => {
       { id: "exchange", entry: { id: "exchange", labelKey: "exchange" } },
       { id: "Serbest", entry: null },
     ]);
+  });
+});
+
+describe("mentorshipSince", () => {
+  it("gives the day and a month key, so each language can word it", () => {
+    expect(mentorshipSince("2026-11-03T12:00:00+03:00")).toEqual({
+      day: 3,
+      month: "nov",
+    });
+    expect(mentorshipSince("2026-10-15T12:00:00+03:00").month).toBe("oct");
   });
 });

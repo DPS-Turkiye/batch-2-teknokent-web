@@ -42,6 +42,7 @@ const sentRequest: PeerMentoringRequest = {
   message: "Erasmus başvurusu için nereden başlamalıyım?",
   status: MentorshipRequestStatus.Pending,
   createdAt: "2026-11-06T10:15:00+03:00",
+  acceptedAt: null,
 };
 
 const mentorDetail = peerMentorDetailFixture("fixture-peer-1");

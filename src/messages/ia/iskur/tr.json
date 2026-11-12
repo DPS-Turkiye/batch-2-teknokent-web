@@ -322,7 +322,22 @@
       "book": "Görüşme Planla",
       "seeAppointment": "Randevuya git",
       "findAnother": "Başka Mentor Bul",
-      "note": "Mentorluk, mentorunla aranızdaki ilişkidir. Görüşmelerin \"Randevularım\" altında listelenir."
+      "note": "Mentorluk, mentorunla aranızdaki ilişkidir. Görüşmelerin \"Randevularım\" altında listelenir.",
+      "since": "{day} {month} beri",
+      "sinceMonth": {
+        "jan": "Ocak'tan",
+        "feb": "Şubat'tan",
+        "mar": "Mart'tan",
+        "apr": "Nisan'dan",
+        "may": "Mayıs'tan",
+        "jun": "Haziran'dan",
+        "jul": "Temmuz'dan",
+        "aug": "Ağustos'tan",
+        "sep": "Eylül'den",
+        "oct": "Ekim'den",
+        "nov": "Kasım'dan",
+        "dec": "Aralık'tan"
+      }
     }
   }
 }
