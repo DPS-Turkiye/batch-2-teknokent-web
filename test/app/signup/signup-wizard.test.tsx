@@ -264,20 +264,31 @@ describe("Signup wizard", () => {
     expect(screen.queryByLabelText(/Startup adı/)).not.toBeInTheDocument();
   });
 
-  it("signs up into the program without a startup and skips its files", async () => {
+  it("offers no way to sign up without a startup in a startup program", async () => {
     const user = userEvent.setup();
     render(<SignupWizardView account={ACCOUNT} />);
 
     await completePersonalStep(user);
     await user.click(next());
     await chooseProgram(user);
+
     expect(next()).toBeDisabled();
-    await user.click(
-      screen.getByRole("checkbox", {
-        name: /Startup'ı daha sonra oluşturacağım/,
-      }),
-    );
-    expect(screen.queryByLabelText(/Startup adı/)).not.toBeInTheDocument();
+    expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
+    expect(screen.queryByText(/daha sonra oluştur/i)).not.toBeInTheDocument();
+    expect(screen.getByLabelText(/Startup adı/)).toBeInTheDocument();
+  });
+
+  it("signs an İŞKUR student up without a startup and says the peer mentoring area opens after approval", async () => {
+    vi.mocked(getProgramNames).mockResolvedValue([
+      { id: "iskur", name: "İŞKUR", individualMentees: true },
+    ]);
+    const user = userEvent.setup();
+    render(<SignupWizardView account={ACCOUNT} />);
+
+    await completePersonalStep(user);
+    await user.click(next());
+    await user.click(await screen.findByRole("button", { name: "İŞKUR" }));
+    await waitFor(() => expect(next()).toBeEnabled());
     await user.click(next());
 
     expect(
@@ -290,7 +301,7 @@ describe("Signup wizard", () => {
 
     await waitFor(() =>
       expect(registerFounder).toHaveBeenCalledWith(
-        expect.objectContaining({ programId: "prog-1", startupLater: true }),
+        expect.objectContaining({ programId: "iskur" }),
         "id-token",
       ),
     );
@@ -300,8 +311,11 @@ describe("Signup wizard", () => {
     );
     expect(
       await screen.findByRole("heading", {
-        name: "Başvurun koordinatöre gönderildi",
+        name: "Başvurun alındı; koordinatör onayından sonra akran mentörlüğü alanın açılacak.",
       }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Akran mentörlüğü alanın açılır"),
     ).toBeInTheDocument();
   });
 

@@ -1,7 +1,8 @@
-import { MentorLanguage } from "@/interfaces/mentor";
+import { MentorLanguage, Weekday } from "@/interfaces/mentor";
 import {
   PersonProgramRelation,
   type PersonSummary,
+  type PersonSummaryAvailability,
 } from "@/interfaces/person-summary";
 import { ProgramMentorStatus, ProgramStatus } from "@/interfaces/program";
 import { UserAccountStatus, UserRole } from "@/interfaces/session";
@@ -45,6 +46,7 @@ export function mentorSummary(
       meetingMode: null,
       activeMenteeCount: 2,
       completedMentorshipCount: 5,
+      availability: mentorAvailability(),
     },
     startup: null,
     programs: [
@@ -104,5 +106,30 @@ export function menteeSummary(
       },
     ],
     ...overrides,
+  };
+}
+
+/** Two windows on Tuesday (out of order), one on Monday, a day off and a one-off slot. */
+export function mentorAvailability(): PersonSummaryAvailability {
+  return {
+    weekly: [
+      {
+        dayOfWeek: Weekday.Tuesday,
+        startTime: "14:00:00",
+        endTime: "15:00:00",
+      },
+      {
+        dayOfWeek: Weekday.Monday,
+        startTime: "09:00:00",
+        endTime: "10:00:00",
+      },
+      {
+        dayOfWeek: Weekday.Tuesday,
+        startTime: "10:00:00",
+        endTime: "12:00:00",
+      },
+    ],
+    daysOff: [{ startsOn: "2026-11-20", endsOn: "2026-11-22" }],
+    extraSlots: [{ startsAt: "2026-11-14T09:00:00Z", durationMinutes: 45 }],
   };
 }
