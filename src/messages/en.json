@@ -72,7 +72,12 @@
     "signUp": "Sign up",
     "invite": "Got an invitation? Continue with your invite code",
     "odtu": "Sign in with your METU account",
-    "otg": "Sign in with ODTÜ TEKNOKENT Girişimcilik"
+    "otg": "Sign in with ODTÜ TEKNOKENT Girişimcilik",
+    "odtuIntro": "If you are a METU student or academic, sign in with your METU account. No separate sign-up is needed.",
+    "or": "or",
+    "staffQuestion": "Do you have a coordinator, admin or startup program account?",
+    "emailLogin": "Sign in with e-mail",
+    "help": "Cannot sign in? Get help"
   },
   "otgLogin": {
     "signingIn": "Signing you in with your ODTÜ TEKNOKENT Girişimcilik account…",
@@ -218,7 +223,24 @@
           "Coordinator approval"
         ],
         "action": "Continue as a mentor"
+      },
+      "student": {
+        "badge": "İŞKUR Student",
+        "title": "I want to be a peer mentor",
+        "description": "You set up your profile and choose your program; after the coordinator approves and you finish the mentoring training and earn your badge, you give peer mentoring to METU students.",
+        "steps": [
+          "Personal profile",
+          "Program choice",
+          "Coordinator approval",
+          "Training and badge"
+        ],
+        "action": "Continue as an İŞKUR student"
       }
+    },
+    "odtuBanner": {
+      "title": "Are you a METU student or academic?",
+      "tag": "No sign-up needed",
+      "text": "Sign in with your METU account. Office Hours, peer mentoring and your academic advisor open based on your account."
     }
   },
   "signupFlow": {
@@ -229,10 +251,32 @@
     "resumeSubmit": "Continue to mentor profile",
     "checkingSession": "Checking your session…",
     "preparingMentor": "Preparing your mentor account…",
-    "retry": "Try again"
+    "retry": "Try again",
+    "existingAccountTitle": "You already have an account with this e-mail",
+    "existingAccountBody": "An account with {email} already exists. You don't need to sign up again; sign in to continue.",
+    "existingAccountSignIn": "Sign in"
   },
   "signupWizard": {
     "programRequired": "Please select a program.",
+    "invalidFields": "These fields are not valid: {fields}. Fix them and send again.",
+    "fieldNames": {
+      "fullName": "Full name",
+      "email": "E-mail",
+      "phone": "Phone",
+      "jobTitle": "Role",
+      "bio": "Short bio",
+      "linkedinUrl": "LinkedIn",
+      "contactPreferences": "Contact preferences",
+      "programId": "Program",
+      "organizationName": "Startup name",
+      "description": "Short description",
+      "website": "Website",
+      "mvpUrl": "MVP link",
+      "foundedYear": "Founded year",
+      "maturity": "Stage",
+      "supportAreas": "Support areas",
+      "teamMembers": "Team members"
+    },
     "steps": {
       "personal": {
         "title": "Create your personal profile",
@@ -4166,8 +4210,6 @@
     "removeLabel": "Remove {name} from the program",
     "remove": "Remove",
     "loading": "Loading…",
-    "noCandidates": "No other approved coordinators to add. An admin can add new coordinators under Users.",
-    "candidates": "Coordinators you can add",
     "addCoordinator": "Add a coordinator",
     "coordinatorFailed": "Couldn't update the coordinators.",
     "danger": "Danger zone",
@@ -4762,7 +4804,6 @@
     "accessFailed": "Couldn't change the access.",
     "setupSent": "A password setup email was sent to {email}.",
     "setupFailed": "Couldn't send the email.",
-    "assigned": "Coordinator added to the program.",
     "addTitle": "Add a coordinator",
     "addBody": "An account is opened for someone new; if they're already a mentor or a founder, their role becomes coordinator. Mentors and teams sign up themselves and wait for approval in this list.",
     "cancel": "Cancel",
@@ -4773,16 +4814,42 @@
     "checking": "Checking…",
     "assignTitle": "Assign a coordinator",
     "assignBody": "Add a coordinator to {program}. The coordinator runs the program's rules and teams.",
-    "noCandidates": "No approved coordinators. Add one by email: an account is opened if they're new, and a password setup email goes out.",
-    "byEmailHint": "If they're new, an account is opened and a password setup email goes out; if they're already a mentor or a founder, their role becomes coordinator.",
-    "pickFromList": "Pick from the list",
     "loading": "Loading…",
-    "notListed": "Not on the list? Add by email",
     "adding": "Adding…",
-    "addToProgram": "Add to the program",
     "deactivate": "Deactivate",
     "reactivate": "Reactivate",
     "resendSetup": "Send the password email again"
+  },
+  "coordinatorPicker": {
+    "label": "Coordinator e-mail",
+    "placeholder": "name@organization.com",
+    "hint": "Type at least {min} characters to search.",
+    "searching": "Searching…",
+    "searchFailed": "Could not search coordinators.",
+    "noMatches": "No coordinator's e-mail starts with this. To invite someone without a menton account, type the whole e-mail address.",
+    "results": "Matching coordinators",
+    "resultCount": "{count, plural, one {# coordinator found} other {# coordinators found}}",
+    "add": "Add",
+    "addNamed": "Add {name}",
+    "inviteTitle": "{email} has no menton account. You can invite them as a coordinator.",
+    "inviteNote": "When the program is saved, a coordinator account is created and an e-mail is sent so they can set a password. The link works once and for about 1 hour; after that they can get a new one with \"Forgot password?\" on the sign-in page.",
+    "inviteName": "Full name",
+    "invite": "Invite",
+    "chosen": "Chosen coordinators",
+    "invitedTag": "To be invited",
+    "remove": "Remove {name}",
+    "someone": "user",
+    "refusal": {
+      "PROMOTABLE": "{name} is registered on menton as a {role}. To make them a coordinator, use Users › Add coordinator first.",
+      "REACTIVATABLE": "{name} is a deactivated coordinator. Reactivate them under Users first.",
+      "ALREADY_COORDINATOR": "{name} already coordinates this program.",
+      "ADMIN": "This e-mail belongs to an admin.",
+      "TEAM_MEMBER": "{name} is in a startup team. Team members cannot become coordinators.",
+      "MENTOR_IN_MENTORSHIP": "{name} has a planned or active mentorship and cannot become a coordinator until it ends."
+    },
+    "added": "{name} was added to the program.",
+    "invited": "{name} was added to the program; a password setup e-mail was sent to {email}.",
+    "addFailed": "Could not add the coordinator."
   },
   "adminUsers": {
     "tabs": {
@@ -5961,6 +6028,7 @@
     "inviteRenewFailed": "Could not renew the invitation.",
     "noteDeleteFailed": "Could not delete the note.",
     "emailCheckFailed": "Could not check the e-mail address.",
+    "coordinatorSearchFailed": "Could not search coordinators.",
     "profileSaveFailed": "Could not save the profile.",
     "startupAddFailed": "Could not add the startup to the program.",
     "documentRequestTargetRequired": "A meetingId, mentorshipRequestId or mentorshipId is required.",
@@ -6274,7 +6342,7 @@
         "label": "Coordinator",
         "hint": "Who runs the program",
         "title": "Assign coordinators",
-        "note": "Choose one or more coordinators. Coordinators set up the program’s conditions."
+        "note": "Search for a coordinator by e-mail, or invite someone without a menton account by e-mail. Coordinators set up the program's rules."
       },
       "SUMMARY": {
         "label": "Summary",
@@ -6295,21 +6363,19 @@
     "start": "Start",
     "end": "End",
     "coordinatorsLabel": "Coordinators",
-    "coordinatorsFailed": "Couldn’t load the coordinators.",
-    "retry": "Try again",
-    "noCoordinators": "There is no approved coordinator. Add one under Users › Coordinators first.",
     "summaryType": "Program type",
     "summaryName": "Program name",
     "summaryDates": "Dates",
     "noDates": "Not set",
     "summaryCoordinators": "Coordinators",
+    "invitedTag": "To be invited",
     "summaryStatus": "Status",
     "draft": "Draft",
     "problems": {
       "TYPE_REQUIRED": "Choose a program type.",
       "NAME_REQUIRED": "Enter the program name.",
       "DATES_ORDER": "The end date cannot be before the start date.",
-      "COORDINATOR_REQUIRED": "Choose at least one coordinator."
+      "COORDINATOR_REQUIRED": "Add at least one coordinator."
     },
     "cancel": "Cancel",
     "back": "Back",
@@ -6336,28 +6402,8 @@
     "past": "Past"
   },
   "studentProfileCompletion": {
-    "title": "Complete your profile",
-    "subtitle": "Pick your interests and goal; you can change them any time in Profilim.",
-    "loading": "Loading profile…",
-    "loadError": "Profile could not be loaded.",
-    "retry": "Try again",
-    "saved": "Your profile is complete.",
-    "skipped": "Skipped for now. You can complete your profile later.",
-    "home": "Back to home",
-    "step": "Step {number} / 3",
-    "steps": {
-      "0": "Your interests",
-      "1": "Subtopics",
-      "2": "Your goal (optional)"
-    },
     "noTopics": "No interests selected. Go back or continue without a selection.",
     "goal": "Your goal (optional, up to 1000 characters)",
-    "saveError": "Your profile couldn't be saved. Please try again.",
-    "back": "Back",
-    "next": "Continue",
-    "finish": "Complete profile",
-    "saving": "Saving…",
-    "skip": "Skip for now",
     "subtopics": {
       "study": "Example: Study skills",
       "cv": "Example: CV preparation",

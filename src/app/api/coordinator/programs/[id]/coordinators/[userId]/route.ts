@@ -4,14 +4,15 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
-import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
+import { requireAdminSession } from "@/lib/server/require-admin";
 
+// Only admins change who runs a program; the backend refuses anyone else.
 export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ id: string; userId: string }> },
 ) {
   try {
-    const auth = await requireCoordinatorOrAdminSession();
+    const auth = await requireAdminSession();
     if (!auth.ok) return auth.response;
     const { id, userId } = await params;
     return backendResponse(

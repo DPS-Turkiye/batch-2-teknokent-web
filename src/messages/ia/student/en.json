@@ -1,1 +1,60 @@
-{}
+{
+  "common": {
+    "whyRecommended": "Why recommended?",
+    "kind": {
+      "PEER_MENTORING": "Peer Mentoring",
+      "OFFICE_HOURS": "Office Hours"
+    }
+  },
+  "home": {
+    "greeting": "{greeting}, {name}",
+    "seeAll": "See all",
+    "next": {
+      "label": "Next appointment",
+      "view": "View appointment"
+    },
+    "quick": {
+      "label": "Quick actions",
+      "officeHours": {
+        "title": "Request an appointment",
+        "body": "Office Hours"
+      },
+      "peerMentor": {
+        "title": "Find a mentor",
+        "body": "Peer Mentoring"
+      },
+      "appointments": {
+        "title": "My appointments",
+        "body": "{upcoming} upcoming · {requests} requests"
+      },
+      "profile": {
+        "title": "Update your profile",
+        "body": "Your interests and goal"
+      }
+    },
+    "upcoming": {
+      "title": "My upcoming appointments",
+      "empty": "You have no upcoming appointments."
+    },
+    "mentors": {
+      "title": "Mentors recommended for you",
+      "hint": "Based on the topics you chose",
+      "all": "Peer Mentoring",
+      "role": "Peer Mentor",
+      "profile": "View profile",
+      "request": "Send a mentoring request"
+    },
+    "advisor": {
+      "label": "Your academic advisor",
+      "source": "From the institutional record",
+      "request": "Request an appointment"
+    },
+    "requests": {
+      "title": "My pending requests",
+      "all": "All ({count})",
+      "empty": "You have no requests awaiting an answer.",
+      "reply": "Reply",
+      "waiting": "Awaiting reply"
+    }
+  }
+}
