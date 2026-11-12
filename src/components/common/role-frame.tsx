@@ -24,6 +24,16 @@ import { initials } from "@/lib/utils";
 import type messages from "@/messages/tr.json";
 import { IaAccent } from "@/types/ia-theme";
 
+/** ODTÜ red for the ODTÜ workspaces (Figma "Nav / Öğrenci" and "Nav / Akademisyen"); the neutral theme otherwise. */
+const WORKSPACE_ACCENT: Record<Workspace, IaAccent | null> = {
+  [Workspace.Admin]: null,
+  [Workspace.Coordinator]: null,
+  [Workspace.OdtuAcademician]: IaAccent.Odtu,
+  [Workspace.OdtuStudent]: IaAccent.Odtu,
+  [Workspace.GirisimMentor]: null,
+  [Workspace.GirisimMentee]: null,
+};
+
 export type RoleMenuLabel = Extract<
   keyof (typeof messages)["roleFrame"],
   `${string}Menu`
@@ -76,7 +86,9 @@ export function RoleFrame({
 
   return (
     <RoleShell
-      accent={workspace === Workspace.OdtuStudent ? IaAccent.Odtu : undefined}
+      accent={
+        workspace ? (WORKSPACE_ACCENT[workspace] ?? undefined) : undefined
+      }
       homeHref={homeHref}
       menuLabel={menuLabel}
       nav={nav}
@@ -96,7 +108,7 @@ function RoleShell({
   roleLabel: workspaceLabel,
   children,
 }: {
-  /** The design-system theme: ODTÜ red for students, the neutral ink theme otherwise. */
+  /** The design-system theme: ODTÜ red for the ODTÜ workspaces, the neutral ink theme otherwise. */
   accent?: IaAccent | undefined;
   homeHref: string;
   menuLabel: RoleMenuLabel;

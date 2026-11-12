@@ -41,7 +41,12 @@ export function CvFileSection({
         accept=".pdf"
         helpText={t("help")}
       />
-      {cv.storedName && !cv.selected ? (
+      {!cv.canRead ? (
+        <>
+          {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+          <p className={noteClass}>{t("manual")}</p>
+        </>
+      ) : cv.storedName && !cv.selected ? (
         cv.storedIsPdf ? (
           <button
             type="button"
