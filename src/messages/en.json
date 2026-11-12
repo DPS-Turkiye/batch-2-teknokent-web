@@ -2044,7 +2044,8 @@
     "avatar": "Profile photo",
     "profile-pdf": "Profile PDF",
     "requested-doc": "Requested document",
-    "syllabus": "Syllabus"
+    "syllabus": "Syllabus",
+    "weekly-program": "Weekly program"
   },
   "startupStages": {
     "PROBLEM": "Problem",
@@ -5987,6 +5988,8 @@
     "academicsLoadFailed": "Could not load the academics.",
     "weekPlanLoadFailed": "Couldn't load the weekly plan.",
     "weekPlanSaveFailed": "Couldn't save the weekly plan.",
+    "weeklyProgramReadFailed": "Couldn't read the weekly program.",
+    "weeklyProgramSaveFailed": "Couldn't save the weekly program.",
     "programThisWeekLoadFailed": "Couldn't load this week's plan.",
     "sessionRefreshFailed": "Couldn't update your session.",
     "personSummaryLoadFailed": "Could not load the profile.",
