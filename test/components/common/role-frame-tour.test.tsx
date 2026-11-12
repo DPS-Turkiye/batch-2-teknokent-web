@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { RoleFrame } from "@/components/common/role-frame";
+import { Edition } from "@/interfaces/edition";
 import { UserRole, type AppSession } from "@/interfaces/session";
 import { Workspace } from "@/interfaces/workspace";
 import { odtuSession } from "@test/fixtures/product-tour";
@@ -43,6 +44,25 @@ describe("RoleFrame product tour", () => {
     expect(
       screen.getByText(`tour for ${Workspace.OdtuStudent}`),
     ).toBeInTheDocument();
+  });
+
+  it("has no tour when the deployment is not the ODTÜ edition", () => {
+    current = odtuSession({
+      permissions: [UserRole.Mentee],
+      edition: Edition.Teknokent,
+    });
+    render(
+      <RoleFrame
+        workspace={Workspace.OdtuStudent}
+        homeHref="/student"
+        menuLabel="studentMenu"
+        nav={[]}
+      >
+        <p>Home</p>
+      </RoleFrame>,
+    );
+    expect(screen.queryByText("Home")).not.toBeInTheDocument();
+    expect(screen.queryByText(/^tour for/)).not.toBeInTheDocument();
   });
 
   it("has no tour in a staff frame", () => {
