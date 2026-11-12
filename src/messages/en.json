@@ -110,6 +110,8 @@
     "lastNamePlaceholder": "Your last name",
     "email": "Email",
     "emailPlaceholder": "name@email.com",
+    "emailDomainHint": "Sign up with your {domains} e-mail address.",
+    "emailDomainNotAllowed": "This address cannot sign up here; use your {domains} e-mail address.",
     "phone": "Phone",
     "password": "Password",
     "passwordConfirm": "Confirm password",
@@ -271,13 +273,9 @@
     "sendToCoordinator": "Send to coordinator",
     "continue": "Continue",
     "draftSaved": "Draft saved.",
-    "soloSubmittedTitle": "Your application was sent to the coordinator",
-    "soloLastStepLabel": "You create your startup or join a team",
-    "soloNextSteps": [
-      "If approved, you can create your own startup or join your team with its code on the My startup page.",
-      "If changes are requested, you get an email.",
-      "Mentor requests open once your startup is approved."
-    ]
+    "individualSubmittedTitle": "Your application is in; your peer mentoring area opens after coordinator approval.",
+    "individualLastStepLabel": "Your peer mentoring area opens",
+    "individualNextSteps": ["If changes are requested, you get an email."]
   },
   "signupSteps": {
     "basics": "Basics",
@@ -321,8 +319,6 @@
     "supportAreasSubtitle": "Pick up to {max} areas. Mentor suggestions are ordered by them.",
     "supportAreasLimit": "You can pick up to {max} areas. Remove one to change.",
     "programSubtitle": "Your application goes to this program's coordinator.",
-    "startupLater": "I'll create my startup later",
-    "startupLaterHint": "Once approved, you can create your startup or join a team from the My startup page.",
     "individualProgram": "You join this program on your own; no startup details are needed.",
     "programEligibilityChecking": "Checking whether you can join this program…",
     "programEligibilityRefused": "You cannot join this program with this e-mail address. Ask the program coordinator, or choose another program.",
@@ -362,8 +358,7 @@
     "missingTitle": "You can submit without a pitch deck and prototype",
     "missingBody": "But mentors look at these two files most when they evaluate your startup. You can add them later too.",
     "consent": "I confirm that the information I gave is correct and agree to the coordinator reviewing my profile.",
-    "program": "Program",
-    "startupLater": "To be created later"
+    "program": "Program"
   },
   "onboarding": {
     "exiting": "Signing out…",
@@ -3285,6 +3280,7 @@
     "meetingsTab": "Meetings",
     "meetingsHeading": "meetings",
     "linkPlaceholder": "Paste a meeting link…",
+    "linkNotInCalendar": "This link is not one of the meetings in your calendar; the assistant can only join meetings in your Menton calendar.",
     "addBot": "Add bot",
     "loadingMeetings": "Loading meetings…",
     "noMeetings": "No saved meetings. Create one from the calendar or paste a link.",
@@ -6812,6 +6808,12 @@
     "completedMentorships": "Completed mentorships",
     "registered": "Registered",
     "open": "View profile",
-    "openFor": "View profile: {name}"
+    "openFor": "View profile: {name}",
+    "availability": "Available times",
+    "availabilityEmpty": "No available times added yet.",
+    "availabilityWeekly": "Weekly",
+    "availabilityDaysOff": "Upcoming days off",
+    "availabilityExtraSlots": "Extra times",
+    "availabilityExtraSlot": "{day} · {time} ({minutes} min)"
   }
 }
