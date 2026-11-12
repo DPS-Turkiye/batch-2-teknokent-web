@@ -15,6 +15,7 @@ import {
   openPeerRequests,
   recommendedPeerMentors,
   summarizeAppointments,
+  waitingPreview,
 } from "@/lib/student-home";
 import { dayPart } from "@/lib/utils";
 
@@ -44,7 +45,10 @@ export function useStudentHome() {
     home.data?.appointments ?? [],
     now,
   );
-  const peerRequests = openPeerRequests(requests.data ?? []);
+  const waiting = waitingPreview(
+    appointments.awaiting,
+    openPeerRequests(requests.data ?? []),
+  );
 
   return {
     isLoading: home.isLoading,
@@ -60,9 +64,9 @@ export function useStudentHome() {
     next: appointments.next,
     upcoming: appointments.upcoming,
     confirmedCount: appointments.confirmedCount,
-    awaiting: appointments.awaiting,
-    peerRequests,
-    requestCount: appointments.awaiting.length + peerRequests.length,
+    awaiting: waiting.awaiting,
+    peerRequests: waiting.peerRequests,
+    requestCount: waiting.total,
     mentors: recommendedPeerMentors(mentors.data ?? []),
   };
 }
