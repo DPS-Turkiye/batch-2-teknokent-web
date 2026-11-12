@@ -2,7 +2,7 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import Home, { dynamic } from "@/app/(public)/page";
+import Home, { dynamic, generateMetadata } from "@/app/(public)/page";
 import { styles } from "@/components/landing/landing-styles";
 import { UserRole, type AppSession } from "@/interfaces/session";
 import { InLocale } from "@test/test-utils";
@@ -73,6 +73,17 @@ describe("Landing page", () => {
         name: "ODTÜ öğrencisi veya akademisyeni misin?",
       }),
     ).toBeInTheDocument();
+  });
+
+  it("names the page after the deployment's edition", async () => {
+    expect(await generateMetadata()).toEqual({
+      title: { absolute: "menton · ODTÜ Teknokent" },
+    });
+
+    vi.stubEnv("APP_EDITION", "ODTU");
+    expect(await generateMetadata()).toEqual({
+      title: { absolute: "menton · ODTÜ" },
+    });
   });
 
   it("offers a signed-in ODTÜ visitor their workspace and no sign-up", () => {

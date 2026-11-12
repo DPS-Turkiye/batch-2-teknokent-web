@@ -6806,7 +6806,7 @@
       },
       "appointments": {
         "title": "Randevularını izle",
-        "caption": "Onaylanan ve bekleyen tüm görüşmeler"
+        "caption": "Randevularım"
       },
       "advisor": {
         "title": "Danışmanına ulaş",
@@ -6847,6 +6847,7 @@
       "title": "ODTÜ öğrencisi veya akademisyeni misin?",
       "text": "ODTÜ hesabınla giriş yap. Office Hours, Akran Mentörlüğü ve akademik danışmanın hesabındaki bilgilere göre açılır."
     },
-    "footer": "menton · ODTÜ"
+    "footer": "menton · ODTÜ",
+    "metaTitle": "menton · ODTÜ"
   }
 }

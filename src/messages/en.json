@@ -6806,7 +6806,7 @@
       },
       "appointments": {
         "title": "Follow your appointments",
-        "caption": "Every approved and pending meeting"
+        "caption": "My appointments"
       },
       "advisor": {
         "title": "Reach your advisor",
@@ -6847,6 +6847,7 @@
       "title": "Are you a METU student or academic?",
       "text": "Sign in with your METU account. Office Hours, peer mentoring and your academic advisor open based on your account."
     },
-    "footer": "menton · METU"
+    "footer": "menton · METU",
+    "metaTitle": "menton · METU"
   }
 }

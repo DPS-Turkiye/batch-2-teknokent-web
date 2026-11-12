@@ -81,7 +81,7 @@ export function OdtuLandingPage() {
             <p className="type-overline text-text-accent">{copy("overline")}</p>
             <h1
               id="odtu-landing-title"
-              className="type-h1 text-text-primary lg:type-display"
+              className="type-h1 text-balance text-text-primary lg:type-display"
             >
               {copy("title")}
             </h1>
