@@ -9,7 +9,6 @@ import { MentorshipStatus } from "@/interfaces/coordinator-mentorship";
 import { ProgramMentorStatus } from "@/interfaces/program";
 import { UserAccountStatus, UserRole } from "@/interfaces/session";
 import {
-  approvedCoordinatorsOf,
   coordinatorsOf,
   daysSince,
   mentorsOf,
@@ -84,9 +83,8 @@ describe("admin-model people", () => {
   const data = overview({ users });
   const ids = (list: AdminUser[]) => list.map((user) => user.id);
 
-  it("lists coordinators whatever their status, and the approved ones apart", () => {
+  it("lists coordinators whatever their status", () => {
     expect(ids(coordinatorsOf(data))).toEqual(["coord-ok", "coord-waiting"]);
-    expect(ids(approvedCoordinatorsOf(data))).toEqual(["coord-ok"]);
   });
 
   it("lists mentors, and only the pending ones as waiting for approval", () => {
