@@ -13,6 +13,7 @@ frontend:
         - echo "BACKEND_USERNAME=$BACKEND_USERNAME" >> .env
         - echo "BACKEND_PASSWORD=$BACKEND_PASSWORD" >> .env
         - echo "SESSION_PASSWORD=$SESSION_PASSWORD" >> .env
+        - echo "APP_EDITION=$APP_EDITION" >> .env
         - echo "NEXT_PUBLIC_GOOGLE_CLIENT_ID=$NEXT_PUBLIC_GOOGLE_CLIENT_ID" >> .env
         - echo "NEXT_PUBLIC_REALTIME_URL=$NEXT_PUBLIC_REALTIME_URL" >> .env
         - echo "NEXT_PUBLIC_FIREBASE_API_KEY=$NEXT_PUBLIC_FIREBASE_API_KEY" >> .env
