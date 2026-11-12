@@ -1,8 +1,9 @@
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PeerMentoringRequests } from "@/components/student/peer-mentoring-requests";
+import { AppointmentStatus } from "@/interfaces/appointment";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import {
   PeerTopicCategory,
@@ -59,6 +60,9 @@ const SLOT = {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // "Sıradaki görüşme" only counts meetings still to come, so the list is read at a fixed moment.
+  vi.useFakeTimers({ toFake: ["Date"] });
+  vi.setSystemTime(new Date("2026-11-09T09:00:00.000Z"));
   vi.mocked(getPeerMentoringRequests).mockResolvedValue([
     request("request-1", "Zeynep Demir", MentorshipRequestStatus.Accepted),
     request("request-2", "Mehmet Kaya", MentorshipRequestStatus.Accepted),
@@ -77,6 +81,10 @@ beforeEach(() => {
     meetLink: null,
     status: "SCHEDULED",
   });
+});
+
+afterEach(() => {
+  vi.useRealTimers();
 });
 
 const onFindAnother = vi.fn();
@@ -122,6 +130,32 @@ describe("Mentorluk Al › Mentorluklarım", () => {
     expect(
       within(mentorship).getByText("Kariyer ve Staj · 3 Kasım'dan beri"),
     ).toBeVisible();
+  });
+
+  it("never shows a cancelled or past meeting as the next one, and offers to plan one instead", async () => {
+    vi.mocked(getStudentAppointments).mockResolvedValue([
+      peerAppointment({
+        id: "cancelled",
+        requestId: "request-1",
+        status: AppointmentStatus.Cancelled,
+      }),
+      peerAppointment({
+        id: "held",
+        requestId: "request-1",
+        startsAt: "2026-11-02T09:00:00.000Z",
+        endsAt: "2026-11-02T09:45:00.000Z",
+      }),
+      peerAppointment({ requestId: "request-2" }),
+    ]);
+    renderMine();
+
+    const zeynep = await activeMentorship("Zeynep Demir");
+    expect(
+      await within(zeynep).findByRole("button", { name: "Görüşme Planla" }),
+    ).toBeVisible();
+    expect(within(zeynep).queryByText(/^Sıradaki görüşme: /)).toBeNull();
+    const mehmet = await activeMentorship("Mehmet Kaya");
+    expect(within(mehmet).getByText(/^Sıradaki görüşme: /)).toBeVisible();
   });
 
   it("lists the other requests with their status, and offers another mentor after a decline", async () => {

@@ -303,7 +303,8 @@
       "mentorCount": "{count, plural, one {# mentor} other {# mentors}}",
       "subTopicFilter": "Sub-topic",
       "allSubTopics": "All sub-topics",
-      "availableThisWeek": "Available this week"
+      "availableThisWeek": "Available this week",
+      "mentoring": "Already your mentor"
     },
     "profile": {
       "back": "Peer mentoring",
