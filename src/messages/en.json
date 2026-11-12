@@ -6783,6 +6783,12 @@
     "completedMentorships": "Completed mentorships",
     "registered": "Registered",
     "open": "View profile",
-    "openFor": "View profile: {name}"
+    "openFor": "View profile: {name}",
+    "availability": "Available times",
+    "availabilityEmpty": "No available times added yet.",
+    "availabilityWeekly": "Weekly",
+    "availabilityDaysOff": "Upcoming days off",
+    "availabilityExtraSlots": "Extra times",
+    "availabilityExtraSlot": "{day} · {time} ({minutes} min)"
   }
 }
