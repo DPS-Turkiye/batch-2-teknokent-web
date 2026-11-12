@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { WorkspaceSwitcher } from "@/components/hoc/workspace-switcher";
+import { Edition } from "@/interfaces/edition";
 import { IdentityKind, UserRole, type AppSession } from "@/interfaces/session";
 import { Workspace } from "@/interfaces/workspace";
 import { switchWorkspace } from "@/lib/client/auth";
@@ -27,6 +28,7 @@ const assistant: AppSession = {
   role: UserRole.Academician,
   permissions: [UserRole.Mentee, UserRole.Academician],
   institutionKinds: [IdentityKind.Student, IdentityKind.Academic],
+  edition: Edition.Odtu,
 };
 
 describe("WorkspaceSwitcher", () => {

@@ -10,6 +10,7 @@ import {
   type MeetingItem,
 } from "@/interfaces/meeting";
 import type { MeetingAssistantShare } from "@/interfaces/meeting-note";
+import { UserRole } from "@/interfaces/session";
 import {
   addMeetingBot,
   fetchTranscript,
@@ -35,6 +36,8 @@ import { InLocale } from "@test/test-utils";
 
 const calendar = vi.hoisted(() => ({
   meetings: [] as MeetingItem[],
+  loading: false,
+  failed: false,
   refetch: vi.fn(),
 }));
 
@@ -47,7 +50,8 @@ const refused = vi.fn();
 vi.mock("@/hooks/use-meetings", () => ({
   useMeetings: () => ({
     data: calendar.meetings,
-    isLoading: false,
+    isLoading: calendar.loading,
+    isSuccess: !calendar.loading && !calendar.failed,
     refetch: calendar.refetch,
   }),
 }));
@@ -132,6 +136,8 @@ describe("useMeetingAssistant", () => {
     vi.useFakeTimers();
     vi.setSystemTime(NOW);
     calendar.meetings = [];
+    calendar.loading = false;
+    calendar.failed = false;
     vi.mocked(useAiFeatures).mockReturnValue(aiFeatures());
     vi.mocked(getAssistantShare).mockResolvedValue(share());
     vi.mocked(fetchTranscript).mockResolvedValue([]);
@@ -202,6 +208,140 @@ describe("useMeetingAssistant", () => {
       await act(() => result.current.addBot());
 
       expect(result.current.botError).toBe("Toplantı asistanı gönderilemedi.");
+    });
+  });
+
+  describe("the link box", () => {
+    const OTHER = "https://meet.google.com/zzz-zzzz-zzz";
+
+    it("shows the selected meeting's link until the user types, then keeps their input", async () => {
+      calendar.meetings = [calendarMeeting()];
+      const { result } = renderAssistant();
+      await flush();
+      expect(result.current.meetingUrl).toBe(LINK);
+
+      act(() => result.current.setMeetingUrl(""));
+      await flush(60_000);
+      expect(result.current.meetingUrl).toBe("");
+
+      act(() => result.current.setMeetingUrl(OTHER));
+      await flush(60_000);
+      expect(result.current.meetingUrl).toBe(OTHER);
+    });
+
+    it("says when a pasted link is not one of the user's calendar meetings", async () => {
+      calendar.meetings = [calendarMeeting()];
+      const { result } = renderAssistant();
+      await flush();
+      expect(result.current.linkNotInCalendar).toBe(false);
+
+      act(() => result.current.setMeetingUrl(OTHER));
+      expect(result.current.linkNotInCalendar).toBe(true);
+
+      act(() => result.current.setMeetingUrl(LINK));
+      expect(result.current.linkNotInCalendar).toBe(false);
+    });
+
+    it("sends the link the user typed, not the selected meeting's", async () => {
+      calendar.meetings = [calendarMeeting()];
+      const { result } = renderAssistant();
+      await flush();
+
+      act(() => result.current.setMeetingUrl(OTHER));
+      await act(() => result.current.addBot());
+
+      expect(addMeetingBot).toHaveBeenCalledWith(OTHER);
+      expect(result.current.linkNotInCalendar).toBe(false);
+      expect(result.current.meetingUrl).not.toBe(OTHER);
+    });
+
+    it("keeps the typed link when the send fails", async () => {
+      vi.mocked(addMeetingBot).mockRejectedValue(new Error("Bot meşgul."));
+      const { result } = renderAssistant();
+
+      act(() => result.current.setMeetingUrl(OTHER));
+      await act(() => result.current.addBot());
+
+      expect(result.current.meetingUrl).toBe(OTHER);
+    });
+
+    it("loads the link of the meeting the user picks next", async () => {
+      const SECOND = "https://meet.google.com/bbb-cccc-ddd";
+      calendar.meetings = [
+        calendarMeeting(),
+        calendarMeeting({ id: "cal-2", meetLink: SECOND }),
+      ];
+      const { result } = renderAssistant();
+      await flush();
+
+      act(() => result.current.setMeetingUrl(OTHER));
+      act(() => result.current.setSelectedId("cal-2"));
+
+      expect(result.current.meetingUrl).toBe(SECOND);
+    });
+
+    it("does not warn while the calendar is still loading", async () => {
+      calendar.loading = true;
+      const { result } = renderAssistant();
+
+      act(() => result.current.setMeetingUrl(OTHER));
+
+      expect(result.current.linkNotInCalendar).toBe(false);
+    });
+
+    it("does not warn when the calendar could not be loaded", async () => {
+      calendar.failed = true;
+      const { result } = renderAssistant();
+
+      act(() => result.current.setMeetingUrl(OTHER));
+
+      expect(result.current.linkNotInCalendar).toBe(false);
+    });
+
+    it("keeps a link typed while the bot was being sent", async () => {
+      const NEXT = "https://meet.google.com/ccc-dddd-eee";
+      let finish: (
+        value: Awaited<ReturnType<typeof addMeetingBot>>,
+      ) => void = () => undefined;
+      vi.mocked(addMeetingBot).mockReturnValue(
+        new Promise((resolve) => {
+          finish = resolve;
+        }),
+      );
+      const { result } = renderAssistant();
+      act(() => result.current.setMeetingUrl(OTHER));
+
+      let sending: Promise<void> = Promise.resolve();
+      act(() => {
+        sending = result.current.addBot();
+      });
+      act(() => result.current.setMeetingUrl(NEXT));
+      await act(async () => {
+        finish({
+          id: "bot-1",
+          platform: "google_meet",
+          nativeMeetingId: "zzz-zzzz-zzz",
+          status: "joining",
+          title: "Bot",
+        });
+        await sending;
+      });
+
+      expect(addMeetingBot).toHaveBeenCalledWith(OTHER);
+      expect(result.current.meetingUrl).toBe(NEXT);
+    });
+
+    it("does not warn an admin, who may send the assistant into any meeting", async () => {
+      calendar.meetings = [calendarMeeting()];
+      const { result } = renderHook(
+        () => useMeetingAssistant(undefined, UserRole.Admin),
+        { wrapper: Turkish },
+      );
+      await flush();
+
+      act(() => result.current.setMeetingUrl(OTHER));
+
+      expect(result.current.linkNotInCalendar).toBe(false);
     });
   });
 
