@@ -132,6 +132,13 @@ describe("AppShell navigation", () => {
       "data-tour",
       "nav-assistant",
     );
+    // Five items fit beside the logo and account menu below xl only without icons and fixed widths.
+    expect(nav.getByRole("link", { name: "Asistan" })).toHaveClass(
+      "xl:w-[160px]",
+    );
+    expect(
+      nav.getByRole("link", { name: "Asistan" }).querySelector("svg"),
+    ).toHaveClass("hidden", "xl:block");
     expect(nav.getByRole("link", { name: "Anasayfa" })).toHaveAttribute(
       "aria-current",
       "page",
