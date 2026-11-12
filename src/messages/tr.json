@@ -224,10 +224,15 @@
       },
       "student": {
         "badge": "İŞKUR Öğrencisi",
-        "title": "Akran mentörlüğüne katılmak istiyorum",
-        "description": "Kişisel profilini oluşturur, katılacağın programı seçersin; koordinatör onayından sonra akran mentörlüğüne erişirsin.",
-        "steps": ["Kişisel profil", "Program seçimi", "Koordinatör onayı"],
-        "action": "Öğrenci olarak devam et"
+        "title": "Akran mentoru olmak istiyorum",
+        "description": "Profilini ve programını seçersin; koordinatör onayından sonra mentorluk eğitimini tamamlayıp rozetini aldığında ODTÜ öğrencilerine akran mentorluğu verirsin.",
+        "steps": [
+          "Kişisel profil",
+          "Program seçimi",
+          "Koordinatör onayı",
+          "Eğitim ve rozet"
+        ],
+        "action": "İŞKUR öğrencisi olarak devam et"
       }
     },
     "odtuBanner": {

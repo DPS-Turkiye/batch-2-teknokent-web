@@ -39,12 +39,15 @@ describe("RoleSelectView", () => {
     expect(
       screen.getByRole("button", { name: "ODTÜ Hesabıyla Giriş Yap" }),
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Akran mentoru olmak istiyorum" }),
+    ).toBeInTheDocument();
     expect(screen.queryByText("Mentor olarak devam et")).toBeNull();
     expect(screen.queryByText("Girişimci olarak devam et")).toBeNull();
     expect(screen.queryByRole("link", { name: /Kodunla/ })).toBeNull();
 
     await user.click(
-      screen.getByRole("button", { name: "Öğrenci olarak devam et" }),
+      screen.getByRole("button", { name: "İŞKUR öğrencisi olarak devam et" }),
     );
     expect(onChoose).toHaveBeenCalledWith(SignupRole.Founder);
   });
@@ -59,7 +62,9 @@ describe("RoleSelectView", () => {
     );
 
     expect(screen.queryByRole("region", { name: /ODTÜ öğrencisi/ })).toBeNull();
-    expect(screen.getByText("Öğrenci olarak devam et")).toBeInTheDocument();
+    expect(
+      screen.getByText("İŞKUR öğrencisi olarak devam et"),
+    ).toBeInTheDocument();
   });
 
   it("keeps Teknokent's founder and mentor cards and the invite code, without ODTÜ", () => {

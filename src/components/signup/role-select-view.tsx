@@ -30,8 +30,6 @@ const CARD_STYLES: Record<
     bullet: "bg-[#26a4ff]",
     button: `${ONBOARDING_TONES[OnboardingTone.Mentor].bg} ${ONBOARDING_TONES[OnboardingTone.Mentor].bgHover}`,
   },
-  // TEST UI: placeholder until the design team's screen; replace when it arrives.
-  // The İŞKUR student card's wording is a stand-in until Arya confirms it; its look follows Figma's ODTÜ card.
   [SignupCardCopy.Student]: {
     badge: "bg-brand-odtu-bg text-brand-odtu-primary",
     bullet: "bg-brand-odtu-primary",

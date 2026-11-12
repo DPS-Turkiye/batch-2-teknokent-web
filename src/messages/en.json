@@ -224,10 +224,15 @@
       },
       "student": {
         "badge": "İŞKUR Student",
-        "title": "I want to join peer mentoring",
-        "description": "You create your personal profile and choose your program; after the coordinator approves, you get access to peer mentoring.",
-        "steps": ["Personal profile", "Program choice", "Coordinator approval"],
-        "action": "Continue as a student"
+        "title": "I want to be a peer mentor",
+        "description": "You set up your profile and choose your program; after the coordinator approves and you finish the mentoring training and earn your badge, you give peer mentoring to METU students.",
+        "steps": [
+          "Personal profile",
+          "Program choice",
+          "Coordinator approval",
+          "Training and badge"
+        ],
+        "action": "Continue as an İŞKUR student"
       }
     },
     "odtuBanner": {
