@@ -193,6 +193,9 @@ describe("ProgramTeamsView", () => {
 
     const drawer = await screen.findByRole("dialog", { name: "Takım detayı" });
     expect(await within(drawer).findByText("Cem Tunç")).toBeInTheDocument();
+    expect(
+      within(drawer).getByRole("link", { name: "Profili gör: Cem Tunç" }),
+    ).toHaveAttribute("href", "/coordinator/people/member-1");
     expect(getProgramTeamDetail).toHaveBeenCalledWith("program-1", "org-1");
     expect(
       within(drawer).getByRole("link", { name: "Takıma mesaj gönder" }),
