@@ -348,6 +348,58 @@ describe("PeerMentorGiveView", () => {
     ).toBeVisible();
   });
 
+  it("reads the capacity from the saved availability settings, so the card follows a save", async () => {
+    vi.mocked(getPeerMentorProfile).mockResolvedValue({
+      categories: [PeerTopicCategory.CareerInternship],
+      subTopics: [],
+      strongCourses: [],
+      projects: [],
+      erasmus: null,
+      helpWith: "Staj ve CV konusunda yardımcı olurum.",
+      linkedinUrl: null,
+      department: null,
+      classYear: null,
+      menteeCapacity: 3,
+    });
+    vi.mocked(getAvailabilitySettings).mockResolvedValue({
+      rules: [],
+      exceptions: [],
+      menteeCapacity: 5,
+      defaultMeetingDurationMinutes: 30,
+      meetingBufferMinutes: 0,
+    });
+    renderWithQueryClient(<PeerMentorGiveView />);
+
+    const capacity = await screen.findByRole("region", { name: "Kapasiten" });
+    expect(await within(capacity).findByText("/ 5 mentee")).toBeVisible();
+  });
+
+  it("tells the mentor on the Menteelerim tab too when the requests can't be read", async () => {
+    vi.mocked(getPeerMentorProfile).mockResolvedValue({
+      categories: [PeerTopicCategory.CareerInternship],
+      subTopics: [],
+      strongCourses: [],
+      projects: [],
+      erasmus: null,
+      helpWith: "Staj ve CV konusunda yardımcı olurum.",
+      linkedinUrl: null,
+      department: null,
+      classYear: null,
+      menteeCapacity: 3,
+    });
+    vi.mocked(getReceivedPeerRequests).mockRejectedValue(
+      new ClientApiError("Talepler okunamadı.", 500),
+    );
+    const user = userEvent.setup();
+    renderWithQueryClient(<PeerMentorGiveView />);
+
+    await user.click(await screen.findByRole("tab", { name: /Menteelerim/ }));
+    const mentees = screen.getByRole("tabpanel", { name: /Menteelerim/ });
+    expect(
+      await within(mentees).findByText(/Talepler okunamadı/),
+    ).toBeVisible();
+  });
+
   it("says when there is nothing to answer yet", async () => {
     vi.mocked(getPeerMentorProfile).mockResolvedValue({
       categories: [PeerTopicCategory.CareerInternship],
@@ -361,9 +413,19 @@ describe("PeerMentorGiveView", () => {
       classYear: null,
       menteeCapacity: null,
     });
+    vi.mocked(getAvailabilitySettings).mockResolvedValue({
+      rules: [],
+      exceptions: [],
+      menteeCapacity: null,
+      defaultMeetingDurationMinutes: 30,
+      meetingBufferMinutes: 0,
+    });
     renderWithQueryClient(<PeerMentorGiveView />);
 
     expect(await screen.findByText("Yanıt bekleyen talep yok.")).toBeVisible();
+    await waitFor(() =>
+      expect(screen.getByText(/Kapasite belirlemedin/)).toBeVisible(),
+    );
     expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
     expect(screen.getByText(/Kapasite belirlemedin/)).toBeVisible();
   });
