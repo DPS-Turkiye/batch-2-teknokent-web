@@ -1,7 +1,7 @@
 import type { ComponentProps } from "react";
 
 import type { StatusChip } from "@/components/admin/admin-ui";
-import { AppointmentSide } from "@/interfaces/appointment";
+import { AppointmentSide, type Appointment } from "@/interfaces/appointment";
 import { BadgeCode, BadgeStatus, type BadgeAward } from "@/interfaces/badges";
 import {
   WEEKDAY_ORDER,
@@ -14,8 +14,12 @@ import {
   type PeerTopicCategory,
 } from "@/interfaces/peer-mentoring";
 import type { ProfileCompletionCategory } from "@/interfaces/student-profile-completion";
+import { isUpcoming } from "@/lib/appointments";
 import { toTimeInput } from "@/lib/mentor-availability";
-import { PeerCapacityNote } from "@/types/iskur-student";
+import {
+  PeerCapacityNote,
+  PeerRequestAvailability,
+} from "@/types/iskur-student";
 
 type Tone = ComponentProps<typeof StatusChip>["tone"];
 
@@ -198,4 +202,86 @@ export function chosenSubtopics(
   return catalogue.flatMap((group) =>
     group.subtopics.filter((sub) => selected.includes(sub.id)),
   );
+}
+
+/** How many mentors "Sana önerilenler" shows. */
+export const RECOMMENDED_PEER_MENTOR_COUNT = 3;
+
+/**
+ * Keşfet: the first mentors with a "Neden önerildi?" reason (the backend already ranks them) are recommended; everyone
+ * else is listed under "Mentor ara". While the student filters, everything is a search result.
+ */
+export function splitRecommended<T extends { mentorId: string }>(
+  mentors: readonly T[],
+  hasReason: (mentor: T) => boolean,
+  filtered: boolean,
+): { recommended: T[]; others: T[] } {
+  if (filtered) return { recommended: [], others: [...mentors] };
+  const recommended = mentors
+    .filter(hasReason)
+    .slice(0, RECOMMENDED_PEER_MENTOR_COUNT);
+  const picked = new Set(recommended.map((mentor) => mentor.mentorId));
+  return {
+    recommended,
+    others: mentors.filter((mentor) => !picked.has(mentor.mentorId)),
+  };
+}
+
+/** A request that ended without a mentorship; Mentorluklarım offers "Başka Mentor Bul" on it. */
+export const CLOSED_PEER_REQUEST_STATUSES: readonly MentorshipRequestStatus[] =
+  [MentorshipRequestStatus.Declined, MentorshipRequestStatus.Withdrawn];
+
+/** Mentorluklarım: accepted requests are the active mentorships; the rest are "Taleplerim". */
+export function splitPeerRequests<
+  T extends { status: MentorshipRequestStatus },
+>(requests: readonly T[]): { active: T[]; others: T[] } {
+  return {
+    active: requests.filter(
+      (request) => request.status === MentorshipRequestStatus.Accepted,
+    ),
+    others: requests.filter(
+      (request) => request.status !== MentorshipRequestStatus.Accepted,
+    ),
+  };
+}
+
+/**
+ * Whether the student can ask this mentor now. A running mentorship comes first, then an open request (the student
+ * already asked, full or not), then a full capacity.
+ */
+export function peerRequestAvailability(
+  hasOpenRequest: boolean,
+  capacityFull: boolean,
+  isMentoring = false,
+): PeerRequestAvailability {
+  if (isMentoring) return PeerRequestAvailability.Mentoring;
+  if (hasOpenRequest) return PeerRequestAvailability.Requested;
+  if (capacityFull) return PeerRequestAvailability.Full;
+  return PeerRequestAvailability.Open;
+}
+
+/** A peer mentor's profile page on the Mentorluk Al side. */
+export function peerMentorProfileHref(mentorId: string) {
+  return `/student/peer-mentoring/mentors/${encodeURIComponent(mentorId)}`;
+}
+
+/**
+ * Each peer request's next meeting: the earliest one still to come (not refused, called off or over). A cancelled or
+ * past meeting is never "Sıradaki görüşme".
+ */
+export function nextSessionsByRequest<
+  T extends Pick<
+    Appointment,
+    "requestId" | "status" | "startsAt" | "endsAt" | "alternative"
+  >,
+>(appointments: readonly T[], now: Date): Map<string, T> {
+  const next = new Map<string, T>();
+  for (const item of appointments) {
+    if (!item.requestId || !isUpcoming(item, now)) continue;
+    const current = next.get(item.requestId);
+    if (!current || Date.parse(item.startsAt) < Date.parse(current.startsAt)) {
+      next.set(item.requestId, item);
+    }
+  }
+  return next;
 }

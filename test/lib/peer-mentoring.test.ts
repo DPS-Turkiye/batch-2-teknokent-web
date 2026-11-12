@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { AppointmentSide } from "@/interfaces/appointment";
+import { AppointmentSide, AppointmentStatus } from "@/interfaces/appointment";
 import { BadgeCode, BadgeStatus } from "@/interfaces/badges";
 import { Weekday } from "@/interfaces/mentor";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
@@ -12,14 +12,22 @@ import type { ProfileCompletionCategory } from "@/interfaces/student-profile-com
 import {
   chosenSubtopics,
   latestGateAward,
+  nextSessionsByRequest,
   PEER_REQUEST_STATUS_TONE,
   peerMentorCapacity,
   peerMentorGateState,
   peerMentoringSide,
+  peerMentorProfileHref,
+  peerRequestAvailability,
+  splitPeerRequests,
+  splitRecommended,
   subtopicGroupsWithCounts,
   weeklyHours,
 } from "@/lib/peer-mentoring";
-import { PeerCapacityNote } from "@/types/iskur-student";
+import {
+  PeerCapacityNote,
+  PeerRequestAvailability,
+} from "@/types/iskur-student";
 
 describe("peerMentoringSide", () => {
   it("opens Mentorluk Ver only for as=MENTOR", () => {
@@ -247,5 +255,104 @@ describe("chosenSubtopics", () => {
         (sub) => sub.id,
       ),
     ).toEqual(["cv", "courses"]);
+  });
+});
+
+describe("splitRecommended", () => {
+  const mentors = ["a", "b", "c", "d", "e"].map((mentorId) => ({ mentorId }));
+  const withReason = (mentor: { mentorId: string }) => mentor.mentorId !== "b";
+
+  it("recommends the first three mentors with a reason and lists everyone else", () => {
+    const { recommended, others } = splitRecommended(
+      mentors,
+      withReason,
+      false,
+    );
+    expect(recommended.map((mentor) => mentor.mentorId)).toEqual([
+      "a",
+      "c",
+      "d",
+    ]);
+    expect(others.map((mentor) => mentor.mentorId)).toEqual(["b", "e"]);
+  });
+
+  it("treats every mentor as a search result while the student filters", () => {
+    expect(splitRecommended(mentors, withReason, true)).toEqual({
+      recommended: [],
+      others: mentors,
+    });
+  });
+});
+
+describe("splitPeerRequests", () => {
+  it("separates accepted requests (active mentorships) from the rest", () => {
+    const requests = [
+      { id: "1", status: MentorshipRequestStatus.Pending },
+      { id: "2", status: MentorshipRequestStatus.Accepted },
+      { id: "3", status: MentorshipRequestStatus.Declined },
+    ];
+    const { active, others } = splitPeerRequests(requests);
+    expect(active.map((request) => request.id)).toEqual(["2"]);
+    expect(others.map((request) => request.id)).toEqual(["1", "3"]);
+  });
+});
+
+describe("peerRequestAvailability", () => {
+  it("puts an open request before a full capacity", () => {
+    expect(peerRequestAvailability(true, true)).toBe(
+      PeerRequestAvailability.Requested,
+    );
+    expect(peerRequestAvailability(false, true)).toBe(
+      PeerRequestAvailability.Full,
+    );
+    expect(peerRequestAvailability(false, false)).toBe(
+      PeerRequestAvailability.Open,
+    );
+    expect(peerRequestAvailability(true, true, true)).toBe(
+      PeerRequestAvailability.Mentoring,
+    );
+  });
+});
+
+describe("peerMentorProfileHref", () => {
+  it("links to the mentor's profile with an encoded id", () => {
+    expect(peerMentorProfileHref("peer 1/2")).toBe(
+      "/student/peer-mentoring/mentors/peer%201%2F2",
+    );
+  });
+});
+
+describe("nextSessionsByRequest", () => {
+  const now = new Date("2026-11-09T09:00:00.000Z");
+  const session = (
+    requestId: string | null,
+    startsAt: string,
+    status = AppointmentStatus.Confirmed,
+  ) => ({
+    requestId,
+    status,
+    startsAt,
+    alternative: null,
+    endsAt: new Date(Date.parse(startsAt) + 30 * 60_000).toISOString(),
+  });
+
+  it("keeps each request's earliest meeting still to come", () => {
+    const later = session("r1", "2026-11-14T09:00:00.000Z");
+    const sooner = session("r1", "2026-11-10T09:00:00.000Z");
+    const next = nextSessionsByRequest([later, sooner], now);
+    expect(next.get("r1")).toBe(sooner);
+  });
+
+  it("skips cancelled, refused and past meetings, and appointments without a request", () => {
+    const next = nextSessionsByRequest(
+      [
+        session("r1", "2026-11-10T09:00:00.000Z", AppointmentStatus.Cancelled),
+        session("r2", "2026-11-10T09:00:00.000Z", AppointmentStatus.Rejected),
+        session("r3", "2026-11-02T09:00:00.000Z"),
+        session(null, "2026-11-10T09:00:00.000Z"),
+      ],
+      now,
+    );
+    expect(next.size).toBe(0);
   });
 });

@@ -233,5 +233,80 @@
       "helpWith": "Bu metin en az {min} karakter olmalı.",
       "link": "Bağlantı http:// veya https:// ile başlamalı."
     }
+  },
+  "take": {
+    "title": "Akran Mentörlüğü",
+    "subtitle": "ODTÜ öğrencilerinden mentorluk al. Mentorlar eğitimini tamamlamış ve rozeti doğrulanmış öğrencilerdir.",
+    "switchLabel": "Akran mentörlüğü tarafı",
+    "switch": {
+      "get": "Mentorluk Al",
+      "give": "Mentorluk Ver"
+    },
+    "tabs": {
+      "label": "Mentorluk Al",
+      "discover": "Keşfet",
+      "mine": "Mentorluklarım"
+    },
+    "discover": {
+      "categoriesTitle": "Mentorluk kategorileri",
+      "categoriesHint": "Programda aktif olanlar",
+      "noCategories": "Programında henüz etkin akran mentörlüğü kategorisi yok.",
+      "recommendedTitle": "Sana önerilenler",
+      "recommendedHint": "Konu, deneyim ve müsaitliğe göre",
+      "searchTitle": "Mentor ara",
+      "search": "Mentor veya konu ara",
+      "allCategories": "Tüm kategoriler",
+      "categoryFilter": "Kategori",
+      "empty": "Şu an listelenen akran mentoru yok.",
+      "noMatch": "Bu filtrelere uyan akran mentoru yok.",
+      "role": "Akran Mentoru",
+      "classYear": "{year}. sınıf",
+      "why": "Neden önerildi?",
+      "whyInterests": "İlgi alanlarınla eşleşiyor: {topics}",
+      "seeProfile": "Profili Gör",
+      "request": "Mentorluk Talebi Gönder",
+      "requested": "Talebin yanıt bekliyor",
+      "full": "Kontenjan dolu",
+      "nameSuffix": ", {name}",
+      "mentoring": "Zaten mentorun"
+    },
+    "profile": {
+      "back": "Akran Mentörlüğü",
+      "notFound": "Bu akran mentoru bulunamadı ya da artık listelenmiyor.",
+      "peer": "Akran Mentörlüğü",
+      "badgeVerified": "Rozet doğrulandı",
+      "topics": "Yardımcı olabileceği konular",
+      "helpWith": "Öğrencilere nasıl yardımcı olabilirim?",
+      "requestNote": "{name} talebini kabul ettiğinde mentorluk başlar ve görüşme planlayabilirsiniz."
+    },
+    "dialog": {
+      "title": "Mentorluk talebi gönder",
+      "subtitle": "{name} · Akran Mentoru",
+      "close": "Kapat",
+      "category": "Konu",
+      "message": "Kısa mesaj",
+      "messagePlaceholder": "Örneğin: Yaz stajı için CV'mi birlikte gözden geçirmek istiyorum.",
+      "counter": "Kendini ve beklentini kısaca anlat (en az {min} karakter). {length} / {max}",
+      "messageTooShort": "Mesajın en az {min} karakter olmalı.",
+      "cancel": "Vazgeç",
+      "send": "Mentorluk Talebi Gönder",
+      "sending": "Gönderiliyor…",
+      "sent": "Talebin gönderildi.",
+      "failed": "Talep gönderilemedi."
+    },
+    "mine": {
+      "activeTitle": "Aktif mentorluk",
+      "othersTitle": "Taleplerim",
+      "empty": "Henüz bir mentorluk talebin yok. Keşfet'ten bir akran mentoru seçebilirsin.",
+      "noActive": "Henüz aktif mentorluğun yok.",
+      "noOthers": "Bekleyen ya da kapanmış talebin yok.",
+      "sentAt": "{date} gönderildi",
+      "nextSession": "Sıradaki görüşme: {date}",
+      "seeProfile": "Profili Gör",
+      "book": "Görüşme Planla",
+      "seeAppointment": "Randevuya git",
+      "findAnother": "Başka Mentor Bul",
+      "note": "Mentorluk, mentorunla aranızdaki ilişkidir. Görüşmelerin \"Randevularım\" altında listelenir."
+    }
   }
 }
