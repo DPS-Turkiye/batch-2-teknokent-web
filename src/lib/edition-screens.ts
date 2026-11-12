@@ -9,6 +9,8 @@ type EditionScreens = {
   signupRoles: readonly SignupRole[];
   programTypes: readonly ProgramType[];
   adminUserTabs: readonly UserTab[];
+  /** Whether an admin may delete a user; the backend closes the endpoint in the other edition. */
+  userDeletion: boolean;
 };
 
 /**
@@ -27,6 +29,7 @@ const SCREENS: Record<Edition, EditionScreens> = {
     signupRoles: [SignupRole.Founder, SignupRole.Mentor],
     programTypes: [ProgramType.StartupMentoring],
     adminUserTabs: [UserTab.Coordinators, UserTab.Mentors, UserTab.Teams],
+    userDeletion: true,
   },
   [Edition.Odtu]: {
     // Password stays for ODTÜ's seeded admin and coordinator accounts; invite codes and OTG belong to Teknokent.
@@ -35,6 +38,8 @@ const SCREENS: Record<Edition, EditionScreens> = {
     signupRoles: [SignupRole.Founder],
     programTypes: [ProgramType.PeerMentoring, ProgramType.OfficeHours],
     adminUserTabs: [UserTab.Coordinators, UserTab.Students, UserTab.Academics],
+    // Deferred: deleting an ODTÜ account would have to settle its roster and institution login first.
+    userDeletion: false,
   },
 };
 
@@ -60,4 +65,8 @@ export function programTypesOf(edition: Edition): readonly ProgramType[] {
 /** The tabs of the admin's Kullanıcılar screen, in display order. */
 export function adminUserTabsOf(edition: Edition): readonly UserTab[] {
   return SCREENS[edition].adminUserTabs;
+}
+
+export function offersUserDeletion(edition: Edition) {
+  return SCREENS[edition].userDeletion;
 }
