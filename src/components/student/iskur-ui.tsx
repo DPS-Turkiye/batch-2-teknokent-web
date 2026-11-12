@@ -73,11 +73,19 @@ export function Tag({
   );
 }
 
-export function InitialsAvatar({ initials }: { initials: string }) {
+export function InitialsAvatar({
+  initials,
+  size = "md",
+}: {
+  initials: string;
+  size?: "md" | "lg";
+}) {
   return (
     <span
       aria-hidden
-      className="grid size-10 shrink-0 place-items-center rounded-full bg-background-selected type-label text-text-accent"
+      className={`grid shrink-0 place-items-center rounded-full bg-background-selected text-text-accent ${
+        size === "lg" ? "size-[72px] type-h3" : "size-10 type-label"
+      }`}
     >
       {initials}
     </span>

@@ -3,11 +3,18 @@ import type { ComponentProps } from "react";
 import type { StatusChip } from "@/components/admin/admin-ui";
 import { AppointmentSide } from "@/interfaces/appointment";
 import { BadgeCode, BadgeStatus, type BadgeAward } from "@/interfaces/badges";
+import {
+  WEEKDAY_ORDER,
+  type MentorAvailabilityRule,
+  type Weekday,
+} from "@/interfaces/mentor";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import {
   PeerMentorGateState,
   type PeerTopicCategory,
 } from "@/interfaces/peer-mentoring";
+import type { ProfileCompletionCategory } from "@/interfaces/student-profile-completion";
+import { toTimeInput } from "@/lib/mentor-availability";
 import { PeerCapacityNote } from "@/types/iskur-student";
 
 type Tone = ComponentProps<typeof StatusChip>["tone"];
@@ -132,4 +139,63 @@ export function peerMentorCapacity(
     percent: Math.floor((filled / capacity) * 100),
     note,
   };
+}
+
+/** The backend's limits on the peer-mentor profile's texts. */
+export const PEER_HELP_WITH_MIN = 20;
+export const PEER_HELP_WITH_MAX = 2000;
+export const PEER_PROFILE_TEXT_MAX = 2000;
+export const PEER_ERASMUS_MAX = 500;
+
+export type WeeklyHours = { dayOfWeek: Weekday; start: string; end: string };
+
+/** The weekly ranges in week order, earliest first within a day, as HH:mm ("Salı 18:00 – 20:00" in the preview). */
+export function weeklyHours(
+  rules: readonly Pick<
+    MentorAvailabilityRule,
+    "dayOfWeek" | "startTime" | "endTime"
+  >[],
+): WeeklyHours[] {
+  return rules
+    .map((rule) => ({
+      dayOfWeek: rule.dayOfWeek,
+      start: toTimeInput(rule.startTime),
+      end: toTimeInput(rule.endTime),
+    }))
+    .sort(
+      (left, right) =>
+        WEEKDAY_ORDER.indexOf(left.dayOfWeek) -
+          WEEKDAY_ORDER.indexOf(right.dayOfWeek) ||
+        left.start.localeCompare(right.start),
+    );
+}
+
+type Subtopic = ProfileCompletionCategory["subtopics"][number];
+
+/** Each chosen category with its sub-topics marked as picked, and how many are ("3 alt konu seçildi"). */
+export function subtopicGroupsWithCounts(
+  groups: readonly ProfileCompletionCategory[],
+  selected: readonly string[],
+) {
+  return groups.map((group) => {
+    const subtopics = group.subtopics.map((sub) => ({
+      ...sub,
+      checked: selected.includes(sub.id),
+    }));
+    return {
+      id: group.id,
+      subtopics,
+      selectedCount: subtopics.filter((sub) => sub.checked).length,
+    };
+  });
+}
+
+/** The picked sub-topics in catalogue order, with their labels' keys; ids the catalogue no longer has are left out. */
+export function chosenSubtopics(
+  catalogue: readonly ProfileCompletionCategory[],
+  selected: readonly string[],
+): Subtopic[] {
+  return catalogue.flatMap((group) =>
+    group.subtopics.filter((sub) => selected.includes(sub.id)),
+  );
 }

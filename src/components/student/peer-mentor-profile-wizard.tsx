@@ -1,185 +1,606 @@
 "use client";
 
-// TEST UI: placeholder until the design team's screen; replace when it arrives.
+import { Check, Info, Link2 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import Link from "next/link";
+import Image from "next/image";
+import type { ReactNode } from "react";
 
-import { PageHeading, Panel, QueryNotice } from "@/components/admin/admin-ui";
+import { QueryNotice } from "@/components/admin/admin-ui";
 import { WeeklyAvailabilityEditor } from "@/components/availability/weekly-availability-editor";
-import { useAppSession } from "@/components/providers/session-provider";
-import {
-  SubtopicPicker,
-  TopicPicker,
-} from "@/components/student/interest-pickers";
-import { PeerMentorCardView } from "@/components/student/peer-mentor-directory";
-import { useMyBadges } from "@/hooks/use-badges";
-import { useInstitutionRecord } from "@/hooks/use-institution-record";
+import { Button, ButtonVariant } from "@/components/ia/button";
+import { Card } from "@/components/ia/card";
+import { InlineAlert } from "@/components/ia/inline-alert";
+import { StatusBadge, StatusTone } from "@/components/ia/status-badge";
+import { StepPills } from "@/components/ia/step-pills";
+import { InitialsAvatar, Tag, TagTone } from "@/components/student/iskur-ui";
 import {
   PEER_MENTOR_WIZARD_STEPS,
   PeerMentorWizardStep,
+  usePeerMentorPreviewPerson,
   usePeerMentorWizard,
 } from "@/hooks/use-peer-mentor-give";
-import { BadgeStatus } from "@/interfaces/badges";
+import { PeerTopicCategory } from "@/interfaces/peer-mentoring";
 import { PEER_MENTOR_GIVE_HREF } from "@/lib/peer-mentoring";
 
-const buttonClass =
-  "rounded-full border border-[#d4d8dd] px-4 py-2 text-sm disabled:opacity-50";
-/** The step's main action (Devam et, and Yayınla on the preview), set apart from Geri and Vazgeç. */
-const primaryButtonClass =
-  "rounded-full border border-[#22262b] bg-[#22262b] px-4 py-2 text-sm font-medium text-white disabled:opacity-50";
+const STEP_KEY = {
+  [PeerMentorWizardStep.Categories]: "categories",
+  [PeerMentorWizardStep.Subtopics]: "subtopics",
+  [PeerMentorWizardStep.Experience]: "experience",
+  [PeerMentorWizardStep.HelpWith]: "helpWith",
+  [PeerMentorWizardStep.Links]: "documents",
+  [PeerMentorWizardStep.Availability]: "availability",
+  [PeerMentorWizardStep.Preview]: "preview",
+} as const;
+
+/** The design's illustrations; categories without one show their name alone. */
+const CATEGORY_ART: Partial<
+  Record<PeerTopicCategory, { src: string; width: number; height: number }>
+> = {
+  [PeerTopicCategory.CareerInternship]: {
+    src: "/ia/iskur/categories/career.png",
+    width: 63,
+    height: 63,
+  },
+  [PeerTopicCategory.TechnicalDigital]: {
+    src: "/ia/iskur/categories/technical.png",
+    width: 63,
+    height: 63,
+  },
+  [PeerTopicCategory.AcademicDevelopment]: {
+    src: "/ia/iskur/categories/academic.png",
+    width: 63,
+    height: 47,
+  },
+  [PeerTopicCategory.CampusLife]: {
+    src: "/ia/iskur/categories/campus.png",
+    width: 63,
+    height: 61,
+  },
+};
+
+const DOCUMENT_KINDS = ["transcript", "cv", "certificate", "other"] as const;
+const HELP_TIPS = ["concrete", "who", "how", "noContact"] as const;
+const LEVELS = ["basic", "intermediate", "advanced"] as const;
+
+type Wizard = ReturnType<typeof usePeerMentorWizard>;
+
 const fieldClass =
-  "w-full rounded-xl border border-[#d4d8dd] bg-white p-3 text-[13px]";
+  "w-full rounded-input border border-border-control bg-background-surface px-4 py-3 type-body text-text-primary placeholder:text-text-placeholder focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-border-selected";
 
 /**
- * The peer-mentor profile wizard (board 5.3): categories → sub-topics → experience → what you can help with → links →
+ * The peer-mentor profile wizard: categories → sub-topics → experience → how you can help → documents and links →
  * weekly availability and capacity → preview → publish. Opens with the published answers when editing.
  */
 export function PeerMentorProfileWizard() {
-  const t = useTranslations("odtuWorkspaces.student.peerMentoring.wizard");
+  const t = useTranslations("iaIskur.wizard");
   const wizard = usePeerMentorWizard();
-  const { step, draft } = wizard;
-  const last = step === PeerMentorWizardStep.Preview;
+  const { step } = wizard;
+  const key = STEP_KEY[step];
 
   return (
-    <div className="max-w-3xl space-y-6">
-      <PageHeading
-        title={wizard.existing ? t("editTitle") : t("title")}
-        subtitle={t("subtitle")}
-      />
+    <div className="space-y-8">
+      <div className="space-y-4">
+        <p className="type-overline text-text-muted uppercase">
+          {t("progress", {
+            number: step + 1,
+            total: PEER_MENTOR_WIZARD_STEPS.length,
+          })}
+        </p>
+        <StepPills
+          label={t("stepsLabel")}
+          currentIndex={step}
+          steps={PEER_MENTOR_WIZARD_STEPS.map((item) => ({
+            key: STEP_KEY[item],
+            label: t(`steps.${STEP_KEY[item]}`),
+          }))}
+        />
+      </div>
       <QueryNotice isLoading={wizard.isLoading} error={wizard.loadError} />
       {wizard.isLoading || wizard.loadError ? null : (
-        <Panel>
-          <form
-            className="space-y-6 p-6"
-            onSubmit={(event) => {
-              event.preventDefault();
-              if (last) wizard.publish();
-              else wizard.next();
-            }}
+        <form
+          className="space-y-8"
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (wizard.isLast) wizard.publish();
+            else wizard.next();
+          }}
+        >
+          <fieldset
+            disabled={wizard.isPublishing}
+            className="min-w-0 space-y-6"
           >
-            <fieldset
-              disabled={wizard.isPublishing}
-              className="min-w-0 space-y-5"
-            >
-              <legend className="mb-4 text-lg font-semibold">
-                {t("step", {
-                  number: step + 1,
-                  total: PEER_MENTOR_WIZARD_STEPS.length,
-                })}
-                : {t(`steps.${step}`)}
-              </legend>
-              {step === PeerMentorWizardStep.Categories ? (
-                <TopicPicker
-                  categories={wizard.categories}
-                  selected={draft.topics}
-                  onToggle={wizard.toggleTopic}
-                />
-              ) : null}
-              {step === PeerMentorWizardStep.Subtopics ? (
-                <SubtopicPicker
-                  groups={wizard.subtopicGroups}
-                  selected={draft.subtopics}
-                  onToggle={wizard.toggleSubtopic}
-                />
-              ) : null}
-              {step === PeerMentorWizardStep.Experience ? (
-                <div className="space-y-4">
-                  <TextArea
-                    label={t("strongCourses")}
-                    hint={t("onePerLine")}
-                    value={draft.strongCourses}
-                    onChange={(value) =>
-                      wizard.setField("strongCourses", value)
-                    }
-                  />
-                  <TextArea
-                    label={t("projects")}
-                    hint={t("onePerLine")}
-                    value={draft.projects}
-                    onChange={(value) => wizard.setField("projects", value)}
-                  />
-                  <label className="block space-y-1.5 text-sm">
-                    <span>{t("erasmus")}</span>
-                    <input
-                      className={fieldClass}
-                      value={draft.erasmus}
-                      maxLength={500}
-                      onChange={(event) =>
-                        wizard.setField("erasmus", event.target.value)
-                      }
-                    />
-                  </label>
-                </div>
-              ) : null}
-              {step === PeerMentorWizardStep.HelpWith ? (
-                <TextArea
-                  label={t("helpWith")}
-                  hint={t("helpWithHint")}
-                  value={draft.helpWith}
-                  maxLength={2000}
-                  onChange={(value) => wizard.setField("helpWith", value)}
-                />
-              ) : null}
-              {step === PeerMentorWizardStep.Links ? (
-                <div className="space-y-3">
-                  <label className="block space-y-1.5 text-sm">
-                    <span>{t("linkedin")}</span>
-                    <input
-                      className={fieldClass}
-                      inputMode="url"
-                      value={draft.linkedinUrl}
-                      placeholder="https://www.linkedin.com/in/…"
-                      onChange={(event) =>
-                        wizard.setField("linkedinUrl", event.target.value)
-                      }
-                    />
-                  </label>
-                  <p className="text-[12.5px] text-[#858c96]">{t("cvLater")}</p>
-                </div>
-              ) : null}
-              {step === PeerMentorWizardStep.Availability ? (
+            <legend className="sr-only">
+              {wizard.existing ? t("editTitle") : t("title")}
+            </legend>
+            <header className="space-y-2">
+              <h1 className="type-h1 text-text-primary">
+                {t(`headings.${key}.title`)}
+              </h1>
+              <p className="type-body-lg text-text-secondary">
+                {t(`headings.${key}.subtitle`)}
+              </p>
+            </header>
+            {step === PeerMentorWizardStep.Categories ? (
+              <CategoriesStep wizard={wizard} />
+            ) : null}
+            {step === PeerMentorWizardStep.Subtopics ? (
+              <SubtopicsStep wizard={wizard} />
+            ) : null}
+            {step === PeerMentorWizardStep.Experience ? (
+              <ExperienceStep wizard={wizard} />
+            ) : null}
+            {step === PeerMentorWizardStep.HelpWith ? (
+              <HelpWithStep wizard={wizard} />
+            ) : null}
+            {step === PeerMentorWizardStep.Links ? (
+              <DocumentsStep wizard={wizard} />
+            ) : null}
+            {step === PeerMentorWizardStep.Availability ? (
+              <Card>
+                <h2 className="mb-4 type-title-card text-text-primary">
+                  {t("availability.title")}
+                </h2>
                 <WeeklyAvailabilityEditor
                   editor={wizard.availability}
                   showUnavailableDates={false}
                 />
-              ) : null}
-              {step === PeerMentorWizardStep.Preview ? (
-                <Preview wizard={wizard} />
-              ) : null}
-              {wizard.error ? (
-                <p role="alert" className="text-sm text-[#d9464b]">
-                  {wizard.error}
-                </p>
-              ) : null}
-              <div className="flex flex-wrap gap-3">
-                {step > PeerMentorWizardStep.Categories ? (
-                  <button
-                    type="button"
-                    className={buttonClass}
-                    onClick={wizard.back}
-                  >
-                    {t("back")}
-                  </button>
-                ) : null}
-                <button
-                  type="submit"
-                  className={primaryButtonClass}
-                  disabled={wizard.isPublishing}
-                >
-                  {wizard.isPublishing
-                    ? t("publishing")
-                    : last
-                      ? t("publish")
-                      : t("next")}
-                </button>
-                <Link className={buttonClass} href={PEER_MENTOR_GIVE_HREF}>
-                  {t("cancel")}
-                </Link>
-              </div>
-            </fieldset>
-          </form>
-        </Panel>
+              </Card>
+            ) : null}
+            {step === PeerMentorWizardStep.Preview ? (
+              <PreviewStep wizard={wizard} />
+            ) : null}
+            {wizard.error ? (
+              <InlineAlert tone={StatusTone.Error} title={wizard.error} />
+            ) : null}
+            <BadgeNote />
+          </fieldset>
+          <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-border-subtle pt-4">
+            {wizard.isFirst ? (
+              <Button
+                href={PEER_MENTOR_GIVE_HREF}
+                variant={ButtonVariant.Ghost}
+              >
+                {t("back")}
+              </Button>
+            ) : (
+              <Button
+                variant={ButtonVariant.Ghost}
+                onClick={wizard.back}
+                disabled={wizard.isPublishing}
+              >
+                {t("back")}
+              </Button>
+            )}
+            <div className="flex flex-wrap items-center gap-3">
+              {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+              {/* Saving a draft needs a backend draft endpoint (open with Arya). */}
+              <span className="contents max-sm:hidden">
+                <Button variant={ButtonVariant.Ghost} disabled>
+                  {t("saveDraft")}
+                </Button>
+                <span className="sr-only">{t("draftSoon")}</span>
+              </span>
+              <Button type="submit" disabled={wizard.isPublishing}>
+                {wizard.isPublishing
+                  ? t("publishing")
+                  : wizard.isLast
+                    ? t("publish")
+                    : t("next")}
+              </Button>
+            </div>
+          </footer>
+        </form>
       )}
+    </div>
+  );
+}
+
+function BadgeNote() {
+  const t = useTranslations("iaIskur.wizard.badge");
+  const person = usePeerMentorPreviewPerson();
+  if (!person.badgeVerified) return null;
+  return (
+    <InlineAlert tone={StatusTone.Success} title={t("title")}>
+      {t("body")}
+    </InlineAlert>
+  );
+}
+
+function Note({ children }: { children: ReactNode }) {
+  return (
+    <p className="flex items-center gap-2 type-caption text-text-muted">
+      <Info aria-hidden className="size-4 shrink-0" />
+      {children}
+    </p>
+  );
+}
+
+function SoonBadge() {
+  const t = useTranslations("iaIskur.wizard");
+  return <StatusBadge tone={StatusTone.Neutral}>{t("soon")}</StatusBadge>;
+}
+
+function CategoriesStep({ wizard }: { wizard: Wizard }) {
+  const t = useTranslations("iaIskur.wizard");
+  const topicLabel = useTranslations("peerTopics");
+  if (wizard.categories.length === 0) {
+    return (
+      <InlineAlert tone={StatusTone.Info}>{t("noCategories")}</InlineAlert>
+    );
+  }
+  return (
+    <div className="space-y-6">
+      <div className="grid gap-3 md:grid-cols-2">
+        {wizard.categoryOptions.map(({ id, checked }) => {
+          const art = CATEGORY_ART[id];
+          return (
+            <label
+              key={id}
+              className={`flex min-h-[100px] cursor-pointer items-center gap-3.5 rounded-2xl border bg-background-surface p-[18px] transition has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-border-selected ${
+                checked
+                  ? "border-brand-odtu-primary"
+                  : "border-border-default hover:bg-background-subtle"
+              }`}
+            >
+              <input
+                type="checkbox"
+                className="sr-only"
+                checked={checked}
+                onChange={() => wizard.toggleTopic(id)}
+              />
+              {art ? (
+                <Image
+                  src={art.src}
+                  alt=""
+                  width={art.width}
+                  height={art.height}
+                  className="shrink-0"
+                />
+              ) : null}
+              <span className="min-w-0 flex-1 type-label text-text-primary">
+                {topicLabel(id)}
+              </span>
+              {checked ? (
+                <span
+                  aria-hidden
+                  className="grid size-[22px] shrink-0 place-items-center rounded-full bg-brand-odtu-primary text-text-inverse"
+                >
+                  <Check className="size-3" />
+                </span>
+              ) : null}
+            </label>
+          );
+        })}
+      </div>
+      <Note>{t("matchingNote")}</Note>
+    </div>
+  );
+}
+
+function SubtopicsStep({ wizard }: { wizard: Wizard }) {
+  const t = useTranslations("iaIskur.wizard");
+  const topicLabel = useTranslations("peerTopics");
+  const subtopicLabel = useTranslations("studentProfileCompletion.subtopics");
+  if (wizard.subtopicGroups.length === 0) {
+    return <InlineAlert tone={StatusTone.Info}>{t("noSubtopics")}</InlineAlert>;
+  }
+  return (
+    <div className="space-y-6">
+      {wizard.subtopicGroups.map((group) => (
+        <Card key={group.id} className="space-y-4">
+          <fieldset className="space-y-4">
+            <legend className="flex w-full flex-wrap items-center justify-between gap-2">
+              <span className="type-title-card text-text-primary">
+                {topicLabel(group.id)}
+              </span>
+              <span className="type-caption text-text-muted">
+                {t("subtopicCount", { count: group.selectedCount })}
+              </span>
+            </legend>
+            <div className="flex flex-wrap gap-2">
+              {group.subtopics.map(({ checked, ...sub }) => {
+                return (
+                  <label
+                    key={sub.id}
+                    className={`inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-full border px-3.5 type-label has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-border-selected ${
+                      checked
+                        ? "border-brand-odtu-primary bg-background-selected text-text-accent"
+                        : "border-border-default bg-background-surface text-text-primary hover:bg-background-subtle"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      className="sr-only"
+                      checked={checked}
+                      onChange={() => wizard.toggleSubtopic(sub.id)}
+                    />
+                    {checked ? (
+                      <Check aria-hidden className="size-3.5" />
+                    ) : null}
+                    {subtopicLabel(sub.labelKey)}
+                  </label>
+                );
+              })}
+            </div>
+          </fieldset>
+          {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+          {/* A level per category needs a backend field (open with Arya); shown disabled until then. */}
+          <fieldset
+            disabled
+            aria-describedby={`level-soon-${group.id}`}
+            className="flex flex-wrap items-center gap-3"
+          >
+            <legend className="float-left mr-3 type-caption text-text-secondary">
+              {t("level.label")}
+            </legend>
+            <span className="inline-flex rounded-xl bg-background-muted p-1 opacity-60">
+              {LEVELS.map((level) => (
+                <label
+                  key={level}
+                  className="rounded-full px-3.5 py-1.5 type-label text-text-secondary"
+                >
+                  <input
+                    type="radio"
+                    name={`level-${group.id}`}
+                    className="sr-only"
+                  />
+                  {t(`level.${level}`)}
+                </label>
+              ))}
+            </span>
+            <span id={`level-soon-${group.id}`}>
+              <SoonBadge />
+            </span>
+          </fieldset>
+        </Card>
+      ))}
+      <Note>{t("subtopicsNote")}</Note>
+    </div>
+  );
+}
+
+function ExperienceStep({ wizard }: { wizard: Wizard }) {
+  const t = useTranslations("iaIskur.wizard.experience");
+  return (
+    <div className="space-y-4">
+      <Card className="space-y-5">
+        <h2 className="type-title-card text-text-primary">{t("title")}</h2>
+        <TextArea
+          label={t("strongCourses")}
+          hint={t("onePerLine")}
+          maxLength={wizard.textMax}
+          value={wizard.draft.strongCourses}
+          onChange={(value) => wizard.setField("strongCourses", value)}
+        />
+        <TextArea
+          label={t("projects")}
+          hint={t("onePerLine")}
+          maxLength={wizard.textMax}
+          value={wizard.draft.projects}
+          onChange={(value) => wizard.setField("projects", value)}
+        />
+        <label className="block space-y-2">
+          <span className="type-label text-text-primary">{t("erasmus")}</span>
+          <input
+            className={fieldClass}
+            value={wizard.draft.erasmus}
+            maxLength={wizard.erasmusMax}
+            onChange={(event) => wizard.setField("erasmus", event.target.value)}
+          />
+        </label>
+      </Card>
+      {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+      {/* Experience cards (title, organisation, dates, evidence) need backend fields (open with Arya). */}
+      <InlineAlert tone={StatusTone.Neutral}>{t("cardsSoon")}</InlineAlert>
+    </div>
+  );
+}
+
+function HelpWithStep({ wizard }: { wizard: Wizard }) {
+  const t = useTranslations("iaIskur.wizard.helpWith");
+  return (
+    <div className="space-y-6">
+      <section
+        aria-labelledby="help-tips-title"
+        className="space-y-3 rounded-card border border-brand-odtu-primary bg-background-surface p-6"
+      >
+        <h2 id="help-tips-title" className="type-title-card text-text-primary">
+          {t("tipsTitle")}
+        </h2>
+        <ul className="grid gap-x-8 gap-y-2 md:grid-cols-2">
+          {HELP_TIPS.map((tip) => (
+            <li
+              key={tip}
+              className="flex items-start gap-2 type-body-sm text-text-secondary"
+            >
+              <Check
+                aria-hidden
+                className="mt-0.5 size-4 shrink-0 text-text-accent"
+              />
+              {t(`tips.${tip}`)}
+            </li>
+          ))}
+        </ul>
+      </section>
+      <label className="block space-y-2">
+        <span className="type-label text-text-primary">
+          {t("label")}{" "}
+          <span aria-hidden className="text-text-accent">
+            *
+          </span>
+        </span>
+        <textarea
+          className={`${fieldClass} min-h-32`}
+          value={wizard.draft.helpWith}
+          maxLength={wizard.helpWithMax}
+          aria-required="true"
+          aria-describedby="help-with-counter"
+          onChange={(event) => wizard.setField("helpWith", event.target.value)}
+        />
+      </label>
+      <p
+        id="help-with-counter"
+        className="flex items-center gap-1.5 type-caption text-text-muted"
+      >
+        <Info aria-hidden className="size-3.5" />
+        {t("counter", {
+          min: wizard.helpWithMin,
+          length: wizard.helpWithLength,
+          max: wizard.helpWithMax,
+        })}
+      </p>
+    </div>
+  );
+}
+
+function DocumentsStep({ wizard }: { wizard: Wizard }) {
+  const t = useTranslations("iaIskur.wizard.documents");
+  return (
+    <div className="space-y-4">
+      <Card className="space-y-4">
+        <h2 className="flex items-center gap-3 type-title-card text-text-primary">
+          <span className="grid size-9 place-items-center rounded-xl bg-background-muted">
+            <Link2 aria-hidden className="size-4" />
+          </span>
+          {t("linksTitle")}
+        </h2>
+        <label className="block space-y-2">
+          <span className="type-label text-text-primary">{t("linkedin")}</span>
+          <input
+            className={fieldClass}
+            inputMode="url"
+            value={wizard.draft.linkedinUrl}
+            placeholder={t("linkedinPlaceholder")}
+            onChange={(event) =>
+              wizard.setField("linkedinUrl", event.target.value)
+            }
+          />
+        </label>
+      </Card>
+      {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+      {/* Documents per category with "verification only / show on profile" need backend support (open with Arya). */}
+      <Card className="space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="type-title-card text-text-primary">
+            {t("soonTitle")}
+          </h2>
+          <SoonBadge />
+        </div>
+        <p className="type-body-sm text-text-secondary">{t("soonBody")}</p>
+        <ul className="flex flex-wrap gap-2">
+          {DOCUMENT_KINDS.map((kind) => (
+            <li key={kind}>
+              <Tag>{t(`kinds.${kind}`)}</Tag>
+            </li>
+          ))}
+        </ul>
+      </Card>
+    </div>
+  );
+}
+
+function PreviewStep({ wizard }: { wizard: Wizard }) {
+  const t = useTranslations("iaIskur.wizard.preview");
+  const topicLabel = useTranslations("peerTopics");
+  const subtopicLabel = useTranslations("studentProfileCompletion.subtopics");
+  const dayLabel = useTranslations("options.weekday");
+  const person = usePeerMentorPreviewPerson();
+  const capacity = wizard.availabilitySettings.menteeCapacity;
+  const linkedin = wizard.previewLinkedin;
+
+  return (
+    <div className="space-y-6">
+      <Card className="space-y-6">
+        <div className="flex flex-wrap items-center gap-5">
+          <InitialsAvatar initials={person.initials} size="lg" />
+          <div className="space-y-2">
+            <h2 className="type-h2 text-text-primary">{person.fullName}</h2>
+            <p className="type-body text-text-secondary">
+              {person.department}
+              {person.showSeparator ? " · " : null}
+              {person.classYear
+                ? t("classYear", { classYear: person.classYear })
+                : null}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Tag>{t("peer")}</Tag>
+              {person.badgeVerified ? (
+                <Tag tone={TagTone.Success}>{t("badgeVerified")}</Tag>
+              ) : null}
+            </div>
+          </div>
+        </div>
+        <hr className="border-border-subtle" />
+        <div className="space-y-3">
+          <h3 className="type-label text-text-primary">{t("topics")}</h3>
+          <ul className="flex flex-wrap gap-2">
+            {wizard.draft.topics.map((topic) => (
+              <li key={topic}>
+                <Tag tone={TagTone.Accent}>{topicLabel(topic)}</Tag>
+              </li>
+            ))}
+            {wizard.previewSubtopics.map((sub) => (
+              <li key={sub.id}>
+                <Tag tone={TagTone.Accent}>{subtopicLabel(sub.labelKey)}</Tag>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="space-y-2">
+          <h3 className="type-label text-text-primary">{t("helpWith")}</h3>
+          <p className="type-body whitespace-pre-line text-text-secondary">
+            {wizard.previewHelpWith}
+          </p>
+        </div>
+        <dl className="grid gap-4 sm:grid-cols-[2fr_1fr]">
+          <div className="space-y-1">
+            <dt className="type-caption text-text-muted">{t("hours")}</dt>
+            <dd className="type-body-sm text-text-primary">
+              {wizard.weeklyHours.length === 0 ? (
+                t("noHours")
+              ) : (
+                <ul className="flex flex-wrap gap-x-2">
+                  {wizard.weeklyHours.map((range) => (
+                    <li key={`${range.dayOfWeek}-${range.start}-${range.end}`}>
+                      {t("hoursRange", {
+                        day: dayLabel(range.dayOfWeek),
+                        start: range.start,
+                        end: range.end,
+                      })}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </dd>
+          </div>
+          <div className="space-y-1">
+            <dt className="type-caption text-text-muted">{t("capacity")}</dt>
+            <dd className="type-body-sm text-text-primary">
+              {capacity === null
+                ? t("noCapacity")
+                : t("capacityValue", { capacity })}
+            </dd>
+          </div>
+        </dl>
+      </Card>
+      <Card className="space-y-3">
+        <h2 className="type-title-card text-text-primary">{t("links")}</h2>
+        {linkedin ? (
+          <p className="flex items-center gap-3">
+            <Link2 aria-hidden className="size-4 text-icon-default" />
+            <span className="flex flex-col">
+              <span className="type-label break-all text-text-primary">
+                {linkedin}
+              </span>
+              <span className="type-caption text-text-muted">
+                {t("linkShown")}
+              </span>
+            </span>
+          </p>
+        ) : (
+          <p className="type-body-sm text-text-secondary">{t("noLinks")}</p>
+        )}
+      </Card>
     </div>
   );
 }
@@ -187,22 +608,20 @@ export function PeerMentorProfileWizard() {
 function TextArea({
   label,
   hint,
+  maxLength,
   value,
-  maxLength = 2000,
   onChange,
 }: {
   label: string;
-  hint?: string;
+  hint: string;
+  maxLength: number;
   value: string;
-  maxLength?: number;
   onChange: (value: string) => void;
 }) {
   return (
-    <label className="block space-y-1.5 text-sm">
-      <span>{label}</span>
-      {hint ? (
-        <span className="block text-[12px] text-[#858c96]">{hint}</span>
-      ) : null}
+    <label className="block space-y-2">
+      <span className="block type-label text-text-primary">{label}</span>
+      <span className="block type-caption text-text-muted">{hint}</span>
       <textarea
         className={`${fieldClass} min-h-28`}
         value={value}
@@ -210,50 +629,5 @@ function TextArea({
         onChange={(event) => onChange(event.target.value)}
       />
     </label>
-  );
-}
-
-/** The card other students will see, built from the answers, and the hours chosen. */
-function Preview({
-  wizard,
-}: {
-  wizard: ReturnType<typeof usePeerMentorWizard>;
-}) {
-  const t = useTranslations("odtuWorkspaces.student.peerMentoring.wizard");
-  const session = useAppSession();
-  const institution = useInstitutionRecord();
-  const badges = useMyBadges();
-  const settings = wizard.availabilitySettings;
-  return (
-    <div className="space-y-4">
-      <p className="text-[13px] text-[#676e78]">{t("previewNote")}</p>
-      <PeerMentorCardView
-        mentor={{
-          mentorId: session?.userId ?? "preview",
-          fullName: session?.fullName ?? "",
-          department: institution.data?.departmentName ?? null,
-          classYear: institution.data?.classYear ?? null,
-          categories: wizard.draft.topics,
-          helpWith: wizard.draft.helpWith.trim(),
-          recommendationReasons: [],
-          capacityFull: false,
-          badges: (badges.data ?? [])
-            .filter((award) => award.status === BadgeStatus.Active)
-            .map(({ code, kind, programId, awardedAt }) => ({
-              code,
-              kind,
-              programId,
-              awardedAt,
-            })),
-        }}
-      />
-      <p className="text-[13px] text-[#4a5059]">
-        {t("previewHours", {
-          ranges: settings.rules.length,
-          capacity: settings.menteeCapacity ?? "—",
-          minutes: settings.defaultMeetingDurationMinutes,
-        })}
-      </p>
-    </div>
   );
 }
