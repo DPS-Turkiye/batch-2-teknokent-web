@@ -12,5 +12,6 @@
   "retry": "Tekrar dene",
   "archiveTitle": "Kayıtlı CV analizi",
   "archiveHint": "Bu önceki analiz startup’ınla birlikte kaydedilmiş. Kişisel profiline otomatik olarak uygulanmadı.",
-  "clear": "Alanları temizle"
+  "clear": "Alanları temizle",
+  "readOff": "Bu sistemde sunum otomatik okunmuyor; girişim profilini aşağıda elle doldur."
 }

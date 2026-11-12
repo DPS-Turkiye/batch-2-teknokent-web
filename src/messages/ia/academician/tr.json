@@ -1,1 +1,80 @@
-{}
+{
+  "common": {
+    "sampleNotice": "Örnek veriler gösteriliyor: Office Hours henüz ODTÜ hesabına bağlı değil, burada yaptığın değişiklikler yalnızca bu oturumda kalır.",
+    "loading": "Yükleniyor…",
+    "loadFailed": "Bilgiler yüklenemedi.",
+    "retry": "Tekrar dene",
+    "advisee": "Danışanın",
+    "status": {
+      "PENDING": "Onay Bekliyor",
+      "CONFIRMED": "Onaylandı",
+      "REJECTED": "Reddedildi",
+      "ALTERNATIVE_PROPOSED": "Alternatif Saat Önerildi",
+      "CANCELLED": "İptal edildi",
+      "EXPIRED": "Süresi doldu",
+      "WITHDRAWN": "Geri çekildi"
+    },
+    "oneOff": "{date} · tek seferlik",
+    "unavailable": "{days} · Müsait değilim",
+    "unavailableBecause": "{days} · Müsait değilim ({reason})"
+  },
+  "answer": {
+    "done": {
+      "ACCEPT": "Talep kabul edildi, randevu oluşturuldu.",
+      "DECLINE": "Talep reddedildi.",
+      "PROPOSE_TIMES": "Önerdiğin saatler öğrenciye gönderildi.",
+      "ASK_QUESTION": "Sorun öğrenciye gönderildi."
+    },
+    "failed": "Talep yanıtlanamadı; liste yenilendi."
+  },
+  "home": {
+    "greeting": "{greeting}, {name} Hocam",
+    "editAvailability": "Müsaitliği Düzenle",
+    "appointments": "Randevularım",
+    "stats": {
+      "pending": "Bekleyen talepler",
+      "pendingOldest": "en eskisi {ago}",
+      "pendingNone": "Yanıt bekleyen talep yok",
+      "pendingEmpty": "Müsaitlik ekleyince talepler burada görünür",
+      "today": "Bugünkü randevular",
+      "todayFirst": "ilki {time}",
+      "todayNone": "Bugün randevu yok",
+      "week": "Bu hafta müsait saat",
+      "weekNone": "Bu hafta açık saat yok",
+      "advisees": "Danışan öğrencilerim",
+      "adviseesHint": "Kurumsal kayıttan",
+      "upcoming": "Yaklaşan randevular",
+      "none": "—"
+    },
+    "requests": {
+      "title": "Yanıt bekleyen talepler",
+      "seeAll": "Tümü ({count})",
+      "topic": "Görüşme konusu",
+      "decline": "Reddet",
+      "propose": "Alternatif Saat Öner",
+      "accept": "Kabul Et",
+      "empty": "Şu an yanıt bekleyen talep yok."
+    },
+    "today": {
+      "title": "Bugün",
+      "count": "{count, plural, one {# randevu} other {# randevu}}",
+      "empty": "Bugün randevun yok."
+    },
+    "availability": {
+      "title": "Müsaitliğim",
+      "edit": "Düzenle"
+    },
+    "empty": {
+      "title": "Öğrencilerin senden randevu alabilmesi için müsaitlik ekle",
+      "body": "Henüz müsait saat tanımlamadın. Haftalık tekrarlanan saatler, tek seferlik saatler ve müsait olmadığın günleri tek takvimden yönetebilirsin.",
+      "cta": "Müsaitlik Ekle",
+      "examplesLabel": "Ekleyebileceğin müsaitlik türleri",
+      "recurringTitle": "Her Salı · 14:00 – 16:00",
+      "recurringHint": "Tekrarlanan haftalık müsaitlik",
+      "oneOffTitle": "Belirli bir gün · 10:00 – 11:00",
+      "oneOffHint": "Tek seferlik müsaitlik",
+      "unavailableTitle": "Belirli bir gün · Tüm gün",
+      "unavailableHint": "Müsait değilim (istisna)"
+    }
+  }
+}
