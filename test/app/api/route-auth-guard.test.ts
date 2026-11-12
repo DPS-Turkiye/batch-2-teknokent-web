@@ -15,6 +15,8 @@ const HANDLER =
 
 // Answering without a session is deliberate for these handlers.
 const PUBLIC_HANDLERS = new Set([
+  // Deployment-wide AI switches; the signup CV step reads them before there is a session.
+  "ai-features/route.ts GET",
   "auth/password-reset/route.ts POST",
   "health/route.ts GET",
   // Signing in through an institution happens before there is a session; the backend verifies the login.
