@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import nextConfig, {
   buildContentSecurityPolicy,
+  legacyRedirects,
   securityHeaders,
 } from "../next.config";
 
@@ -58,5 +59,29 @@ describe("browser security headers", () => {
     );
     expect(directive("frame-src")).not.toContain("https://www.youtube.com");
     expect(directive("script-src")).toContain("https://www.youtube.com");
+  });
+});
+
+describe("legacy redirects", () => {
+  it("sends the old academician pages to the screens that replaced them", async () => {
+    expect(await nextConfig.redirects?.()).toEqual(legacyRedirects);
+    expect(
+      legacyRedirects.map(({ source, destination, permanent }) => [
+        source,
+        destination,
+        permanent,
+      ]),
+    ).toEqual([
+      [
+        "/academician/requests",
+        "/academician/appointments?filter=requests",
+        false,
+      ],
+      [
+        "/academician/calendar",
+        "/academician/appointments/availability",
+        false,
+      ],
+    ]);
   });
 });

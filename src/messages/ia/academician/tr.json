@@ -258,7 +258,8 @@
       "endAfterStart": "Bitiş, başlangıçtan sonra olmalı.",
       "overlap": "Bu saatler mevcut bir kayıtla çakışıyor.",
       "past": "Geçmiş bir saate müsaitlik eklenemez.",
-      "insideDayOff": "Bu gün müsait değil olarak işaretli; önce o günü kaldır."
+      "insideDayOff": "Bu gün müsait değil olarak işaretli; önce o günü kaldır.",
+      "hidesOneOff": "Bu günlerde tek seferlik saatlerin var; önce onları sil."
     },
     "saved": "Müsaitlik kaydedildi.",
     "removed": "Silindi.",

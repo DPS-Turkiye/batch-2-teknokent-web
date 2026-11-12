@@ -258,7 +258,8 @@
       "endAfterStart": "The end has to be after the start.",
       "overlap": "These hours overlap an existing entry.",
       "past": "You can't add hours in the past.",
-      "insideDayOff": "This day is marked unavailable; remove that day first."
+      "insideDayOff": "This day is marked unavailable; remove that day first.",
+      "hidesOneOff": "You have one-off hours on these days; remove them first."
     },
     "saved": "Availability saved.",
     "removed": "Deleted.",

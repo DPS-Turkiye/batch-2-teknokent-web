@@ -352,7 +352,7 @@ function payloadFor(
       );
     case AvailabilityItemKind.Unavailable:
       return (
-        dayOffError(fields.dayOff, availability.exceptions, editing) ??
+        dayOffError(fields.dayOff, availability, editing, now) ??
         withDayOff(availability, fields.dayOff, editing)
       );
   }

@@ -175,16 +175,21 @@ export function oneOffTime(input: OneOffInput) {
   );
 }
 
-/** Adds a weekly range, or replaces the one with `replacing`. Slots follow the default meeting length. */
+/**
+ * Adds a weekly range, or replaces the one with `replacing`. A new range's slots follow the default meeting length;
+ * an edited one keeps its own, since the dialog only changes the day and the hours.
+ */
 export function withRule(
   availability: AcademicianAvailability,
   input: RuleInput,
   replacing: string | null,
 ): UpdateAcademicianAvailabilityPayload {
+  const current = availability.rules.find((item) => item.id === replacing);
   const rule = {
     id: replacing ?? "new",
     ...input,
-    slotMinutes: availability.defaultMeetingDurationMinutes,
+    slotMinutes:
+      current?.slotMinutes ?? availability.defaultMeetingDurationMinutes,
   };
   return toAvailabilityPayload({
     ...availability,
@@ -341,20 +346,33 @@ export function oneOffError(
   return clash ? AvailabilityFormError.Overlap : null;
 }
 
-/** Why a day off can't be saved: no start, an end before the start, or the same days again. */
+/**
+ * Why a day off can't be saved: no start, an end before the start, the same days again, or one-off hours still ahead
+ * on those days. The last mirrors `oneOffError`: the day off would hide them, so they are removed first.
+ */
 export function dayOffError(
   input: DayOffInput,
-  exceptions: readonly MentorAvailabilityException[],
+  availability: AcademicianAvailability,
   replacing: string | null,
+  now: Date,
 ): AvailabilityFormError | null {
   if (input.startsOn === "") return AvailabilityFormError.NeedFields;
   const endsOn = input.endsOn === "" ? input.startsOn : input.endsOn;
   if (endsOn < input.startsOn) return AvailabilityFormError.EndAfterStart;
-  const clash = exceptions.some(
+  const clash = availability.exceptions.some(
     (exception) =>
       exception.id !== replacing &&
       exception.startsOn <= endsOn &&
       input.startsOn <= exception.endsOn,
   );
-  return clash ? AvailabilityFormError.Overlap : null;
+  if (clash) return AvailabilityFormError.Overlap;
+  const hidesOneOff = availability.oneOffs.some((oneOff) => {
+    const day = turkeyDay(oneOff.startsAt);
+    return (
+      Date.parse(oneOff.endsAt) > now.getTime() &&
+      input.startsOn <= day &&
+      day <= endsOn
+    );
+  });
+  return hidesOneOff ? AvailabilityFormError.HidesOneOff : null;
 }

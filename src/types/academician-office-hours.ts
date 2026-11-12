@@ -12,4 +12,5 @@ export enum AvailabilityFormError {
   Overlap = "overlap",
   Past = "past",
   InsideDayOff = "insideDayOff",
+  HidesOneOff = "hidesOneOff",
 }

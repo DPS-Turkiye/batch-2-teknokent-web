@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { OfficeHoursRequestAction } from "@/interfaces/academician-office-hours";
 import { AppointmentStatus } from "@/interfaces/appointment";
+import { Weekday } from "@/interfaces/mentor";
 import {
   proposableDays,
   proposalPayload,
@@ -56,7 +57,7 @@ describe("proposableDays", () => {
 
   const days = proposableDays(source, { now: NOW, excludeRequestId: "this" });
 
-  it("offers the next five weekdays from today", () => {
+  it("offers the next five weekdays from today when there are no weekend hours", () => {
     expect(days.map((day) => day.day)).toEqual([
       "2026-11-10",
       "2026-11-11",
@@ -64,6 +65,50 @@ describe("proposableDays", () => {
       "2026-11-13",
       "2026-11-16",
     ]);
+  });
+
+  it("offers a Saturday the academician has hours on, unless it is a day off", () => {
+    const saturday = {
+      id: "rule-saturday",
+      dayOfWeek: Weekday.Saturday,
+      startTime: "10:00",
+      endTime: "11:00",
+      slotMinutes: 30,
+    };
+    const base = academicianAvailability();
+    const withSaturday = proposableDays(
+      {
+        ...source,
+        availability: { ...base, rules: [...base.rules, saturday] },
+      },
+      { now: NOW, excludeRequestId: "this" },
+    );
+    expect(withSaturday.map((day) => day.day)).toEqual([
+      "2026-11-10",
+      "2026-11-11",
+      "2026-11-12",
+      "2026-11-13",
+      "2026-11-14",
+    ]);
+    expect(startsOf(withSaturday, 4)).toEqual([
+      ["10:00", false],
+      ["10:30", false],
+    ]);
+
+    const saturdayOff = proposableDays(
+      {
+        ...source,
+        availability: {
+          ...base,
+          rules: [...base.rules, saturday],
+          exceptions: [
+            { startsOn: "2026-11-14", endsOn: "2026-11-14", reason: null },
+          ],
+        },
+      },
+      { now: NOW, excludeRequestId: "this" },
+    );
+    expect(itemAt(saturdayOff, 4).day).toBe("2026-11-16");
   });
 
   it("cuts the hours into meeting-long slots, drops the past and marks booked ones", () => {
