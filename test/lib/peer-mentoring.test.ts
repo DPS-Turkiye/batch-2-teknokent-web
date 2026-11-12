@@ -332,6 +332,7 @@ describe("nextSessionsByRequest", () => {
     requestId,
     status,
     startsAt,
+    alternative: null,
     endsAt: new Date(Date.parse(startsAt) + 30 * 60_000).toISOString(),
   });
 
