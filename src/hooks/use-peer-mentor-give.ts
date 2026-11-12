@@ -375,6 +375,19 @@ function stepNamed(name: string | null): PeerMentorWizardStep | null {
   );
 }
 
+/**
+ * The step a saved draft reopens on. A draft holds no weekly hours, so a new peer mentor whose draft was saved past
+ * the hours step comes back to it rather than publishing with none; a published mentor keeps their saved hours.
+ */
+function resumedStep(name: string | null, hasSavedHours: boolean) {
+  const step = stepNamed(name);
+  if (step === null || hasSavedHours) return step;
+  return Math.min(
+    step,
+    PeerMentorWizardStep.Availability,
+  ) as PeerMentorWizardStep;
+}
+
 /** What "Taslak olarak kaydet" sends: the answers so far and the step to reopen on. */
 export function toProfileDraft(
   draft: WizardDraft,
@@ -469,7 +482,7 @@ export function usePeerMentorWizard() {
   const [chosenStep, setStep] = useState<PeerMentorWizardStep | null>(null);
   const step =
     chosenStep ??
-    stepNamed(resumed?.draft.step ?? null) ??
+    resumedStep(resumed?.draft.step ?? null, existing != null) ??
     PeerMentorWizardStep.Categories;
   const [edits, setEdits] = useState<WizardDraft | null>(null);
   const [error, setError] = useState<string | null>(null);

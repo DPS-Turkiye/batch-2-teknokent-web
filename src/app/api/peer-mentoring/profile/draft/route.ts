@@ -17,6 +17,7 @@ import {
   PEER_EXPERIENCE_SUMMARY_MAX,
   PEER_EXPERIENCE_TITLE_MAX,
   PEER_HELP_WITH_MAX,
+  YEAR_MONTH,
 } from "@/lib/peer-mentoring";
 import {
   apiErrorResponse,
@@ -27,7 +28,6 @@ import { readJsonBody } from "@/lib/server/request-body";
 import { SessionRequiredError } from "@/lib/server/session-error";
 import { getSessionUser } from "@/lib/session";
 
-const YEAR_MONTH = /^\d{4}-(0[1-9]|1[0-2])$/;
 const text = (max: number) => z.string().max(max).nullable();
 
 /** The backend's draft limits: the publish limits without their minimums. */

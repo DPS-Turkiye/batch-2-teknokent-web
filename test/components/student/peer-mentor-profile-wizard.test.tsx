@@ -430,10 +430,19 @@ describe("PeerMentorProfileWizard", () => {
             endedOn: null,
             summary: null,
           },
-          // A card left half-filled is not brought back as a card.
+          // A card without a title is not brought back as a card.
           {
             kind: null,
-            title: "Yarım",
+            title: null,
+            organization: "Yarım",
+            startedOn: null,
+            endedOn: null,
+            summary: null,
+          },
+          // An older card without a start month comes back, asking for one.
+          {
+            kind: null,
+            title: "Asistan",
             organization: null,
             startedOn: null,
             endedOn: null,
@@ -448,7 +457,11 @@ describe("PeerMentorProfileWizard", () => {
     expect(
       await screen.findByText("Yaz stajyeri — ABC Lojistik"),
     ).toBeVisible();
-    expect(screen.queryByText(/^Yarım$/)).toBeNull();
+    expect(screen.queryByText(/Yarım/)).toBeNull();
+    expect(screen.getByText("Asistan")).toBeVisible();
+    expect(
+      screen.getByText("Başlangıç ayı eksik: eklemek için düzenle."),
+    ).toBeVisible();
     expect(screen.getByLabelText(/Güçlü olduğun dersler/)).toHaveValue(
       "IE 251",
     );
@@ -461,6 +474,34 @@ describe("PeerMentorProfileWizard", () => {
       await screen.findByRole("checkbox", { name: "Kariyer ve Staj" }),
     ).not.toBeChecked();
     expect(screen.queryByText(/^Taslak kaydedildi/)).toBeNull();
+  });
+
+  it("brings a new mentor's draft saved on the preview back to the hours, which a draft does not keep", async () => {
+    vi.mocked(getPeerMentorDraft).mockResolvedValue({
+      draft: {
+        step: "preview",
+        categories: [PeerTopicCategory.CareerInternship],
+        subTopics: null,
+        strongCourses: null,
+        projects: null,
+        erasmus: null,
+        helpWith: "Staj başvurusu ve CV konusunda yardımcı olurum.",
+        linkedinUrl: null,
+        levels: null,
+        experiences: null,
+      },
+      updatedAt: "2026-11-12T08:05:00Z",
+    });
+    renderWithQueryClient(<PeerMentorProfileWizard />);
+
+    await waitFor(() =>
+      expect(
+        screen.getByText("Müsaitlik ve kapasite").closest("li"),
+      ).toHaveAttribute("aria-current", "step"),
+    );
+    expect(screen.getByText("Önizle").closest("li")).not.toHaveAttribute(
+      "aria-current",
+    );
   });
 
   it("asks for a start month on an older card before moving on, since the backend needs one to publish", async () => {
