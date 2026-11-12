@@ -23,6 +23,7 @@ import { Weekday } from "@/interfaces/mentor";
 import { UserRole } from "@/interfaces/session";
 import * as officeHours from "@/lib/api/office-hours-me";
 import { getSessionUser } from "@/lib/session";
+import { withForgedActor } from "@test/fixtures/forged-actor";
 import { backendRefusal, backendResponse } from "@test/fixtures/route-handlers";
 
 vi.mock("@/lib/api/office-hours-me", () => ({
@@ -58,6 +59,8 @@ function request(url: string, method = "GET", body?: unknown) {
       : { body: typeof body === "string" ? body : JSON.stringify(body) }),
   });
 }
+
+const ACADEMICIAN = "6f1d2c3b-4a5e-4f60-8a7b-9c0d1e2f3a4b";
 
 const withId = (id: string) => ({ params: Promise.resolve({ id }) });
 
@@ -137,7 +140,7 @@ const handlers: [string, () => Promise<Response>][] = [
     () =>
       postRequest(
         request("/x", "POST", {
-          academicianId: "a-1",
+          academicianId: ACADEMICIAN,
           startsAt: "2026-11-24T14:00:00+03:00",
           title: "Staj",
         }),
@@ -205,7 +208,7 @@ describe("office hours (Menton account) proxy routes", () => {
     await postRequest(
       request("/x", "POST", {
         actorId: "someone-else",
-        academicianId: "a-1",
+        academicianId: ACADEMICIAN,
         startsAt: "2026-11-24T14:00:00+03:00",
         title: "  Staj  ",
       }),
@@ -213,7 +216,7 @@ describe("office hours (Menton account) proxy routes", () => {
     expect(officeHours.createOfficeHoursRequest).toHaveBeenCalledWith(
       "user-1",
       {
-        academicianId: "a-1",
+        academicianId: ACADEMICIAN,
         startsAt: "2026-11-24T14:00:00+03:00",
         title: "Staj",
         description: null,
@@ -240,6 +243,80 @@ describe("office hours (Menton account) proxy routes", () => {
     );
   });
 
+  const profileBody = {
+    listed: true,
+    defaultPlace: "A-204",
+    onlineLink: null,
+    contactEmail: null,
+  };
+  const askBody = {
+    academicianId: ACADEMICIAN,
+    startsAt: "2026-11-24T14:00:00+03:00",
+    title: "Staj",
+    description: null,
+  };
+
+  it.each([
+    [
+      "the hours",
+      () => putAvailability(request("/x", "PUT", withForgedActor(editorHours))),
+      () => officeHours.saveMyOfficeHoursAvailability,
+    ],
+    [
+      "the profile",
+      () => putProfile(request("/x", "PUT", withForgedActor(profileBody))),
+      () => officeHours.saveMyOfficeHoursProfile,
+    ],
+    [
+      "an answer",
+      () =>
+        postDecision(
+          request(
+            "/x",
+            "POST",
+            withForgedActor({ action: OfficeHoursRequestAction.Decline }),
+          ),
+          withId("r-1"),
+        ),
+      () => officeHours.answerOfficeHoursRequest,
+    ],
+    [
+      "a request",
+      () => postRequest(request("/x", "POST", withForgedActor(askBody))),
+      () => officeHours.createOfficeHoursRequest,
+    ],
+    [
+      "an answer to other times",
+      () =>
+        postAlternative(
+          request("/x", "POST", withForgedActor({ accept: false })),
+          withId("r-1"),
+        ),
+      () => officeHours.answerOfficeHoursAlternative,
+    ],
+  ])(
+    "sends %s as the session user, never the actor the body names",
+    async (_name, call, backend) => {
+      await call();
+      const [actor, ...rest] = vi.mocked(backend()).mock.calls[0] ?? [];
+      expect(actor).toBe("user-1");
+      expect(JSON.stringify(rest)).not.toContain("someone-else");
+    },
+  );
+
+  it("ignores an actor named in the query string", async () => {
+    await getAcademician(
+      request(
+        `/api/office-hours/me/academicians/${ACADEMICIAN}?actorId=someone-else`,
+      ),
+      withId(ACADEMICIAN),
+    );
+    expect(officeHours.fetchListedAcademician).toHaveBeenCalledWith(
+      "user-1",
+      ACADEMICIAN,
+    );
+  });
+
   it.each([
     [
       "an unknown answer",
@@ -262,7 +339,7 @@ describe("office hours (Menton account) proxy routes", () => {
       () =>
         postRequest(
           request("/x", "POST", {
-            academicianId: "a-1",
+            academicianId: ACADEMICIAN,
             startsAt: "next tuesday",
             title: "Staj",
           }),
@@ -273,7 +350,7 @@ describe("office hours (Menton account) proxy routes", () => {
       () =>
         postRequest(
           request("/x", "POST", {
-            academicianId: "a-1",
+            academicianId: ACADEMICIAN,
             startsAt: "2026-11-24T14:00:00+03:00",
             title: "   ",
           }),
@@ -295,6 +372,52 @@ describe("office hours (Menton account) proxy routes", () => {
           request("/x", "PUT", {
             ...editorHours,
             rules: [{ ...editorHours.rules[0], dayOfWeek: "FUNDAY" }],
+          }),
+        ),
+    ],
+    [
+      "a description over 2000 characters",
+      () =>
+        postRequest(
+          request("/x", "POST", { ...askBody, description: "x".repeat(2001) }),
+        ),
+    ],
+    [
+      "a title over 200 characters",
+      () =>
+        postRequest(
+          request("/x", "POST", { ...askBody, title: "x".repeat(201) }),
+        ),
+    ],
+    [
+      "an academician id that is not an id",
+      () =>
+        postRequest(request("/x", "POST", { ...askBody, academicianId: ".." })),
+    ],
+    [
+      "a contact e-mail that is not one",
+      () =>
+        putProfile(
+          request("/x", "PUT", { ...profileBody, contactEmail: "elif" }),
+        ),
+    ],
+    [
+      "a clock time that does not exist",
+      () =>
+        putAvailability(
+          request("/x", "PUT", {
+            ...editorHours,
+            rules: [{ ...editorHours.rules[0], startTime: "25:00" }],
+          }),
+        ),
+    ],
+    [
+      "a five-minute slot",
+      () =>
+        putAvailability(
+          request("/x", "PUT", {
+            ...editorHours,
+            rules: [{ ...editorHours.rules[0], slotMinutes: 5 }],
           }),
         ),
     ],
