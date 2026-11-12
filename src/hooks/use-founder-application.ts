@@ -41,7 +41,7 @@ export function signupFullName(draft: SignupDraft) {
     .join(" ");
 }
 
-/** Registers the founder (with their startup, or into the program without one), then uploads the files. */
+/** Registers the founder with their startup (an individual program: the backend names the team after them), then uploads the files. */
 export function useFounderApplication(account: RegisteredAccount) {
   const tErrors = useTranslations("clientErrors");
   const tWizard = useTranslations("signupWizard");
@@ -69,7 +69,7 @@ export function useFounderApplication(account: RegisteredAccount) {
       if (!idToken) {
         throw new Error(tErrors("sessionExpired"));
       }
-      const { programId, startupLater } = draft.startup;
+      const { programId, individualProgram } = draft.startup;
       if (!programId) throw new Error(tWizard("programRequired"));
       const personal = {
         fullName: signupFullName(draft) || account.fullName,
@@ -82,8 +82,8 @@ export function useFounderApplication(account: RegisteredAccount) {
         contactPreferences: draft.personal.contactPreferences,
       };
 
-      if (startupLater) {
-        await registerFounder({ ...personal, startupLater: true }, idToken);
+      if (individualProgram) {
+        await registerFounder(personal, idToken);
       } else {
         const { name, ...startupFields } = startupRequestFields(draft);
         await registerFounder(
@@ -94,8 +94,8 @@ export function useFounderApplication(account: RegisteredAccount) {
       if (draft.personal.cv?.file) {
         await uploadDocument(draft.personal.cv.file, DocumentKind.Cv, idToken);
       }
-      // Without a startup there is nowhere for its logo and files to go yet.
-      if (!startupLater) {
+      // An individual program asks for no startup logo or files.
+      if (!individualProgram) {
         if (draft.startup.logo?.file) {
           await uploadDocument(
             draft.startup.logo.file,

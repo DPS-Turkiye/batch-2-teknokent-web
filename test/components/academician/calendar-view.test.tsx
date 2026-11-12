@@ -21,7 +21,7 @@ describe("AcademicianCalendarView", () => {
     expect(screen.queryByText("Eş zamanlı mentorluk limiti")).toBeNull();
     expect(screen.queryByText("İki görüşme arası tampon")).toBeNull();
     expect(screen.getByText("UYGUN OLMADIĞIN TARİHLER")).toBeVisible();
-    expect(screen.getByRole("note")).toHaveTextContent("Örnek veriler");
+    expect(screen.getByText(/Örnek veriler/)).toBeVisible();
 
     fireEvent.change(screen.getByLabelText("Salı 1. aralık bitiş"), {
       target: { value: "17:00" },

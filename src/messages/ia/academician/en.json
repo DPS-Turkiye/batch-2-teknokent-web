@@ -1,0 +1,80 @@
+{
+  "common": {
+    "sampleNotice": "Showing sample data: Office Hours isn't linked to ODTÜ accounts yet, so your changes here last only for this session.",
+    "loading": "Loading…",
+    "loadFailed": "Couldn't load this.",
+    "retry": "Try again",
+    "advisee": "Your advisee",
+    "status": {
+      "PENDING": "Awaiting approval",
+      "CONFIRMED": "Confirmed",
+      "REJECTED": "Declined",
+      "ALTERNATIVE_PROPOSED": "Other time proposed",
+      "CANCELLED": "Cancelled",
+      "EXPIRED": "Expired",
+      "WITHDRAWN": "Withdrawn"
+    },
+    "oneOff": "{date} · one-off",
+    "unavailable": "{days} · Unavailable",
+    "unavailableBecause": "{days} · Unavailable ({reason})"
+  },
+  "answer": {
+    "done": {
+      "ACCEPT": "Request accepted; the appointment is booked.",
+      "DECLINE": "Request declined.",
+      "PROPOSE_TIMES": "Your proposed times were sent to the student.",
+      "ASK_QUESTION": "Your question was sent to the student."
+    },
+    "failed": "Couldn't answer the request; the list was refreshed."
+  },
+  "home": {
+    "greeting": "{greeting}, {name}",
+    "editAvailability": "Edit availability",
+    "appointments": "My appointments",
+    "stats": {
+      "pending": "Pending requests",
+      "pendingOldest": "oldest {ago}",
+      "pendingNone": "No requests waiting",
+      "pendingEmpty": "Requests show up here once you add availability",
+      "today": "Today's appointments",
+      "todayFirst": "first at {time}",
+      "todayNone": "No appointments today",
+      "week": "Open hours this week",
+      "weekNone": "No open hours this week",
+      "advisees": "My advisees",
+      "adviseesHint": "From the university record",
+      "upcoming": "Upcoming appointments",
+      "none": "—"
+    },
+    "requests": {
+      "title": "Requests waiting for you",
+      "seeAll": "All ({count})",
+      "topic": "Topic",
+      "decline": "Decline",
+      "propose": "Propose another time",
+      "accept": "Accept",
+      "empty": "No requests are waiting for you."
+    },
+    "today": {
+      "title": "Today",
+      "count": "{count, plural, one {# appointment} other {# appointments}}",
+      "empty": "No appointments today."
+    },
+    "availability": {
+      "title": "My availability",
+      "edit": "Edit"
+    },
+    "empty": {
+      "title": "Add availability so students can book time with you",
+      "body": "You haven't set any open hours yet. You can manage weekly hours, one-off hours and the days you're unavailable in one calendar.",
+      "cta": "Add availability",
+      "examplesLabel": "Kinds of availability you can add",
+      "recurringTitle": "Every Tuesday · 14:00 – 16:00",
+      "recurringHint": "Weekly recurring hours",
+      "oneOffTitle": "A specific day · 10:00 – 11:00",
+      "oneOffHint": "One-off hours",
+      "unavailableTitle": "A specific day · All day",
+      "unavailableHint": "Unavailable (exception)"
+    }
+  }
+}
