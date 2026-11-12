@@ -3285,6 +3285,7 @@
     "meetingsTab": "Meetings",
     "meetingsHeading": "meetings",
     "linkPlaceholder": "Paste a meeting link…",
+    "linkNotInCalendar": "This link is not one of the meetings in your calendar; the assistant can only join meetings in your Menton calendar.",
     "addBot": "Add bot",
     "loadingMeetings": "Loading meetings…",
     "noMeetings": "No saved meetings. Create one from the calendar or paste a link.",

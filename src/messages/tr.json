@@ -3285,6 +3285,7 @@
     "meetingsTab": "Toplantılar",
     "meetingsHeading": "toplantılar",
     "linkPlaceholder": "Toplantı linki yapıştır…",
+    "linkNotInCalendar": "Bu bağlantı takviminde bir toplantıya ait değil; asistan yalnızca Menton takvimindeki toplantılara katılabilir.",
     "addBot": "Bot ekle",
     "loadingMeetings": "Toplantılar yükleniyor…",
     "noMeetings": "Kayıtlı toplantı yok. Takvimden toplantı oluştur veya link yapıştır.",
