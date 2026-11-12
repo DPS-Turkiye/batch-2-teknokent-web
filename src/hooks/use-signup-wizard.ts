@@ -73,6 +73,23 @@ function restoreFromPayload(saved: unknown): {
   };
 }
 
+/**
+ * Where a restored draft resumes. One saved past the startup step without a complete startup (the removed
+ * "create it later", or an individual program saved before it was marked) goes back to that step, which asks
+ * for the startup or marks the program.
+ */
+function resumeStep(saved: SignupStep, draft: SignupDraft) {
+  const { programId, individualProgram, name, tagline } = draft.startup;
+  const startupDone = Boolean(
+    programId &&
+    (individualProgram === true || (name.trim() && tagline.trim())),
+  );
+  const pastStartup =
+    SIGNUP_STEP_ORDER.indexOf(saved) >
+    SIGNUP_STEP_ORDER.indexOf(SignupStep.StartupProfile);
+  return pastStartup && !startupDone ? SignupStep.StartupProfile : saved;
+}
+
 export function useSignupWizard(
   options: { onSubmit?: (draft: SignupDraft) => Promise<void> } = {},
 ) {
@@ -89,7 +106,9 @@ export function useSignupWizard(
     setDraft(restored.draft);
     setDroppedFiles(restored.droppedFiles);
     const nextStep = Number(saved.step);
-    if (isOneOf(SIGNUP_STEP_ORDER, nextStep)) setStep(nextStep);
+    if (isOneOf(SIGNUP_STEP_ORDER, nextStep)) {
+      setStep(resumeStep(nextStep, restored.draft));
+    }
   }, []);
 
   // The saved draft keeps its shape: the rows' React keys stay in the browser.
