@@ -20,6 +20,7 @@ import {
   usePeerMentorWizard,
 } from "@/hooks/use-peer-mentor-give";
 import { BadgeStatus } from "@/interfaces/badges";
+import { PEER_MENTOR_GIVE_HREF } from "@/lib/peer-mentoring";
 
 const buttonClass =
   "rounded-full border border-[#d4d8dd] px-4 py-2 text-sm disabled:opacity-50";
@@ -171,10 +172,7 @@ export function PeerMentorProfileWizard() {
                       ? t("publish")
                       : t("next")}
                 </button>
-                <Link
-                  className={buttonClass}
-                  href="/student/peer-mentoring?as=MENTOR"
-                >
+                <Link className={buttonClass} href={PEER_MENTOR_GIVE_HREF}>
                   {t("cancel")}
                 </Link>
               </div>
