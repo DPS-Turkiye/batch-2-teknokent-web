@@ -1,7 +1,7 @@
 import type { ComponentProps } from "react";
 
 import type { StatusChip } from "@/components/admin/admin-ui";
-import { AppointmentSide } from "@/interfaces/appointment";
+import { AppointmentSide, type Appointment } from "@/interfaces/appointment";
 import { BadgeCode, BadgeStatus, type BadgeAward } from "@/interfaces/badges";
 import {
   WEEKDAY_ORDER,
@@ -14,6 +14,7 @@ import {
   type PeerTopicCategory,
 } from "@/interfaces/peer-mentoring";
 import type { ProfileCompletionCategory } from "@/interfaces/student-profile-completion";
+import { isUpcoming } from "@/lib/appointments";
 import { toTimeInput } from "@/lib/mentor-availability";
 import {
   PeerCapacityNote,
@@ -244,11 +245,16 @@ export function splitPeerRequests<
   };
 }
 
-/** An open request comes first: the student already asked this mentor, full or not. */
+/**
+ * Whether the student can ask this mentor now. A running mentorship comes first, then an open request (the student
+ * already asked, full or not), then a full capacity.
+ */
 export function peerRequestAvailability(
   hasOpenRequest: boolean,
   capacityFull: boolean,
+  isMentoring = false,
 ): PeerRequestAvailability {
+  if (isMentoring) return PeerRequestAvailability.Mentoring;
   if (hasOpenRequest) return PeerRequestAvailability.Requested;
   if (capacityFull) return PeerRequestAvailability.Full;
   return PeerRequestAvailability.Open;
@@ -257,4 +263,22 @@ export function peerRequestAvailability(
 /** A peer mentor's profile page on the Mentorluk Al side. */
 export function peerMentorProfileHref(mentorId: string) {
   return `/student/peer-mentoring/mentors/${encodeURIComponent(mentorId)}`;
+}
+
+/**
+ * Each peer request's next meeting: the earliest one still to come (not refused, called off or over). A cancelled or
+ * past meeting is never "Sıradaki görüşme".
+ */
+export function nextSessionsByRequest<
+  T extends Pick<Appointment, "requestId" | "status" | "startsAt" | "endsAt">,
+>(appointments: readonly T[], now: Date): Map<string, T> {
+  const next = new Map<string, T>();
+  for (const item of appointments) {
+    if (!item.requestId || !isUpcoming(item, now)) continue;
+    const current = next.get(item.requestId);
+    if (!current || Date.parse(item.startsAt) < Date.parse(current.startsAt)) {
+      next.set(item.requestId, item);
+    }
+  }
+  return next;
 }

@@ -35,6 +35,8 @@ export enum PeerRequestAvailability {
   Open = "open",
   /** A request to this mentor is still open. */
   Requested = "requested",
+  /** This mentor already mentors the student (an accepted request). */
+  Mentoring = "mentoring",
   /** Every place is taken. */
   Full = "full",
 }

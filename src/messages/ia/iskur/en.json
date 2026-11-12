@@ -267,7 +267,8 @@
       "request": "Send a mentoring request",
       "requested": "Your request is awaiting an answer",
       "full": "No places left",
-      "nameSuffix": ", {name}"
+      "nameSuffix": ", {name}",
+      "mentoring": "Already your mentor"
     },
     "profile": {
       "back": "Peer mentoring",

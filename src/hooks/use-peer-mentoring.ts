@@ -105,6 +105,15 @@ function usePeerMentorContext() {
       ),
     [requests.data],
   );
+  const currentMentorIds = useMemo(
+    () =>
+      new Set(
+        splitPeerRequests(requests.data ?? []).active.map(
+          (request) => request.mentor.userId,
+        ),
+      ),
+    [requests.data],
+  );
   return {
     reasonsOf: (mentor: PeerMentorCard) => {
       const shared = sharedInterests(mentor.categories, interests);
@@ -123,6 +132,7 @@ function usePeerMentorContext() {
       peerRequestAvailability(
         openRequestMentorIds.has(mentor.mentorId),
         mentor.capacityFull,
+        currentMentorIds.has(mentor.mentorId),
       ),
   };
 }

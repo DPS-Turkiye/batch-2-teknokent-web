@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PeerMentoringView } from "@/components/student/peer-mentoring-view";
+import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import {
   PeerMentorGateState,
   PeerTopicCategory,
@@ -148,6 +149,32 @@ describe("PeerMentoringView › Keşfet", () => {
     expect(
       within(mert).getByRole("button", { name: "Kontenjan dolu" }),
     ).toBeDisabled();
+  });
+
+  it("doesn't offer a request to the student's current mentor", async () => {
+    const { getPeerMentoringRequests } =
+      await import("@/lib/client/peer-mentoring");
+    const [elif] = peerMentoringRequestsFixture();
+    if (!elif) throw new Error("fixture request missing");
+    vi.mocked(getPeerMentoringRequests).mockResolvedValueOnce([
+      {
+        ...elif,
+        mentor: {
+          userId: "fixture-peer-1",
+          fullName: "Deniz Kaya",
+          department: "Bilgisayar Mühendisliği",
+        },
+        status: MentorshipRequestStatus.Accepted,
+      },
+    ]);
+    renderWithQueryClient(<PeerMentoringView />);
+
+    const deniz = await mentorCard("Deniz Kaya");
+    await waitFor(() =>
+      expect(
+        within(deniz).getByRole("button", { name: "Zaten mentorun" }),
+      ).toBeDisabled(),
+    );
   });
 
   it("filters by a category card and by text", async () => {
