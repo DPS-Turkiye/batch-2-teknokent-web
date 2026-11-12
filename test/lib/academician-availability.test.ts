@@ -232,6 +232,28 @@ describe("availability edits", () => {
     ]);
   });
 
+  it("keeps an edited weekly range's own slot length", () => {
+    const longer = {
+      ...availability,
+      rules: availability.rules.map((rule) =>
+        rule.id === "rule-tuesday" ? { ...rule, slotMinutes: 45 } : rule,
+      ),
+    };
+    const afternoon = {
+      dayOfWeek: Weekday.Tuesday,
+      startTime: "13:00",
+      endTime: "15:00",
+    };
+    expect(withRule(longer, afternoon, "rule-tuesday").rules).toContainEqual({
+      ...afternoon,
+      slotMinutes: 45,
+    });
+    expect(withRule(longer, afternoon, null).rules).toContainEqual({
+      ...afternoon,
+      slotMinutes: 30,
+    });
+  });
+
   it("adds one-off hours in Turkey time, place trimmed, and removes them", () => {
     expect(
       withOneOff(
@@ -362,29 +384,56 @@ describe("availability validation", () => {
   });
 
   it("checks a day off for a start, the order and the same days again", () => {
-    const { exceptions } = availability;
     expect(
-      dayOffError({ startsOn: "", endsOn: "", reason: "" }, exceptions, null),
+      dayOffError(
+        { startsOn: "", endsOn: "", reason: "" },
+        availability,
+        null,
+        NOW,
+      ),
     ).toBe(AvailabilityFormError.NeedFields);
     expect(
       dayOffError(
         { startsOn: "2026-11-20", endsOn: "2026-11-19", reason: "" },
-        exceptions,
+        availability,
         null,
+        NOW,
       ),
     ).toBe(AvailabilityFormError.EndAfterStart);
     expect(
       dayOffError(
         { startsOn: "2026-11-17", endsOn: "2026-11-18", reason: "" },
-        exceptions,
+        availability,
         null,
+        NOW,
       ),
     ).toBe(AvailabilityFormError.Overlap);
     expect(
       dayOffError(
         { startsOn: "2026-11-18", endsOn: "", reason: "" },
-        exceptions,
+        availability,
         "off",
+        NOW,
+      ),
+    ).toBeNull();
+  });
+
+  it("refuses a day off over one-off hours still ahead, which it would hide", () => {
+    expect(
+      dayOffError(
+        { startsOn: "2026-11-12", endsOn: "2026-11-13", reason: "" },
+        availability,
+        null,
+        NOW,
+      ),
+    ).toBe(AvailabilityFormError.HidesOneOff);
+    const withPast = { ...availability, oneOffs: [ONE_OFF_PAST] };
+    expect(
+      dayOffError(
+        { startsOn: "2026-11-09", endsOn: "2026-11-13", reason: "" },
+        withPast,
+        null,
+        NOW,
       ),
     ).toBeNull();
   });

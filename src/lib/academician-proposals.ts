@@ -22,7 +22,10 @@ import { addDays, isoDay } from "@/lib/coordinator-calendar";
 import { weekdayOf } from "@/lib/mentor-availability";
 import { minutesOfDay } from "@/lib/utils";
 
-/** The propose dialog offers the next five weekdays, like the frame ("Sal 10 … Pzt 16"). */
+/**
+ * The propose dialog offers the next five days, like the frame ("Sal 10 … Pzt 16"): weekdays always (a closed one
+ * shows as a disabled chip), and a Saturday or Sunday only when the academician has hours on it.
+ */
 export const PROPOSABLE_DAY_COUNT = 5;
 
 export type ProposableSlot = { time: AppointmentTime; taken: boolean };
@@ -118,7 +121,7 @@ export function proposableDays(
     date = addDays(date, 1)
   ) {
     const weekend = date.getDay() === 0 || date.getDay() === 6;
-    if (!weekend) days.push(date);
+    if (!weekend || windowsOf(date, availability).length > 0) days.push(date);
   }
 
   return days.map((date) => {
