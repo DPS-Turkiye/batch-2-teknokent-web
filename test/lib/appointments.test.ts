@@ -42,6 +42,26 @@ describe("splitAppointments", () => {
   });
 });
 
+describe("isUpcoming with another time proposed", () => {
+  it("keeps the request ahead while the proposed time is, even after the asked-for time passed", () => {
+    const request = peerAppointment({
+      status: AppointmentStatus.AlternativeProposed,
+      startsAt: "2026-11-12T08:00:00.000Z",
+      endsAt: "2026-11-12T08:30:00.000Z",
+      alternative: {
+        startsAt: "2026-11-13T08:00:00.000Z",
+        endsAt: "2026-11-13T08:30:00.000Z",
+      },
+    });
+    expect(isUpcoming(request, new Date("2026-11-12T12:00:00.000Z"))).toBe(
+      true,
+    );
+    expect(isUpcoming(request, new Date("2026-11-13T09:00:00.000Z"))).toBe(
+      false,
+    );
+  });
+});
+
 describe("APPOINTMENT_STATUS_TONE", () => {
   it("never shows a request that is still open in the confirmed colour", () => {
     const confirmed = APPOINTMENT_STATUS_TONE[AppointmentStatus.Confirmed];

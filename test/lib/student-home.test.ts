@@ -10,6 +10,7 @@ import {
   STUDENT_HOME_MENTOR_COUNT,
   STUDENT_HOME_PREVIEW,
   summarizeAppointments,
+  waitingPreview,
 } from "@/lib/student-home";
 import { itemAt } from "@test/fixtures/list-assertions";
 import {
@@ -128,5 +129,31 @@ describe("greetingName", () => {
     expect(greetingName(null)).toBeNull();
     expect(greetingName(undefined)).toBeNull();
     expect(greetingName("   ")).toBeNull();
+  });
+});
+
+describe("waitingPreview", () => {
+  const request = itemAt(peerMentoringRequestsFixture(), 0);
+  const pending = (id: string) =>
+    peerAppointment({ id, status: AppointmentStatus.Pending });
+
+  it(`shows at most ${STUDENT_HOME_PREVIEW} rows, appointment requests first, and counts them all`, () => {
+    const preview = waitingPreview(
+      [pending("a"), pending("b")],
+      [request, { ...request, id: "peer-2" }],
+    );
+    expect(preview.awaiting.map((item) => item.id)).toEqual(["a", "b"]);
+    expect(preview.peerRequests.map((item) => item.id)).toEqual([request.id]);
+    expect(preview.total).toBe(4);
+  });
+
+  it("leaves no room for peer requests once the appointments fill the list", () => {
+    const preview = waitingPreview(
+      [pending("a"), pending("b"), pending("c"), pending("d")],
+      [request],
+    );
+    expect(preview.awaiting).toHaveLength(STUDENT_HOME_PREVIEW);
+    expect(preview.peerRequests).toEqual([]);
+    expect(preview.total).toBe(5);
   });
 });
