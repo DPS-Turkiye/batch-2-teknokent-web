@@ -21,6 +21,8 @@ import type {
 import { ToastTone } from "@/interfaces/toast";
 import {
   createPeerMentoringRequest,
+  getPeerMentor,
+  getPeerMentorCounts,
   getPeerMentoringRequests,
   getPeerMentors,
 } from "@/lib/client/peer-mentoring";
@@ -30,6 +32,7 @@ import {
 } from "@/lib/client/student-profile-completion";
 import {
   CLOSED_PEER_REQUEST_STATUSES,
+  offeredSubTopics,
   OPEN_PEER_REQUEST_STATUSES,
   PEER_MENTORING_SIDE_PARAM,
   PEER_REQUEST_MESSAGE_MAX,
@@ -39,12 +42,16 @@ import {
   sharedInterests,
   splitPeerRequests,
   splitRecommended,
+  subTopicOptions,
+  weeklyHours,
 } from "@/lib/peer-mentoring";
 import { errorMessage } from "@/lib/utils";
 import { useToast } from "@/stores/toast-store";
 import { PeerTakeTab } from "@/types/iskur-student";
 
 export const PEER_MENTORS_QUERY_KEY = ["peer-mentors"] as const;
+export const PEER_MENTOR_QUERY_KEY = ["peer-mentor"] as const;
+export const PEER_MENTOR_COUNTS_QUERY_KEY = ["peer-mentor-counts"] as const;
 export const PEER_MENTORING_REQUESTS_QUERY_KEY = [
   "peer-mentoring",
   "requests",
@@ -127,37 +134,80 @@ function usePeerMentorContext() {
   };
 }
 
-/** Keşfet: the active categories, the recommended mentors, and the searchable list with its filters. */
+/** Keşfet: the active categories with their mentor counts, the recommended mentors, and the filtered list. */
 export function usePeerMentorDirectory() {
-  const [category, setCategory] = useState<PeerTopicCategory | null>(null);
+  const [category, setCategoryState] = useState<PeerTopicCategory | null>(null);
+  const [subTopic, setSubTopic] = useState<string | null>(null);
+  const [availableThisWeek, setAvailableThisWeek] = useState(false);
   const [query, setQuery] = useState("");
   const deferredQuery = useDeferredValue(query.trim());
   const mentors = useQuery({
-    queryKey: [...PEER_MENTORS_QUERY_KEY, category, deferredQuery],
-    queryFn: () => getPeerMentors({ category, query: deferredQuery }),
+    queryKey: [
+      ...PEER_MENTORS_QUERY_KEY,
+      category,
+      deferredQuery,
+      subTopic,
+      availableThisWeek,
+    ],
+    queryFn: () =>
+      getPeerMentors({
+        category,
+        query: deferredQuery,
+        subTopic,
+        availableThisWeek,
+      }),
   });
   const catalogue = useQuery({
     queryKey: PROFILE_COMPLETION_CATEGORIES_QUERY_KEY,
     queryFn: getProfileCompletionCategories,
   });
+  const counts = useQuery({
+    queryKey: PEER_MENTOR_COUNTS_QUERY_KEY,
+    queryFn: getPeerMentorCounts,
+  });
   const context = usePeerMentorContext();
   const [requesting, setRequesting] = useState<PeerMentorCard | null>(null);
-  const filtered = category != null || deferredQuery !== "";
+  const filtered =
+    category != null ||
+    deferredQuery !== "" ||
+    subTopic != null ||
+    availableThisWeek;
   const split = splitRecommended(
     mentors.data ?? [],
     (mentor) => context.reasonsOf(mentor).length > 0,
     filtered,
   );
 
+  /** A sub-topic outside the newly chosen category no longer applies. */
+  const setCategory = (next: PeerTopicCategory | null) => {
+    setCategoryState(next);
+    if (
+      subTopic != null &&
+      !subTopicOptions(catalogue.data ?? [], next).some(
+        (option) => option.id === subTopic,
+      )
+    ) {
+      setSubTopic(null);
+    }
+  };
+
   return {
     category,
     setCategory,
     /** A category card toggles its filter. */
     toggleCategory: (next: PeerTopicCategory) =>
-      setCategory((current) => (current === next ? null : next)),
+      setCategory(category === next ? null : next),
     /** Only the program's active categories can be picked. */
     categories: (catalogue.data ?? []).map((item) => item.id),
     noActiveCategories: catalogue.isSuccess && catalogue.data.length === 0,
+    /** How many mentors offer the category; undefined until the counts load. */
+    countOf: (item: PeerTopicCategory) =>
+      counts.data?.find((count) => count.category === item)?.mentorCount,
+    subTopic,
+    setSubTopic,
+    subTopicOptions: subTopicOptions(catalogue.data ?? [], category),
+    availableThisWeek,
+    toggleAvailableThisWeek: () => setAvailableThisWeek((current) => !current),
     query,
     setQuery,
     mentors,
@@ -172,23 +222,31 @@ export function usePeerMentorDirectory() {
   };
 }
 
-/** One peer mentor's profile page, from the unfiltered mentor list (the same query the student home reads). */
+/** One peer mentor's profile page; null when the student's directory doesn't list them. */
 export function usePeerMentor(mentorId: string) {
-  const mentors = useQuery({
-    queryKey: [...PEER_MENTORS_QUERY_KEY, null, ""],
-    queryFn: () => getPeerMentors({ category: null, query: "" }),
+  const detail = useQuery({
+    queryKey: [...PEER_MENTOR_QUERY_KEY, mentorId],
+    queryFn: () => getPeerMentor(mentorId),
+  });
+  const catalogue = useQuery({
+    queryKey: PROFILE_COMPLETION_CATEGORIES_QUERY_KEY,
+    queryFn: getProfileCompletionCategories,
   });
   const context = usePeerMentorContext();
   const [requesting, setRequesting] = useState(false);
-  const mentor =
-    mentors.data?.find((item) => item.mentorId === mentorId) ?? null;
+  const mentor = detail.data ?? null;
   return {
     requesting,
     openRequest: () => setRequesting(true),
     closeRequest: () => setRequesting(false),
-    isLoading: mentors.isLoading,
-    error: mentors.error,
+    isLoading: detail.isLoading,
+    error: detail.error,
     mentor,
+    /** The mentor's sub-topics with their catalogue labels where known. */
+    subTopics: mentor
+      ? offeredSubTopics(catalogue.data ?? [], mentor.subTopics)
+      : [],
+    weeklyHours: mentor ? weeklyHours(mentor.weeklyHours) : [],
     reasons: mentor ? context.reasonsOf(mentor) : [],
     badgeVerified:
       mentor?.badges.some((badge) => badge.code === BadgeCode.PeerMentor) ??

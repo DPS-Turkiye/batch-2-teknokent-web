@@ -255,3 +255,32 @@ export function peerRequestAvailability(
 export function peerMentorProfileHref(mentorId: string) {
   return `/student/peer-mentoring/mentors/${encodeURIComponent(mentorId)}`;
 }
+
+type CatalogueSubTopic = ProfileCompletionCategory["subtopics"][number];
+
+/** The sub-topics a filter can offer: the chosen category's, or every listed category's, each once. */
+export function subTopicOptions(
+  catalogue: readonly ProfileCompletionCategory[],
+  category: PeerTopicCategory | null,
+): CatalogueSubTopic[] {
+  const seen = new Set<string>();
+  return catalogue
+    .filter((item) => category === null || item.id === category)
+    .flatMap((item) => item.subtopics)
+    .filter((sub) => {
+      if (seen.has(sub.id)) return false;
+      seen.add(sub.id);
+      return true;
+    });
+}
+
+/** Each sub-topic id the mentor offers, with its catalogue entry when there is one (older free text has none). */
+export function offeredSubTopics(
+  catalogue: readonly ProfileCompletionCategory[],
+  ids: readonly string[],
+): { id: string; entry: CatalogueSubTopic | null }[] {
+  const byId = new Map(
+    catalogue.flatMap((item) => item.subtopics).map((sub) => [sub.id, sub]),
+  );
+  return ids.map((id) => ({ id, entry: byId.get(id) ?? null }));
+}

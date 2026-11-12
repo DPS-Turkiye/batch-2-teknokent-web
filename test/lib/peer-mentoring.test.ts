@@ -12,6 +12,7 @@ import type { ProfileCompletionCategory } from "@/interfaces/student-profile-com
 import {
   chosenSubtopics,
   latestGateAward,
+  offeredSubTopics,
   PEER_REQUEST_STATUS_TONE,
   peerMentorCapacity,
   peerMentorGateState,
@@ -21,6 +22,7 @@ import {
   splitPeerRequests,
   splitRecommended,
   subtopicGroupsWithCounts,
+  subTopicOptions,
   weeklyHours,
 } from "@/lib/peer-mentoring";
 import {
@@ -315,5 +317,47 @@ describe("peerMentorProfileHref", () => {
     expect(peerMentorProfileHref("peer 1/2")).toBe(
       "/student/peer-mentoring/mentors/peer%201%2F2",
     );
+  });
+});
+
+describe("sub-topic helpers", () => {
+  const catalogue: ProfileCompletionCategory[] = [
+    {
+      id: PeerTopicCategory.CareerInternship,
+      subtopics: [
+        { id: "cv", labelKey: "cv" },
+        { id: "shared", labelKey: "time" },
+      ],
+    },
+    {
+      id: PeerTopicCategory.International,
+      subtopics: [
+        { id: "exchange", labelKey: "exchange" },
+        { id: "shared", labelKey: "time" },
+      ],
+    },
+  ];
+
+  it("offers the chosen category's sub-topics, or every category's once", () => {
+    expect(
+      subTopicOptions(catalogue, PeerTopicCategory.International).map(
+        (sub) => sub.id,
+      ),
+    ).toEqual(["exchange", "shared"]);
+    expect(subTopicOptions(catalogue, null).map((sub) => sub.id)).toEqual([
+      "cv",
+      "shared",
+      "exchange",
+    ]);
+    expect(subTopicOptions(catalogue, PeerTopicCategory.CampusLife)).toEqual(
+      [],
+    );
+  });
+
+  it("pairs a mentor's sub-topics with their catalogue entry, keeping unknown ones", () => {
+    expect(offeredSubTopics(catalogue, ["exchange", "Serbest"])).toEqual([
+      { id: "exchange", entry: { id: "exchange", labelKey: "exchange" } },
+      { id: "Serbest", entry: null },
+    ]);
   });
 });

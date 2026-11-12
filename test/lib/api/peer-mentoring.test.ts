@@ -6,6 +6,8 @@ import { UserRole } from "@/interfaces/session";
 import {
   createPeerMentoringRequest,
   fetchPeerCategories,
+  fetchPeerMentor,
+  fetchPeerMentorCounts,
   fetchPeerMentoringRequests,
   fetchPeerMentorProfile,
   fetchPeerMentors,
@@ -48,6 +50,41 @@ const cases: RequestCase[] = [
         category: PeerTopicCategory.Entrepreneurship,
         q: "fon",
       },
+    },
+  ],
+  [
+    "lists peer mentors by sub-topic with a free slot this week",
+    () =>
+      fetchPeerMentors("student-1", {
+        subTopic: "fixture-cv",
+        availableThisWeek: true,
+      }),
+    {
+      method: "GET",
+      url: "/api/peer-mentoring/mentors",
+      params: {
+        actorId: "student-1",
+        subTopic: "fixture-cv",
+        availableThisWeek: true,
+      },
+    },
+  ],
+  [
+    "reads one mentor of the actor's program",
+    () => fetchPeerMentor("student-1", "mentor-1"),
+    {
+      method: "GET",
+      url: "/api/peer-mentoring/mentors/mentor-1",
+      params: { actorId: "student-1" },
+    },
+  ],
+  [
+    "reads the mentors per category of the actor's program",
+    () => fetchPeerMentorCounts("student-1"),
+    {
+      method: "GET",
+      url: "/api/peer-mentoring/mentor-counts",
+      params: { actorId: "student-1" },
     },
   ],
   [

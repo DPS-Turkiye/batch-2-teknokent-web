@@ -267,7 +267,11 @@
       "request": "Mentorluk Talebi Gönder",
       "requested": "Talebin yanıt bekliyor",
       "full": "Kontenjan dolu",
-      "nameSuffix": ", {name}"
+      "nameSuffix": ", {name}",
+      "mentorCount": "{count} mentor",
+      "subTopicFilter": "Alt konu",
+      "allSubTopics": "Tüm alt konular",
+      "availableThisWeek": "Bu hafta müsait"
     },
     "profile": {
       "back": "Akran Mentörlüğü",
@@ -276,7 +280,19 @@
       "badgeVerified": "Rozet doğrulandı",
       "topics": "Yardımcı olabileceği konular",
       "helpWith": "Öğrencilere nasıl yardımcı olabilirim?",
-      "requestNote": "{name} talebini kabul ettiğinde mentorluk başlar ve görüşme planlayabilirsiniz."
+      "requestNote": "{name} talebini kabul ettiğinde mentorluk başlar ve görüşme planlayabilirsiniz.",
+      "experience": "İlgili deneyim",
+      "strongCourses": "Güçlü olduğu dersler",
+      "projects": "Projeleri",
+      "erasmus": "Yurt dışı / değişim deneyimi",
+      "links": "Bağlantılar",
+      "linkedin": "LinkedIn profili",
+      "availability": "Müsaitlik",
+      "noHours": "Haftalık saat eklenmemiş.",
+      "hoursRange": "{start} – {end}",
+      "thisWeek": "Bu hafta",
+      "thisWeekOpen": "Boş saat var",
+      "thisWeekFull": "Boş saat yok"
     },
     "dialog": {
       "title": "Mentorluk talebi gönder",
