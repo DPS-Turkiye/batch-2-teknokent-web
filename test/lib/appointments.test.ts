@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { AppointmentStatus } from "@/interfaces/appointment";
 import {
   APPOINTMENT_STATUS_TONE,
+  currentTime,
   isUpcoming,
   splitAppointments,
 } from "@/lib/appointments";
@@ -59,6 +60,37 @@ describe("isUpcoming with another time proposed", () => {
     expect(isUpcoming(request, new Date("2026-11-13T09:00:00.000Z"))).toBe(
       false,
     );
+  });
+});
+
+describe("currentTime and ordering with another time proposed", () => {
+  const moved = peerAppointment({
+    id: "moved",
+    status: AppointmentStatus.AlternativeProposed,
+    startsAt: "2026-11-10T08:00:00.000Z",
+    endsAt: "2026-11-10T08:30:00.000Z",
+    alternative: {
+      startsAt: "2026-11-14T08:00:00.000Z",
+      endsAt: "2026-11-14T08:30:00.000Z",
+    },
+  });
+  const sooner = peerAppointment({
+    id: "sooner",
+    startsAt: "2026-11-12T08:00:00.000Z",
+    endsAt: "2026-11-12T08:30:00.000Z",
+  });
+
+  it("stands at the proposed time while it is on the table, else at its own", () => {
+    expect(currentTime(moved)).toEqual(moved.alternative);
+    expect(currentTime(sooner)).toBe(sooner);
+  });
+
+  it("sorts by the proposed start, so a passed asked-for time is never first", () => {
+    const { upcoming } = splitAppointments(
+      [moved, sooner],
+      new Date("2026-11-11T09:00:00.000Z"),
+    );
+    expect(upcoming.map((item) => item.id)).toEqual(["sooner", "moved"]);
   });
 });
 

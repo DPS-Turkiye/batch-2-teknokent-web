@@ -82,6 +82,22 @@ describe("StudentHomeView", () => {
     ).toHaveAttribute("href", "/student/appointments");
   });
 
+  it("shows the proposed time, not the passed asked-for one, for a request with another time proposed", () => {
+    const moved = {
+      ...alternative,
+      alternative: {
+        startsAt: "2026-11-13T07:30:00.000Z",
+        endsAt: "2026-11-13T08:00:00.000Z",
+      },
+    };
+    homeReturns({ next: moved, upcoming: [moved] });
+    renderWithQueryClient(<StudentHomeView />);
+
+    const banner = screen.getByRole("region", { name: "Sıradaki randevu" });
+    expect(within(banner).getByText(/13 Kas/)).toBeVisible();
+    expect(within(banner).queryByText(/12 Kas/)).toBeNull();
+  });
+
   it("lists the upcoming sessions as dated cards", () => {
     homeReturns({ upcoming: [officeHours] });
     renderWithQueryClient(<StudentHomeView />);

@@ -35,6 +35,7 @@ import type {
   PeerMentorCard,
   PeerMentoringRequest,
 } from "@/interfaces/peer-mentoring";
+import { currentTime } from "@/lib/appointments";
 import { timeLabel } from "@/lib/calendar";
 import { formatDayMonth } from "@/lib/utils";
 
@@ -154,9 +155,10 @@ function NextAppointment({ appointment }: { appointment: Appointment }) {
   const who = [counterpart.title, counterpart.fullName]
     .filter(Boolean)
     .join(" ");
+  const time = currentTime(appointment);
   const when = [
-    formatDayMonth(new Date(appointment.startsAt), locale),
-    `${timeLabel(appointment.startsAt, locale)} – ${timeLabel(appointment.endsAt, locale)}`,
+    formatDayMonth(new Date(time.startsAt), locale),
+    `${timeLabel(time.startsAt, locale)} – ${timeLabel(time.endsAt, locale)}`,
     tKind(appointment.kind),
   ].join(" · ");
 
@@ -398,7 +400,7 @@ function AwaitingAppointment({ appointment }: { appointment: Appointment }) {
               .join(" ")}
           </p>
           <p className="type-caption text-text-muted">
-            {`${tKind(appointment.kind)} · ${formatDayMonth(new Date(appointment.startsAt), locale)}, ${timeLabel(appointment.startsAt, locale)}`}
+            {`${tKind(appointment.kind)} · ${formatDayMonth(new Date(currentTime(appointment).startsAt), locale)}, ${timeLabel(currentTime(appointment).startsAt, locale)}`}
           </p>
         </div>
       </div>
