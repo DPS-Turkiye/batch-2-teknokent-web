@@ -438,7 +438,7 @@ function ExperienceCards({ wizard }: { wizard: Wizard }) {
       {cards.cards.length > 0 ? (
         <ul className="space-y-3">
           {cards.cards.map((card, index) => (
-            <li key={`${card.title}-${card.startedOn}-${String(index)}`}>
+            <li key={card.key}>
               <Card className="flex flex-wrap items-start justify-between gap-4">
                 <div className="min-w-0 space-y-1">
                   <h3 className="type-label text-text-primary">
@@ -446,14 +446,20 @@ function ExperienceCards({ wizard }: { wizard: Wizard }) {
                       ? `${card.title} — ${card.organization}`
                       : card.title}
                   </h3>
-                  <p className="type-caption text-text-muted">
-                    {t("range", {
-                      start: formatYearMonth(card.startedOn, locale),
-                      end: card.endedOn
-                        ? formatYearMonth(card.endedOn, locale)
-                        : t("ongoing"),
-                    })}
-                  </p>
+                  {card.startedOn ? (
+                    <p className="type-caption text-text-muted">
+                      {t("range", {
+                        start: formatYearMonth(card.startedOn, locale),
+                        end: card.endedOn
+                          ? formatYearMonth(card.endedOn, locale)
+                          : t("ongoing"),
+                      })}
+                    </p>
+                  ) : (
+                    <p className="type-caption text-error">
+                      {t("missingStart")}
+                    </p>
+                  )}
                   {card.summary ? (
                     <p className="type-body-sm text-text-secondary">
                       {card.summary}
@@ -768,11 +774,8 @@ function PreviewStep({ wizard }: { wizard: Wizard }) {
           <div className="space-y-2">
             <h3 className="type-label text-text-primary">{t("experience")}</h3>
             <ul className="space-y-1">
-              {wizard.draft.experiences.map((card, index) => (
-                <li
-                  key={`${card.title}-${card.startedOn}-${String(index)}`}
-                  className="type-body-sm text-text-secondary"
-                >
+              {wizard.draft.experiences.map((card) => (
+                <li key={card.key} className="type-body-sm text-text-secondary">
                   {card.organization
                     ? `${card.title} — ${card.organization}`
                     : card.title}

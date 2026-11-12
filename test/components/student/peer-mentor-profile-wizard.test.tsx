@@ -463,6 +463,60 @@ describe("PeerMentorProfileWizard", () => {
     expect(screen.queryByText(/^Taslak kaydedildi/)).toBeNull();
   });
 
+  it("asks for a start month on an older card before moving on, since the backend needs one to publish", async () => {
+    const user = userEvent.setup();
+    vi.mocked(getPeerMentorProfile).mockResolvedValue({
+      categories: [PeerTopicCategory.CareerInternship],
+      subTopics: [],
+      strongCourses: [],
+      projects: [],
+      erasmus: null,
+      helpWith: "Staj başvurusu ve CV konusunda yardımcı olurum.",
+      linkedinUrl: null,
+      department: "Endüstri Mühendisliği",
+      classYear: 4,
+      menteeCapacity: 3,
+      levels: {},
+      experiences: [
+        {
+          kind: PeerExperienceKind.Job,
+          title: "Asistan",
+          organization: "ODTÜ",
+          startedOn: null,
+          endedOn: null,
+          summary: null,
+        },
+      ],
+    });
+    renderWithQueryClient(<PeerMentorProfileWizard />);
+    const next = () =>
+      user.click(screen.getByRole("button", { name: "Devam Et" }));
+    await screen.findByRole("group", { name: "Mentor profilini düzenle" });
+    await next();
+    await next();
+
+    expect(
+      screen.getByText("Başlangıç ayı eksik: eklemek için düzenle."),
+    ).toBeVisible();
+    await next();
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Başlangıç ayı eksik deneyimleri düzenle.",
+    );
+
+    await user.click(screen.getByRole("button", { name: "Düzenle, Asistan" }));
+    const form = screen.getByRole("region", { name: "Deneyimi düzenle" });
+    fireEvent.change(within(form).getByLabelText("Başlangıç"), {
+      target: { value: "2023-02" },
+    });
+    await user.click(
+      within(form).getByRole("button", { name: "Deneyimi Kaydet" }),
+    );
+    expect(screen.getByText("Şubat 2023 – Devam ediyor")).toBeVisible();
+    await next();
+
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
   it("opens with the published answers when editing", async () => {
     vi.mocked(getPeerMentorProfile).mockResolvedValue({
       categories: [PeerTopicCategory.International],
