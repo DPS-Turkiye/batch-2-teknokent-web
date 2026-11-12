@@ -140,6 +140,19 @@ describe("IskurHomeView", () => {
     expect(getReceivedPeerRequests).not.toHaveBeenCalled();
   });
 
+  it("keeps the shared home when the profile can't be read, instead of offering the wizard", async () => {
+    vi.mocked(getPeerMentorProfile).mockRejectedValue(new Error("down"));
+    renderWithQueryClient(<IskurHomeView />);
+
+    await waitFor(() => expect(getPeerMentorProfile).toHaveBeenCalled());
+    await waitFor(() =>
+      expect(screen.getByTestId("home-aside")).toBeEmptyDOMElement(),
+    );
+    expect(
+      screen.queryByRole("link", { name: "Mentor profilini oluştur" }),
+    ).toBeNull();
+  });
+
   it("points an İŞKUR student without the badge to Mentorluk Ver", async () => {
     gate.state = PeerMentorGateState.NoBadge;
     renderWithQueryClient(<IskurHomeView />);

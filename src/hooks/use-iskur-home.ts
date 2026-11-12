@@ -25,9 +25,9 @@ export function useIskurHome() {
   const received = useReceivedPeerRequests(hasProfile);
   const decision = usePeerRequestDecision();
   return {
-    // Nothing until the profile answers, so a published mentor never flashes the "create your profile" card.
+    // Nothing until the profile answers (or if it fails), so a published mentor never sees the "create your profile" card.
     mode:
-      gate.isLoading || profile.isLoading
+      gate.isLoading || profile.isLoading || profile.error
         ? IskurHomeMode.None
         : iskurHomeMode(gate.state, hasProfile),
     profile: profile.data ?? null,
