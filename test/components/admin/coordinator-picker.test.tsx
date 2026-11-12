@@ -1,5 +1,4 @@
 import { screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -18,6 +17,7 @@ import {
   invitedChoice,
   type CoordinatorChoice,
 } from "@/lib/coordinator-picker";
+import { pickerUser, settleSearch } from "@test/fixtures/coordinator-picker";
 import { renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/admin-coordinators", () => ({
@@ -79,27 +79,26 @@ describe("CoordinatorPicker", () => {
   });
 
   it("lists nobody and asks the backend nothing before three characters", async () => {
-    const clicker = userEvent.setup();
+    const clicker = pickerUser();
     renderWithQueryClient(<Harness />);
 
     expect(screen.queryByRole("list")).not.toBeInTheDocument();
     await clicker.type(emailField(), "ay");
+    await settleSearch();
 
     expect(
       screen.getByText("Aramak için en az 3 karakter yaz."),
     ).toBeInTheDocument();
-    await new Promise((resolve) => {
-      setTimeout(resolve, 400);
-    });
     expect(searchCoordinators).not.toHaveBeenCalled();
   });
 
   it("shows matching coordinators and adds the picked one as a chip", async () => {
     vi.mocked(searchCoordinators).mockResolvedValue([ayse, ayten]);
-    const clicker = userEvent.setup();
+    const clicker = pickerUser();
     renderWithQueryClient(<Harness programId="program-1" />);
 
     await clicker.type(emailField(), "ayse");
+    await settleSearch();
     await clicker.click(
       await screen.findByRole("button", { name: "Ayşe Aydın ekle" }),
     );
@@ -115,10 +114,11 @@ describe("CoordinatorPicker", () => {
   });
 
   it("invites a whole e-mail with no account once a name is given", async () => {
-    const clicker = userEvent.setup();
+    const clicker = pickerUser();
     renderWithQueryClient(<Harness />);
 
     await clicker.type(emailField(), "Yeni@Teknokent.org");
+    await settleSearch();
     expect(
       await screen.findByText(
         "yeni@teknokent.org adresiyle menton'da hesap yok. Koordinatör olarak davet edebilirsin.",
@@ -138,13 +138,15 @@ describe("CoordinatorPicker", () => {
   });
 
   it("keeps the typed name while a typo in the e-mail is fixed, then clears both on invite", async () => {
-    const clicker = userEvent.setup();
+    const clicker = pickerUser();
     renderWithQueryClient(<Harness />);
 
     await clicker.type(emailField(), "yeni@teknokent.og");
+    await settleSearch();
     await clicker.type(await screen.findByLabelText("Ad soyad"), "Yeni Kişi");
     await clicker.clear(emailField());
     await clicker.type(emailField(), "yeni@teknokent.org");
+    await settleSearch();
     expect(await screen.findByLabelText("Ad soyad")).toHaveValue("Yeni Kişi");
 
     await clicker.type(screen.getByLabelText("Ad soyad"), "{Enter}");
@@ -159,6 +161,7 @@ describe("CoordinatorPicker", () => {
     expect(emailField()).toHaveValue("");
 
     await clicker.type(emailField(), "baska@teknokent.org");
+    await settleSearch();
     expect(await screen.findByLabelText("Ad soyad")).toHaveValue("");
   });
 
@@ -178,10 +181,11 @@ describe("CoordinatorPicker", () => {
         role: UserRole.Coordinator,
       }),
     );
-    const clicker = userEvent.setup();
+    const clicker = pickerUser();
     renderWithQueryClient(<Harness />);
 
     await clicker.type(emailField(), "eski@x.org");
+    await settleSearch();
 
     expect(await screen.findByText(text)).toBeInTheDocument();
   });
@@ -196,10 +200,11 @@ describe("CoordinatorPicker", () => {
         role: UserRole.Mentor,
       }),
     );
-    const clicker = userEvent.setup();
+    const clicker = pickerUser();
     renderWithQueryClient(<Harness />);
 
     await clicker.type(emailField(), "ece@mentor.org");
+    await settleSearch();
 
     expect(
       await screen.findByText(
@@ -212,10 +217,11 @@ describe("CoordinatorPicker", () => {
   });
 
   it("says when nothing matches a partial e-mail", async () => {
-    const clicker = userEvent.setup();
+    const clicker = pickerUser();
     renderWithQueryClient(<Harness />);
 
     await clicker.type(emailField(), "zzz");
+    await settleSearch();
 
     expect(
       await screen.findByText(/Bu e-postayla başlayan bir koordinatör yok/),
@@ -227,10 +233,11 @@ describe("CoordinatorPicker", () => {
     vi.mocked(searchCoordinators).mockRejectedValue(
       new Error("Sunucuya ulaşılamadı."),
     );
-    const clicker = userEvent.setup();
+    const clicker = pickerUser();
     renderWithQueryClient(<Harness />);
 
     await clicker.type(emailField(), "ayse");
+    await settleSearch();
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "Sunucuya ulaşılamadı.",
@@ -239,10 +246,11 @@ describe("CoordinatorPicker", () => {
 
   it("hides a coordinator already chosen and removes a chip", async () => {
     vi.mocked(searchCoordinators).mockResolvedValue([ayse, ayten]);
-    const clicker = userEvent.setup();
+    const clicker = pickerUser();
     renderWithQueryClient(<Harness initial={[existingChoice(ayse)]} />);
 
     await clicker.type(emailField(), "ayt");
+    await settleSearch();
     expect(
       await screen.findByRole("button", { name: "Ayten Kaya ekle" }),
     ).toBeInTheDocument();
