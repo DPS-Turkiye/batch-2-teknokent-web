@@ -40,7 +40,7 @@ const OPEN_STATUSES = new Set([
 ]);
 
 export function isUpcoming(
-  appointment: Pick<Appointment, "status" | "endsAt">,
+  appointment: Pick<Appointment, "status" | "endsAt" | "alternative">,
   now: Date,
 ) {
   return (

@@ -1,0 +1,157 @@
+"use client";
+
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect } from "react";
+
+import { useAppSession } from "@/components/providers/session-provider";
+import { useInstitutionRecord } from "@/hooks/use-institution-record";
+import { useAnchorShown, useTourTarget } from "@/hooks/use-tour-target";
+import { Workspace } from "@/interfaces/workspace";
+import { isOnRoute, tourRoleOf, TOURS } from "@/lib/product-tour";
+import { readTourOutcome, writeTourOutcome } from "@/lib/product-tour-storage";
+import { useProductTourStore } from "@/stores/product-tour-store";
+import { TourAdvance, TourOutcome, TourPhase } from "@/types/product-tour";
+
+/**
+ * The tour written for this workspace, once the account is known. An ODTÜ student's tour depends on whether
+ * they are an İŞKUR participant, so it waits for their institution record.
+ */
+export function useTourRole(workspace: Workspace) {
+  const session = useAppSession();
+  const student = workspace === Workspace.OdtuStudent;
+  const institution = useInstitutionRecord(student);
+  const known = session !== null && !(student && institution.isPending);
+  return {
+    userId: session?.userId ?? null,
+    role: known
+      ? tourRoleOf(workspace, institution.data?.iskurParticipant ?? false)
+      : null,
+  };
+}
+
+/**
+ * The tour on a workspace's pages: it opens by itself on the home page until the user finishes or skips it, walks
+ * through the steps across pages, and remembers the outcome per user and role.
+ */
+export function useProductTour(workspace: Workspace) {
+  const { userId, role } = useTourRole(workspace);
+  const pathname = usePathname();
+  const router = useRouter();
+  const storedRun = useProductTourStore((state) => state.run);
+  const actions = useProductTourStore((state) => state.actions);
+
+  useEffect(() => {
+    if (userId !== null) actions.hydrate(userId);
+  }, [actions, userId]);
+
+  const definition = role === null ? null : TOURS[role];
+  // A run of another workspace's tour stays saved but is not shown here.
+  const run = storedRun?.role === role ? storedRun : null;
+  const step =
+    run?.phase === TourPhase.Step
+      ? (definition?.steps[run.stepIndex] ?? null)
+      : null;
+  const stepCount = definition?.steps.length ?? 0;
+
+  useEffect(() => {
+    if (
+      userId === null ||
+      role === null ||
+      definition === null ||
+      storedRun !== null ||
+      !isOnRoute(pathname, definition.home) ||
+      readTourOutcome(userId, role) !== null
+    ) {
+      return;
+    }
+    // The store decides with what it holds now: the run hydrated a moment ago in this same commit wins.
+    actions.openIfIdle(userId, role);
+  }, [actions, definition, pathname, role, storedRun, userId]);
+
+  const stepIndex = run?.stepIndex ?? -1;
+  const next = () => actions.next(stepCount, stepIndex);
+  const target = useTourTarget(
+    step?.anchor ?? null,
+    `${role ?? ""}:${stepIndex}`,
+    step?.advance === TourAdvance.Click ? next : null,
+  );
+
+  // An "Arrival" step (sending a request) moves on only once the next step's element appears (the success
+  // banner): a failed send keeps the user on the form instead of carrying them off.
+  const arrived = useAnchorShown(
+    step?.advance === TourAdvance.Arrival
+      ? (definition?.steps[stepIndex + 1]?.anchor ?? null)
+      : null,
+  );
+  useEffect(() => {
+    if (arrived) actions.next(stepCount, stepIndex);
+  }, [actions, arrived, stepCount, stepIndex]);
+
+  // Reaching "Hazırsın!" counts as finished even if the tab is closed before the dialog is.
+  const done = run?.phase === TourPhase.Done;
+  useEffect(() => {
+    if (done && userId !== null && role !== null) {
+      writeTourOutcome(userId, role, TourOutcome.Completed);
+    }
+  }, [done, role, userId]);
+
+  // The step's own page, when its element did not turn up where the user is (a reload, a page that does not
+  // lead there by itself).
+  const route = step?.route;
+  useEffect(() => {
+    if (target.missing && route !== undefined && !isOnRoute(pathname, route)) {
+      router.push(route);
+    }
+  }, [pathname, route, router, target.missing]);
+
+  const waitsForPress =
+    step?.advance === TourAdvance.Click ||
+    step?.advance === TourAdvance.Arrival;
+
+  function leave(outcome: TourOutcome) {
+    if (role === null) return;
+    if (userId !== null) writeTourOutcome(userId, role, outcome);
+    actions.dismiss(role);
+  }
+
+  return {
+    role,
+    phase: run?.phase ?? null,
+    step,
+    stepNumber: (run?.stepIndex ?? 0) + 1,
+    stepCount,
+    target,
+    /** "… tıkla": there is a control to press; the hint also moves keyboard focus to it. */
+    offersHint: waitsForPress && target.control !== null,
+    /** "İleri": the step asks for it, or its element is missing, or nothing in it can be pressed. */
+    offersNext:
+      step?.advance === TourAdvance.Next ||
+      (waitsForPress &&
+        (target.missing ||
+          (target.element !== null && target.control === null))),
+    focusTarget: () => target.control?.focus(),
+    start: actions.start,
+    next,
+    finish: actions.finish,
+    skip: () => leave(TourOutcome.Skipped),
+    close: () => leave(TourOutcome.Completed),
+    exit: () => {
+      leave(TourOutcome.Completed);
+      if (definition !== null) router.push(definition.exit);
+    },
+  };
+}
+
+/** "Turu tekrar izle" on Profilim: opens this workspace's tour again from its welcome. */
+export function useProductTourReplay(workspace: Workspace) {
+  const { userId, role } = useTourRole(workspace);
+  const actions = useProductTourStore((state) => state.actions);
+  return {
+    available: role !== null,
+    replay: () => {
+      if (userId === null || role === null) return;
+      actions.hydrate(userId);
+      actions.open(role);
+    },
+  };
+}
