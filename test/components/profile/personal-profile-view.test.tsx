@@ -38,6 +38,7 @@ function mockCv(overrides: Partial<Cv> = {}) {
     selected: null,
     storedName: "gulse-cv.pdf",
     storedIsPdf: true,
+    canRead: true,
     canFill: true,
     isUploading: false,
     isParsing: false,
