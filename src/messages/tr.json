@@ -6481,12 +6481,6 @@
     }
   },
   "academicianWorkspace": {
-    "sampleNotice": "Örnek veriler gösteriliyor: Office Hours henüz bağlı değil, burada yaptığın değişiklikler kaydedilmez.",
-    "queryState": {
-      "loading": "Yükleniyor…",
-      "error": "Yüklenemedi.",
-      "retry": "Tekrar dene"
-    },
     "studyLevel": {
       "BACHELOR": "Lisans",
       "MASTER": "Yüksek lisans",
@@ -6556,11 +6550,6 @@
       "question": "Öğrenciye sorun",
       "needTime": "En az bir saat seç.",
       "needQuestion": "Sorunu yaz.",
-      "accepted": "Talep kabul edildi; randevu Randevularım'da.",
-      "declined": "Talep reddedildi.",
-      "proposed": "Önerdiğin saatler öğrenciye gönderildi.",
-      "asked": "Sorun öğrenciye gönderildi.",
-      "failed": "Talep yanıtlanamadı; liste yenilendi.",
       "noteLabel": "Öğrencinin notu",
       "proposedPast": "Geçmiş bir saat önerilemez.",
       "pickOne": "Bir saat seç."
@@ -6615,26 +6604,6 @@
       "oneOffFailed": "Tek seferlik saatler kaydedilemedi.",
       "insideDayOff": "Bu tarih uygun olmadığın tarihler arasında. Önce o tarihleri kaldır.",
       "insideDayOffReason": "Bu tarih uygun olmadığın tarihler arasında ({reason}). Önce o tarihleri kaldır."
-    },
-    "home": {
-      "greeting": "Merhaba, {name}",
-      "greetingFallback": "Merhaba",
-      "subtitle": "Ofis saati taleplerin, randevuların ve danışan öğrencilerin.",
-      "pendingTitle": "Yanıt bekleyen talep",
-      "pendingHint": "Kabul et, reddet ya da başka saat öner.",
-      "pendingLink": "Taleplere git",
-      "weekTitle": "Önümüzdeki 7 günde randevu",
-      "weekHint": "Onaylanmış ofis saati randevuları.",
-      "weekLink": "Randevularım",
-      "adviseesTitle": "Danışan öğrenci",
-      "adviseesHint": "ODTÜ kayıtlarından.",
-      "adviseesLink": "Danışan Öğrencilerim",
-      "nextTitle": "Sıradaki randevular",
-      "nextEmpty": "Yaklaşan randevun yok.",
-      "requestsTitle": "Son talepler",
-      "requestsEmpty": "Yanıt bekleyen talep yok.",
-      "seeAll": "Tümünü gör",
-      "calendarLink": "Ofis saatlerini düzenle"
     }
   },
   "programPeerCategories": {

@@ -13,7 +13,7 @@ import type {
 import type { UpdateMentorAvailabilitySettingsPayload } from "@/interfaces/mentor";
 import { ToastTone } from "@/interfaces/toast";
 import {
-  ACADEMICIAN_OFFICE_HOURS_QUERY_KEY,
+  ACADEMICIAN_AVAILABILITY_QUERY_KEY,
   turkeyTimeRange,
 } from "@/lib/academician-office-hours";
 import {
@@ -21,11 +21,6 @@ import {
   saveAcademicianAvailability,
 } from "@/lib/client/academician-office-hours";
 import { useToast } from "@/stores/toast-store";
-
-export const ACADEMICIAN_AVAILABILITY_QUERY_KEY = [
-  ...ACADEMICIAN_OFFICE_HOURS_QUERY_KEY,
-  "availability",
-] as const;
 
 /** Office hours have a slot length; no student limit or buffer on the academician's screen. */
 const NUMBER_FIELDS = ["defaultMeetingDurationMinutes"] as const;
