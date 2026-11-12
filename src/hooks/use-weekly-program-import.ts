@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 
+import { useAiFeatureRefusal, useAiFeatures } from "@/hooks/use-ai-features";
 import { useProgramCache } from "@/hooks/use-coordinator-program";
 import { programWeekPlanQueryKey } from "@/hooks/use-program-week-plan";
 import type { CoordinatorProgramDetail } from "@/interfaces/coordinator-program";
@@ -73,6 +74,8 @@ export function useWeeklyProgramImport(
 ) {
   const t = useTranslations("weeklyProgram");
   const locale = useLocale();
+  const canReadFile = useAiFeatures().syllabus;
+  const refused = useAiFeatureRefusal();
   const cache = useProgramCache(programId);
   const client = useQueryClient();
   const { showToast } = useToast();
@@ -96,7 +99,10 @@ export function useWeeklyProgramImport(
       setProblem(null);
       setReview(reviewOf(documentId, proposal));
     },
-    onError: fail(t("readFailed")),
+    onError: (failure) => {
+      refused(failure);
+      fail(t("readFailed"))(failure);
+    },
   });
 
   const upload = useMutation({
@@ -143,21 +149,25 @@ export function useWeeklyProgramImport(
 
   return {
     file,
+    canReadFile,
     needsDates: !hasDates,
     reading,
     /** Reading, saving or reviewing a file, or no program dates yet: the file row waits. */
     busy: reading || save.isPending || review !== null || !hasDates,
     /** The line under the file name. */
-    fileHint: reading
-      ? t("reading")
-      : !hasDates
-        ? t("needsDates")
-        : file
-          ? file.kind === DocumentKind.Syllabus
-            ? t("oldSyllabus")
-            : t("uploaded", { date: formatLongDate(file.uploadedAt, locale) })
-          : t("noFileHint"),
+    fileHint: !canReadFile
+      ? t("manualHint")
+      : reading
+        ? t("reading")
+        : !hasDates
+          ? t("needsDates")
+          : file
+            ? file.kind === DocumentKind.Syllabus
+              ? t("oldSyllabus")
+              : t("uploaded", { date: formatLongDate(file.uploadedAt, locale) })
+            : t("noFileHint"),
     chooseFile: (chosen: File) => {
+      if (!canReadFile) return;
       const fileProblem = programFileProblem(chosen);
       if (fileProblem) {
         showToast({
@@ -171,9 +181,9 @@ export function useWeeklyProgramImport(
       }
       upload.mutate(chosen);
     },
-    canReread: rereadId !== null && hasDates,
+    canReread: canReadFile && rereadId !== null && hasDates,
     reread: () => {
-      if (rereadId) read.mutate(rereadId);
+      if (canReadFile && rereadId) read.mutate(rereadId);
     },
 
     reviewing: review !== null,

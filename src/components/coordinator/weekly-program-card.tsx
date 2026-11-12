@@ -33,6 +33,7 @@ export function WeeklyProgramCard({
         <span className="block truncate text-[13.5px] font-medium text-[#22262b]">
           {file ? file.filename : t("noFile")}
         </span>
+        {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
         <span
           role={weekly.reading ? "status" : undefined}
           className="block text-[12px] text-[#858c96]"
@@ -40,37 +41,41 @@ export function WeeklyProgramCard({
           {weekly.fileHint}
         </span>
       </span>
-      <input
-        ref={input}
-        type="file"
-        accept="application/pdf,.pdf"
-        className="sr-only"
-        disabled={busy}
-        aria-label={t("chooseFile")}
-        onChange={(event) => {
-          const chosen = event.target.files?.[0];
-          if (chosen) weekly.chooseFile(chosen);
-          event.target.value = "";
-        }}
-      />
-      <button
-        type="button"
-        disabled={busy}
-        onClick={() => input.current?.click()}
-        className={OUTLINE_BUTTON}
-      >
-        {file ? t("replaceFile") : t("uploadFile")}
-      </button>
-      {weekly.canReread ? (
-        <button
-          type="button"
-          disabled={busy}
-          onClick={weekly.reread}
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-[14px] py-2 text-[12.5px] font-medium text-[#22262b] disabled:text-[#aeb4bc]"
-        >
-          <RefreshCw aria-hidden className="size-[15px]" />
-          {t("reread")}
-        </button>
+      {weekly.canReadFile ? (
+        <>
+          <input
+            ref={input}
+            type="file"
+            accept="application/pdf,.pdf"
+            className="sr-only"
+            disabled={busy}
+            aria-label={t("chooseFile")}
+            onChange={(event) => {
+              const chosen = event.target.files?.[0];
+              if (chosen) weekly.chooseFile(chosen);
+              event.target.value = "";
+            }}
+          />
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => input.current?.click()}
+            className={OUTLINE_BUTTON}
+          >
+            {file ? t("replaceFile") : t("uploadFile")}
+          </button>
+          {weekly.canReread ? (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={weekly.reread}
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-[14px] py-2 text-[12.5px] font-medium text-[#22262b] disabled:text-[#aeb4bc]"
+            >
+              <RefreshCw aria-hidden className="size-[15px]" />
+              {t("reread")}
+            </button>
+          ) : null}
+        </>
       ) : null}
     </div>
   );

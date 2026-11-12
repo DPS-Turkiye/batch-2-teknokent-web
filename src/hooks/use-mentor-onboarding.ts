@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { useAiFeatureRefusal, useAiFeatures } from "@/hooks/use-ai-features";
 import { useOnboardingDraftSync } from "@/hooks/use-onboarding-draft-sync";
 import { clientText } from "@/i18n/client-texts";
 import {
@@ -118,6 +119,8 @@ export function useMentorOnboarding(
   account: { fullName: string } = { fullName: "" },
 ) {
   const t = useTranslations("mentorOnboarding");
+  const canReadCv = useAiFeatures().profileParsing;
+  const refused = useAiFeatureRefusal();
   const [step, setStep] = useState<MentorOnboardingStep>(
     MentorOnboardingStep.Profile,
   );
@@ -260,6 +263,10 @@ export function useMentorOnboarding(
         );
         setCvUploaded(true);
         setDraft((current) => ({ ...current, cvStoredName: file.name }));
+        if (!canReadCv) {
+          setPhase(IntroPhase.Review);
+          return;
+        }
         try {
           const cv = toMentorCvResult(
             await parseStoredCv(stored.id, ProfileAnalysisType.Mentor),
@@ -277,7 +284,8 @@ export function useMentorOnboarding(
               student: fillStudies(current.student, cv.studies),
             };
           });
-        } catch {
+        } catch (failure) {
+          refused(failure);
           setParseNote(t("cvUnreadable"));
         }
         setPhase(IntroPhase.Review);
@@ -286,7 +294,7 @@ export function useMentorOnboarding(
         setPhase(IntroPhase.Upload);
       }
     },
-    [t],
+    [t, canReadCv, refused],
   );
 
   const enterManually = useCallback(() => setPhase(IntroPhase.Review), []);
@@ -602,6 +610,7 @@ export function useMentorOnboarding(
     isSaving,
     uploadError,
     parseNote,
+    canReadCv,
     saveError,
     draftSavedAt,
     droppedFiles,

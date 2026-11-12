@@ -3,10 +3,15 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { useAiFeatureRefusal, useAiFeatures } from "@/hooks/use-ai-features";
 import { usePersonalCv } from "@/hooks/use-personal-cv";
+import { BackendErrorCode } from "@/interfaces/ai-features";
 import { DocumentKind } from "@/interfaces/startup-document";
+import { isAiFeatureDisabledError } from "@/lib/ai-features";
+import { ClientApiError } from "@/lib/client/api";
 import { listDocuments, uploadDocument } from "@/lib/client/documents";
 import { readCv } from "@/lib/client/profile-analysis";
+import { aiFeatures } from "@test/fixtures/ai-features";
 import { createTestQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/documents", () => ({
@@ -14,6 +19,13 @@ vi.mock("@/lib/client/documents", () => ({
   uploadDocument: vi.fn(),
 }));
 vi.mock("@/lib/client/profile-analysis", () => ({ readCv: vi.fn() }));
+vi.mock("@/hooks/use-ai-features", () => ({
+  useAiFeatures: vi.fn(),
+  useAiFeatureRefusal: vi.fn(),
+}));
+
+/** What a screen does with a failure; a switched-off refusal answers true. */
+const refused = vi.fn((error: unknown) => isAiFeatureDisabledError(error));
 vi.mock("@/lib/firebase/auth", () => ({
   currentIdToken: vi.fn().mockResolvedValue("token"),
 }));
@@ -51,7 +63,37 @@ function storedCv(originalFilename: string) {
 }
 
 describe("usePersonalCv", () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(useAiFeatures).mockReturnValue(aiFeatures());
+    vi.mocked(useAiFeatureRefusal).mockReturnValue(refused);
+  });
+
+  it("only stores a chosen CV, and never offers to read one, when profile parsing is switched off", async () => {
+    vi.mocked(useAiFeatures).mockReturnValue(
+      aiFeatures({ profileParsing: false }),
+    );
+    vi.mocked(listDocuments).mockResolvedValue([storedCv("gulse-cv.pdf")]);
+    vi.mocked(uploadDocument).mockResolvedValue(storedCv("yeni.pdf"));
+    const setField = vi.fn();
+    const { result } = renderHook(() => usePersonalCv(draft, setField), {
+      wrapper,
+    });
+
+    await waitFor(() => expect(result.current.storedName).toBe("gulse-cv.pdf"));
+    expect(result.current.canRead).toBe(false);
+    expect(result.current.canFill).toBe(false);
+    act(() => result.current.fillFromStored());
+    const file = new File(["%PDF"], "yeni.pdf", { type: "application/pdf" });
+    act(() => result.current.choose({ name: file.name, size: 4, file }));
+
+    await waitFor(() =>
+      expect(uploadDocument).toHaveBeenCalledWith(file, DocumentKind.Cv),
+    );
+    await waitFor(() => expect(result.current.isUploading).toBe(false));
+    expect(readCv).not.toHaveBeenCalled();
+    expect(setField).not.toHaveBeenCalled();
+  });
 
   it("fills the draft from the CV already on file", async () => {
     vi.mocked(listDocuments).mockResolvedValue([storedCv("gulse-cv.pdf")]);
@@ -91,6 +133,26 @@ describe("usePersonalCv", () => {
     expect(uploadDocument).toHaveBeenCalledWith(file, "cv");
     expect(readCv).toHaveBeenCalledWith(file);
     expect(setField).toHaveBeenCalledWith("jobTitle", "Product Manager");
+  });
+
+  it("hands a switched-off refusal on so the switches are read again", async () => {
+    const refusal = new ClientApiError(
+      "off",
+      403,
+      BackendErrorCode.AiFeatureDisabled,
+    );
+    vi.mocked(listDocuments).mockResolvedValue([]);
+    vi.mocked(uploadDocument).mockResolvedValue(storedCv("yeni.pdf"));
+    vi.mocked(readCv).mockRejectedValue(refusal);
+    const file = new File(["%PDF-"], "yeni.pdf", { type: "application/pdf" });
+    const { result } = renderHook(() => usePersonalCv(draft, vi.fn()), {
+      wrapper,
+    });
+
+    act(() => result.current.choose({ name: "yeni.pdf", size: 5, file }));
+
+    await waitFor(() => expect(refused).toHaveBeenCalledWith(refusal));
+    expect(result.current.filled).toBe(false);
   });
 
   it("does not offer to read a CV that is not a PDF", async () => {
