@@ -8,6 +8,7 @@ import { GET, PUT } from "@/app/api/coordinator/programs/[id]/route";
 import { POST as readSyllabus } from "@/app/api/coordinator/programs/syllabus/phases/route";
 import { UserRole } from "@/interfaces/session";
 import * as api from "@/lib/api/coordinator-programs";
+import { requireAdminSession } from "@/lib/server/require-admin";
 import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 import { answerEachWith, guardRefusal } from "@test/fixtures/route-handlers";
 import { appSession } from "@test/fixtures/session";
@@ -22,11 +23,16 @@ vi.mock("@/lib/api/coordinator-programs", () => ({
   addProgramCoordinator: vi.fn(),
   removeProgramCoordinator: vi.fn(),
 }));
+vi.mock("@/lib/server/require-admin", () => ({
+  requireAdminSession: vi.fn(),
+}));
 vi.mock("@/lib/server/require-coordinator", () => ({
   requireCoordinatorOrAdminSession: vi.fn(),
 }));
 
 const params = { params: Promise.resolve({ id: "program-1" }) };
+const COORDINATOR_ID = "5d0c1e6a-0f43-4c4b-9a54-6f2d6c1b7e21";
+
 const body = (value: unknown) =>
   new Request("http://localhost", {
     method: "PUT",
@@ -129,20 +135,56 @@ describe("coordinator program detail routes", () => {
       "program-1",
       true,
     );
-    await addCoordinator(body({ userId: "coordinator-2" }), params);
+  });
+
+  it("adds, invites and removes coordinators only as the signed-in admin", async () => {
+    vi.mocked(requireAdminSession).mockResolvedValue({
+      ok: true,
+      session: appSession({ userId: "admin-1", role: UserRole.Admin }),
+    });
+    await addCoordinator(body({ userId: COORDINATOR_ID }), params);
     expect(api.addProgramCoordinator).toHaveBeenCalledWith(
-      "coordinator-1",
+      "admin-1",
       "program-1",
-      "coordinator-2",
+      { userId: COORDINATOR_ID },
+    );
+    await addCoordinator(
+      body({
+        invite: { fullName: "Yeni Kişi", email: "yeni@x.org" },
+        actorId: "someone-else",
+      }),
+      params,
+    );
+    expect(api.addProgramCoordinator).toHaveBeenLastCalledWith(
+      "admin-1",
+      "program-1",
+      { invite: { fullName: "Yeni Kişi", email: "yeni@x.org" } },
     );
     await removeCoordinator(new Request("http://localhost"), {
-      params: Promise.resolve({ id: "program-1", userId: "coordinator-2" }),
+      params: Promise.resolve({ id: "program-1", userId: COORDINATOR_ID }),
     });
     expect(api.removeProgramCoordinator).toHaveBeenCalledWith(
-      "coordinator-1",
+      "admin-1",
       "program-1",
-      "coordinator-2",
+      COORDINATOR_ID,
     );
+  });
+
+  it("refuses a coordinator who tries to add or remove a coordinator", async () => {
+    vi.mocked(requireAdminSession).mockResolvedValue(guardRefusal(403));
+
+    expect(
+      (await addCoordinator(body({ userId: COORDINATOR_ID }), params)).status,
+    ).toBe(403);
+    expect(
+      (
+        await removeCoordinator(new Request("http://localhost"), {
+          params: Promise.resolve({ id: "program-1", userId: COORDINATOR_ID }),
+        })
+      ).status,
+    ).toBe(403);
+    expect(api.addProgramCoordinator).not.toHaveBeenCalled();
+    expect(api.removeProgramCoordinator).not.toHaveBeenCalled();
   });
 
   it("stops at the session check", async () => {
