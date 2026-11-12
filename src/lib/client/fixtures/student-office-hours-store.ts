@@ -4,13 +4,12 @@ import {
   AppointmentStatus,
   type Appointment,
   type AppointmentCounterpart,
+  type AppointmentTime,
 } from "@/interfaces/appointment";
 import type {
   OfficeHoursAcademician,
   StudentOfficeHoursRequestInput,
 } from "@/interfaces/student-office-hours";
-import { sampleTime } from "@/lib/client/fixtures/academician-office-hours";
-import { OFFICE_HOURS_ACADEMICIANS_SAMPLE } from "@/lib/client/fixtures/student-office-hours";
 
 // Keeps the student's sample Office Hours requests for the session, so sending one shows up on Randevularım and
 // an alternative time can be answered. Replaced, not extended, when an Office Hours source is connected.
@@ -26,37 +25,13 @@ function counterpart(
   };
 }
 
-function seed(): Appointment[] {
-  const kaya = OFFICE_HOURS_ACADEMICIANS_SAMPLE[0];
-  if (!kaya) return [];
-  return [
-    {
-      id: "sample-office-hours-alternative",
-      requestId: null,
-      kind: AppointmentKind.OfficeHours,
-      side: AppointmentSide.Mentee,
-      status: AppointmentStatus.AlternativeProposed,
-      category: null,
-      topic: "CV ve yüksek lisans seçenekleri",
-      counterpart: counterpart(kaya),
-      startsAt: sampleTime(2, 14, 0),
-      endsAt: sampleTime(2, 14, 30),
-      place: kaya.place,
-      onlineUrl: null,
-      alternative: {
-        startsAt: sampleTime(3, 10, 30),
-        endsAt: sampleTime(3, 11, 0),
-      },
-      rejectReason: null,
-    },
-  ];
-}
-
-let appointments = seed();
+// Starts empty: a signed-in student only ever sees the Office Hours requests they sent themselves, never a
+// made-up one beside their real peer sessions.
+let appointments: Appointment[] = [];
 let next = 1;
 
 export function resetStudentOfficeHoursSample() {
-  appointments = seed();
+  appointments = [];
   next = 1;
 }
 
@@ -88,6 +63,24 @@ export function addSampleOfficeHoursRequest(
   };
   appointments = [...appointments, created];
   return structuredClone(created);
+}
+
+/** The academician's side of the sample: answers a pending request with another time. */
+export function proposeSampleOfficeHoursAlternative(
+  id: string,
+  alternative: AppointmentTime,
+) {
+  const found = appointments.find((item) => item.id === id);
+  if (found?.status !== AppointmentStatus.Pending) {
+    throw new Error("Bu talep artık yanıtlanamıyor.");
+  }
+  const answered: Appointment = {
+    ...found,
+    status: AppointmentStatus.AlternativeProposed,
+    alternative,
+  };
+  appointments = appointments.map((item) => (item.id === id ? answered : item));
+  return structuredClone(answered);
 }
 
 /** Accepting moves the request to the proposed time and confirms it; declining withdraws it. */

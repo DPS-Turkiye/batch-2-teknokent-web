@@ -211,7 +211,9 @@ export function useOfficeHoursProfile(id: string) {
   const withThem = (appointments.data ?? []).filter(
     (item) =>
       item.kind === AppointmentKind.OfficeHours &&
-      item.counterpart.userId === entry.counterpartId,
+      // A request sent from this screen names the route's id ("advisor"); one from the backend names the account.
+      (item.counterpart.userId === id ||
+        item.counterpart.userId === entry.counterpartId),
   );
   return {
     ...entry,

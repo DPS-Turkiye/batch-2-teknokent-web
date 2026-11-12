@@ -1,7 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AppointmentKind, AppointmentStatus } from "@/interfaces/appointment";
-import { resetStudentOfficeHoursSample } from "@/lib/client/fixtures/student-office-hours-store";
+import {
+  proposeSampleOfficeHoursAlternative,
+  resetStudentOfficeHoursSample,
+} from "@/lib/client/fixtures/student-office-hours-store";
 import {
   answerOfficeHoursAlternative,
   getOfficeHoursAcademician,
@@ -125,23 +128,51 @@ describe("sample Office Hours client", () => {
     ).rejects.toThrow("Bu saat için zaten bir talebin var.");
   });
 
-  it("confirms the proposed time when accepted and withdraws when declined", async () => {
-    const [seeded] = await getStudentOfficeHoursAppointments();
-    expect(seeded?.status).toBe(AppointmentStatus.AlternativeProposed);
-    if (!seeded?.alternative) return;
+  it("starts with no request, so a student never sees a made-up one", async () => {
+    expect(await getStudentOfficeHoursAppointments()).toEqual([]);
+  });
 
-    const accepted = await answerOfficeHoursAlternative(seeded.id, true);
+  it("confirms the proposed time when accepted and withdraws when declined", async () => {
+    const academician = await getOfficeHoursAcademician(
+      "sample-academician-kaya",
+    );
+    expect(academician).not.toBeNull();
+    if (!academician) return;
+    const slot = {
+      startsAt: new Date(2026, 10, 12, 14).toISOString(),
+      endsAt: new Date(2026, 10, 12, 14, 30).toISOString(),
+    };
+    const proposed = {
+      startsAt: new Date(2026, 10, 13, 10, 30).toISOString(),
+      endsAt: new Date(2026, 10, 13, 11).toISOString(),
+    };
+    const ask = () =>
+      requestOfficeHours(
+        {
+          academicianId: academician.id,
+          slot,
+          title: "CV",
+          description: "Staj",
+        },
+        academician,
+      );
+
+    const first = await ask();
+    proposeSampleOfficeHoursAlternative(first.id, proposed);
+    const accepted = await answerOfficeHoursAlternative(first.id, true);
     expect(accepted).toMatchObject({
       status: AppointmentStatus.Confirmed,
-      startsAt: seeded.alternative.startsAt,
+      ...proposed,
       alternative: null,
     });
     await expect(
-      answerOfficeHoursAlternative(seeded.id, false),
+      answerOfficeHoursAlternative(first.id, false),
     ).rejects.toThrow();
 
     resetStudentOfficeHoursSample();
-    expect((await answerOfficeHoursAlternative(seeded.id, false)).status).toBe(
+    const second = await ask();
+    proposeSampleOfficeHoursAlternative(second.id, proposed);
+    expect((await answerOfficeHoursAlternative(second.id, false)).status).toBe(
       AppointmentStatus.Withdrawn,
     );
   });

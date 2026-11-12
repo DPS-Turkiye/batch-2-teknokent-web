@@ -3,8 +3,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { OfficeHoursProfileView } from "@/components/student/office-hours-profile-view";
 import { AppointmentKind } from "@/interfaces/appointment";
+import { fetchInstitutionRecord } from "@/lib/client/institution";
 import { getStudentAppointments } from "@/lib/client/student-appointments";
 import { peerAppointment } from "@test/fixtures/student-appointments";
+import { STUDENT_RECORD } from "@test/fixtures/student-home";
 import { renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/student-appointments", () => ({
@@ -80,6 +82,28 @@ describe("OfficeHoursProfileView", () => {
     });
     expect(await within(week).findAllByRole("listitem")).not.toHaveLength(0);
     expect(await screen.findByText("Araştırma projesi tanışma")).toBeVisible();
+  });
+
+  it("lists earlier sessions with the advisor sent from the advisor's own page", async () => {
+    vi.mocked(fetchInstitutionRecord).mockResolvedValue(STUDENT_RECORD);
+    vi.mocked(getStudentAppointments).mockResolvedValue([
+      peerAppointment({
+        id: "advisor-past",
+        kind: AppointmentKind.OfficeHours,
+        category: null,
+        topic: "Ders seçimi",
+        counterpart: {
+          userId: "advisor",
+          fullName: "Elif Şahin",
+          title: "Doç. Dr.",
+          department: null,
+        },
+        startsAt: "2026-10-20T08:00:00.000Z",
+        endsAt: "2026-10-20T08:30:00.000Z",
+      }),
+    ]);
+    renderWithQueryClient(<OfficeHoursProfileView academicianId="advisor" />);
+    expect(await screen.findByText("Ders seçimi")).toBeVisible();
   });
 
   it("says so for an unknown academician", async () => {
