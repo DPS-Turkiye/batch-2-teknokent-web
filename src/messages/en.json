@@ -6786,7 +6786,67 @@
     "openFor": "View profile: {name}"
   },
   "odtuLanding": {
-    "title": "Welcome to menton",
-    "intro": "Office Hours and peer mentoring for METU students and academics. Sign in with your METU account; if you are an İŞKUR student, create your account."
+    "navLabel": "Sign-in and help",
+    "help": "Help",
+    "overline": "menton for METU",
+    "title": "Office Hours and peer mentoring in one place",
+    "intro": "Book time with your academics, ask İŞKUR students with a verified badge for peer mentoring and follow all your appointments in one calendar.",
+    "signupAction": "Sign up as an İŞKUR student",
+    "noSignupTag": "No sign-up needed",
+    "noSignupText": "If you are a METU student or academic, your METU account is all you need.",
+    "featuresTitle": "What you can do",
+    "features": {
+      "officeHours": {
+        "title": "Request an appointment",
+        "caption": "Office Hours"
+      },
+      "peerMentoring": {
+        "title": "Find a mentor",
+        "caption": "Peer mentoring"
+      },
+      "appointments": {
+        "title": "Follow your appointments",
+        "caption": "Every approved and pending meeting"
+      },
+      "advisor": {
+        "title": "Reach your advisor",
+        "caption": "Academic advising"
+      }
+    },
+    "audienceTitle": "Who is it for?",
+    "audience": {
+      "student": {
+        "badge": "Student",
+        "title": "METU students",
+        "points": {
+          "first": "Book Office Hours",
+          "second": "Find a peer mentor who fits you",
+          "third": "Follow your appointments in one calendar"
+        }
+      },
+      "iskur": {
+        "badge": "İŞKUR Student",
+        "title": "Peer mentors",
+        "points": {
+          "first": "Finish the mentoring training and earn your badge",
+          "second": "Answer mentoring requests",
+          "third": "Manage your meetings and appointments"
+        }
+      },
+      "academic": {
+        "badge": "Academic",
+        "title": "METU academics",
+        "points": {
+          "first": "Add your weekly availability",
+          "second": "Answer appointment requests",
+          "third": "See your advisees in one place"
+        }
+      }
+    },
+    "banner": {
+      "title": "Are you a METU student or academic?",
+      "text": "Sign in with your METU account. Office Hours, peer mentoring and your academic advisor open based on your account."
+    },
+    "footer": "menton · METU"
   }
 }

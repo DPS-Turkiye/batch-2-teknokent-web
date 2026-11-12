@@ -31,7 +31,7 @@ describe("Landing page", () => {
     vi.unstubAllEnvs();
   });
 
-  it("gives the ODTÜ deployment its own entry page, without Teknokent's startup pitch", () => {
+  it("gives the ODTÜ deployment its own front page, without Teknokent's startup pitch", () => {
     vi.stubEnv("APP_EDITION", "ODTU");
     render(
       <InLocale locale="tr">
@@ -40,20 +40,62 @@ describe("Landing page", () => {
     );
 
     expect(
-      screen.getByRole("heading", { level: 1, name: "menton’a hoş geldin" }),
+      screen.getByRole("heading", {
+        level: 1,
+        name: "Office Hours ve akran mentörlüğü tek yerde",
+      }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Giriş Yap" })).toHaveAttribute(
-      "href",
-      "/login",
-    );
-    expect(screen.getByRole("link", { name: "Kayıt Ol" })).toHaveAttribute(
-      "href",
-      "/signup",
-    );
+    for (const link of screen.getAllByRole("link", { name: "Giriş Yap" })) {
+      expect(link).toHaveAttribute("href", "/login");
+    }
+    expect(screen.getAllByRole("link", { name: "Giriş Yap" })).toHaveLength(3);
+    expect(
+      screen.getByRole("link", { name: "İŞKUR öğrencisi olarak kaydol" }),
+    ).toHaveAttribute("href", "/signup");
     expect(screen.getByRole("link", { name: "Yardım" })).toHaveAttribute(
       "href",
       "mailto:info@menton.com.tr",
     );
+    expect(
+      screen.getAllByRole("heading", { level: 3 }).map((h) => h.textContent),
+    ).toEqual([
+      "Randevu talep et",
+      "Mentor bul",
+      "Randevularını izle",
+      "Danışmanına ulaş",
+      "ODTÜ öğrencileri",
+      "Akran mentorları",
+      "ODTÜ akademisyenleri",
+    ]);
+    expect(
+      screen.getByRole("heading", {
+        level: 2,
+        name: "ODTÜ öğrencisi veya akademisyeni misin?",
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("offers a signed-in ODTÜ visitor their workspace and no sign-up", () => {
+    vi.stubEnv("APP_EDITION", "ODTU");
+    mockSession = {
+      userId: "u-1",
+      email: "ayse@metu.edu.tr",
+      fullName: "Ayşe Yılmaz",
+      jobTitle: "",
+      role: UserRole.Mentee,
+    };
+    render(
+      <InLocale locale="tr">
+        <Home />
+      </InLocale>,
+    );
+
+    expect(
+      screen.getAllByRole("link", { name: "Ayşe olarak devam et" }),
+    ).toHaveLength(3);
+    expect(
+      screen.queryByRole("link", { name: "İŞKUR öğrencisi olarak kaydol" }),
+    ).toBeNull();
   });
 
   it("renders per request so the CDN never hands phones the desktop page", () => {
