@@ -5,10 +5,14 @@ import {
   createProgramInput,
   emptyWizardDraft,
   stepProblem,
-  toggleCoordinator,
   WizardProblem,
   WizardStep,
 } from "@/lib/admin-program-wizard";
+import {
+  CoordinatorChoiceKind,
+  existingChoice,
+  invitedChoice,
+} from "@/lib/coordinator-picker";
 
 describe("admin program wizard", () => {
   it("asks for a type, a name, dates in order and a coordinator", () => {
@@ -33,12 +37,19 @@ describe("admin program wizard", () => {
     expect(stepProblem(WizardStep.Coordinators, draft)).toBe(
       WizardProblem.CoordinatorRequired,
     );
+    expect(
+      stepProblem(WizardStep.Coordinators, {
+        ...draft,
+        coordinators: [
+          {
+            kind: CoordinatorChoiceKind.Invited,
+            fullName: "Yeni",
+            email: "yeni@x.org",
+          },
+        ],
+      }),
+    ).toBeNull();
     expect(stepProblem(WizardStep.Summary, draft)).toBeNull();
-  });
-
-  it("toggles a coordinator on and off", () => {
-    expect(toggleCoordinator(["a"], "b")).toEqual(["a", "b"]);
-    expect(toggleCoordinator(["a", "b"], "a")).toEqual(["b"]);
   });
 
   it("sends the type, trimmed details, no empty dates and the coordinators", () => {
@@ -48,7 +59,14 @@ describe("admin program wizard", () => {
           ...emptyWizardDraft(),
           name: "  ODTÜ Akran 2027 ",
           description: " ",
-          coordinatorIds: ["c1"],
+          coordinators: [
+            existingChoice({
+              id: "c1",
+              fullName: "Ayşe Aydın",
+              email: "ayse@teknokent.org",
+            }),
+            invitedChoice(" Yeni@Teknokent.org ", " Yeni Kişi "),
+          ],
         },
         ProgramType.PeerMentoring,
       ),
@@ -59,6 +77,7 @@ describe("admin program wizard", () => {
       startDate: null,
       endDate: null,
       coordinatorIds: ["c1"],
+      newCoordinators: [{ fullName: "Yeni Kişi", email: "yeni@teknokent.org" }],
     });
   });
 });
