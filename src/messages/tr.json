@@ -251,10 +251,32 @@
     "resumeSubmit": "Mentor profiline devam et",
     "checkingSession": "Oturum bilgileri kontrol ediliyor…",
     "preparingMentor": "Mentor hesabı hazırlanıyor…",
-    "retry": "Tekrar dene"
+    "retry": "Tekrar dene",
+    "existingAccountTitle": "Bu e-postayla zaten bir hesabın var",
+    "existingAccountBody": "{email} adresiyle kayıtlı bir hesap zaten var. Yeniden kayıt olman gerekmiyor; giriş yaparak devam et.",
+    "existingAccountSignIn": "Giriş yap"
   },
   "signupWizard": {
     "programRequired": "Lütfen bir program seçin.",
+    "invalidFields": "Şu alanlar geçersiz: {fields}. Düzeltip tekrar gönder.",
+    "fieldNames": {
+      "fullName": "Ad soyad",
+      "email": "E-posta",
+      "phone": "Telefon",
+      "jobTitle": "Rol",
+      "bio": "Kısa biyografi",
+      "linkedinUrl": "LinkedIn",
+      "contactPreferences": "İletişim tercihleri",
+      "programId": "Program",
+      "organizationName": "Startup adı",
+      "description": "Kısa tanım",
+      "website": "Web sitesi",
+      "mvpUrl": "MVP bağlantısı",
+      "foundedYear": "Kuruluş yılı",
+      "maturity": "Aşama",
+      "supportAreas": "Destek alanları",
+      "teamMembers": "Ekip üyeleri"
+    },
     "steps": {
       "personal": {
         "title": "Kişisel profilini oluştur",

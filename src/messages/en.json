@@ -251,10 +251,32 @@
     "resumeSubmit": "Continue to mentor profile",
     "checkingSession": "Checking your session…",
     "preparingMentor": "Preparing your mentor account…",
-    "retry": "Try again"
+    "retry": "Try again",
+    "existingAccountTitle": "You already have an account with this e-mail",
+    "existingAccountBody": "An account with {email} already exists. You don't need to sign up again; sign in to continue.",
+    "existingAccountSignIn": "Sign in"
   },
   "signupWizard": {
     "programRequired": "Please select a program.",
+    "invalidFields": "These fields are not valid: {fields}. Fix them and send again.",
+    "fieldNames": {
+      "fullName": "Full name",
+      "email": "E-mail",
+      "phone": "Phone",
+      "jobTitle": "Role",
+      "bio": "Short bio",
+      "linkedinUrl": "LinkedIn",
+      "contactPreferences": "Contact preferences",
+      "programId": "Program",
+      "organizationName": "Startup name",
+      "description": "Short description",
+      "website": "Website",
+      "mvpUrl": "MVP link",
+      "foundedYear": "Founded year",
+      "maturity": "Stage",
+      "supportAreas": "Support areas",
+      "teamMembers": "Team members"
+    },
     "steps": {
       "personal": {
         "title": "Create your personal profile",
