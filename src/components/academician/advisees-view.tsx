@@ -7,6 +7,7 @@ import Link from "next/link";
 import { StudentAvatar } from "@/components/academician/student-avatar";
 import { WorkspaceQueryState } from "@/components/academician/workspace-query-state";
 import { Button, ButtonSize, ButtonVariant } from "@/components/ia/button";
+import { InlineAlert } from "@/components/ia/inline-alert";
 import { StatusBadge, StatusTone } from "@/components/ia/status-badge";
 import {
   useAcademicianAdvisees,
@@ -37,6 +38,7 @@ export function AdviseesView() {
 
 function AdviseesContent({ list }: { list: AcademicianAdvisees }) {
   const t = useTranslations("iaAcademician.advisees");
+  const tCommon = useTranslations("iaAcademician.common");
   if (list.total === 0) {
     return (
       <p className="rounded-2xl bg-background-subtle px-5 py-4 type-body-sm text-text-secondary">
@@ -67,6 +69,19 @@ function AdviseesContent({ list }: { list: AcademicianAdvisees }) {
           {t("readOnly")}
         </StatusBadge>
       </div>
+      {list.meetings.failed ? (
+        <InlineAlert tone={StatusTone.Warning} title={t("meetingsFailed")}>
+          <Button
+            variant={ButtonVariant.Ghost}
+            size={ButtonSize.Small}
+            disabled={list.meetings.isRetrying}
+            onClick={list.meetings.retry}
+            className="mt-2"
+          >
+            {tCommon("retry")}
+          </Button>
+        </InlineAlert>
+      ) : null}
       {list.rows.length > 0 ? (
         <AdviseesTable rows={list.rows} total={list.total} />
       ) : (

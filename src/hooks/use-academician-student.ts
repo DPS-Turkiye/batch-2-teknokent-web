@@ -46,9 +46,10 @@ export function useAcademicianStudent(
     queryFn: getAcademicianAppointments,
   });
 
-  const queries = [requests, appointments];
+  // The advisee list counts too: without it an advisee who has no meetings yet would read as "not found".
+  const queries = [advisees, requests, appointments];
   const shared = {
-    isLoading: queries.some((query) => query.isLoading) || advisees.isLoading,
+    isLoading: queries.some((query) => query.isLoading),
     error: queries.find((query) => query.error)?.error ?? null,
     retry: () => {
       for (const query of queries) void query.refetch();
@@ -56,8 +57,7 @@ export function useAcademicianStudent(
     isRetrying: queries.some((query) => query.isRefetching),
     back: { href: BACK[from], label: t(`back.${from}`) },
   };
-  // Advisees only decide the "Danışanın" chip and the record; a failed list still shows the meetings.
-  if (!requests.data || !appointments.data || advisees.isLoading) {
+  if (!advisees.data || !requests.data || !appointments.data) {
     return { ...shared, student: null, notFound: false };
   }
 
@@ -67,7 +67,7 @@ export function useAcademicianStudent(
   const profile = studentProfile(
     userId,
     {
-      advisees: advisees.data ?? [],
+      advisees: advisees.data,
       requests: requests.data,
       appointments: appointments.data,
     },

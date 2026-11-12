@@ -1,4 +1,4 @@
-import { screen, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -7,9 +7,21 @@ import {
   StudyLevel,
   type InstitutionPersonSummary,
 } from "@/interfaces/institution";
+import { getAcademicianRequests } from "@/lib/client/academician-office-hours";
 import { resetAcademicianSample } from "@/lib/client/fixtures/academician-office-hours-store";
 import { fetchInstitutionAdvisees } from "@/lib/client/institution";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
+
+vi.mock("@/lib/client/academician-office-hours", async (importOriginal) => {
+  const actual =
+    await importOriginal<
+      typeof import("@/lib/client/academician-office-hours")
+    >();
+  return {
+    ...actual,
+    getAcademicianRequests: vi.fn(actual.getAcademicianRequests),
+  };
+});
 
 vi.mock("@/lib/client/institution", () => ({
   fetchInstitutionAdvisees: vi.fn(),
@@ -134,6 +146,24 @@ describe("AdviseesView", () => {
       within(alert).getByRole("button", { name: "Tekrar dene" }),
     );
     expect(await screen.findByText("Zeynep Arslan")).toBeVisible();
+  });
+
+  it("says when the meetings didn't load, rather than showing empty columns, and retries them", async () => {
+    const user = userEvent.setup();
+    vi.mocked(getAcademicianRequests).mockRejectedValueOnce(new Error("down"));
+    renderWithQueryClient(<AdviseesView />);
+    const title = await screen.findByText(/Randevu bilgileri yüklenemedi/);
+    const notice = title.closest<HTMLElement>('[role="status"]');
+    expect(notice).not.toBeNull();
+    expect(await rows()).toHaveLength(3);
+    await user.click(
+      within(notice ?? document.body).getByRole("button", {
+        name: "Tekrar dene",
+      }),
+    );
+    await waitFor(() => {
+      expect(screen.queryByText(/Randevu bilgileri yüklenemedi/)).toBeNull();
+    });
   });
 
   it("reads in English", async () => {

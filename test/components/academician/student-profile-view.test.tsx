@@ -1,4 +1,5 @@
 import { screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { StudentProfileView } from "@/components/academician/student-profile-view";
@@ -122,6 +123,39 @@ describe("StudentProfileView", () => {
     );
     expect(
       await screen.findByText("Bu öğrenci hakkında gösterilecek bilgi yok."),
+    ).toBeVisible();
+  });
+
+  it('offers a retry instead of "not found" when the advisee list didn\'t load', async () => {
+    const user = userEvent.setup();
+    vi.mocked(fetchInstitutionAdvisees)
+      .mockReset()
+      .mockRejectedValueOnce(new Error("down"))
+      .mockResolvedValue([
+        {
+          userId: "advisee-without-meetings",
+          fullName: "Mert Yıldız",
+          departmentName: "Fizik",
+          classYear: 2,
+          programLevel: StudyLevel.Bachelor,
+        },
+      ]);
+    renderWithQueryClient(
+      <StudentProfileView
+        userId="advisee-without-meetings"
+        from={StudentProfileOrigin.Advisees}
+      />,
+    );
+
+    const alert = await screen.findByRole("alert");
+    expect(
+      screen.queryByText("Bu öğrenci hakkında gösterilecek bilgi yok."),
+    ).toBeNull();
+    await user.click(
+      within(alert).getByRole("button", { name: "Tekrar dene" }),
+    );
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "Mert Yıldız" }),
     ).toBeVisible();
   });
 

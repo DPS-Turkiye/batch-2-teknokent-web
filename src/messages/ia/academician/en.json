@@ -270,6 +270,7 @@
     "title": "My advisees",
     "search": "Search students",
     "readOnly": "From the university record · read-only",
+    "meetingsFailed": "Meetings couldn't be loaded; the last and upcoming meeting columns are incomplete for now.",
     "count": "{count} students",
     "columns": {
       "student": "Student",

@@ -35,7 +35,8 @@ export type AdviseeTableRow = {
 
 /**
  * Danışan Öğrencilerim: ODTÜ's advisee list, searchable, with each student's last and next meeting. The meeting
- * columns come from Office Hours and stay empty while it isn't loaded; the list itself doesn't wait for it.
+ * columns come from Office Hours and stay empty while it isn't loaded; the list itself doesn't wait for it, and a
+ * failed load is reported (`meetings`) so empty columns don't pass for students without meetings.
  */
 export function useAcademicianAdvisees() {
   const t = useTranslations("iaAcademician.advisees");
@@ -51,6 +52,16 @@ export function useAcademicianAdvisees() {
     queryFn: getAcademicianAppointments,
   });
 
+  const meetingQueries = [requests, appointments];
+  const meetings = {
+    failed: meetingQueries.some((query) => query.isError),
+    retry: () => {
+      for (const query of meetingQueries) {
+        if (query.error) void query.refetch();
+      }
+    },
+    isRetrying: meetingQueries.some((query) => query.isRefetching),
+  };
   const shared = {
     isLoading: advisees.isLoading,
     error: advisees.error,
@@ -106,6 +117,7 @@ export function useAcademicianAdvisees() {
     ...shared,
     list: {
       total: advisees.data.length,
+      meetings,
       search,
       setSearch,
       rows: rows.map(

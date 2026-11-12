@@ -270,6 +270,7 @@
     "title": "Danışan Öğrencilerim",
     "search": "Öğrenci ara",
     "readOnly": "Kurumsal kayıttan · salt okunur",
+    "meetingsFailed": "Randevu bilgileri yüklenemedi; son ve yaklaşan randevu sütunları şu an eksik.",
     "count": "{count} öğrenci",
     "columns": {
       "student": "Öğrenci",
