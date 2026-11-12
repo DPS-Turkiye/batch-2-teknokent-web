@@ -326,7 +326,8 @@
     "individualProgram": "You join this program on your own; no startup details are needed.",
     "programEligibilityChecking": "Checking whether you can join this program…",
     "programEligibilityRefused": "You cannot join this program with this e-mail address. Ask the program coordinator, or choose another program.",
-    "stageSubtitle": "What matters most for matching you with the right mentor."
+    "stageSubtitle": "What matters most for matching you with the right mentor.",
+    "cvManual": "Your CV is not read automatically on this system; the file is only stored. Fill in your details above yourself."
   },
   "signupDocuments": {
     "canvasSubtitle": "A one-page summary of your business model.",
@@ -509,7 +510,9 @@
     "offeringPlaceholder": "E.g. Sharpening the value proposition",
     "cancel": "Cancel",
     "add": "Add",
-    "noOfferings": "You haven't added any items yet."
+    "noOfferings": "You haven't added any items yet.",
+    "uploadOnlyHint": "Your CV is not read automatically on this system; the file is only stored and you fill in your details in the next step.",
+    "uploading": "Uploading your CV…"
   },
   "mentorAvailability": {
     "weekly": "Weekly availability",
@@ -2226,7 +2229,8 @@
     "fill": "Fill in my profile from the CV",
     "needPdf": "Upload your CV as a PDF to fill in your profile.",
     "uploading": "Uploading CV…",
-    "reading": "Reading your CV and filling in the fields…"
+    "reading": "Reading your CV and filling in the fields…",
+    "manual": "Your CV is not read automatically on this system; the file is only stored. Fill in your profile yourself."
   },
   "editableChips": {
     "add": "Add…",
@@ -3329,7 +3333,8 @@
       "risks": "Risks / blockers",
       "nextSteps": "Next steps",
       "none": "None noted."
-    }
+    },
+    "reportOff": "Meeting reports are not generated on this system; only the transcript is kept."
   },
   "roleFrame": {
     "soon": "Coming soon",
@@ -5974,7 +5979,8 @@
     "programThisWeekLoadFailed": "Couldn't load this week's plan.",
     "sessionRefreshFailed": "Couldn't update your session.",
     "personSummaryLoadFailed": "Could not load the profile.",
-    "personIdInvalid": "Choose a valid person."
+    "personIdInvalid": "Choose a valid person.",
+    "aiFeaturesLoadFailed": "Could not load the AI settings."
   },
   "startupStart": {
     "title": "My startup",
@@ -6707,6 +6713,7 @@
     }
   },
   "weeklyProgram": {
+    "manualHint": "Automatic weekly program reading is disabled here; add phases here and weeks in the Weekly plan manually.",
     "noFile": "No weekly program file",
     "noFileHint": "Upload a PDF and the AI reads the weeks and phases from it.",
     "oldSyllabus": "Earlier syllabus file · view only",

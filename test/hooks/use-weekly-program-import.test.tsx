@@ -1,10 +1,19 @@
 import { QueryClientProvider, type QueryClient } from "@tanstack/react-query";
-import { act, renderHook, waitFor } from "@testing-library/react";
+import {
+  act,
+  renderHook,
+  render as renderView,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { WeeklyProgramCard } from "@/components/coordinator/weekly-program-card";
+import { useAiFeatures } from "@/hooks/use-ai-features";
 import { programWeekPlanQueryKey } from "@/hooks/use-program-week-plan";
 import { useWeeklyProgramImport } from "@/hooks/use-weekly-program-import";
+import { BackendErrorCode } from "@/interfaces/ai-features";
 import { DocumentKind } from "@/interfaces/startup-document";
 import { ToastTone } from "@/interfaces/toast";
 import { ClientApiError } from "@/lib/client/api";
@@ -14,6 +23,7 @@ import {
   saveWeeklyProgram,
 } from "@/lib/client/weekly-program";
 import type { ToastInput } from "@/stores/toast-store";
+import { aiFeatures } from "@test/fixtures/ai-features";
 import { coordinatorProgramDetail } from "@test/fixtures/coordinator-programs";
 import { weeklyProgramProposal } from "@test/fixtures/weekly-program";
 import { createTestQueryClient, InLocale } from "@test/test-utils";
@@ -23,6 +33,12 @@ vi.mock("@/lib/client/weekly-program", () => ({
   saveWeeklyProgram: vi.fn(),
 }));
 vi.mock("@/lib/client/documents", () => ({ uploadDocument: vi.fn() }));
+
+vi.mock("@/hooks/use-ai-features", () => ({
+  useAiFeatures: vi.fn(),
+  useAiFeatureRefusal: () => refused,
+}));
+const refused = vi.fn();
 
 const showToast = vi.fn<(toast: ToastInput) => void>();
 vi.mock("@/stores/toast-store", () => ({
@@ -50,10 +66,79 @@ function render(
 
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.mocked(useAiFeatures).mockReturnValue(aiFeatures());
   vi.mocked(readWeeklyProgram).mockResolvedValue(weeklyProgramProposal());
 });
 
 describe("useWeeklyProgramImport", () => {
+  it("shows the stored file and manual hint without upload or reread controls when disabled", () => {
+    vi.mocked(useAiFeatures).mockReturnValue(aiFeatures({ syllabus: false }));
+    const detail = coordinatorProgramDetail({
+      syllabus: {
+        id: "doc-weekly",
+        filename: "weekly.pdf",
+        sizeBytes: 1,
+        uploadedAt: "2026-06-01T09:00:00Z",
+        kind: DocumentKind.WeeklyProgram,
+      },
+    });
+    function Card() {
+      const weekly = useWeeklyProgramImport("program-1", detail);
+      return <WeeklyProgramCard weekly={weekly} blocked={false} />;
+    }
+    renderView(<Card />, { wrapper: wrapperFor(createTestQueryClient()) });
+    expect(screen.getByText("weekly.pdf")).toBeInTheDocument();
+    expect(screen.getByText(/elle ekle/)).toBeInTheDocument();
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("PDF seç")).not.toBeInTheDocument();
+  });
+
+  it("blocks upload and reread when the syllabus switch is off", () => {
+    vi.mocked(useAiFeatures).mockReturnValue(aiFeatures({ syllabus: false }));
+    const { result } = render(
+      coordinatorProgramDetail({
+        syllabus: {
+          id: "doc-weekly",
+          filename: "weekly.pdf",
+          sizeBytes: 1,
+          uploadedAt: "2026-06-01T09:00:00Z",
+          kind: DocumentKind.WeeklyProgram,
+        },
+      }),
+    );
+    act(() => {
+      result.current.chooseFile(new File(["x"], "weekly.pdf"));
+      result.current.reread();
+    });
+    expect(result.current.canReadFile).toBe(false);
+    expect(result.current.canReread).toBe(false);
+    expect(result.current.fileHint).toContain("elle ekle");
+    expect(uploadDocument).not.toHaveBeenCalled();
+    expect(readWeeklyProgram).not.toHaveBeenCalled();
+  });
+
+  it("refreshes switches after a backend disabled-feature refusal", async () => {
+    const refusal = new ClientApiError(
+      "off",
+      403,
+      BackendErrorCode.AiFeatureDisabled,
+    );
+    vi.mocked(readWeeklyProgram).mockRejectedValue(refusal);
+    const { result } = render(
+      coordinatorProgramDetail({
+        syllabus: {
+          id: "doc-weekly",
+          filename: "weekly.pdf",
+          sizeBytes: 1,
+          uploadedAt: "2026-06-01T09:00:00Z",
+          kind: DocumentKind.WeeklyProgram,
+        },
+      }),
+    );
+    act(() => result.current.reread());
+    await waitFor(() => expect(refused).toHaveBeenCalledWith(refusal));
+  });
+
   it("refuses a file that is not a PDF before uploading it", () => {
     const { result } = render();
 
