@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 import { useState, type SubmitEvent } from "react";
 
 import { AuthShell } from "@/components/auth/auth-shell";
@@ -11,6 +12,7 @@ import { RoleSelectView } from "@/components/signup/role-select-view";
 import { SignupWizardView } from "@/components/signup/signup-wizard";
 import { MentorRegistration, useSignupFlow } from "@/hooks/use-signup-flow";
 import type { RegisteredAccount } from "@/interfaces/auth";
+import type { Edition } from "@/interfaces/edition";
 
 function ResumeMentorIdentity({
   account,
@@ -78,7 +80,30 @@ function ResumeLoading({ message }: { message: string }) {
   );
 }
 
-export function SignupFlow() {
+// TEST UI: placeholder until the design team's screen; replace when it arrives.
+function ExistingAccountNotice({ email }: { email: string }) {
+  const copy = useTranslations("signupFlow");
+  return (
+    <AuthShell>
+      <div className="flex flex-col gap-4 py-10 text-center">
+        <h1 className="text-2xl font-bold leading-9 text-[#111827]">
+          {copy("existingAccountTitle")}
+        </h1>
+        <p className="text-sm text-[#6b7280]">
+          {copy("existingAccountBody", { email })}
+        </p>
+        <Link
+          href="/login"
+          className="mx-auto rounded-[10px] bg-[#e5701d] px-5 py-2.5 text-sm font-semibold text-white"
+        >
+          {copy("existingAccountSignIn")}
+        </Link>
+      </div>
+    </AuthShell>
+  );
+}
+
+export function SignupFlow({ edition }: { edition: Edition }) {
   const copy = useTranslations("signupFlow");
   const flow = useSignupFlow();
   const { account, isMentor, mentorRegistration } = flow;
@@ -98,7 +123,11 @@ export function SignupFlow() {
 
   if (flow.role === null) {
     return (
-      <RoleSelectView signedIn={Boolean(account)} onChoose={flow.chooseRole} />
+      <RoleSelectView
+        edition={edition}
+        signedIn={Boolean(account)}
+        onChoose={flow.chooseRole}
+      />
     );
   }
 
@@ -132,6 +161,14 @@ export function SignupFlow() {
       );
     }
     return <ResumeLoading message={copy("preparingMentor")} />;
+  }
+
+  if (!isMentor && flow.existingAccount === null) {
+    return <ResumeLoading message={copy("checkingSession")} />;
+  }
+
+  if (!isMentor && flow.existingAccount) {
+    return <ExistingAccountNotice email={account.email} />;
   }
 
   return isMentor ? (

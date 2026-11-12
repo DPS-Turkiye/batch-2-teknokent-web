@@ -1,6 +1,7 @@
 import type {
   CoordinatorAccount,
   CoordinatorCandidate,
+  CoordinatorSearchResult,
 } from "@/interfaces/admin-coordinator";
 import { requireSuccess } from "@/lib/client/api";
 import { httpClient } from "@/lib/http-client";
@@ -11,6 +12,14 @@ export async function getCoordinatorCandidate(email: string) {
   return requireSuccess(
     await httpClient.get<CoordinatorCandidate>(`${BASE}/candidate`, {
       params: { email },
+    }),
+  );
+}
+
+export async function searchCoordinators(q: string, programId?: string) {
+  return requireSuccess(
+    await httpClient.get<CoordinatorSearchResult[]>(`${BASE}/search`, {
+      params: programId ? { q, programId } : { q },
     }),
   );
 }

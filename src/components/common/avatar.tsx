@@ -7,6 +7,7 @@ export function PhotoAvatar({
   className,
   label,
   decorative = false,
+  colors = "bg-[#fbe2d0] text-[#c95c18]",
 }: {
   initials: string;
   photoUrl: string | null;
@@ -14,6 +15,8 @@ export function PhotoAvatar({
   label?: string;
   /** Beside a visible or labelled name, the photo adds nothing to announce. */
   decorative?: boolean;
+  /** Background and initials colour; the default is the mentee orange. */
+  colors?: string;
 }) {
   const t = useTranslations("sharedUi");
   if (photoUrl) {
@@ -22,7 +25,7 @@ export function PhotoAvatar({
         role={decorative ? undefined : "img"}
         aria-label={decorative ? undefined : (label ?? t("profilePhoto"))}
         aria-hidden={decorative || undefined}
-        className={`block shrink-0 rounded-full bg-[#fbe2d0] bg-cover bg-center ${className}`}
+        className={`block shrink-0 rounded-full bg-cover bg-center ${colors} ${className}`}
         style={{ backgroundImage: `url("${photoUrl}")` }}
       />
     );
@@ -30,7 +33,7 @@ export function PhotoAvatar({
   return (
     <span
       aria-hidden
-      className={`grid shrink-0 place-items-center rounded-full bg-[#fbe2d0] font-semibold text-[#c95c18] ${className}`}
+      className={`grid shrink-0 place-items-center rounded-full font-semibold ${colors} ${className}`}
     >
       {initials}
     </span>
