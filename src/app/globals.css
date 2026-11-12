@@ -3,7 +3,7 @@
 /*
  * menton design system v1.1 (Figma "IA Revizyon" and "Design System v1.2"). Token names mirror the Figma
  * variables, so `var(--color-text-primary, #1c2026)` in a design becomes `text-text-primary`. The defaults are the
- * neutral theme (admin, coordinator, academician); `data-ia-accent="odtu"` switches the accent to ODTÜ red.
+ * neutral theme (admin, coordinator); `data-ia-accent="odtu"` switches the accent to ODTÜ red.
  */
 @font-face {
   font-family: "Manrope";
@@ -119,7 +119,7 @@
     0 8px 16px -4px rgb(28 32 38 / 0.06), 0 28px 56px -12px rgb(28 32 38 / 0.22);
 }
 
-/* The ODTÜ (student) theme: the same tokens with the red accent. */
+/* The ODTÜ (student, academician) theme: the same tokens with the red accent. */
 [data-ia-accent="odtu"] {
   --color-text-accent: #d0112b;
   --color-text-link: #d0112b;
