@@ -5,7 +5,6 @@ import { DELETE as removeCoordinator } from "@/app/api/coordinator/programs/[id]
 import { POST as addCoordinator } from "@/app/api/coordinator/programs/[id]/coordinators/route";
 import { PUT as phases } from "@/app/api/coordinator/programs/[id]/phases/route";
 import { GET, PUT } from "@/app/api/coordinator/programs/[id]/route";
-import { POST as readSyllabus } from "@/app/api/coordinator/programs/syllabus/phases/route";
 import { UserRole } from "@/interfaces/session";
 import * as api from "@/lib/api/coordinator-programs";
 import { requireAdminSession } from "@/lib/server/require-admin";
@@ -17,7 +16,6 @@ vi.mock("@/lib/api/coordinator-programs", () => ({
   fetchCoordinatorProgram: vi.fn(),
   updateCoordinatorProgram: vi.fn(),
   replaceCoordinatorProgramPhases: vi.fn(),
-  extractSyllabusPhases: vi.fn(),
   setCoordinatorProgramArchived: vi.fn(),
   fetchProgramCoordinators: vi.fn(),
   addProgramCoordinator: vi.fn(),
@@ -87,25 +85,6 @@ describe("coordinator program detail routes", () => {
         bottleneckFlagDays: 30,
       },
     );
-  });
-
-  it("reads a syllabus as the signed-in coordinator, passing only the document and dates", async () => {
-    answerEachWith([api.extractSyllabusPhases]);
-
-    await readSyllabus(
-      body({
-        documentId: "doc-1",
-        startDate: "2026-11-03",
-        endDate: "",
-        actorId: "someone-else",
-      }),
-    );
-
-    expect(api.extractSyllabusPhases).toHaveBeenCalledWith("coordinator-1", {
-      documentId: "doc-1",
-      startDate: "2026-11-03",
-      endDate: null,
-    });
   });
 
   it("forwards phases, archiving and coordinator changes", async () => {
@@ -193,9 +172,5 @@ describe("coordinator program detail routes", () => {
     );
     expect((await archive(body({ archived: true }), params)).status).toBe(403);
     expect(api.setCoordinatorProgramArchived).not.toHaveBeenCalled();
-    expect((await readSyllabus(body({ documentId: "doc-1" }))).status).toBe(
-      403,
-    );
-    expect(api.extractSyllabusPhases).not.toHaveBeenCalled();
   });
 });

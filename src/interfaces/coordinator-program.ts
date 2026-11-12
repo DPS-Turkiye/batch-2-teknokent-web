@@ -1,7 +1,6 @@
 import type { NewCoordinatorInput } from "@/interfaces/admin-coordinator";
 import type { CoordinatorMentorship } from "@/interfaces/coordinator-mentorship";
 import type { ProgramStatus, ProgramType } from "@/interfaces/program";
-import type { ProgramPlanWeek } from "@/interfaces/program-week";
 import type { DocumentKind } from "@/interfaces/startup-document";
 
 export enum ProgramLifecycle {
@@ -166,23 +165,6 @@ export type ProgramPhaseInput = {
   startDate: string | null;
   endDate: string | null;
   expectedOutput?: string | null;
-};
-
-/** A phase read from a syllabus; nothing is saved until the coordinator confirms it. */
-export type ProposedPhase = ProgramPhaseInput;
-
-/** Phases and a week-by-week plan read from a syllabus; nothing is saved until the coordinator confirms them. */
-export type SyllabusPhases = {
-  phases: ProposedPhase[];
-  /** Missing from a backend that predates the week plan. */
-  weeks?: ProgramPlanWeek[];
-  pageCount: number;
-};
-
-export type ExtractSyllabusPhasesInput = {
-  documentId: string;
-  startDate: string | null;
-  endDate: string | null;
 };
 
 /** WAITING: the code was handed out but the team lead has not signed up with it yet. */

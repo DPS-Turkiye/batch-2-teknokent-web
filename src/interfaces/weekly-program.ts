@@ -31,7 +31,10 @@ export type WeeklyProgramPhase = {
   endDate: string;
 };
 
-/** What saving would replace. `currentWeek` is null until the program starts. */
+/**
+ * What saving would replace. `currentWeek` is the first week a keep-past save replaces (`totalWeeks + 1` once the
+ * program has ended), or null until the program starts.
+ */
 export type WeeklyProgramExisting = {
   phaseCount: number;
   weekCount: number;

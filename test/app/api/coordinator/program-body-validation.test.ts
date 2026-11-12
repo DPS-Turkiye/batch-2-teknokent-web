@@ -19,7 +19,6 @@ import { PUT as updateTeamRoute } from "@/app/api/coordinator/programs/[id]/team
 import { POST as addTeamsRoute } from "@/app/api/coordinator/programs/[id]/teams/route";
 import { PUT as saveTrainingRoute } from "@/app/api/coordinator/programs/[id]/training/route";
 import { POST as createProgramRoute } from "@/app/api/coordinator/programs/route";
-import { POST as extractPhasesRoute } from "@/app/api/coordinator/programs/syllabus/phases/route";
 import { ProgramEventKind } from "@/interfaces/coordinator-program";
 import { PeerTopicCategory } from "@/interfaces/peer-mentoring";
 import { ProgramType } from "@/interfaces/program";
@@ -256,20 +255,6 @@ const cases: BodyCase[] = [
       { teamName: "Tohum", leadEmail: "can@tohum.io" },
     ],
     invalid: { "a missing lead email": { teamName: "Tohum" } },
-  },
-  {
-    route: "POST /api/coordinator/programs/syllabus/phases",
-    send: (request) => extractPhasesRoute(request),
-    valid: { documentId: "doc-1", startDate: "", endDate: "2026-12-01" },
-    backend: programs.extractSyllabusPhases,
-    expected: [
-      ME,
-      { documentId: "doc-1", startDate: null, endDate: "2026-12-01" },
-    ],
-    invalid: {
-      "a missing document": { startDate: null },
-      "a date of the wrong type": { documentId: "doc-1", startDate: 5 },
-    },
   },
   {
     route: "POST /api/coordinator/programs/[id]/approvals/[kind]/[targetId]",
