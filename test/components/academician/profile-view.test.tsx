@@ -62,9 +62,7 @@ describe("AcademicianProfileView", () => {
     const settings = screen.getByRole("region", {
       name: "Ofis saati bilgileri",
     });
-    expect(within(settings).getByRole("note")).toHaveTextContent(
-      "Örnek veriler",
-    );
+    expect(within(settings).getByText(/Örnek veriler/)).toBeVisible();
     expect(await within(settings).findByDisplayValue("A-204")).toBeVisible();
     expect(
       within(settings).getByRole("button", { name: "Kaydet" }),

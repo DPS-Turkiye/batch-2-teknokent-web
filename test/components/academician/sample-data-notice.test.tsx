@@ -11,13 +11,13 @@ describe("SampleDataNotice", () => {
         <SampleDataNotice />
       </InLocale>,
     );
-    expect(screen.getByRole("note")).toHaveTextContent("Örnek veriler");
+    expect(screen.getByRole("status")).toHaveTextContent("Örnek veriler");
     unmount();
     render(
       <InLocale locale="en">
         <SampleDataNotice />
       </InLocale>,
     );
-    expect(screen.getByRole("note")).toHaveTextContent("Sample data");
+    expect(screen.getByRole("status")).toHaveTextContent("sample data");
   });
 });

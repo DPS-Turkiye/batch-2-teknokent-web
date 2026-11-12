@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AcademicianAppointmentsView } from "@/components/academician/appointments-view";
-import { groupAppointments } from "@/hooks/use-academician-appointments";
+import { groupAppointments } from "@/lib/academician-office-hours";
 import { ACADEMICIAN_APPOINTMENTS_SAMPLE } from "@/lib/client/fixtures/academician-office-hours";
 import { resetAcademicianSample } from "@/lib/client/fixtures/academician-office-hours-store";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
@@ -43,7 +43,7 @@ describe("AcademicianAppointmentsView", () => {
     expect(
       screen.getByRole("button", { name: "İptal edilenler (1)" }),
     ).toBeVisible();
-    expect(screen.getByRole("note")).toHaveTextContent("Örnek veriler");
+    expect(screen.getByText(/Örnek veriler/)).toBeVisible();
     const online = row("Final öncesi tekrar");
     expect(
       within(online).getByRole("link", { name: "Çevrim içi bağlantı" }),
