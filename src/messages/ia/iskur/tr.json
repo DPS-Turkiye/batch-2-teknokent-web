@@ -201,7 +201,8 @@
         "endBeforeStart": "Bitiş, başlangıçtan önce olamaz.",
         "month": "Ayı 2025-07 biçiminde yaz."
       },
-      "monthPlaceholder": "YYYY-AA"
+      "monthPlaceholder": "YYYY-AA",
+      "missingStart": "Başlangıç ayı eksik: eklemek için düzenle."
     },
     "helpWith": {
       "tipsTitle": "İyi bir açıklama için",
@@ -259,7 +260,8 @@
       "categories": "En az bir kategori seç.",
       "helpWith": "Bu metin en az {min} karakter olmalı.",
       "link": "Bağlantı http:// veya https:// ile başlamalı.",
-      "experienceOpen": "Açık deneyimi önce kaydet ya da vazgeç."
+      "experienceOpen": "Açık deneyimi önce kaydet ya da vazgeç.",
+      "experienceStart": "Başlangıç ayı eksik deneyimleri düzenle."
     }
   },
   "take": {

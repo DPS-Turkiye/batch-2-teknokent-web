@@ -57,6 +57,7 @@ import {
 } from "@/lib/client/peer-mentoring";
 import { getPeerMentorCategories } from "@/lib/client/student-profile-completion";
 import { getStudentTraining } from "@/lib/client/training";
+import { withKeys, withoutKeys, type Keyed } from "@/lib/keyed-list";
 import {
   chosenSubtopics,
   latestGateAward,
@@ -288,7 +289,7 @@ type WizardDraft = {
   helpWith: string;
   linkedinUrl: string;
   levels: PeerTopicLevels;
-  experiences: PeerExperienceCard[];
+  experiences: Keyed<PeerExperienceCard>[];
 };
 
 const EMPTY_DRAFT: WizardDraft = {
@@ -331,7 +332,7 @@ function toDraft(profile: PeerMentorProfile): WizardDraft {
     helpWith: profile.helpWith,
     linkedinUrl: profile.linkedinUrl ?? "",
     levels: profile.levels,
-    experiences: profile.experiences,
+    experiences: withKeys(profile.experiences),
   };
 }
 
@@ -347,7 +348,7 @@ export function toPeerMentorProfileInput(
     helpWith: draft.helpWith.trim(),
     linkedinUrl: draft.linkedinUrl.trim(),
     levels: levelsFor(draft.levels, draft.topics),
-    experiences: draft.experiences,
+    experiences: withoutKeys(draft.experiences),
   };
 }
 
@@ -435,6 +436,13 @@ export function usePeerMentorWizard() {
       experienceCards.form !== null
     ) {
       return t("errors.experienceOpen");
+    }
+    // An older card has no start month, which the backend needs to publish it.
+    if (
+      current === PeerMentorWizardStep.Experience &&
+      draft.experiences.some((card) => !card.startedOn)
+    ) {
+      return t("errors.experienceStart");
     }
     if (
       current === PeerMentorWizardStep.HelpWith &&

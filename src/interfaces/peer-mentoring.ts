@@ -38,12 +38,15 @@ export enum PeerExperienceKind {
   Other = "OTHER",
 }
 
-/** One experience card on a peer mentor's profile; months as "yyyy-MM", no end while it goes on. */
+/**
+ * One experience card on a peer mentor's profile; months as "yyyy-MM", no end while it goes on. Older experience rows
+ * come back without a start month; the wizard asks for one before the card can be published again.
+ */
 export type PeerExperienceCard = {
   kind: PeerExperienceKind;
   title: string;
   organization: string | null;
-  startedOn: string;
+  startedOn: string | null;
   endedOn: string | null;
   summary: string | null;
 };

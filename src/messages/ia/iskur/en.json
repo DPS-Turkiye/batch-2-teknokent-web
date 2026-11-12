@@ -201,7 +201,8 @@
         "endBeforeStart": "The end can't be before the start.",
         "month": "Write the month as 2025-07."
       },
-      "monthPlaceholder": "YYYY-MM"
+      "monthPlaceholder": "YYYY-MM",
+      "missingStart": "Start month missing: edit to add it."
     },
     "helpWith": {
       "tipsTitle": "For a good description",
@@ -259,7 +260,8 @@
       "categories": "Pick at least one category.",
       "helpWith": "This text must be at least {min} characters.",
       "link": "The link must start with http:// or https://.",
-      "experienceOpen": "Save or cancel the open experience first."
+      "experienceOpen": "Save or cancel the open experience first.",
+      "experienceStart": "Edit the experiences that have no start month."
     }
   },
   "take": {

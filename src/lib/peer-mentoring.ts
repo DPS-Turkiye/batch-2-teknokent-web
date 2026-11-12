@@ -376,7 +376,7 @@ export function toExperienceForm(card: PeerExperienceCard): ExperienceCardForm {
   return {
     title: card.title,
     organization: card.organization ?? "",
-    startedOn: card.startedOn,
+    startedOn: card.startedOn ?? "",
     endedOn: card.endedOn ?? "",
     summary: card.summary ?? "",
   };

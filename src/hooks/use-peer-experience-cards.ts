@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import type { PeerExperienceCard } from "@/interfaces/peer-mentoring";
+import { withKey, type Keyed } from "@/lib/keyed-list";
 import {
   EMPTY_EXPERIENCE_FORM,
   experienceCardProblem,
@@ -24,8 +25,8 @@ type Editing = { index: number | null; form: ExperienceCardForm };
  * so typed text is never replaced without a word. The list lives in the wizard's draft; this hook owns the form.
  */
 export function usePeerExperienceCards(
-  cards: readonly PeerExperienceCard[],
-  onChange: (next: PeerExperienceCard[]) => void,
+  cards: readonly Keyed<PeerExperienceCard>[],
+  onChange: (next: Keyed<PeerExperienceCard>[]) => void,
 ) {
   const [editing, setEditing] = useState<Editing | null>(null);
   const [problem, setProblem] = useState<ExperienceCardProblem | null>(null);
@@ -76,10 +77,12 @@ export function usePeerExperienceCards(
       const { index } = editing;
       onChange(
         index === null
-          ? [...cards, card]
+          ? [...cards, withKey(card)]
           : cards.map((current, position) =>
-              // The form has no kind field, so an edited card keeps its own.
-              position === index ? { ...card, kind: current.kind } : current,
+              // The form has no kind field, so an edited card keeps its own kind, and its key.
+              position === index
+                ? { ...card, kind: current.kind, key: current.key }
+                : current,
             ),
       );
       setEditing(null);

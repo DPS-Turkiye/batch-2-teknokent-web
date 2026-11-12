@@ -117,7 +117,7 @@ export function PeerMentorPublicProfile({ mentorId }: { mentorId: string }) {
                   <ul className="space-y-3">
                     {mentor.experiences.map((card, index) => (
                       <li
-                        key={`${card.title}-${card.startedOn}-${String(index)}`}
+                        key={`${card.title}-${card.startedOn ?? ""}-${String(index)}`}
                         className="space-y-0.5"
                       >
                         <p className="type-label text-text-primary">
@@ -126,13 +126,16 @@ export function PeerMentorPublicProfile({ mentorId }: { mentorId: string }) {
                             : card.title}
                         </p>
                         <p className="type-caption text-text-muted">
-                          {t("experienceRange", {
-                            start: formatYearMonth(card.startedOn, locale),
-                            end: card.endedOn
-                              ? formatYearMonth(card.endedOn, locale)
-                              : t("ongoing"),
-                          })}
-                          {card.summary ? ` · ${card.summary}` : null}
+                          {card.startedOn
+                            ? t("experienceRange", {
+                                start: formatYearMonth(card.startedOn, locale),
+                                end: card.endedOn
+                                  ? formatYearMonth(card.endedOn, locale)
+                                  : t("ongoing"),
+                              })
+                            : null}
+                          {card.startedOn && card.summary ? " · " : null}
+                          {card.summary}
                         </p>
                       </li>
                     ))}
