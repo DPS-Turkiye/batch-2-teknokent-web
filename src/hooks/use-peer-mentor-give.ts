@@ -5,7 +5,10 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { useSession } from "@/components/providers/session-provider";
+import {
+  useAppSession,
+  useSession,
+} from "@/components/providers/session-provider";
 import { useMyBadges } from "@/hooks/use-badges";
 import { useInstitutionRecord } from "@/hooks/use-institution-record";
 import {
@@ -49,12 +52,18 @@ import {
 import { getPeerMentorCategories } from "@/lib/client/student-profile-completion";
 import { getStudentTraining } from "@/lib/client/training";
 import {
+  chosenSubtopics,
   latestGateAward,
+  PEER_ERASMUS_MAX,
+  PEER_HELP_WITH_MAX,
+  PEER_HELP_WITH_MIN,
   PEER_MENTOR_GIVE_HREF,
   PEER_MENTOR_TRAINING_HREF,
-  PEER_REQUEST_MESSAGE_MIN,
+  PEER_PROFILE_TEXT_MAX,
   peerMentorCapacity,
   peerMentorGateState,
+  subtopicGroupsWithCounts,
+  weeklyHours,
 } from "@/lib/peer-mentoring";
 import { hasPermission } from "@/lib/permissions";
 import {
@@ -62,7 +71,7 @@ import {
   toggleInterestSubtopic,
   toggleInterestTopic,
 } from "@/lib/student-interests";
-import { errorMessage } from "@/lib/utils";
+import { errorMessage, initials } from "@/lib/utils";
 import { useToast } from "@/stores/toast-store";
 import { PeerGiveTab } from "@/types/iskur-student";
 
@@ -230,6 +239,24 @@ export function usePeerGivePublished(profileCapacity: number | null) {
   };
 }
 
+/** Who the wizard's preview card shows: the student, from the session and the institution record. */
+export function usePeerMentorPreviewPerson() {
+  const session = useAppSession();
+  const institution = useInstitutionRecord();
+  const gate = usePeerMentorGate();
+  const fullName = session?.fullName ?? "";
+  const department = institution.data?.departmentName ?? null;
+  const classYear = institution.data?.classYear ?? null;
+  return {
+    fullName,
+    initials: initials(fullName),
+    department,
+    classYear,
+    showSeparator: department !== null && classYear !== null,
+    badgeVerified: gate.state === PeerMentorGateState.Earned,
+  };
+}
+
 export enum PeerMentorWizardStep {
   Categories,
   Subtopics,
@@ -327,7 +354,7 @@ function toSettings(
  * availability settings live on the profile row the publish creates; publishing saves the profile, then the hours.
  */
 export function usePeerMentorWizard() {
-  const t = useTranslations("odtuWorkspaces.student.peerMentoring.wizard");
+  const t = useTranslations("iaIskur.wizard");
   const router = useRouter();
   const { showToast } = useToast();
   const queryClient = useQueryClient();
@@ -386,9 +413,9 @@ export function usePeerMentorWizard() {
     }
     if (
       current === PeerMentorWizardStep.HelpWith &&
-      draft.helpWith.trim().length < PEER_REQUEST_MESSAGE_MIN
+      draft.helpWith.trim().length < PEER_HELP_WITH_MIN
     ) {
-      return t("errors.helpWith", { min: PEER_REQUEST_MESSAGE_MIN });
+      return t("errors.helpWith", { min: PEER_HELP_WITH_MIN });
     }
     if (
       current === PeerMentorWizardStep.Links &&
@@ -435,9 +462,27 @@ export function usePeerMentorWizard() {
     isLoading: profile.isLoading || catalogue.isLoading,
     loadError: profile.error ?? catalogue.error,
     categories,
-    subtopicGroups: chosenCategories(categories, draft.topics),
+    categoryOptions: categories.map((item) => ({
+      id: item.id,
+      checked: draft.topics.includes(item.id),
+    })),
+    subtopicGroups: subtopicGroupsWithCounts(
+      chosenCategories(categories, draft.topics),
+      draft.subtopics,
+    ),
+    previewSubtopics: chosenSubtopics(categories, draft.subtopics),
     availability,
     availabilitySettings,
+    weeklyHours: weeklyHours(availabilitySettings.rules),
+    helpWithLength: draft.helpWith.trim().length,
+    helpWithMin: PEER_HELP_WITH_MIN,
+    helpWithMax: PEER_HELP_WITH_MAX,
+    textMax: PEER_PROFILE_TEXT_MAX,
+    erasmusMax: PEER_ERASMUS_MAX,
+    previewHelpWith: draft.helpWith.trim(),
+    previewLinkedin: draft.linkedinUrl.trim(),
+    isFirst: step === PeerMentorWizardStep.Categories,
+    isLast: step === PeerMentorWizardStep.Preview,
     toggleTopic: (id: PeerTopicCategory) =>
       change((current) => toggleInterestTopic(current, id, categories)),
     toggleSubtopic: (id: string) =>

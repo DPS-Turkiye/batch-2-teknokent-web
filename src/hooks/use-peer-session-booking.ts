@@ -6,31 +6,28 @@ import { useMemo } from "react";
 
 import { STUDENT_APPOINTMENTS_QUERY_KEY } from "@/hooks/use-student-appointments";
 import { STUDENT_HOME_QUERY_KEY } from "@/hooks/use-student-home";
-import type { Appointment } from "@/interfaces/appointment";
 import { ToastTone } from "@/interfaces/toast";
 import {
   getMentorAvailability,
   scheduleMeeting,
 } from "@/lib/client/mentor-requests";
 import { getStudentAppointments } from "@/lib/client/student-appointments";
+import { nextSessionsByRequest } from "@/lib/peer-mentoring";
 import { useToast } from "@/stores/toast-store";
 
 export const peerSessionSlotsQueryKey = (requestId: string) =>
   ["peer-mentoring", "slots", requestId] as const;
 
-/** The session booked on each of the student's peer requests, by request id. */
+/** Each of the student's peer requests' next meeting (still to come), by request id. */
 export function usePeerRequestSessions() {
   const query = useQuery({
     queryKey: STUDENT_APPOINTMENTS_QUERY_KEY,
     queryFn: getStudentAppointments,
   });
-  const byRequest = useMemo(() => {
-    const sessions = new Map<string, Appointment>();
-    for (const item of query.data ?? []) {
-      if (item.requestId) sessions.set(item.requestId, item);
-    }
-    return sessions;
-  }, [query.data]);
+  const byRequest = useMemo(
+    () => nextSessionsByRequest(query.data ?? [], new Date()),
+    [query.data],
+  );
   return { byRequest, isLoading: query.isLoading };
 }
 
