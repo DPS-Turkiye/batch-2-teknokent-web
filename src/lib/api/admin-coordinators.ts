@@ -3,6 +3,7 @@ import "server-only";
 import type {
   CoordinatorAccount,
   CoordinatorCandidate,
+  CoordinatorSearchResult,
 } from "@/interfaces/admin-coordinator";
 import { backendRequest } from "@/lib/server/backend-client";
 
@@ -13,6 +14,18 @@ export function fetchCoordinatorCandidate(actorId: string, email: string) {
     method: "GET",
     url: `${BASE}/candidate`,
     params: { actorId, email },
+  });
+}
+
+/** Approved coordinators whose email starts with `q`; with `programId`, those already running it are left out. */
+export function searchCoordinators(
+  actorId: string,
+  query: { q: string; programId?: string | undefined },
+) {
+  return backendRequest<CoordinatorSearchResult[]>({
+    method: "GET",
+    url: `${BASE}/search`,
+    params: { actorId, ...query },
   });
 }
 
