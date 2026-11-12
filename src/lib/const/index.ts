@@ -77,7 +77,8 @@ export function getBotApiUrl(): string {
   return BOT_API_PATH;
 }
 
-export function getStopBotApiUrl(
+/** The meeting's bot: GET reads its state, DELETE stops it. */
+export function getMeetingBotApiUrl(
   platform: string,
   nativeMeetingId: string,
 ): string {

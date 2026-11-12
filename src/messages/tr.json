@@ -1047,6 +1047,7 @@
       "sendFailed": "Toplantı asistanı gönderilemedi.",
       "stopFailed": "Toplantı asistanı durdurulamadı.",
       "transcriptFailed": "Toplantı transkripti alınamadı.",
+      "botStateFailed": "Botun durumu okunamadı.",
       "reportFailed": "Toplantı raporu oluşturulamadı."
     },
     "coordinatorEvent": {
@@ -3372,6 +3373,17 @@
     "transcriptShareFailed": "Transkript gönderilemedi.",
     "reportShareFailed": "Rapor gönderilemedi.",
     "botSent": "Bot gönderildi — toplantıda kabul et; transcript burada görünecek.",
+    "botNoticeLabel": "Kayıt botunun durumu",
+    "botNotice": {
+      "joining": "Kayıt botu toplantıya bağlanıyor…",
+      "waitingForAdmission": "Kayıt botu bekleme odasında. Meet'te katılma isteği çıkınca “Kabul et”e basın.",
+      "waitingTooLong": "Bot {minutes} dakikadır bekleme odasında. Meet'te katılma isteği görmüyorsanız Google botu içeri almamış olabilir: botu durdurup yeniden gönderin.",
+      "recording": "Kayıt botu toplantıda, kayıt sürüyor.",
+      "couldNotJoin": "Kayıt botu toplantıya giremedi. Botu yeniden gönderebilirsiniz.",
+      "notAdmittedInTime": "Kayıt botu zamanında içeri alınmadığı için ayrıldı. Yeniden gönderip Meet'te “Kabul et”e basın.",
+      "rejected": "Kayıt botunun katılma isteği reddedildi.",
+      "left": "Kayıt botu toplantıdan ayrıldı."
+    },
     "reportView": {
       "noTopic": "Konu / tarih transcript’ten çıkarılamadı",
       "summary": "Özet",

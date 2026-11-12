@@ -4,7 +4,11 @@ import {
   addBotBodySchema,
   transcriptQuerySchema,
 } from "@/lib/assistant-schemas";
-import { createMeetingBot, stopMeetingBotBackend } from "@/lib/botapi";
+import {
+  createMeetingBot,
+  fetchMeetingBotStateBackend,
+  stopMeetingBotBackend,
+} from "@/lib/botapi";
 import { apiErrorResponse, apiText } from "@/lib/server/api-response";
 import {
   assistantMeetingRefusal,
@@ -44,6 +48,44 @@ export async function POST(request: NextRequest) {
       );
     }
     return NextResponse.json(data, { status });
+  } catch (error) {
+    return apiErrorResponse(error, {
+      message: await apiText("assistantUnavailable"),
+    });
+  }
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    await getSessionIds();
+    const idToken = readBearerToken(request);
+    if (!idToken) return await assistantSignInRequired();
+    const { searchParams } = request.nextUrl;
+    const parsed = transcriptQuerySchema.safeParse({
+      platform: searchParams.get("platform"),
+      nativeMeetingId: searchParams.get("nativeMeetingId"),
+    });
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        {
+          code: "INVALID_REQUEST",
+          message: await apiText("platformAndMeetingIdRequired"),
+        },
+        { status: 400 },
+      );
+    }
+
+    const { platform, nativeMeetingId } = parsed.data;
+    const { data, status } = await fetchMeetingBotStateBackend(
+      platform,
+      nativeMeetingId,
+      idToken,
+    );
+    return (
+      (await assistantMeetingRefusal(status)) ??
+      NextResponse.json(data, { status })
+    );
   } catch (error) {
     return apiErrorResponse(error, {
       message: await apiText("assistantUnavailable"),

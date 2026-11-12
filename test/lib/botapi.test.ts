@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   createMeetingBot,
+  fetchMeetingBotStateBackend,
   generateMeetingReportBackend,
   stopMeetingBotBackend,
 } from "@/lib/botapi";
@@ -109,5 +110,28 @@ describe("assistant server lib", () => {
       { idToken: "firebase-token" },
     );
     expect(result).toEqual({ data: { segments: [] }, status: 200 });
+  });
+
+  it("fetchMeetingBotStateBackend reads the bot's state with the caller's token", async () => {
+    vi.mocked(backendRequest).mockResolvedValue({
+      data: { state: "ACTIVE" },
+      headers: {},
+      status: 200,
+    });
+
+    const result = await fetchMeetingBotStateBackend(
+      "google_meet",
+      "abc/defg",
+      "firebase-token",
+    );
+
+    expect(backendRequest).toHaveBeenCalledWith(
+      {
+        method: HttpMethod.Get,
+        url: "/api/assistant/bots/google_meet/abc%2Fdefg",
+      },
+      { idToken: "firebase-token" },
+    );
+    expect(result).toEqual({ data: { state: "ACTIVE" }, status: 200 });
   });
 });
