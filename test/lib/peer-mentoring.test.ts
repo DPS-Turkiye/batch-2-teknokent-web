@@ -11,6 +11,7 @@ import {
 import type { ProfileCompletionCategory } from "@/interfaces/student-profile-completion";
 import {
   chosenSubtopics,
+  iskurHomeMode,
   latestGateAward,
   nextSessionsByRequest,
   PEER_REQUEST_STATUS_TONE,
@@ -25,6 +26,7 @@ import {
   weeklyHours,
 } from "@/lib/peer-mentoring";
 import {
+  IskurHomeMode,
   PeerCapacityNote,
   PeerRequestAvailability,
 } from "@/types/iskur-student";
@@ -354,5 +356,28 @@ describe("nextSessionsByRequest", () => {
       now,
     );
     expect(next.size).toBe(0);
+  });
+});
+
+describe("iskurHomeMode", () => {
+  it("adds nothing for students who cannot give peer mentoring or lost the badge", () => {
+    expect(iskurHomeMode(PeerMentorGateState.Hidden, false)).toBe(
+      IskurHomeMode.None,
+    );
+    expect(iskurHomeMode(PeerMentorGateState.Revoked, true)).toBe(
+      IskurHomeMode.None,
+    );
+  });
+
+  it("points to the training, then the wizard, then shows the mentor blocks", () => {
+    expect(iskurHomeMode(PeerMentorGateState.NoBadge, false)).toBe(
+      IskurHomeMode.Training,
+    );
+    expect(iskurHomeMode(PeerMentorGateState.Earned, false)).toBe(
+      IskurHomeMode.CreateProfile,
+    );
+    expect(iskurHomeMode(PeerMentorGateState.Earned, true)).toBe(
+      IskurHomeMode.Mentor,
+    );
   });
 });
