@@ -14,16 +14,11 @@ import {
   OnboardingFileField,
   onboardingInputClass,
 } from "@/components/onboarding/onboarding-ui";
-import { useCvParse } from "@/hooks/use-cv-parse";
+import { useSignupCv } from "@/hooks/use-signup-cv";
 import type { SignupWizard } from "@/hooks/use-signup-wizard";
 import { useStoredDocuments } from "@/hooks/use-stored-documents";
-import {
-  BIO_MAX_LENGTH,
-  ContactPreference,
-  type UploadedFile,
-} from "@/interfaces/signup";
+import { BIO_MAX_LENGTH, ContactPreference } from "@/interfaces/signup";
 import { DocumentKind } from "@/interfaces/startup-document";
-import { applyCvParse } from "@/lib/cv-suggestions";
 
 const TONE = OnboardingTone.Mentee;
 const inputClass = `${onboardingInputClass} ${ONBOARDING_TONES[TONE].focus}`;
@@ -35,25 +30,8 @@ export function PersonalProfileStep({ wizard }: { wizard: SignupWizard }) {
   const fields = useTranslations("auth");
   const { draft, updatePersonal, toggleContactPreference } = wizard;
   const { personal } = draft;
-  const cvParse = useCvParse();
+  const cv = useSignupCv(wizard);
   const storedCv = useStoredDocuments().byKind(DocumentKind.Cv);
-
-  function onCvSelected(file: UploadedFile | null) {
-    updatePersonal("cv", file);
-    if (!file?.file) return;
-    cvParse.mutate(file.file, {
-      onSuccess: (parsed) => {
-        // Suggestions, not an overwrite: anything already typed wins.
-        const next = applyCvParse(
-          { role: personal.role, bio: personal.bio, expertise: [] },
-          parsed,
-          { keepFilled: true, bioMaxLength: BIO_MAX_LENGTH },
-        );
-        if (next.role !== personal.role) updatePersonal("role", next.role);
-        if (next.bio !== personal.bio) updatePersonal("bio", next.bio);
-      },
-    });
-  }
 
   return (
     <>
@@ -139,18 +117,24 @@ export function PersonalProfileStep({ wizard }: { wizard: SignupWizard }) {
         <OnboardingFileField
           label={copy("cvPick")}
           file={personal.cv}
-          onChange={onCvSelected}
+          onChange={cv.choose}
           accept=".pdf,.docx"
           storedName={storedCv?.originalFilename ?? null}
         />
-        {cvParse.isPending ? (
+        {cv.canRead ? null : (
+          <>
+            {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+            <p className="text-xs text-[#676e78]">{copy("cvManual")}</p>
+          </>
+        )}
+        {cv.isReading ? (
           <p className="text-xs text-[#676e78]" role="status">
             {copy("cvReading")}
           </p>
         ) : null}
-        {cvParse.error ? (
+        {cv.error ? (
           <p className="text-xs text-[#b42318]" role="alert">
-            {cvParse.error.message}
+            {cv.error}
           </p>
         ) : null}
       </OnboardingCard>

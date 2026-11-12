@@ -1,51 +1,44 @@
 "use client";
 
-// TEST UI: placeholder until the design team's screen; replace when it arrives.
 import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 import { RoleFrame, type RoleNavItem } from "@/components/common/role-frame";
 import { Workspace } from "@/interfaces/workspace";
+import { ACADEMICIAN_ROUTES } from "@/lib/academician-routes";
 
-export const ACADEMICIAN_HOME = "/academician";
+/** Randevularım covers the old Talepler and Takvim pages too, until their redirects land. */
+const APPOINTMENT_PATHS = [
+  ACADEMICIAN_ROUTES.appointments,
+  ACADEMICIAN_ROUTES.requests,
+  ACADEMICIAN_ROUTES.calendar,
+];
 
-/** Items are `disabled` ("Yakında") until their screen lands; each screen's PR switches its own item on. */
 const NAV: RoleNavItem[] = [
   {
-    href: ACADEMICIAN_HOME,
+    href: ACADEMICIAN_ROUTES.home,
     label: "home",
     icon: "/admin/nav-home.svg",
-    match: (path) => path === ACADEMICIAN_HOME,
+    match: (path) => path === ACADEMICIAN_ROUTES.home,
   },
   {
-    href: "/academician/requests",
-    label: "appointmentRequests",
-    icon: "/admin/nav-mail.svg",
-    match: (path) => path.startsWith("/academician/requests"),
-  },
-  {
-    href: "/academician/appointments",
+    href: ACADEMICIAN_ROUTES.appointments,
     label: "myAppointments",
-    icon: "/mentor-dashboard/revised/clock.svg",
-    match: (path) => path.startsWith("/academician/appointments"),
-  },
-  {
-    href: "/academician/calendar",
-    label: "calendar",
     icon: "/admin/nav-calendar.svg",
-    match: (path) => path.startsWith("/academician/calendar"),
+    match: (path) =>
+      APPOINTMENT_PATHS.some((prefix) => path.startsWith(prefix)),
   },
   {
-    href: "/academician/advisees",
+    href: ACADEMICIAN_ROUTES.advisees,
     label: "advisees",
     icon: "/admin/nav-users.svg",
-    match: (path) => path.startsWith("/academician/advisees"),
+    match: (path) => path.startsWith(ACADEMICIAN_ROUTES.advisees),
   },
   {
-    href: "/academician/profile",
+    href: ACADEMICIAN_ROUTES.profile,
     label: "myProfile",
     icon: "/account-menu/user.svg",
-    match: (path) => path.startsWith("/academician/profile"),
+    match: (path) => path.startsWith(ACADEMICIAN_ROUTES.profile),
   },
 ];
 
@@ -54,7 +47,7 @@ export function AcademicianFrame({ children }: { children: ReactNode }) {
   return (
     <RoleFrame
       workspace={Workspace.OdtuAcademician}
-      homeHref={ACADEMICIAN_HOME}
+      homeHref={ACADEMICIAN_ROUTES.home}
       menuLabel="academicianMenu"
       nav={NAV}
       roleLabel={t("academician")}
