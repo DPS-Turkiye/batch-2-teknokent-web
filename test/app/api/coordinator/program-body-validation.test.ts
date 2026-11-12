@@ -92,6 +92,7 @@ const cases: BodyCase[] = [
         startDate: null,
         endDate: null,
         coordinatorIds: ["c-2"],
+        newCoordinators: [],
         phases: [
           {
             name: "Başvuru",
@@ -110,6 +111,21 @@ const cases: BodyCase[] = [
         coordinatorIds: [],
       },
       "a missing program type": { name: "X", coordinatorIds: [] },
+      "the same e-mail invited twice": {
+        type: "PEER_MENTORING",
+        name: "X",
+        coordinatorIds: [],
+        newCoordinators: [
+          { fullName: "Yeni", email: "yeni@x.org" },
+          { fullName: "Yeni Kişi", email: "Yeni@X.org" },
+        ],
+      },
+      "an invited coordinator without a name": {
+        type: "PEER_MENTORING",
+        name: "X",
+        coordinatorIds: [],
+        newCoordinators: [{ email: "yeni@teknokent.org" }],
+      },
       "a rule sent as text": {
         type: "PEER_MENTORING",
         name: "X",
