@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { AccountType } from "@/interfaces/account-type";
+import { Edition } from "@/interfaces/edition";
 import { IdentityKind, UserRole } from "@/interfaces/session";
 import { Workspace } from "@/interfaces/workspace";
 import {
@@ -47,6 +48,7 @@ describe("accountTypeOfSession", () => {
     jobTitle: "Mentee",
     role: UserRole.Mentee,
     institutionKinds: [IdentityKind.Student],
+    edition: Edition.Odtu,
   };
 
   it("uses the ODTÜ wording in an ODTÜ workspace and Teknokent's elsewhere", () => {

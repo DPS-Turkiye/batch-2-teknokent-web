@@ -25,9 +25,9 @@ function createQueryWrapper() {
   };
 }
 
-function wizardWith(programId: string | null, startupLater = false) {
+function wizardWith(programId: string | null, individualProgram = false) {
   return signupWizardStub({
-    draft: signupDraft({ startup: { programId, startupLater } }),
+    draft: signupDraft({ startup: { programId, individualProgram } }),
   });
 }
 
@@ -70,7 +70,10 @@ describe("useSignupProgramChoice", () => {
     act(() => result.current.choose("İŞKUR"));
 
     expect(wizard.updateStartup).toHaveBeenCalledWith("programId", "iskur");
-    expect(wizard.updateStartup).toHaveBeenCalledWith("startupLater", true);
+    expect(wizard.updateStartup).toHaveBeenCalledWith(
+      "individualProgram",
+      true,
+    );
   });
 
   it("asks for the startup again when leaving an individual program", async () => {
@@ -84,19 +87,38 @@ describe("useSignupProgramChoice", () => {
     act(() => result.current.choose("BİGG"));
 
     expect(wizard.updateStartup).toHaveBeenCalledWith("programId", "bigg");
-    expect(wizard.updateStartup).toHaveBeenCalledWith("startupLater", false);
+    expect(wizard.updateStartup).toHaveBeenCalledWith(
+      "individualProgram",
+      false,
+    );
   });
 
-  it("leaves the founder's own startup-later choice alone between regular programs", async () => {
+  it("marks a draft saved with an individual program once the programs load", async () => {
+    const wizard = wizardWith("iskur");
+    const { result } = renderHook(() => useSignupProgramChoice(wizard), {
+      wrapper: createQueryWrapper(),
+    });
+
+    await waitFor(() => expect(result.current.individual).toBe(true));
+    expect(wizard.updateStartup).toHaveBeenCalledWith(
+      "individualProgram",
+      true,
+    );
+  });
+
+  it("asks for the startup when a draft's marker no longer matches a startup program", async () => {
     const wizard = wizardWith("bigg", true);
     const { result } = renderHook(() => useSignupProgramChoice(wizard), {
       wrapper: createQueryWrapper(),
     });
+
     await waitFor(() => expect(result.current.options).toHaveLength(2));
-
-    act(() => result.current.choose("BİGG"));
-
-    expect(wizard.updateStartup).toHaveBeenCalledTimes(1);
+    await waitFor(() =>
+      expect(wizard.updateStartup).toHaveBeenCalledWith(
+        "individualProgram",
+        false,
+      ),
+    );
     expect(result.current.individual).toBe(false);
   });
 });

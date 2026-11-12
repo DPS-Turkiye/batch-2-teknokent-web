@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import { AuthField } from "@/components/auth/auth-field";
 import { AuthShell } from "@/components/auth/auth-shell";
+import { EmailDomainNote } from "@/components/auth/email-domain-note";
 import { VerifyEmailView } from "@/components/auth/verify-email-view";
 import { useInviteJoin } from "@/hooks/use-invite-join";
 import { PASSWORD_HINT } from "@/lib/password";
@@ -18,6 +19,8 @@ export function InviteView() {
     passwordStrengthErrorMessage,
     passwordsMismatch,
     emailCharacterErrorMessage,
+    allowedEmailDomains,
+    emailDomainNotAllowed,
     inviteCode,
     setInviteCode,
     otgAccount,
@@ -112,7 +115,12 @@ export function InviteView() {
                 <p role="alert" className="mt-1.5 text-xs text-[#c0392b]">
                   {emailCharacterErrorMessage}
                 </p>
-              ) : null}
+              ) : (
+                <EmailDomainNote
+                  domains={allowedEmailDomains}
+                  notAllowed={emailDomainNotAllowed}
+                />
+              )}
             </div>
           )}
           <AuthField

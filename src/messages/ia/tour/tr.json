@@ -1,1 +1,137 @@
-{}
+{
+  "card": {
+    "progress": "Adım {current} / {total}",
+    "progressLabel": "Tur ilerlemesi",
+    "close": "Turu kapat",
+    "skip": "Turu atla",
+    "next": "İleri",
+    "finish": "Turu Bitir",
+    "missingTarget": "Bu adımın alanı şu an ekranda yok; İleri ile devam edebilirsin.",
+    "announce": "Adım {current} / {total}: {title}"
+  },
+  "welcome": {
+    "later": "Şimdilik Atla",
+    "start": "Turu Başlat"
+  },
+  "end": {
+    "title": "Hazırsın!"
+  },
+  "replay": "Turu tekrar izle",
+  "roles": {
+    "ODTU_STUDENT": {
+      "welcome": {
+        "title": "İlk randevunu birlikte alalım",
+        "body": "menton'u en hızlı bir randevu talebi göndererek öğrenirsin. Adım adım tıklanacak yerleri göstereceğiz; 1 dakika sürer.",
+        "outline": {
+          "first": "Office Hours'a git",
+          "second": "Bir akademisyen ve saat seç",
+          "third": "Başlık ve açıklama yazıp talebi gönder"
+        }
+      },
+      "end": {
+        "body": "Akran Mentörlüğü'nden mentor bulabilir, tüm randevularını Randevularım'da takip edebilirsin.",
+        "replayHint": "Turu Profilim'den tekrar izleyebilirsin.",
+        "exit": "Ana Sayfa'ya Dön"
+      }
+    },
+    "ISKUR_STUDENT": {
+      "welcome": {
+        "title": "İlk mentorluk talebini yanıtlayalım",
+        "body": "Tek hesapla hem mentorluk alıp hem verebilirsin. Sana gelen bir talebi birlikte yanıtlayalım.",
+        "outline": {
+          "first": "Akran Mentörlüğü'ne git",
+          "second": "Mentorluk Ver tarafına geç",
+          "third": "Talebi kabul et"
+        }
+      },
+      "end": {
+        "body": "Yeni talepleri Ana Sayfa'dan da yanıtlayabilirsin. Müsaitliğini ve kapasiteni Mentor Profilim'den güncel tut.",
+        "replayHint": "Turu Profilim'den tekrar izleyebilirsin.",
+        "exit": "Ana Sayfa'ya Dön"
+      }
+    },
+    "ODTU_ACADEMICIAN": {
+      "welcome": {
+        "title": "Office Hours'a hazırlanalım",
+        "body": "Programa otomatik olarak dahilsin. İki adımda hazır olursun: müsaitliğini ekle ve ilk talebi yanıtla.",
+        "outline": {
+          "first": "Müsaitliğini ekle",
+          "second": "Takvimde gelen talebi aç",
+          "third": "Talebi kabul et"
+        }
+      },
+      "end": {
+        "body": "Yeni talepler Ana Sayfa'da ve Randevularım takviminde görünür. Müsaitliğini güncel tutman yeterli.",
+        "replayHint": "Bu ipuçlarını Profilim'den tekrar açabilirsin.",
+        "exit": "Randevularım'a Dön"
+      }
+    }
+  },
+  "steps": {
+    "officeHours": {
+      "title": "Office Hours'a git",
+      "body": "Akademisyenlerden randevu talebi Office Hours'tan gönderilir.",
+      "hint": "Office Hours'a tıkla"
+    },
+    "pickAcademician": {
+      "title": "Bir akademisyen seç",
+      "body": "Danışmanın en üstte. Bölüm kısıtı yok; istediğin akademisyenin müsait saatlerine bakabilirsin.",
+      "hint": "Bir akademisyene tıkla"
+    },
+    "pickSlot": {
+      "title": "Gün ve saat seç",
+      "body": "Soluk saatler dolu. Seçtiğin saat, akademisyen onaylayana kadar kesinleşmez.",
+      "hint": "Saati seçip Devam Et'e tıkla"
+    },
+    "sendRequest": {
+      "title": "Konunu yaz ve gönder",
+      "body": "Başlığı koordinatör de görür; açıklamayı yalnızca akademisyen görür.",
+      "hint": "Talebi gönder"
+    },
+    "requestSent": {
+      "title": "Talebin gönderildi",
+      "body": "Akademisyen yanıtlayana kadar \"Onay Bekliyor\" görünür. Kabul ederse ya da yeni saat önerirse bildirim alırsın.",
+      "hint": "Turu Bitir'e tıkla"
+    },
+    "peerMentoring": {
+      "title": "Akran Mentörlüğü'ne git",
+      "body": "Mentorluk aldığın ve verdiğin her şey burada.",
+      "hint": "Akran Mentörlüğü'ne tıkla"
+    },
+    "giveSide": {
+      "title": "Mentorluk Ver tarafı",
+      "body": "Bu geçişle Mentorluk Al ve Mentorluk Ver arasında gezinirsin. Ayrı bir hesaba gerek yok.",
+      "hint": "Mentorluk Ver'e tıkla"
+    },
+    "acceptRequest": {
+      "title": "Talebi kabul et",
+      "body": "Kabul ettiğinde mentorluk başlar ve kapasitenden bir yer dolar. Uygun değilsen Reddet'i seçebilirsin.",
+      "hint": "Kabul Et'e tıkla"
+    },
+    "appointmentsList": {
+      "title": "Randevuların tek listede",
+      "body": "\"Mentor olarak\" ve \"Mentee olarak\" etiketleri hangi randevuda hangi rolde olduğunu gösterir.",
+      "hint": "Turu Bitir'e tıkla"
+    },
+    "addAvailability": {
+      "title": "Müsaitliğini ekle",
+      "body": "Öğrenciler yalnızca açtığın saatlerden randevu talep edebilir.",
+      "hint": "Müsaitlik Ekle'ye tıkla"
+    },
+    "weeklyHours": {
+      "title": "Haftalık saatlerini ekle",
+      "body": "Her hafta tekrarlanan saatlerin burada. Tek seferlik saatler ve müsait olmadığın günler de aynı sayfada.",
+      "hint": "Haftalık saatlerine tıkla"
+    },
+    "openRequest": {
+      "title": "Gelen talebi aç",
+      "body": "Talepler takvimde kesikli çerçeveyle görünür; onaylanana kadar kesinleşmez.",
+      "hint": "Talebe tıkla"
+    },
+    "answerRequest": {
+      "title": "Talebi yanıtla",
+      "body": "Kabul Et, Reddet ya da Alternatif Saat Öner. Önerdiğin saat, öğrenci kabul edince onaylanır.",
+      "hint": "Kabul Et'e tıkla"
+    }
+  }
+}
