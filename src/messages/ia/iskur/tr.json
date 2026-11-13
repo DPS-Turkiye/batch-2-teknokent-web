@@ -142,7 +142,7 @@
       },
       "documents": {
         "title": "Deneyimini belgelerle destekle",
-        "subtitle": "Şimdilik bağlantılarını ekleyebilirsin; belge yükleme yakında geliyor."
+        "subtitle": "Seçtiğin kategorilere göre bazı belgeler istenir. Profilinde neyin görüneceğine sen karar verirsin."
       },
       "availability": {
         "title": "Ne zaman müsaitsin?",
@@ -216,17 +216,65 @@
       "counter": "En az {min} karakter · {length} / {max}"
     },
     "documents": {
-      "linksTitle": "Portfolyo ve bağlantılar",
       "linkedin": "LinkedIn",
       "linkedinPlaceholder": "https://www.linkedin.com/in/…",
-      "soonTitle": "Belge yükleme yakında",
-      "soonBody": "Transkript, CV, sertifika ve diğer belgeleri yükleyip profilinde neyin görüneceğini seçebileceksin.",
+      "portfolio": "Portfolyo veya proje bağlantısı",
+      "portfolioPlaceholder": "https://github.com/…, behance.net veya kişisel site",
+      "addLink": "Bağlantı ekle",
+      "addingLink": "Ekleniyor…",
+      "removeLink": "{url} bağlantısını kaldır",
       "kinds": {
         "transcript": "Öğrenci belgesi veya transkript",
         "cv": "CV",
         "certificate": "Lisans veya sertifika",
+        "portfolio": "Portfolyo ve bağlantılar",
         "other": "Diğer materyaller"
-      }
+      },
+      "hints": {
+        "requiredFor": "{category} kategorisi için istenir",
+        "requiredIn": "{category} kategorisinde zorunlu olur",
+        "certificate": "Mesleki lisans, sertifika ya da tamamladığın eğitimlerin belgeleri",
+        "other": "Deneyimini destekleyen başka belgeler"
+      },
+      "required": "Zorunlu",
+      "optional": "Opsiyonel",
+      "uploaded": "Yüklendi",
+      "progress": "{done} / {total} zorunlu belge yüklendi",
+      "progressItem": "{category} için {document}",
+      "noRequired": "Seçtiğin kategoriler için zorunlu belge yok; istersen yine de ekleyebilirsin.",
+      "drop": "Dosyanı sürükle bırak veya",
+      "choose": "dosya seç",
+      "formats": "PDF · en fazla {max}",
+      "uploading": "Yükleniyor…",
+      "fileMeta": "{size} · Yüklendi",
+      "removeFile": "{name} dosyasını kaldır",
+      "viewFile": "{name} dosyasını görüntüle",
+      "addMaterial": "Materyal ekle",
+      "otherKindsLabel": "Materyal türü",
+      "visibilityLabel": "{card}: kim görsün?",
+      "visibility": {
+        "VERIFICATION_ONLY": "Yalnızca doğrulama için",
+        "PROFILE": "Profilimde göster"
+      },
+      "types": {
+        "TRANSCRIPT": "Transkript",
+        "CV": "CV",
+        "CERTIFICATE": "Sertifika",
+        "PORTFOLIO": "Portfolyo",
+        "REFERENCE_LETTER": "Referans mektubu",
+        "AWARD": "Ödül / yarışma belgesi",
+        "VOLUNTEERING": "Gönüllülük belgesi",
+        "PROJECT_REPORT": "Proje raporu"
+      },
+      "safeTitle": "Belgelerin güvende",
+      "safeBody": "\"Yalnızca doğrulama için\" seçtiğin belgeleri sadece program koordinatörü doğrulama amacıyla görür. \"Profilimde göster\" seçtiklerin öğrencilere görünür.",
+      "notPdf": "Yalnızca PDF dosyası yükleyebilirsin.",
+      "tooLarge": "Dosya en fazla {max} olabilir.",
+      "linkInvalid": "https:// ile başlayan bir bağlantı gir.",
+      "uploadFailed": "Dosya yüklenemedi.",
+      "linkFailed": "Bağlantı eklenemedi.",
+      "visibilityFailed": "Görünürlük değiştirilemedi.",
+      "removeFailed": "Kaldırılamadı."
     },
     "availability": {
       "title": "Haftalık müsaitlik"
@@ -326,7 +374,11 @@
       "thisWeekFull": "Boş saat yok",
       "newTab": "(yeni sekmede açılır)",
       "experienceRange": "{start} – {end}",
-      "ongoing": "Devam ediyor"
+      "ongoing": "Devam ediyor",
+      "sharedDocuments": "Paylaşılan belgeler",
+      "view": "Görüntüle",
+      "viewFile": "{name} dosyasını görüntüle",
+      "portfolioLink": "Portfolyo ({host})"
     },
     "dialog": {
       "title": "Mentorluk talebi gönder",

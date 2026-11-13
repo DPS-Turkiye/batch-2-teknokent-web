@@ -142,7 +142,7 @@
       },
       "documents": {
         "title": "Back your experience with documents",
-        "subtitle": "For now you can add your links; document upload is coming soon."
+        "subtitle": "Some documents are requested for the categories you chose. You decide what shows on your profile."
       },
       "availability": {
         "title": "When are you available?",
@@ -216,17 +216,65 @@
       "counter": "At least {min} characters · {length} / {max}"
     },
     "documents": {
-      "linksTitle": "Portfolio and links",
       "linkedin": "LinkedIn",
       "linkedinPlaceholder": "https://www.linkedin.com/in/…",
-      "soonTitle": "Document upload coming soon",
-      "soonBody": "You'll be able to upload a transcript, CV, certificates and other documents and choose what shows on your profile.",
+      "portfolio": "Portfolio or project link",
+      "portfolioPlaceholder": "https://github.com/…, behance.net or a personal site",
+      "addLink": "Add link",
+      "addingLink": "Adding…",
+      "removeLink": "Remove the link {url}",
       "kinds": {
         "transcript": "Student certificate or transcript",
         "cv": "CV",
         "certificate": "Licence or certificate",
+        "portfolio": "Portfolio and links",
         "other": "Other materials"
-      }
+      },
+      "hints": {
+        "requiredFor": "Requested for the {category} category",
+        "requiredIn": "Required in the {category} category",
+        "certificate": "Professional licences, certificates or documents of courses you completed",
+        "other": "Other documents that back your experience"
+      },
+      "required": "Required",
+      "optional": "Optional",
+      "uploaded": "Uploaded",
+      "progress": "{done} / {total} required documents uploaded",
+      "progressItem": "{document} for {category}",
+      "noRequired": "Your categories need no required documents; you can still add some.",
+      "drop": "Drag and drop your file or",
+      "choose": "choose a file",
+      "formats": "PDF · up to {max}",
+      "uploading": "Uploading…",
+      "fileMeta": "{size} · Uploaded",
+      "removeFile": "Remove {name}",
+      "viewFile": "View {name}",
+      "addMaterial": "Add material",
+      "otherKindsLabel": "Material type",
+      "visibilityLabel": "{card}: who sees it?",
+      "visibility": {
+        "VERIFICATION_ONLY": "For verification only",
+        "PROFILE": "Show on my profile"
+      },
+      "types": {
+        "TRANSCRIPT": "Transcript",
+        "CV": "CV",
+        "CERTIFICATE": "Certificate",
+        "PORTFOLIO": "Portfolio",
+        "REFERENCE_LETTER": "Reference letter",
+        "AWARD": "Award / competition certificate",
+        "VOLUNTEERING": "Volunteering certificate",
+        "PROJECT_REPORT": "Project report"
+      },
+      "safeTitle": "Your documents are safe",
+      "safeBody": "Documents you mark \"For verification only\" are seen only by the program coordinator, to verify them. Those you mark \"Show on my profile\" are visible to students.",
+      "notPdf": "You can only upload PDF files.",
+      "tooLarge": "The file can be at most {max}.",
+      "linkInvalid": "Enter a link that starts with https://.",
+      "uploadFailed": "The file couldn't be uploaded.",
+      "linkFailed": "The link couldn't be added.",
+      "visibilityFailed": "The visibility couldn't be changed.",
+      "removeFailed": "It couldn't be removed."
     },
     "availability": {
       "title": "Weekly availability"
@@ -326,7 +374,11 @@
       "thisWeekFull": "No free slots",
       "newTab": "(opens in a new tab)",
       "experienceRange": "{start} – {end}",
-      "ongoing": "Ongoing"
+      "ongoing": "Ongoing",
+      "sharedDocuments": "Shared documents",
+      "view": "View",
+      "viewFile": "View {name}",
+      "portfolioLink": "Portfolio ({host})"
     },
     "dialog": {
       "title": "Send a mentoring request",

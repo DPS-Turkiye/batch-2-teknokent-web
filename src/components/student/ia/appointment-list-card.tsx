@@ -10,6 +10,7 @@ import {
 } from "@/interfaces/appointment";
 import { shortWeekday, timeLabel } from "@/lib/calendar";
 import { dateTile } from "@/lib/coordinator-program-detail";
+import { offeredTimes } from "@/lib/student-office-hours";
 import { formatDayMonth } from "@/lib/utils";
 
 const KIND_ICON = {
@@ -19,7 +20,8 @@ const KIND_ICON = {
 
 /**
  * One appointment on Randevularım's list (Figma 82:496): the date badge, who, which kind and its status. While
- * the other side proposed another time it shows both times; `actions` holds that kind's answer buttons.
+ * the other side proposed other times it shows the asked-for time and each offered one; `actions` holds that
+ * kind's answer buttons.
  */
 export function AppointmentListCard({
   appointment,
@@ -35,7 +37,7 @@ export function AppointmentListCard({
   const tTopic = useTranslations("peerTopics");
   const locale = useLocale();
   const badge = dateTile(appointment.startsAt, locale);
-  const { counterpart, alternative } = appointment;
+  const { counterpart } = appointment;
   const KindIcon = KIND_ICON[appointment.kind];
   const start = new Date(appointment.startsAt);
   const subject = appointment.category
@@ -43,7 +45,12 @@ export function AppointmentListCard({
     : appointment.topic;
   const proposed =
     appointment.status === AppointmentStatus.AlternativeProposed
-      ? alternative
+      ? offeredTimes(appointment)
+      : [];
+  const reason =
+    appointment.status === AppointmentStatus.Rejected ||
+    appointment.status === AppointmentStatus.Cancelled
+      ? appointment.rejectReason
       : null;
 
   return (
@@ -71,7 +78,7 @@ export function AppointmentListCard({
                 {tKind(appointment.kind)}
               </span>
             </div>
-            {proposed ? null : (
+            {proposed.length > 0 ? null : (
               <p className="flex items-center gap-1 type-body-sm text-text-secondary">
                 <Clock
                   aria-hidden
@@ -91,7 +98,7 @@ export function AppointmentListCard({
           <AppointmentStatusBadge status={appointment.status} />
         </div>
       </div>
-      {proposed ? (
+      {proposed.length > 0 ? (
         <div className="flex flex-wrap items-center gap-3 rounded-2xl bg-status-info-bg px-4 py-3">
           <p className="flex flex-col">
             <span className="type-caption text-text-secondary">
@@ -110,16 +117,27 @@ export function AppointmentListCard({
             <span className="type-caption text-status-info-text">
               {t("alternative.proposed")}
             </span>
-            <span className="type-label-lg text-status-info-text">
-              {`${formatDayMonth(new Date(proposed.startsAt), locale)} ${shortWeekday(new Date(proposed.startsAt), locale)} · ${timeLabel(proposed.startsAt, locale)}`}
-            </span>
+            {proposed.map((time) => (
+              <span
+                key={time.startsAt}
+                className="type-label-lg text-status-info-text"
+              >
+                {`${formatDayMonth(new Date(time.startsAt), locale)} ${shortWeekday(new Date(time.startsAt), locale)} · ${timeLabel(time.startsAt, locale)}`}
+              </span>
+            ))}
           </p>
         </div>
       ) : null}
-      {appointment.status === AppointmentStatus.Rejected &&
-      appointment.rejectReason ? (
+      {appointment.counterpartMessage ? (
+        <p className="type-body-sm break-words text-text-secondary">
+          {t("counterpartMessage", {
+            message: appointment.counterpartMessage,
+          })}
+        </p>
+      ) : null}
+      {reason ? (
         <p className="type-body-sm text-text-secondary">
-          {t("rejectReason", { reason: appointment.rejectReason })}
+          {t("rejectReason", { reason })}
         </p>
       ) : null}
       {actions ? (
