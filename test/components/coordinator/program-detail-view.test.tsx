@@ -411,6 +411,31 @@ describe("coordinator program detail", () => {
     ).toBeEnabled();
   });
 
+  it("does not offer an admin the weekly program upload or read, which the backend refuses them", async () => {
+    vi.mocked(usePathname).mockReturnValue(
+      "/admin/programs/program-1/settings",
+    );
+    vi.mocked(getCoordinatorProgram).mockResolvedValue(
+      coordinatorProgramDetail({
+        syllabus: {
+          id: "doc-weekly",
+          filename: "haftalik-program.pdf",
+          sizeBytes: 70_000,
+          uploadedAt: "2026-06-01T09:00:00Z",
+          kind: DocumentKind.WeeklyProgram,
+        },
+      }),
+    );
+    renderWithQueryClient(<ProgramSettingsView programId="program-1" />);
+
+    expect(await screen.findByText("haftalik-program.pdf")).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Yeni PDF yükle" }),
+    ).toBeDisabled();
+    expect(screen.getByRole("button", { name: /Yeniden oku/ })).toBeDisabled();
+    expect(readWeeklyProgram).not.toHaveBeenCalled();
+  });
+
   it("reads the weekly program again and saves the reviewed weeks and phases in one step", async () => {
     const detail = coordinatorProgramDetail({
       syllabus: {
