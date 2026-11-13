@@ -45,6 +45,10 @@ export function RequestStatusBadge({
   );
 }
 
+/** A text field in the İŞKUR/ODTÜ student screens (the wizard's inputs). */
+export const ISKUR_FIELD_CLASS =
+  "w-full rounded-input border border-border-control bg-background-surface px-4 py-3 type-body text-text-primary placeholder:text-text-placeholder focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-border-selected";
+
 export enum TagTone {
   Neutral = "neutral",
   Success = "success",
