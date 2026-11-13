@@ -33,6 +33,19 @@ export enum ProgramMemberKind {
   Startups = "startups",
 }
 
+/** A team's move from one program to another, as the backend recorded it. */
+export type ProgramTeamMove = {
+  id: string;
+  organizationId: string;
+  fromProgramId: string;
+  fromProgramName: string;
+  toProgramId: string;
+  toProgramName: string;
+  movedAt: string;
+  /** Unanswered mentorship requests of the old program that the move closed. */
+  withdrawnRequests: number;
+};
+
 export type AdminStartup = {
   id: string;
   name: string;

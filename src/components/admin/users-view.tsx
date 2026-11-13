@@ -16,6 +16,7 @@ import {
   CoordinatorApplicationDialog,
 } from "@/components/admin/coordinator-approval";
 import { DeleteUserButton } from "@/components/admin/delete-user-section";
+import { MoveTeamProgram } from "@/components/admin/move-team-program";
 import { RevokeSignInsButton } from "@/components/admin/revoke-sign-ins-button";
 import { TeamHistory } from "@/components/common/team-history";
 import { ProfileLink } from "@/components/people/profile-link";
@@ -39,9 +40,9 @@ import { MentorshipStatus } from "@/interfaces/coordinator-mentorship";
 import { UserAccountStatus } from "@/interfaces/session";
 import {
   activeMentorshipFor,
-  assignableProgramsForStartup,
   coordinatorsOf,
   mentorsOf,
+  moveTargetsForStartup,
   programsForCoordinator,
   startupsOf,
 } from "@/lib/admin-model";
@@ -1068,10 +1069,10 @@ function TeamDrawer({
                 <span className="text-[#858c96]">{t("programField")}</span>
                 {startup.programName}
               </p>
-              <AssignToProgram
-                kind={ProgramMemberKind.Startups}
-                targetId={startup.id}
-                programs={assignableProgramsForStartup(data, startup.id)}
+              <MoveTeamProgram
+                team={startup}
+                programs={moveTargetsForStartup(data, startup)}
+                onMoved={requestClose}
               />
               <p>
                 <span className="text-[#858c96]">{t("sectorField")}</span>
