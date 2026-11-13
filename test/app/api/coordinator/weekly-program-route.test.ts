@@ -127,18 +127,17 @@ describe("weekly program proxy", () => {
       "coordinator-1",
       "program-1",
       "doc-1",
-      undefined,
     );
   });
 
-  it("forwards the coordinator's own token so the read counts against their budget", async () => {
+  it("reads on the service credentials even when the browser sends its token", async () => {
+    // The backend refuses a bearer on this path with 403 ("only reachable through the app").
     await read({ documentId: "doc-1" }, { Authorization: "Bearer token-1" });
 
     expect(readWeeklyProgram).toHaveBeenCalledWith(
       "coordinator-1",
       "program-1",
       "doc-1",
-      "token-1",
     );
   });
 
