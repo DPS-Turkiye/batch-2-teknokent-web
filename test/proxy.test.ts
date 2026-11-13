@@ -4,6 +4,7 @@ import {
   afterAll,
   afterEach,
   beforeAll,
+  beforeEach,
   describe,
   expect,
   it,
@@ -37,8 +38,12 @@ const IPHONE =
 const IPAD =
   "Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1";
 
-beforeAll(async () => {
+// Env stubs are undone after every test (vitest.config unstubEnvs), so the password is set for each one.
+beforeEach(() => {
   vi.stubEnv("SESSION_PASSWORD", PASSWORD);
+});
+
+beforeAll(async () => {
   signedIn = `teknokent_session=${await sealData(
     { user: MENTEE, issuedAt: Date.now() },
     { password: PASSWORD },

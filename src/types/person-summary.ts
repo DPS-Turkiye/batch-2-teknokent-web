@@ -49,7 +49,10 @@ export type SummaryProgramNote =
 export type SummaryStatusTone = "green" | "amber" | "red";
 
 export type SummaryStatusLabel =
-  "statuses.APPROVED" | "statuses.PENDING" | "statuses.REJECTED";
+  | "statuses.APPROVED"
+  | "statuses.PENDING"
+  | "statuses.REJECTED"
+  | "statuses.DELETED";
 
 export type KeyedText = { key: string; value: string };
 

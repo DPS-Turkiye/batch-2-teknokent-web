@@ -20,6 +20,8 @@ export enum UserAccountStatus {
   Pending = "PENDING",
   Approved = "APPROVED",
   Rejected = "REJECTED",
+  /** An account an admin deleted: no personal data is left on it and nobody can sign in as it. */
+  Deleted = "DELETED",
 }
 
 export type AppSession = {

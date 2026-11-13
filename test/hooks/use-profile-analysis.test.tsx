@@ -97,6 +97,7 @@ describe("useProfileAnalysis", () => {
       file: new File(["x"], "cv.pdf"),
       ocrMode: ProfileOcrMode.Auto,
       profileType: ProfileAnalysisType.Personal,
+      consentAccepted: true,
       appUserId: "member-1",
     });
 

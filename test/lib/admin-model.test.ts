@@ -7,14 +7,19 @@ import type {
   AdminStartup,
 } from "@/interfaces/admin-overview";
 import { MentorshipStatus } from "@/interfaces/coordinator-mentorship";
-import { ProgramMentorStatus, ProgramStatus } from "@/interfaces/program";
+import {
+  ProgramMentorStatus,
+  ProgramStatus,
+  ProgramType,
+} from "@/interfaces/program";
 import {
   activeMentorshipFor,
   assignableProgramsForMentor,
-  assignableProgramsForStartup,
+  canRemoveMentorFromProgram,
   coordinatorUsersHref,
   countsInProgram,
   mentorshipInPrograms,
+  moveTargetsForStartup,
   programOfMentorship,
   unmatchedStartups,
 } from "@/lib/admin-model";
@@ -103,14 +108,20 @@ describe("admin-model programs the admin can still assign to", () => {
     ).toEqual(["program-1", "program-2"]);
   });
 
-  it("offers open programs a startup is not in", () => {
-    const fresh = { ...withMentors, startups: [] };
+  it("offers every other open startup program as a team's move target", () => {
+    const peer: AdminProgram = {
+      ...programOf(lumenIn("program-4", "Akran Programı")),
+      type: ProgramType.PeerMentoring,
+    };
+    const all = { ...data, programs: [stars, withMentors, closed, peer] };
+
     expect(
-      assignableProgramsForStartup(
-        { ...data, programs: [stars, fresh, closed] },
-        "org-1",
-      ).map((item) => item.id),
+      moveTargetsForStartup(all, lumenInStars).map((item) => item.id),
     ).toEqual(["program-2"]);
+    // A team listed in both programs can still be moved into the other one.
+    expect(
+      moveTargetsForStartup(all, lumenInGrowth).map((item) => item.id),
+    ).toEqual(["program-1"]);
   });
 });
 
@@ -122,6 +133,18 @@ describe("admin-model program attribution", () => {
     expect(countsInProgram(item, "program-2")).toBe(false);
     expect(mentorshipInPrograms(item, [stars])).toBe(true);
     expect(mentorshipInPrograms(item, [growth])).toBe(false);
+  });
+
+  it("keeps a mentorship under the program it was made in after its team moved to another one", () => {
+    const item = mentorship("m-1", "program-1");
+    const starsAfterTheMove: AdminProgram = { ...stars, startups: [] };
+
+    expect(mentorshipInPrograms(item, [starsAfterTheMove])).toBe(true);
+    expect(mentorshipInPrograms(item, [growth])).toBe(false);
+    // One made before programs were recorded has nothing to stay with, so it follows its team.
+    expect(
+      mentorshipInPrograms(mentorship("m-old", null), [starsAfterTheMove]),
+    ).toBe(false);
   });
 
   it("counts an older mentorship without a program in each of its team's programs", () => {
@@ -178,5 +201,57 @@ describe("admin-model coordinator link", () => {
     );
     expect(coordinatorUsersHref({ coordinatorId: null })).toBe("/admin/users");
     expect(coordinatorUsersHref(undefined)).toBe("/admin/users");
+  });
+});
+
+describe("admin-model removing a mentor from a program", () => {
+  function programWith(
+    status: ProgramMentorStatus,
+    type = ProgramType.StartupMentoring,
+  ): AdminProgram {
+    return adminProgram({
+      type,
+      mentors: [
+        { mentorId: "mentor-1", fullName: "Leyla", email: "l@x.co", status },
+      ],
+    });
+  }
+
+  it("offers it for a mentor the program accepted, whatever the program's state", () => {
+    const running = programWith(ProgramMentorStatus.Accepted);
+    const ended = { ...running, status: ProgramStatus.Completed };
+
+    expect(canRemoveMentorFromProgram(running, "mentor-1")).toBe(true);
+    expect(canRemoveMentorFromProgram(ended, "mentor-1")).toBe(true);
+  });
+
+  it("leaves an open invitation, a refusal and someone else's membership alone", () => {
+    expect(
+      canRemoveMentorFromProgram(
+        programWith(ProgramMentorStatus.Pending),
+        "mentor-1",
+      ),
+    ).toBe(false);
+    expect(
+      canRemoveMentorFromProgram(
+        programWith(ProgramMentorStatus.Rejected),
+        "mentor-1",
+      ),
+    ).toBe(false);
+    expect(
+      canRemoveMentorFromProgram(
+        programWith(ProgramMentorStatus.Accepted),
+        "mentor-2",
+      ),
+    ).toBe(false);
+  });
+
+  it("does not offer it in a program that is not startup mentoring", () => {
+    expect(
+      canRemoveMentorFromProgram(
+        programWith(ProgramMentorStatus.Accepted, ProgramType.PeerMentoring),
+        "mentor-1",
+      ),
+    ).toBe(false);
   });
 });

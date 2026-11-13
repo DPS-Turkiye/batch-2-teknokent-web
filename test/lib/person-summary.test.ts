@@ -220,6 +220,14 @@ describe("personSummaryModel", () => {
       "mentorPending",
     ]);
   });
+
+  it("labels a deleted account as deleted", () => {
+    const model = personSummaryModel(
+      mentorSummary({ status: UserAccountStatus.Deleted }),
+    );
+
+    expect(model.status).toEqual({ tone: "red", label: "statuses.DELETED" });
+  });
 });
 
 describe("availabilityModel", () => {

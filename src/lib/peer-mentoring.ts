@@ -17,6 +17,7 @@ import type { ProfileCompletionCategory } from "@/interfaces/student-profile-com
 import { isUpcoming } from "@/lib/appointments";
 import { toTimeInput } from "@/lib/mentor-availability";
 import {
+  IskurHomeMode,
   PeerCapacityNote,
   PeerRequestAvailability,
 } from "@/types/iskur-student";
@@ -265,6 +266,35 @@ export function peerMentorProfileHref(mentorId: string) {
   return `/student/peer-mentoring/mentors/${encodeURIComponent(mentorId)}`;
 }
 
+type CatalogueSubTopic = ProfileCompletionCategory["subtopics"][number];
+
+/** The sub-topics a filter can offer: the chosen category's, or every listed category's, each once. */
+export function subTopicOptions(
+  catalogue: readonly ProfileCompletionCategory[],
+  category: PeerTopicCategory | null,
+): CatalogueSubTopic[] {
+  const seen = new Set<string>();
+  return catalogue
+    .filter((item) => category === null || item.id === category)
+    .flatMap((item) => item.subtopics)
+    .filter((sub) => {
+      if (seen.has(sub.id)) return false;
+      seen.add(sub.id);
+      return true;
+    });
+}
+
+/** Each sub-topic id the mentor offers, with its catalogue entry when there is one (older free text has none). */
+export function offeredSubTopics(
+  catalogue: readonly ProfileCompletionCategory[],
+  ids: readonly string[],
+): { id: string; entry: CatalogueSubTopic | null }[] {
+  const byId = new Map(
+    catalogue.flatMap((item) => item.subtopics).map((sub) => [sub.id, sub]),
+  );
+  return ids.map((id) => ({ id, entry: byId.get(id) ?? null }));
+}
+
 /**
  * Each peer request's next meeting: the earliest one still to come (not refused, called off or over). A cancelled or
  * past meeting is never "Sıradaki görüşme".
@@ -284,4 +314,14 @@ export function nextSessionsByRequest<
     }
   }
   return next;
+}
+
+/** Which İŞKUR blocks the home shows; a session that lags behind a new badge waits like a missing profile. */
+export function iskurHomeMode(
+  gate: PeerMentorGateState,
+  hasProfile: boolean,
+): IskurHomeMode {
+  if (gate === PeerMentorGateState.NoBadge) return IskurHomeMode.Training;
+  if (gate !== PeerMentorGateState.Earned) return IskurHomeMode.None;
+  return hasProfile ? IskurHomeMode.Mentor : IskurHomeMode.CreateProfile;
 }

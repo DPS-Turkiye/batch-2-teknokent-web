@@ -4,7 +4,7 @@ import type {
   WeeklyProgramSaved,
 } from "@/interfaces/weekly-program";
 import { requireSuccess } from "@/lib/client/api";
-import { bearerHeader } from "@/lib/client/bearer";
+import { optionalBearerHeader } from "@/lib/client/bearer";
 import { httpClient, UPLOAD_TIMEOUT_MS } from "@/lib/http-client";
 
 const weeklyProgramUrl = (programId: string) =>
@@ -16,7 +16,7 @@ export async function readWeeklyProgram(programId: string, documentId: string) {
     await httpClient.post<WeeklyProgramProposal>(
       `${weeklyProgramUrl(programId)}/read`,
       { documentId },
-      { headers: await bearerHeader(), timeout: UPLOAD_TIMEOUT_MS },
+      { headers: await optionalBearerHeader(), timeout: UPLOAD_TIMEOUT_MS },
     ),
   );
 }

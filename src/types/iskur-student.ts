@@ -40,3 +40,15 @@ export enum PeerRequestAvailability {
   /** Every place is taken. */
   Full = "full",
 }
+
+/** What the İŞKUR home adds next to the shared student home. */
+export enum IskurHomeMode {
+  /** Not an İŞKUR student nor a peer mentor (or the badge was taken back): the shared home only. */
+  None = "none",
+  /** No badge yet: a card pointing to the training. */
+  Training = "training",
+  /** Badge earned, profile not published yet: a card pointing to the wizard. */
+  CreateProfile = "createProfile",
+  /** A published peer mentor: "Mentorluk verdiğim" and "Mentor profilin". */
+  Mentor = "mentor",
+}

@@ -1,11 +1,9 @@
 import { beforeEach, describe, vi } from "vitest";
 
-import { StartupStage } from "@/interfaces/startup-process";
 import {
   getStartupProcess,
   getTeamProcess,
   submitAssignment,
-  updateTeamStage,
 } from "@/lib/client/startup-process";
 import {
   itSendsEachClientCall,
@@ -46,12 +44,6 @@ const calls: ClientCall[] = [
     call: () => getTeamProcess("prog/1", "org/1"),
     method: "get",
     args: [STAGE],
-  },
-  {
-    title: "updateTeamStage puts the team's new stage",
-    call: () => updateTeamStage("prog/1", "org/1", StartupStage.Mvp),
-    method: "put",
-    args: [STAGE, { stage: StartupStage.Mvp }],
   },
 ];
 

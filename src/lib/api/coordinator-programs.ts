@@ -6,14 +6,12 @@ import type {
   CoordinatorRef,
   CreateProgramEventInput,
   CreateProgramInput,
-  ExtractSyllabusPhasesInput,
   ProgramCoordinatorTarget,
   ProgramEligibleEmail,
   ProgramEvent,
   ProgramPhaseInput,
   ProgramTeam,
   ProgramTeamDetail,
-  SyllabusPhases,
   TeamInviteInput,
   UpdateProgramDetailsInput,
 } from "@/interfaces/coordinator-program";
@@ -83,17 +81,6 @@ export function replaceCoordinatorProgramPhases(
     method: "PUT",
     url: `${programUrl(programId)}/phases`,
     data: { actorId, phases, syllabusDocumentId },
-  });
-}
-
-export function extractSyllabusPhases(
-  actorId: string,
-  input: ExtractSyllabusPhasesInput,
-) {
-  return backendRequest<SyllabusPhases>({
-    method: "POST",
-    url: "/api/coordinator/programs/syllabus/phases",
-    data: { ...input, actorId },
   });
 }
 

@@ -11,6 +11,7 @@ import {
   poolFilterOptions,
   poolRowNote,
   profileMentorId,
+  waitingPoolCount,
 } from "@/lib/mentor-pool";
 import { translatorIn } from "@test/translators";
 
@@ -140,5 +141,21 @@ describe("profileMentorId", () => {
       expect(profileMentorId(row({ status }))).toBeNull();
     }
     expect(profileMentorId(row({ mentorId: null }))).toBeNull();
+  });
+});
+
+describe("waitingPoolCount", () => {
+  it("counts every pool row the program's mentor count leaves out", () => {
+    expect(
+      waitingPoolCount([
+        row(),
+        row({ status: MentorPoolStatus.Full }),
+        row({ status: MentorPoolStatus.AwaitingApproval }),
+        row({ status: MentorPoolStatus.Invited }),
+        row({ status: MentorPoolStatus.InviteExpiring }),
+        row({ status: MentorPoolStatus.InviteExpired }),
+      ]),
+    ).toBe(4);
+    expect(waitingPoolCount([])).toBe(0);
   });
 });

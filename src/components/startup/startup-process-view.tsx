@@ -23,7 +23,7 @@ import {
   ChipTone,
   formatRoundRange,
   formatStageRange,
-  type StageCard,
+  type PhaseCard,
 } from "@/lib/startup-process";
 import { calendarDay, formatDayMonth } from "@/lib/utils";
 
@@ -41,26 +41,25 @@ const CHIP_TONES: Record<ChipTone, string> = {
 const RING_RADIUS = 47;
 const RING_LENGTH = 2 * Math.PI * RING_RADIUS;
 
-function StageCardButton({
+function PhaseCardButton({
   card,
   number,
   selected,
   onSelect,
 }: {
-  card: StageCard;
+  card: PhaseCard;
   number: number;
   selected: boolean;
   onSelect: () => void;
 }) {
   const t = useTranslations("startupProcess");
-  const tStages = useTranslations("startupStages");
-  const label = tStages(card.stage);
+  const label = card.phase.name;
   const count =
     card.total > 0
       ? t("doneCount", { done: card.done, total: card.total })
       : t("noAssignments");
-  const completed = card.state === StartupStageState.Completed;
-  const current = card.state === StartupStageState.Current;
+  const completed = card.phase.state === StartupStageState.Completed;
+  const current = card.phase.state === StartupStageState.Current;
   const actionTone = selected
     ? "bg-white text-[#e86f22]"
     : completed
@@ -210,7 +209,6 @@ function AssignmentRow({
 
 export function StartupProcessView() {
   const t = useTranslations("startupProcess");
-  const tStages = useTranslations("startupStages");
   const locale = useLocale();
   const process = useStartupProcess();
 
@@ -246,59 +244,79 @@ export function StartupProcessView() {
           <ProgramWeekCard className="lg:flex-1" />
           <WeeklyCheckIn />
         </div>
-        <section aria-label={t("stages")}>
-          <ol className="grid auto-cols-[minmax(150px,1fr)] grid-flow-col gap-3 overflow-x-auto pb-1">
-            {process.stageCards.map((card, index) => (
-              <li key={card.stage}>
-                <StageCardButton
-                  card={card}
-                  number={index + 1}
-                  selected={card.stage === process.selectedStage}
-                  onSelect={() => process.selectStage(card.stage)}
-                />
-              </li>
-            ))}
-          </ol>
+        <section aria-label={t("stages")} className="space-y-3">
+          {process.hasPhases ? (
+            <ol className="grid auto-cols-[minmax(150px,1fr)] grid-flow-col gap-3 overflow-x-auto pb-1">
+              {process.phaseCards.map((card, index) => (
+                <li key={card.phase.id}>
+                  <PhaseCardButton
+                    card={card}
+                    number={index + 1}
+                    selected={card.phase.id === process.selectedPhaseId}
+                    onSelect={() => process.selectPhase(card.phase.id)}
+                  />
+                </li>
+              ))}
+            </ol>
+          ) : (
+            /* TEST UI: placeholder until the design team's screen; replace when it arrives. */
+            <p className="rounded-xl border border-dashed border-[#e4e7ea] px-4 py-5 text-sm text-[#676e78]">
+              {t("noPhases")}
+            </p>
+          )}
+          {process.unphasedCount > 0 ? (
+            /* TEST UI: placeholder until the design team's screen; replace when it arrives. */
+            <button
+              type="button"
+              onClick={process.selectUnphased}
+              aria-pressed={process.showUnphased}
+              className={`rounded-full border px-3.5 py-1.5 text-[12.5px] font-medium ${process.showUnphased ? "border-[#e86f22] bg-[#fff4ec] text-[#9e4400]" : "border-[#e4e7ea] bg-white text-[#22262b]"}`}
+            >
+              {t("unphased", { count: process.unphasedCount })}
+            </button>
+          ) : null}
         </section>
 
-        <section
-          aria-label={t("focus")}
-          className="space-y-3 rounded-[10px] bg-[#fff4ec] px-6 py-5"
-        >
-          {round ? (
-            <>
-              <h2 className="text-xl leading-7 text-[#22262b]">
-                {round.title}
-              </h2>
-              <div className="flex items-center gap-3 text-[13px] font-medium text-[#22262b]">
-                <span>{round.name}</span>
-                <span className="flex items-center gap-1">
-                  <Image
-                    src="/startup/calendar-orange.svg"
-                    alt=""
-                    width={24}
-                    height={24}
-                  />
-                  {formatRoundRange(round.startsOn, round.endsOn, locale)}
-                </span>
-              </div>
-            </>
-          ) : (
-            <p className="text-sm text-[#676e78]">{t("noRound")}</p>
-          )}
-        </section>
+        {process.hasPhases && !process.showUnphased ? (
+          <section
+            aria-label={t("focus")}
+            className="space-y-3 rounded-[10px] bg-[#fff4ec] px-6 py-5"
+          >
+            {round ? (
+              <>
+                <h2 className="text-xl leading-7 text-[#22262b]">
+                  {round.title}
+                </h2>
+                <div className="flex items-center gap-3 text-[13px] font-medium text-[#22262b]">
+                  <span>{round.name}</span>
+                  <span className="flex items-center gap-1">
+                    <Image
+                      src="/startup/calendar-orange.svg"
+                      alt=""
+                      width={24}
+                      height={24}
+                    />
+                    {formatRoundRange(round.startsOn, round.endsOn, locale)}
+                  </span>
+                </div>
+              </>
+            ) : (
+              <p className="text-sm text-[#676e78]">{t("noRound")}</p>
+            )}
+          </section>
+        ) : null}
 
         <section aria-labelledby="startup-assignments" className={cardClass}>
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0 space-y-1">
               <h2 id="startup-assignments" className={cardTitleClass}>
-                {t("assignments")}
+                {process.assignmentsTitle}
               </h2>
               <p className="text-[12.5px] leading-[19px] text-[#676e78]">
                 {t("assignmentsHint")}
               </p>
             </div>
-            {process.totalAssignments > 0 ? (
+            {process.hasPhases && process.totalAssignments > 0 ? (
               <button
                 type="button"
                 onClick={process.toggleShowAll}
@@ -345,13 +363,13 @@ export function StartupProcessView() {
           <h2 id="startup-completed-stages" className={cardTitleClass}>
             {t("completedStages")}
           </h2>
-          {process.completedStages.length === 0 ? (
+          {process.completedPhases.length === 0 ? (
             <p className="text-sm text-[#858c96]">{t("noCompleted")}</p>
           ) : (
             <ul className="space-y-3">
-              {process.completedStages.map((row) => (
+              {process.completedPhases.map((row) => (
                 <li
-                  key={row.stage}
+                  key={row.phase.id}
                   className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#e4e7ea] bg-[#f8f9fa] px-3.5 py-3"
                 >
                   <span className="flex items-center gap-2.5 text-[13px] font-medium leading-5 text-[#4a5059]">
@@ -361,12 +379,16 @@ export function StartupProcessView() {
                       width={16}
                       height={16}
                     />
-                    {tStages(row.stage)}
+                    {row.phase.name}
                   </span>
                   <span className="flex gap-5 text-xs leading-[18px] text-[#858c96]">
-                    {row.startsOn && row.endsOn ? (
+                    {row.phase.startDate && row.phase.endDate ? (
                       <span>
-                        {formatStageRange(row.startsOn, row.endsOn, locale)}
+                        {formatStageRange(
+                          row.phase.startDate,
+                          row.phase.endDate,
+                          locale,
+                        )}
                       </span>
                     ) : null}
                     <span>

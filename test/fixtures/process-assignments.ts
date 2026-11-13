@@ -1,8 +1,5 @@
 import { ActionItemStatus } from "@/interfaces/action-item";
-import {
-  StartupStage,
-  type ProcessAssignment,
-} from "@/interfaces/startup-process";
+import type { ProcessAssignment } from "@/interfaces/startup-process";
 
 /** An open assignment a coordinator gave the team, with no due date or submission yet. */
 export function processAssignment(
@@ -11,7 +8,7 @@ export function processAssignment(
   return {
     id: "as-1",
     roundId: null,
-    stage: StartupStage.Problem,
+    phaseId: null,
     title: "Finansal model",
     description: null,
     status: ActionItemStatus.Open,
