@@ -88,6 +88,7 @@
       "proposed": "Önerilen"
     },
     "rejectReason": "Gerekçe: {reason}",
+    "counterpartMessage": "Akademisyenin mesajı: {message}",
     "legend": {
       "title": "Durumlar ne anlama geliyor?",
       "PENDING": "Akademisyen veya mentor henüz yanıtlamadı. Randevu kesinleşmedi.",
@@ -223,6 +224,7 @@
     },
     "answer": {
       "accept": "Önerilen Saati Kabul Et",
+      "acceptTime": "{time} önerisini kabul et",
       "decline": "Reddet",
       "accepted": "Önerilen saati kabul ettin; randevun onaylandı.",
       "declined": "Önerilen saati reddettin; talebin geri çekildi.",

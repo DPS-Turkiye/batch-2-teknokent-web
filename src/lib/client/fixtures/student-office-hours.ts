@@ -17,6 +17,7 @@ function academician(
 ): OfficeHoursAcademician {
   return {
     id,
+    accountId: null,
     fullName,
     academicTitle,
     department,

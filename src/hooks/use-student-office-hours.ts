@@ -38,6 +38,7 @@ import {
   filterAcademicians,
   firstBookableWeekDay,
   freeSlots,
+  offeredTimes,
   OFFICE_HOURS_DESCRIPTION_MAX,
   OFFICE_HOURS_LOOKAHEAD_DAYS,
   OFFICE_HOURS_TITLE_MAX,
@@ -88,9 +89,10 @@ function slotsQuery(
     ],
     queryFn: (): Promise<StudentOfficeHoursSlot[]> =>
       id !== null && duration !== null
-        ? getOfficeHoursSlots(id, from, days, duration)
+        ? getOfficeHoursSlots(id, from, days)
         : Promise.resolve([]),
-    enabled: id !== null,
+    // The advisor from the institution record has no Office Hours listing of their own to ask.
+    enabled: id !== null && id !== ADVISOR_ACADEMICIAN_ID,
   };
 }
 
@@ -103,16 +105,25 @@ function useAcademicianEntry(id: string) {
     queryFn: () => getOfficeHoursAcademician(id),
     enabled: !isAdvisor,
   });
+  // On the "advisor" route, the advisor's own listing (times, booking, history) once they opted in.
+  const listed = useQuery({
+    queryKey: OFFICE_HOURS_ACADEMICIANS_QUERY_KEY,
+    queryFn: getOfficeHoursAcademicians,
+    enabled: isAdvisor,
+  });
+  const advisorAccount = record.data?.advisor?.userId ?? null;
+  const listedAdvisor =
+    isAdvisor && advisorAccount !== null
+      ? listed.data?.find((item) => item.accountId === advisorAccount)
+      : undefined;
   const source = isAdvisor ? record : sample;
   const academician = isAdvisor
-    ? record.data
-      ? advisorAcademician(record.data)
-      : null
+    ? (listedAdvisor ?? (record.data ? advisorAcademician(record.data) : null))
     : (sample.data ?? null);
   return {
     academician,
-    /** Whose appointments are "with them": the advisor's own account id, not the route's "advisor". */
-    counterpartId: isAdvisor ? (record.data?.advisor?.userId ?? null) : id,
+    /** Whose appointments are "with them": the listing's id, as the requests name it. */
+    counterpartId: listedAdvisor?.id ?? (isAdvisor ? advisorAccount : id),
     isLoading: source.isLoading,
     error: source.error,
     notFound: source.isSuccess && academician === null,
@@ -126,7 +137,14 @@ export function useStudentOfficeHours() {
     queryFn: getOfficeHoursAcademicians,
   });
   const record = useInstitutionRecord();
-  const advisor = record.data ? advisorAcademician(record.data) : null;
+  // The advisor's own listing when they opted in, otherwise their name from the record, with no times to ask.
+  const advisorAccount = record.data?.advisor?.userId ?? null;
+  const listedAdvisor =
+    advisorAccount === null
+      ? undefined
+      : academicians.data?.find((item) => item.accountId === advisorAccount);
+  const advisor =
+    listedAdvisor ?? (record.data ? advisorAcademician(record.data) : null);
   const [from] = useState(startOfToday);
   const [filter, setFilter] = useState<OfficeHoursFilter>({
     query: "",
@@ -134,10 +152,10 @@ export function useStudentOfficeHours() {
     department: null,
     availableOnly: true,
   });
-  const everyone = [
-    ...(advisor ? [advisor] : []),
-    ...(academicians.data ?? []),
-  ];
+  const directory = (academicians.data ?? []).filter(
+    (item) => item.id !== listedAdvisor?.id,
+  );
+  const everyone = [...(advisor ? [advisor] : []), ...directory];
   const slots = useQueries({
     queries: everyone.map((item) =>
       slotsQuery(item, from, OFFICE_HOURS_LOOKAHEAD_DAYS),
@@ -150,12 +168,12 @@ export function useStudentOfficeHours() {
     ]),
   );
   const freeOf = (id: string) => free.get(id) ?? [];
-  const directory = academicians.data ?? [];
 
   return {
     isLoading: academicians.isLoading,
     // "Müsait saati olanlar" decides on the slots, so the list waits for them before it can say "none".
-    isLoadingSlots: slots.some((query) => query.isPending),
+    // isLoading, not isPending: an advisor without a listing has no slots to load, and a disabled query stays pending.
+    isLoadingSlots: slots.some((query) => query.isLoading),
     error: academicians.error,
     advisor: advisor
       ? {
@@ -261,15 +279,12 @@ export function useOfficeHoursBooking(id: string) {
       academician: OfficeHoursAcademician;
       slot: StudentOfficeHoursSlot;
     }) =>
-      requestOfficeHours(
-        {
-          academicianId: input.academician.id,
-          slot: { startsAt: input.slot.startsAt, endsAt: input.slot.endsAt },
-          title: title.trim(),
-          description: description.trim(),
-        },
-        input.academician,
-      ),
+      requestOfficeHours({
+        academicianId: input.academician.id,
+        slot: { startsAt: input.slot.startsAt, endsAt: input.slot.endsAt },
+        title: title.trim(),
+        description: description.trim(),
+      }),
     onSuccess: () =>
       Promise.all([
         queryClient.invalidateQueries({
@@ -360,27 +375,34 @@ export function useOfficeHoursBooking(id: string) {
   };
 }
 
-/** "Önerilen Saati Kabul Et" / "Reddet" on an Office Hours request with another time proposed. */
+/**
+ * "Önerilen Saati Kabul Et" / "Reddet" on an Office Hours request with other times offered: take one of them, or
+ * withdraw the request.
+ */
 export function useOfficeHoursAlternativeAnswer(appointment: Appointment) {
   const t = useTranslations("iaStudent.officeHours.answer");
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   const answer = useMutation({
-    mutationFn: (accept: boolean) =>
-      answerOfficeHoursAlternative(appointment.id, accept),
+    mutationFn: (time: string | null) =>
+      answerOfficeHoursAlternative(appointment.id, time !== null, time),
     onSuccess: () =>
       Promise.all([
         queryClient.invalidateQueries({
           queryKey: STUDENT_APPOINTMENTS_QUERY_KEY,
         }),
         queryClient.invalidateQueries({ queryKey: STUDENT_HOME_QUERY_KEY }),
+        // Withdrawing frees the time; taking another one books it.
+        queryClient.invalidateQueries({
+          queryKey: OFFICE_HOURS_SLOTS_QUERY_KEY,
+        }),
       ]),
   });
-  const respond = async (accept: boolean) => {
+  const respond = async (time: string | null) => {
     try {
-      await answer.mutateAsync(accept);
+      await answer.mutateAsync(time);
       showToast({
-        message: t(accept ? "accepted" : "declined"),
+        message: t(time === null ? "declined" : "accepted"),
         tone: ToastTone.Success,
       });
     } catch (error) {
@@ -391,8 +413,10 @@ export function useOfficeHoursAlternativeAnswer(appointment: Appointment) {
     }
   };
   return {
-    accept: () => respond(true),
-    decline: () => respond(false),
+    times: offeredTimes(appointment),
+    canDecline: appointment.canWithdraw ?? true,
+    accept: (time: string) => respond(time),
+    decline: () => respond(null),
     isAnswering: answer.isPending,
   };
 }

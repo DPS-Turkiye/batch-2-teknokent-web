@@ -11,6 +11,7 @@ import {
   filterAcademicians,
   firstBookableWeekDay,
   freeSlots,
+  offeredTimes,
   officeHoursRequestErrors,
   officeHoursWeek,
   optionsOf,
@@ -158,6 +159,10 @@ describe("canAnswerAlternative", () => {
     const officeHours = peerAppointment({
       kind: AppointmentKind.OfficeHours,
       status: AppointmentStatus.AlternativeProposed,
+      alternative: {
+        startsAt: "2026-11-25T10:00:00+03:00",
+        endsAt: "2026-11-25T10:30:00+03:00",
+      },
     });
     expect(canAnswerAlternative(officeHours)).toBe(true);
     expect(
@@ -172,6 +177,58 @@ describe("canAnswerAlternative", () => {
         kind: AppointmentKind.PeerMentoring,
       }),
     ).toBe(false);
+  });
+
+  it("goes by what the backend allows once it says", () => {
+    const officeHours = peerAppointment({
+      kind: AppointmentKind.OfficeHours,
+      status: AppointmentStatus.AlternativeProposed,
+      alternative: {
+        startsAt: "2026-11-25T10:00:00+03:00",
+        endsAt: "2026-11-25T10:30:00+03:00",
+      },
+    });
+    expect(
+      canAnswerAlternative({ ...officeHours, canAcceptAlternative: false }),
+    ).toBe(false);
+    expect(
+      canAnswerAlternative({
+        ...officeHours,
+        alternative: null,
+        alternatives: [],
+        canAcceptAlternative: true,
+      }),
+    ).toBe(false);
+    expect(
+      canAnswerAlternative({
+        ...officeHours,
+        status: AppointmentStatus.Pending,
+        canAcceptAlternative: true,
+      }),
+    ).toBe(true);
+  });
+});
+
+describe("offeredTimes", () => {
+  const first = {
+    startsAt: "2026-11-25T10:00:00+03:00",
+    endsAt: "2026-11-25T10:30:00+03:00",
+  };
+  const second = {
+    startsAt: "2026-11-26T11:00:00+03:00",
+    endsAt: "2026-11-26T11:30:00+03:00",
+  };
+
+  it("lists every offered time, or the one the sample data carries", () => {
+    expect(
+      offeredTimes(
+        peerAppointment({ alternative: first, alternatives: [first, second] }),
+      ),
+    ).toEqual([first, second]);
+    expect(offeredTimes(peerAppointment({ alternative: first }))).toEqual([
+      first,
+    ]);
+    expect(offeredTimes(peerAppointment({ alternative: null }))).toEqual([]);
   });
 });
 
