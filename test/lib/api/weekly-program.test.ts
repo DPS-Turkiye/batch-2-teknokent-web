@@ -13,15 +13,29 @@ describe("weekly program server API", () => {
     vi.mocked(backendRequest).mockReset();
   });
 
-  it("reads an encoded program's file with an upload's timeout, on the service credentials", async () => {
-    await readWeeklyProgram("coord-1", "prog/1", "doc-1");
+  it("reads an encoded program's file with an upload's timeout, as the token's owner", async () => {
+    await readWeeklyProgram("coord-1", "prog/1", "doc-1", "token-1");
 
-    expect(backendRequest).toHaveBeenCalledWith({
-      method: "POST",
-      url: "/api/coordinator/programs/prog%2F1/weekly-program/read",
-      data: { actorId: "coord-1", documentId: "doc-1" },
-      timeout: UPLOAD_TIMEOUT_MS,
-    });
+    expect(backendRequest).toHaveBeenCalledWith(
+      {
+        method: "POST",
+        url: "/api/coordinator/programs/prog%2F1/weekly-program/read",
+        data: { actorId: "coord-1", documentId: "doc-1" },
+        timeout: UPLOAD_TIMEOUT_MS,
+      },
+      { idToken: "token-1" },
+    );
+  });
+
+  it("falls back to the service credentials when there is no token", async () => {
+    await readWeeklyProgram("coord-1", "prog-1", "doc-1");
+
+    expect(backendRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: "/api/coordinator/programs/prog-1/weekly-program/read",
+      }),
+      { idToken: undefined },
+    );
   });
 
   it("saves the reviewed plan with the actor", async () => {
