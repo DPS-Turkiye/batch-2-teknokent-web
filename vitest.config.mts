@@ -20,6 +20,9 @@ export default defineConfig({
     // local dev server and fail differently than on CI; nothing listens on 9.
     environmentOptions: { jsdom: { url: "http://localhost:9/" } },
     setupFiles: ["./test/setup.ts"],
+    // vmForks shares process.env between the files a worker runs, so a stub left at the end of one file
+    // leaked into the next (the ODTÜ login button saw the dev login switched on). Undo every stub after each test.
+    unstubEnvs: true,
     globals: true,
     css: false,
     include: ["test/**/*.{test,spec}.{ts,tsx}"],
