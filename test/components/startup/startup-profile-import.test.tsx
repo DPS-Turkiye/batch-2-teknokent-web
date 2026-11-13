@@ -91,6 +91,7 @@ describe("embedded startup profile import", () => {
       file,
       profileType: "mentee",
       ocrMode: "auto",
+      consentAccepted: true,
     });
     await screen.findByRole("heading", { name: /Review/ });
     await user.clear(screen.getByLabelText("Technologies (comma-separated)"));

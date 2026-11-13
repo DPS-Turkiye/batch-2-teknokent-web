@@ -2273,6 +2273,9 @@
     "reading": "Reading your CV and filling in the fields…",
     "manual": "Your CV is not read automatically on this system; the file is only stored. Fill in your profile yourself."
   },
+  "cvConsent": {
+    "label": "I agree to my CV being read: my email, phone and Turkish ID numbers are masked on our system first; other details such as my name, schools and employers are not. The text is then parsed by an AI service abroad (USA) to fill my profile fields. If I do not agree, my CV is only stored and I fill the fields myself."
+  },
   "editableChips": {
     "add": "Add…",
     "addLabel": "Add {label}",

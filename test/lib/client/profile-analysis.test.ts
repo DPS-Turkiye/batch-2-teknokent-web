@@ -38,7 +38,7 @@ describe("profile analysis uploads", () => {
       data: { current_role: "Ürün Yöneticisi" },
     });
 
-    await parseCv(file);
+    await parseCv(file, true);
 
     const [url, , config] = itemAt(vi.mocked(httpClient.post).mock.calls, 0);
     expect(url).toContain("http://localhost:8080/api/profile-analyses/preview");
@@ -54,7 +54,7 @@ describe("profile analysis uploads", () => {
       data: { current_role: "Ürün Yöneticisi" },
     });
 
-    await parseStoredCv("cv-1");
+    await parseStoredCv("cv-1", true);
 
     const [url, body, config] = itemAt(
       vi.mocked(httpClient.post).mock.calls,
@@ -78,8 +78,8 @@ describe("profile analysis uploads", () => {
       data: {},
     });
 
-    await readCv(file, ProfileAnalysisType.Mentor);
-    await readCv({ documentId: "cv-1" }, ProfileAnalysisType.Mentor);
+    await readCv(file, true, ProfileAnalysisType.Mentor);
+    await readCv({ documentId: "cv-1" }, true, ProfileAnalysisType.Mentor);
 
     const [newUrl, newBody] = itemAt(vi.mocked(httpClient.post).mock.calls, 0);
     const [storedUrl] = itemAt(vi.mocked(httpClient.post).mock.calls, 1);
@@ -105,6 +105,7 @@ describe("profile analysis uploads", () => {
       file,
       ocrMode: ProfileOcrMode.Force,
       profileType: ProfileAnalysisType.Personal,
+      consentAccepted: true,
       appUserId: "user-1",
     });
 
@@ -130,16 +131,39 @@ describe("profile analysis uploads", () => {
       file,
       ocrMode: ProfileOcrMode.Auto,
       profileType: ProfileAnalysisType.Startup,
+      consentAccepted: true,
     });
 
     const [url] = itemAt(vi.mocked(httpClient.post).mock.calls, 0);
     expect(url).not.toContain("organizationId");
   });
 
+  it("sends the person's own answer, so a refused consent reaches the backend as false", async () => {
+    vi.mocked(httpClient.post).mockResolvedValue({ status: 200, data: {} });
+
+    await parseCv(file, false);
+    await parseStoredCv("cv-1", false);
+    await readCv(file, false, ProfileAnalysisType.Mentor);
+    await uploadProfileAnalysis({
+      file,
+      ocrMode: ProfileOcrMode.Auto,
+      profileType: ProfileAnalysisType.Startup,
+      consentAccepted: false,
+    });
+
+    const urls = vi.mocked(httpClient.post).mock.calls.map(([url]) => url);
+    expect(urls).toHaveLength(4);
+    for (const url of urls) {
+      expect(
+        new URLSearchParams(url.split("?")[1]).get("consentAccepted"),
+      ).toBe("false");
+    }
+  });
+
   it("fails with a clear message when there is no token", async () => {
     vi.mocked(currentIdToken).mockResolvedValue(null);
 
-    await expect(parseCv(file)).rejects.toThrow(/Oturumunuz sona erdi/);
+    await expect(parseCv(file, true)).rejects.toThrow(/Oturumunuz sona erdi/);
     expect(httpClient.post).not.toHaveBeenCalled();
   });
 });
