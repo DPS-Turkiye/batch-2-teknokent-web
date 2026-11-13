@@ -10,7 +10,7 @@ import { WeeklyAvailabilityEditor } from "@/components/availability/weekly-avail
 import { Button, ButtonSize, ButtonVariant } from "@/components/ia/button";
 import { Card } from "@/components/ia/card";
 import { InlineAlert } from "@/components/ia/inline-alert";
-import { StatusBadge, StatusTone } from "@/components/ia/status-badge";
+import { StatusTone } from "@/components/ia/status-badge";
 import { StepPills } from "@/components/ia/step-pills";
 import {
   CATEGORY_ART,
@@ -200,11 +200,6 @@ function Note({ children }: { children: ReactNode }) {
       {children}
     </p>
   );
-}
-
-function SoonBadge() {
-  const t = useTranslations("iaIskur.wizard");
-  return <StatusBadge tone={StatusTone.Neutral}>{t("soon")}</StatusBadge>;
 }
 
 function CategoriesStep({ wizard }: { wizard: Wizard }) {
@@ -485,7 +480,7 @@ function ExperienceCards({ wizard }: { wizard: Wizard }) {
               {t("cardTitle")}
             </span>
             <input
-              className={fieldClass}
+              className={ISKUR_FIELD_CLASS}
               value={form.title}
               maxLength={PEER_EXPERIENCE_TITLE_MAX}
               aria-required="true"
@@ -501,7 +496,7 @@ function ExperienceCards({ wizard }: { wizard: Wizard }) {
                 {t("organization")}
               </span>
               <input
-                className={fieldClass}
+                className={ISKUR_FIELD_CLASS}
                 value={form.organization}
                 maxLength={PEER_EXPERIENCE_TITLE_MAX}
                 aria-required="true"
@@ -517,7 +512,7 @@ function ExperienceCards({ wizard }: { wizard: Wizard }) {
               </span>
               <input
                 type="month"
-                className={fieldClass}
+                className={ISKUR_FIELD_CLASS}
                 value={form.startedOn}
                 placeholder={t("monthPlaceholder")}
                 aria-required="true"
@@ -534,7 +529,7 @@ function ExperienceCards({ wizard }: { wizard: Wizard }) {
                 </span>
                 <input
                   type="month"
-                  className={fieldClass}
+                  className={ISKUR_FIELD_CLASS}
                   value={form.endedOn}
                   placeholder={t("monthPlaceholder")}
                   {...invalid("endedOn", "experience-end-hint")}
@@ -554,7 +549,7 @@ function ExperienceCards({ wizard }: { wizard: Wizard }) {
           <label className="block space-y-2">
             <span className="type-label text-text-primary">{t("summary")}</span>
             <textarea
-              className={`${fieldClass} min-h-24`}
+              className={`${ISKUR_FIELD_CLASS} min-h-24`}
               value={form.summary}
               maxLength={PEER_EXPERIENCE_SUMMARY_MAX}
               onChange={(event) =>
