@@ -176,7 +176,7 @@ describe("StudentAppointmentsView", () => {
       within(card).queryByRole("button", { name: "Reddet" }),
     ).not.toBeInTheDocument();
     const accepts = within(card).getAllByRole("button", {
-      name: /saatini kabul et$/,
+      name: /önerisini kabul et$/,
     });
     expect(accepts).toHaveLength(3);
     await userEvent.click(accepts[1] ?? document.body);
@@ -297,6 +297,36 @@ describe("StudentAppointmentsView", () => {
       screen.getByRole("region", { name: "Uluslararası Fırsatlar" }),
     ).toBeVisible();
     expect(screen.getByRole("region", { name: "Renkler" })).toBeVisible();
+  });
+
+  it("lists every offered time in the picked request's detail", async () => {
+    vi.mocked(getStudentAppointments).mockResolvedValue([
+      {
+        ...alternative,
+        alternatives: [
+          {
+            startsAt: "2026-11-13T07:30:00.000Z",
+            endsAt: "2026-11-13T08:00:00.000Z",
+          },
+          {
+            startsAt: "2026-11-16T08:00:00.000Z",
+            endsAt: "2026-11-16T08:30:00.000Z",
+          },
+        ],
+      },
+    ]);
+    renderWithQueryClient(<StudentAppointmentsView />);
+    await panel();
+    await userEvent.click(screen.getByRole("button", { name: "Hafta" }));
+
+    const detail = screen.getByRole("region", {
+      name: "CV ve yüksek lisans seçenekleri",
+    });
+    expect(within(detail).getByText(/^13 Kas · .* – /)).toBeVisible();
+    expect(within(detail).getByText(/^16 Kas · .* – /)).toBeVisible();
+    expect(
+      within(detail).getAllByRole("button", { name: /önerisini kabul et$/ }),
+    ).toHaveLength(2);
   });
 
   it("pages the calendar and goes back to today", async () => {

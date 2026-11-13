@@ -319,6 +319,20 @@ describe("student Office Hours client", () => {
     expect(declined?.rejectReason).toBe("Bu konu dersin dışında");
   });
 
+  it("drops the academician's message once the request is settled", async () => {
+    vi.mocked(getMyOfficeHoursRequests).mockResolvedValue([
+      request({
+        status: OfficeHoursRequestStatus.Declined,
+        academicianMessage: "Bu konu dersin dışında",
+        rejectionReason: "Bu konu dersin dışında",
+      }),
+    ]);
+
+    const [declined] = await getStudentOfficeHoursAppointments();
+
+    expect(declined?.counterpartMessage).toBeNull();
+  });
+
   it("shows no requests for an account Office Hours does not know", async () => {
     vi.mocked(getMyOfficeHoursRequests).mockRejectedValue(
       new ClientApiError("Office hours not found.", 404),

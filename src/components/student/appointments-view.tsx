@@ -32,7 +32,7 @@ import {
 } from "@/interfaces/appointment";
 import { timeLabel } from "@/lib/calendar";
 import { calendarTitle } from "@/lib/student-appointments";
-import { canAnswerAlternative } from "@/lib/student-office-hours";
+import { canAnswerAlternative, offeredTimes } from "@/lib/student-office-hours";
 import { formatDayMonth } from "@/lib/utils";
 import {
   AppointmentsTab,
@@ -453,9 +453,9 @@ function AppointmentDetail({
   const locale = useLocale();
   const proposed =
     appointment.status === AppointmentStatus.AlternativeProposed
-      ? appointment.alternative
-      : null;
-  const shown = proposed ?? appointment;
+      ? offeredTimes(appointment)
+      : [];
+  const shown = proposed.length > 0 ? proposed : [appointment];
   const name = [appointment.counterpart.title, appointment.counterpart.fullName]
     .filter(Boolean)
     .join(" ");
@@ -481,17 +481,19 @@ function AppointmentDetail({
       </p>
       <div
         className={`mt-4 rounded-2xl px-4 py-3 ${
-          proposed
+          proposed.length > 0
             ? "bg-status-info-bg text-status-info-text"
             : "bg-background-subtle text-text-primary"
         }`}
       >
         <p className="type-caption">
-          {proposed ? t("proposedTime") : t("time")}
+          {proposed.length > 0 ? t("proposedTime") : t("time")}
         </p>
-        <p className="type-label-lg">
-          {`${formatDayMonth(new Date(shown.startsAt), locale)} · ${timeLabel(shown.startsAt, locale)} – ${timeLabel(shown.endsAt, locale)}`}
-        </p>
+        {shown.map((time) => (
+          <p key={time.startsAt} className="type-label-lg">
+            {`${formatDayMonth(new Date(time.startsAt), locale)} · ${timeLabel(time.startsAt, locale)} – ${timeLabel(time.endsAt, locale)}`}
+          </p>
+        ))}
       </div>
       {appointment.counterpartMessage ? (
         <p className="mt-3 type-body-sm break-words text-text-secondary">

@@ -224,7 +224,7 @@
     },
     "answer": {
       "accept": "Önerilen Saati Kabul Et",
-      "acceptTime": "{time} saatini kabul et",
+      "acceptTime": "{time} önerisini kabul et",
       "decline": "Reddet",
       "accepted": "Önerilen saati kabul ettin; randevun onaylandı.",
       "declined": "Önerilen saati reddettin; talebin geri çekildi.",

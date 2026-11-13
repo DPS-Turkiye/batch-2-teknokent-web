@@ -159,6 +159,10 @@ describe("canAnswerAlternative", () => {
     const officeHours = peerAppointment({
       kind: AppointmentKind.OfficeHours,
       status: AppointmentStatus.AlternativeProposed,
+      alternative: {
+        startsAt: "2026-11-25T10:00:00+03:00",
+        endsAt: "2026-11-25T10:30:00+03:00",
+      },
     });
     expect(canAnswerAlternative(officeHours)).toBe(true);
     expect(
@@ -179,9 +183,21 @@ describe("canAnswerAlternative", () => {
     const officeHours = peerAppointment({
       kind: AppointmentKind.OfficeHours,
       status: AppointmentStatus.AlternativeProposed,
+      alternative: {
+        startsAt: "2026-11-25T10:00:00+03:00",
+        endsAt: "2026-11-25T10:30:00+03:00",
+      },
     });
     expect(
       canAnswerAlternative({ ...officeHours, canAcceptAlternative: false }),
+    ).toBe(false);
+    expect(
+      canAnswerAlternative({
+        ...officeHours,
+        alternative: null,
+        alternatives: [],
+        canAcceptAlternative: true,
+      }),
     ).toBe(false);
     expect(
       canAnswerAlternative({

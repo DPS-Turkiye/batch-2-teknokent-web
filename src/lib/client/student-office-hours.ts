@@ -42,6 +42,12 @@ const APPOINTMENT_STATUS: Record<OfficeHoursRequestStatus, AppointmentStatus> =
     [OfficeHoursRequestStatus.Expired]: AppointmentStatus.Expired,
   };
 
+/** The academician's message is a question or the note with their offered times; once settled it says nothing new. */
+const MESSAGE_SHOWN = new Set([
+  OfficeHoursRequestStatus.MoreInfoRequested,
+  OfficeHoursRequestStatus.CounterProposed,
+]);
+
 /**
  * Tags, about, topics, courses and response time have no source yet, and where to meet comes only once a request is
  * a meeting; the screens leave out what is empty.
@@ -92,7 +98,9 @@ function toAppointment(request: OfficeHoursStudentRequest): Appointment {
     alternative: request.proposedTimes[0] ?? null,
     alternatives: request.proposedTimes,
     rejectReason: request.cancellation?.reason ?? request.rejectionReason,
-    counterpartMessage: request.academicianMessage,
+    counterpartMessage: MESSAGE_SHOWN.has(request.status)
+      ? request.academicianMessage
+      : null,
     canAcceptAlternative: request.allowedActions.includes(
       OfficeHoursStudentAction.AcceptProposed,
     ),

@@ -133,6 +133,7 @@ export function officeHoursRequestErrors(
 export function canAnswerAlternative(appointment: Appointment) {
   return (
     appointment.kind === AppointmentKind.OfficeHours &&
+    offeredTimes(appointment).length > 0 &&
     (appointment.canAcceptAlternative ??
       appointment.status === AppointmentStatus.AlternativeProposed)
   );
