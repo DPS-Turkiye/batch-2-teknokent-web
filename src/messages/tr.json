@@ -3432,17 +3432,6 @@
       "CANCELLED": "İptal Edildi",
       "EXPIRED": "Süresi Doldu",
       "WITHDRAWN": "Geri Çekildi"
-    },
-    "role": {
-      "MENTOR": "Mentor olarak",
-      "MENTEE": "Mentee olarak",
-      "OFFICE_HOURS": "Office Hours"
-    },
-    "card": {
-      "place": "Yer: {place}",
-      "alternative": "Önerilen alternatif (henüz onaylanmadı)",
-      "rejectReason": "Gerekçe: {reason}",
-      "join": "Görüşmeye katıl"
     }
   },
   "odtuWorkspaces": {

@@ -2,10 +2,8 @@ import type { ComponentProps } from "react";
 
 import type { StatusChip } from "@/components/admin/admin-ui";
 import {
-  AppointmentKind,
   AppointmentStatus,
   type Appointment,
-  type AppointmentSide,
   type AppointmentTime,
 } from "@/interfaces/appointment";
 
@@ -24,14 +22,6 @@ export const APPOINTMENT_STATUS_TONE: Record<
   [AppointmentStatus.Expired]: "neutral",
   [AppointmentStatus.Withdrawn]: "neutral",
 };
-
-/** The row label key: Office Hours rows say so; peer-mentoring rows say which side the viewer is on. */
-export function appointmentRoleKey(
-  kind: AppointmentKind,
-  side: AppointmentSide,
-) {
-  return kind === AppointmentKind.OfficeHours ? kind : side;
-}
 
 /** Still to come: not answered no or called off, and not over yet. */
 const OPEN_STATUSES = new Set([
