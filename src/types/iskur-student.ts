@@ -23,3 +23,32 @@ export enum PeerMentorJourneyStep {
   CreateProfile = "createProfile",
   Published = "published",
 }
+
+/** The Mentorluk Al side's tabs. */
+export enum PeerTakeTab {
+  Discover = "discover",
+  Mine = "mine",
+}
+
+/** Whether the student can send a mentor a request now. */
+export enum PeerRequestAvailability {
+  Open = "open",
+  /** A request to this mentor is still open. */
+  Requested = "requested",
+  /** This mentor already mentors the student (an accepted request). */
+  Mentoring = "mentoring",
+  /** Every place is taken. */
+  Full = "full",
+}
+
+/** What the İŞKUR home adds next to the shared student home. */
+export enum IskurHomeMode {
+  /** Not an İŞKUR student nor a peer mentor (or the badge was taken back): the shared home only. */
+  None = "none",
+  /** No badge yet: a card pointing to the training. */
+  Training = "training",
+  /** Badge earned, profile not published yet: a card pointing to the wizard. */
+  CreateProfile = "createProfile",
+  /** A published peer mentor: "Mentorluk verdiğim" and "Mentor profilin". */
+  Mentor = "mentor",
+}

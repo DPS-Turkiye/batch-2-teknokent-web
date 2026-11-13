@@ -21,7 +21,9 @@ vi.mock("@/lib/http-client", () => ({
 }));
 
 vi.mock("@/lib/client/bearer", () => ({
-  bearerHeader: vi.fn().mockResolvedValue({ Authorization: "Bearer token-1" }),
+  optionalBearerHeader: vi
+    .fn()
+    .mockResolvedValue({ Authorization: "Bearer token-1" }),
 }));
 
 const input = {

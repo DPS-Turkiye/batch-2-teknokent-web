@@ -37,10 +37,10 @@ function wrapper({ children }: { children: ReactNode }) {
 const file = new File(["%PDF"], "cv.pdf", { type: "application/pdf" });
 const upload = { name: file.name, size: 4, file };
 
-function wizardWith(role = "") {
+function wizardWith(role = "", cv: typeof upload | null = null) {
   const updatePersonal = vi.fn<SignupWizard["updatePersonal"]>();
   const wizard = signupWizardStub({
-    draft: signupDraft({ personal: { role, bio: "" } }),
+    draft: signupDraft({ personal: { role, bio: "", cv } }),
     updatePersonal,
   });
   return { wizard, updatePersonal };
@@ -61,6 +61,7 @@ describe("useSignupCv", () => {
     const { wizard, updatePersonal } = wizardWith();
     const { result } = renderHook(() => useSignupCv(wizard), { wrapper });
 
+    act(() => result.current.setConsent(true));
     act(() => result.current.choose(upload));
 
     expect(updatePersonal).toHaveBeenCalledWith("cv", upload);
@@ -68,7 +69,7 @@ describe("useSignupCv", () => {
       expect(updatePersonal).toHaveBeenCalledWith("role", "Ürün Yöneticisi"),
     );
     expect(updatePersonal).toHaveBeenCalledWith("bio", "Ürün geliştiriyorum.");
-    expect(parseCv).toHaveBeenCalledWith(file);
+    expect(parseCv).toHaveBeenCalledWith(file, true);
   });
 
   it("only keeps the CV when profile parsing is switched off", () => {
@@ -91,6 +92,7 @@ describe("useSignupCv", () => {
     const { wizard, updatePersonal } = wizardWith("Kurucu");
     const { result } = renderHook(() => useSignupCv(wizard), { wrapper });
 
+    act(() => result.current.setConsent(true));
     act(() => result.current.choose(upload));
 
     await waitFor(() => expect(parseCv).toHaveBeenCalled());
@@ -108,6 +110,7 @@ describe("useSignupCv", () => {
     const { wizard } = wizardWith();
     const { result } = renderHook(() => useSignupCv(wizard), { wrapper });
 
+    act(() => result.current.setConsent(true));
     act(() => result.current.choose(upload));
 
     await waitFor(() => expect(refused).toHaveBeenCalledWith(refusal));
@@ -122,5 +125,77 @@ describe("useSignupCv", () => {
 
     expect(updatePersonal).toHaveBeenCalledWith("cv", null);
     expect(parseCv).not.toHaveBeenCalled();
+  });
+
+  it("starts unticked and only keeps the CV until the person agrees", () => {
+    const { wizard, updatePersonal } = wizardWith();
+    const { result } = renderHook(() => useSignupCv(wizard), { wrapper });
+
+    act(() => result.current.choose(upload));
+
+    expect(result.current.consent).toBe(false);
+    expect(updatePersonal).toHaveBeenCalledTimes(1);
+    expect(updatePersonal).toHaveBeenCalledWith("cv", upload);
+    expect(parseCv).not.toHaveBeenCalled();
+  });
+
+  it("reads a CV already chosen once the person ticks the consent", async () => {
+    vi.mocked(parseCv).mockResolvedValue({ current_role: "Ürün Yöneticisi" });
+    const { wizard, updatePersonal } = wizardWith("", upload);
+    const { result } = renderHook(() => useSignupCv(wizard), { wrapper });
+
+    act(() => result.current.setConsent(true));
+
+    await waitFor(() =>
+      expect(updatePersonal).toHaveBeenCalledWith("role", "Ürün Yöneticisi"),
+    );
+    expect(parseCv).toHaveBeenCalledWith(file, true);
+  });
+
+  it("reads nothing when the consent is taken back", () => {
+    const { wizard } = wizardWith();
+    const { result } = renderHook(() => useSignupCv(wizard), { wrapper });
+
+    act(() => result.current.setConsent(true));
+    act(() => result.current.setConsent(false));
+    act(() => result.current.choose(upload));
+
+    expect(result.current.consent).toBe(false);
+    expect(parseCv).not.toHaveBeenCalled();
+  });
+
+  it("does not send the same CV twice when the box is ticked again", async () => {
+    vi.mocked(parseCv).mockResolvedValue({ current_role: "Ürün Yöneticisi" });
+    const { wizard } = wizardWith("", upload);
+    const { result } = renderHook(() => useSignupCv(wizard), { wrapper });
+
+    act(() => result.current.setConsent(true));
+    await waitFor(() => expect(result.current.isReading).toBe(false));
+    act(() => result.current.setConsent(false));
+    act(() => result.current.setConsent(true));
+
+    expect(parseCv).toHaveBeenCalledTimes(1);
+  });
+
+  it("drops a reading that finishes after the consent was taken back", async () => {
+    let finish!: (value: { current_role: string }) => void;
+    vi.mocked(parseCv).mockReturnValue(
+      new Promise((done) => {
+        finish = done;
+      }),
+    );
+    const { wizard, updatePersonal } = wizardWith("", upload);
+    const { result } = renderHook(() => useSignupCv(wizard), { wrapper });
+
+    act(() => result.current.setConsent(true));
+    await waitFor(() => expect(parseCv).toHaveBeenCalled());
+    act(() => result.current.setConsent(false));
+    await act(async () => {
+      finish({ current_role: "Ürün Yöneticisi" });
+      await Promise.resolve();
+    });
+
+    await waitFor(() => expect(result.current.isReading).toBe(false));
+    expect(updatePersonal).not.toHaveBeenCalledWith("role", "Ürün Yöneticisi");
   });
 });

@@ -1,8 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { emptyPhase, type PhaseDraft } from "@/lib/coordinator-program-detail";
 import {
-  blankWizardPhase,
-  curriculumError,
   dayShift,
   joinOutputs,
   missingDate,
@@ -12,35 +11,18 @@ import {
   phaseDateRange,
   phaseStatus,
   PhaseStatus,
-  proposedPhases,
+  ProgramFileProblem,
+  programFileProblem,
   reorderPhases,
-  SyllabusFileProblem,
-  syllabusFileProblem,
   timelineSegments,
-  type WizardPhase,
 } from "@/lib/program-phases";
 
-const phase = (patch: Partial<WizardPhase>): WizardPhase => ({
-  ...blankWizardPhase(),
+const phase = (patch: Partial<PhaseDraft>): PhaseDraft => ({
+  ...emptyPhase(),
   ...patch,
 });
 
 describe("program phases", () => {
-  it("marks phases read from the syllabus and caps them at twelve", () => {
-    const proposals = Array.from({ length: 14 }, (_, n) => ({
-      name: `Faz ${n + 1}`,
-      expectedOutput: null,
-      startDate: null,
-      endDate: null,
-    }));
-
-    const phases = proposedPhases(proposals);
-
-    expect(phases).toHaveLength(12);
-    expect(phases.every((row) => row.fromFile)).toBe(true);
-    expect(new Set(phases.map((row) => row.key)).size).toBe(12);
-  });
-
   it("edits expected outputs as chips and stores them as one line", () => {
     expect(outputTokens("Pilot müşteri · Fiyat hipotezi ")).toEqual([
       "Pilot müşteri",
@@ -62,20 +44,6 @@ describe("program phases", () => {
       "d",
     ]);
     expect(reorderPhases(["a", "b"], 1, 5)).toEqual(["a", "b"]);
-  });
-
-  it("asks for a name first, then dates on phases read from the file", () => {
-    expect(curriculumError([])).toBeNull();
-    expect(curriculumError([phase({ name: " " })])).toBe("1. fazın adını gir.");
-    expect(curriculumError([phase({ name: "Keşif" })])).toBeNull();
-    expect(curriculumError([phase({ name: "Demo Day", fromFile: true })])).toBe(
-      "“Demo Day” fazının tarihlerini gir.",
-    );
-    expect(
-      curriculumError([
-        phase({ name: "MVP", startDate: "2027-02-01", endDate: "2027-01-01" }),
-      ]),
-    ).toBe("“MVP” fazı başlamadan bitemez.");
   });
 
   it("sizes the timeline by phase length and gives an undated phase the typical width", () => {
@@ -149,12 +117,12 @@ describe("phases in Program Ayarları", () => {
   });
 
   it("accepts only PDFs up to 10 MB", () => {
-    expect(syllabusFileProblem(new File(["x"], "mufredat.pdf"))).toBeNull();
-    expect(syllabusFileProblem(new File(["x"], "mufredat.docx"))).toBe(
-      SyllabusFileProblem.NotPdf,
+    expect(programFileProblem(new File(["x"], "haftalik.pdf"))).toBeNull();
+    expect(programFileProblem(new File(["x"], "haftalik.docx"))).toBe(
+      ProgramFileProblem.NotPdf,
     );
-    const large = new File(["x"], "mufredat.pdf", { type: "application/pdf" });
+    const large = new File(["x"], "haftalik.pdf", { type: "application/pdf" });
     Object.defineProperty(large, "size", { value: 11 * 1024 * 1024 });
-    expect(syllabusFileProblem(large)).toBe(SyllabusFileProblem.TooLarge);
+    expect(programFileProblem(large)).toBe(ProgramFileProblem.TooLarge);
   });
 });

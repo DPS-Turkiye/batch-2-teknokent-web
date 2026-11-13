@@ -54,6 +54,8 @@ function accountStatus(status: UserAccountStatus): {
       return { tone: "amber", label: "statuses.PENDING" };
     case UserAccountStatus.Rejected:
       return { tone: "red", label: "statuses.REJECTED" };
+    case UserAccountStatus.Deleted:
+      return { tone: "red", label: "statuses.DELETED" };
   }
 }
 

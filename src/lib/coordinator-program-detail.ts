@@ -135,11 +135,28 @@ export function isParticipantsTab(tab: ProgramTab) {
   return PARTICIPANT_PAGES.includes(tab);
 }
 
+/** Teams and mentors the program lists but does not count yet; null until their lists have loaded. */
+export type ProgramWaitingCounts = {
+  teams: number | null;
+  mentors: number | null;
+};
+
+export const NO_WAITING_COUNTS: ProgramWaitingCounts = {
+  teams: null,
+  mentors: null,
+};
+
 /** Katılımcılar's sub-tabs; the ones without a screen yet have no link. */
 export function participantTabs(
   detail: CoordinatorProgramDetail,
   programId: string,
-): { id: ParticipantTab; href: string | null; count: number | null }[] {
+  waiting: ProgramWaitingCounts = NO_WAITING_COUNTS,
+): {
+  id: ParticipantTab;
+  href: string | null;
+  count: number | null;
+  waiting?: number | null;
+}[] {
   const base = `/coordinator/programs/${encodeURIComponent(programId)}`;
   switch (detail.program.type) {
     case ProgramType.PeerMentoring:
@@ -166,11 +183,13 @@ export function participantTabs(
           id: ParticipantTab.Teams,
           href: `${base}/teams`,
           count: detail.program.teamCount,
+          waiting: waiting.teams,
         },
         {
           id: ParticipantTab.MentorPool,
           href: `${base}/mentors`,
           count: detail.program.mentorCount,
+          waiting: waiting.mentors,
         },
       ];
   }
@@ -395,6 +414,7 @@ export function settingsDraftOf(
 export function savedPhases(detail: CoordinatorProgramDetail): PhaseDraft[] {
   return detail.program.phases.map((phase) => ({
     key: phase.id,
+    id: phase.id,
     name: phase.name,
     startDate: phase.startDate,
     endDate: phase.endDate,
@@ -405,6 +425,7 @@ export function savedPhases(detail: CoordinatorProgramDetail): PhaseDraft[] {
 export function emptyPhase(): PhaseDraft {
   return {
     key: phaseKey(),
+    id: null,
     name: "",
     startDate: null,
     endDate: null,
@@ -465,6 +486,7 @@ export function parseEmailList(text: string): string[] {
 
 export function phasesInput(phases: PhaseDraft[]): ProgramPhaseInput[] {
   return phases.map((phase) => ({
+    id: phase.id ?? null,
     name: phase.name.trim(),
     startDate: phase.startDate || null,
     endDate: phase.endDate || null,

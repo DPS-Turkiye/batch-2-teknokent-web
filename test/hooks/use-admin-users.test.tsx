@@ -549,6 +549,7 @@ describe("useMentorsTable", () => {
   const ayseRow = {
     user: ayse,
     programs: [alpha, beta],
+    acceptedPrograms: [beta],
     mentorships: [mentorship],
     stale: false,
     pendingInvite: true,
@@ -570,6 +571,7 @@ describe("useMentorsTable", () => {
       {
         user: mert,
         programs: [],
+        acceptedPrograms: [],
         mentorships: [],
         stale: false,
         pendingInvite: false,
@@ -577,6 +579,7 @@ describe("useMentorsTable", () => {
       {
         user: ece,
         programs: [],
+        acceptedPrograms: [],
         mentorships: [],
         stale: false,
         pendingInvite: false,

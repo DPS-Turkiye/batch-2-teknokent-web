@@ -6,6 +6,11 @@ import { useAdminOverview } from "@/hooks/use-admin-overview";
 import type { AdminOverview } from "@/interfaces/admin-overview";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
+// The admin home leaves out links to tabs its edition hides; this page shows the Teknokent home.
+vi.mock("@/hooks/use-edition", async () => {
+  const { Edition } = await import("@/interfaces/edition");
+  return { useEdition: () => Edition.Teknokent };
+});
 vi.mock("@/hooks/use-admin-overview", () => ({
   useAdminOverview: vi.fn(),
 }));

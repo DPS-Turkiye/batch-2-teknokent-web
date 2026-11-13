@@ -2,7 +2,9 @@ import "server-only";
 
 import type {
   CreatePeerMentoringRequestInput,
+  PeerCategoryCount,
   PeerMentorCard,
+  PeerMentorDetail,
   PeerMentoringRequest,
   PeerMentorProfile,
   PeerTopicCategory,
@@ -12,14 +14,35 @@ import type { UserRole } from "@/interfaces/session";
 import { HttpMethod } from "@/lib/http-method";
 import { backendRequest } from "@/lib/server/backend-client";
 
-export function fetchPeerMentors(
-  actorId: string,
-  filter: { category?: PeerTopicCategory | undefined; q?: string | undefined },
-) {
+export type PeerMentorSearch = {
+  category?: PeerTopicCategory | undefined;
+  q?: string | undefined;
+  subTopic?: string | undefined;
+  availableThisWeek?: boolean | undefined;
+};
+
+export function fetchPeerMentors(actorId: string, filter: PeerMentorSearch) {
   return backendRequest<PeerMentorCard[]>({
     method: HttpMethod.Get,
     url: "/api/peer-mentoring/mentors",
     params: { actorId, ...filter },
+  });
+}
+
+/** One mentor of the actor's program; the backend answers 404 for anyone their directory doesn't list. */
+export function fetchPeerMentor(actorId: string, mentorId: string) {
+  return backendRequest<PeerMentorDetail>({
+    method: HttpMethod.Get,
+    url: `/api/peer-mentoring/mentors/${encodeURIComponent(mentorId)}`,
+    params: { actorId },
+  });
+}
+
+export function fetchPeerMentorCounts(actorId: string) {
+  return backendRequest<PeerCategoryCount[]>({
+    method: HttpMethod.Get,
+    url: "/api/peer-mentoring/mentor-counts",
+    params: { actorId },
   });
 }
 

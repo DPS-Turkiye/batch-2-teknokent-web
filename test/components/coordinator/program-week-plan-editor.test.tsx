@@ -4,7 +4,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ProgramWeekPlanEditor } from "@/components/coordinator/program-week-plan-editor";
 import { useProgramWeekPlan } from "@/hooks/use-program-week-plan";
-import type { ProgramPlanWeek } from "@/interfaces/program-week";
 import {
   getProgramWeekPlan,
   saveProgramWeekPlan,
@@ -20,28 +19,9 @@ vi.mock("@/lib/client/program-weeks", () => ({
 
 // Four weeks: 5–11, 12–18, 19–25 and 26–28 October.
 const PROGRAM = { startDate: "2026-10-05", endDate: "2026-10-28" };
-// What a syllabus read hands the editor (useProgramCurriculum → plan.propose).
-const AI_WEEKS: ProgramPlanWeek[] = [
-  planWeek({
-    week: 1,
-    title: "Tanışma",
-    topics: [],
-    activities: [],
-    deliverables: [],
-  }),
-  planWeek({ week: 2, inferred: true }),
-];
-
 function Harness({ locked = false }: { locked?: boolean }) {
   const plan = useProgramWeekPlan("program-1", PROGRAM);
-  return (
-    <>
-      <button type="button" onClick={() => plan.propose(AI_WEEKS)}>
-        Müfredatı oku
-      </button>
-      <ProgramWeekPlanEditor plan={plan} locked={locked} />
-    </>
-  );
+  return <ProgramWeekPlanEditor plan={plan} locked={locked} />;
 }
 
 beforeEach(() => {
@@ -95,21 +75,29 @@ describe("ProgramWeekPlanEditor", () => {
     );
   });
 
-  it("puts the AI's weeks up for review, marks the inferred ones and saves the edited plan", async () => {
+  it("marks a week spread out from a phase and saves edited lines trimmed", async () => {
+    vi.mocked(getProgramWeekPlan).mockResolvedValue({
+      totalWeeks: 4,
+      weeks: [
+        planWeek({
+          week: 1,
+          title: "Tanışma",
+          topics: [],
+          activities: [],
+          deliverables: [],
+        }),
+        planWeek({ week: 2, inferred: true }),
+      ],
+    });
     const user = userEvent.setup();
     renderWithQueryClient(<Harness />);
     await screen.findByDisplayValue("Kullanıcı görüşmeleri");
-
-    await user.click(screen.getByRole("button", { name: "Müfredatı oku" }));
-    expect(
-      await screen.findByText(/AI'nin müfredattan çıkardığı haftalar/),
-    ).toBeVisible();
     expect(within(weekRow(1)).getByText("Fazdan bölündü")).toBeVisible();
 
     const topics = within(weekRow(0)).getByRole("textbox", {
       name: "Konular",
     });
-    await user.type(topics, "Program tanıtımı{enter}Ekip kurma");
+    await user.type(topics, "Program tanıtımı{enter}  Ekip kurma ");
     await user.click(
       screen.getByRole("button", { name: "Haftalık planı kaydet" }),
     );

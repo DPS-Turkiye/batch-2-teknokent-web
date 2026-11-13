@@ -1047,6 +1047,7 @@
       "sendFailed": "Toplantı asistanı gönderilemedi.",
       "stopFailed": "Toplantı asistanı durdurulamadı.",
       "transcriptFailed": "Toplantı transkripti alınamadı.",
+      "botStateFailed": "Botun durumu okunamadı.",
       "reportFailed": "Toplantı raporu oluşturulamadı."
     },
     "coordinatorEvent": {
@@ -1928,7 +1929,7 @@
     "nameFallback": "Startup",
     "logo": "{name} logosu",
     "fallbackName": "Startup’ım",
-    "stage": "{stage} aşaması",
+    "stage": "Faz: {stage}",
     "tabsLabel": "Startup sekmeleri",
     "tabs": {
       "profile": "Profil",
@@ -2088,15 +2089,6 @@
     "syllabus": "Müfredat",
     "weekly-program": "Haftalık program"
   },
-  "startupStages": {
-    "PROBLEM": "Problem",
-    "SOLUTION": "Çözüm",
-    "MVP": "MVP",
-    "BUSINESS_MODEL": "İş Modeli",
-    "MARKET": "Pazar",
-    "FINANCE": "Finans",
-    "PITCH": "Pitch"
-  },
   "startupFiles": {
     "filters": {
       "all": "Tümü",
@@ -2187,7 +2179,7 @@
       "CANCELLED": "İptal edildi"
     },
     "action": {
-      "current": "Mevcut aşama",
+      "current": "Mevcut faz",
       "completed": "Tamamlandı",
       "continue": "Devam et",
       "start": "Başla"
@@ -2204,20 +2196,23 @@
     "upload": "Ödev yükle",
     "uploadLabel": "{title} için ödev yükle",
     "loading": "Süreç yükleniyor…",
-    "stages": "Aşamalar",
+    "stages": "Fazlar",
     "focus": "Odak turu",
-    "noRound": "Bu aşama için henüz bir tur planlanmadı.",
-    "assignments": "Bu aşamadaki ödevlerin",
+    "noRound": "Bu faz için henüz bir tur planlanmadı.",
+    "assignments": "Bu fazdaki ödevlerin",
     "assignmentsHint": "Her ödevin kimden geldiği ve neye bağlı olduğu satırda yazıyor.",
-    "thisStage": "Bu aşama →",
+    "thisStage": "Bu faz →",
     "all": "Tümü ({count}) →",
-    "stageEmpty": "Bu aşama için henüz ödev yok.",
-    "completedStages": "Tamamlanan aşamalar",
-    "noCompleted": "Henüz tamamlanan bir aşama yok.",
+    "stageEmpty": "Burada henüz ödev yok.",
+    "completedStages": "Tamamlanan fazlar",
+    "noCompleted": "Henüz tamamlanan bir faz yok.",
     "completedCount": "{count} ödev tamamlandı",
     "uploaded": "Ödev yüklendi.",
     "uploadFailed": "Ödev yüklenemedi.",
-    "stageUpdated": "Aşama güncellendi."
+    "noPhases": "Programın fazları henüz eklenmedi. Ödevlerin aşağıda.",
+    "unphased": "Fazsız görevler ({count})",
+    "unphasedTitle": "Fazsız görevler",
+    "allAssignmentsTitle": "Ödevlerin"
   },
   "personalProfile": {
     "comingSoon": "Bu bölüm yakında eklenecek.",
@@ -2279,6 +2274,9 @@
     "uploading": "CV yükleniyor…",
     "reading": "CV okunuyor, alanların dolduruluyor…",
     "manual": "Bu sistemde CV otomatik okunmuyor; dosyan yalnızca kaydedilir. Profil bilgilerini kendin gir."
+  },
+  "cvConsent": {
+    "label": "CV'min okunmasını onaylıyorum: e-posta, telefon ve TC kimlik numaram önce sistemimizde maskelenir; adım, okulum, işyerlerim gibi diğer bilgiler maskelenmez. Ardından metin, profil alanlarımı doldurmak için yurt dışındaki (ABD) bir yapay zekâ hizmetiyle ayrıştırılır. Onay vermezsem CV'm yalnızca saklanır, alanları kendim doldururum."
   },
   "editableChips": {
     "add": "Ekle…",
@@ -2600,7 +2598,8 @@
     "status": {
       "PENDING": "Koordinatör incelemesinde",
       "APPROVED": "Onaylandı",
-      "REJECTED": "Onaylanmadı"
+      "REJECTED": "Onaylanmadı",
+      "DELETED": "Silindi"
     },
     "loading": "Yükleniyor...",
     "signedOutTitle": "Başvuru durumunu görmek için giriş yap",
@@ -3372,6 +3371,17 @@
     "transcriptShareFailed": "Transkript gönderilemedi.",
     "reportShareFailed": "Rapor gönderilemedi.",
     "botSent": "Bot gönderildi — toplantıda kabul et; transcript burada görünecek.",
+    "botNoticeLabel": "Kayıt botunun durumu",
+    "botNotice": {
+      "joining": "Kayıt botu toplantıya bağlanıyor…",
+      "waitingForAdmission": "Kayıt botu bekleme odasında. Meet'te katılma isteği çıkınca “Kabul et”e basın.",
+      "waitingTooLong": "Bot {minutes} dakikadır bekleme odasında. Meet'te katılma isteği görmüyorsanız Google botu içeri almamış olabilir: botu durdurup yeniden gönderin.",
+      "recording": "Kayıt botu toplantıda, kayıt sürüyor.",
+      "couldNotJoin": "Kayıt botu toplantıya giremedi. Botu yeniden gönderebilirsiniz.",
+      "notAdmittedInTime": "Kayıt botu zamanında içeri alınmadığı için ayrıldı. Yeniden gönderip Meet'te “Kabul et”e basın.",
+      "rejected": "Kayıt botunun katılma isteği reddedildi.",
+      "left": "Kayıt botu toplantıdan ayrıldı."
+    },
     "reportView": {
       "noTopic": "Konu / tarih transcript’ten çıkarılamadı",
       "summary": "Özet",
@@ -4109,6 +4119,7 @@
     "launched": "{name} başlatıldı.",
     "launchFailed": "Program başlatılamadı.",
     "launchNeedsCoordinator": "Başlatmadan önce bir koordinatör ata.",
+    "waitingSuffix": "· +{count} bekleyen",
     "participantTabs": {
       "TEAMS": "Takımlar",
       "MENTOR_POOL": "Mentor Havuzu",
@@ -4200,8 +4211,6 @@
     "removeLabel": "{name} programdan çıkar",
     "remove": "Çıkar",
     "loading": "Yükleniyor…",
-    "noCandidates": "Eklenebilecek başka onaylı koordinatör yok. Yönetici, Kullanıcılar’dan yeni koordinatör ekleyebilir.",
-    "candidates": "Eklenebilecek koordinatörler",
     "addCoordinator": "Koordinatör ekle",
     "coordinatorFailed": "Koordinatör güncellenemedi.",
     "danger": "Tehlikeli bölge",
@@ -4284,7 +4293,7 @@
       "codeHint": "Yetkili bu kodu ekip üyeleriyle paylaşır",
       "membersJoined": "{count} üye katıldı",
       "copy": "Kopyala",
-      "stage": "Süreç aşaması",
+      "stage": "Süreç fazı",
       "members": "Ekip üyeleri · {count}",
       "noMembers": "Henüz katılan üye yok.",
       "joinedOn": "Katıldı · {date}",
@@ -4296,15 +4305,11 @@
       "messageTeam": "Takıma mesaj gönder"
     },
     "stage": {
-      "loading": "Aşama yükleniyor…",
-      "loadFailed": "Aşama yüklenemedi.",
-      "none": "Aşama seçilmedi",
-      "update": "Aşamayı güncelle",
-      "newStage": "Yeni aşama",
-      "cancel": "Vazgeç",
-      "saving": "Kaydediliyor…",
-      "save": "Kaydet",
-      "saveFailed": "Aşama güncellenemedi. Tekrar dene."
+      "loading": "Faz yükleniyor…",
+      "loadFailed": "Takımın fazı yüklenemedi.",
+      "none": "Bugün süren bir faz yok",
+      "noPhases": "Programın henüz fazı yok",
+      "byDate": "Faz, programın fazlarına ve tarihlerine göre ilerler; Program Ayarları'ndan değişir."
     }
   },
   "programLaunch": {
@@ -4796,7 +4801,6 @@
     "accessFailed": "Erişim değiştirilemedi.",
     "setupSent": "Şifre belirleme e-postası {email} adresine gönderildi.",
     "setupFailed": "E-posta gönderilemedi.",
-    "assigned": "Koordinatör programa eklendi.",
     "addTitle": "Koordinatör ekle",
     "addBody": "Yeni biri için hesap açılır; kayıtlı bir mentor ya da girişimci ise rolü koordinatör olur. Mentorlar ve takımlar kendileri kayıt olur ve bu listede onay bekler.",
     "cancel": "Vazgeç",
@@ -4807,16 +4811,42 @@
     "checking": "Kontrol ediliyor…",
     "assignTitle": "Koordinatör ata",
     "assignBody": "{program} programına koordinatör ekle. Programın kurallarını ve takımlarını koordinatör yönetir.",
-    "noCandidates": "Onaylı koordinatör yok. E-posta ile ekle: sistemde yoksa hesap açılır ve şifre belirleme e-postası gider.",
-    "byEmailHint": "Sistemde yoksa hesap açılır ve şifre belirleme e-postası gider; kayıtlı bir mentor ya da girişimci ise rolü koordinatör olur.",
-    "pickFromList": "Listeden seç",
     "loading": "Yükleniyor…",
-    "notListed": "Listede yok mu? E-posta ile ekle",
     "adding": "Ekleniyor…",
-    "addToProgram": "Programa ekle",
     "deactivate": "Pasife al",
     "reactivate": "Yeniden etkinleştir",
     "resendSetup": "Şifre e-postasını tekrar gönder"
+  },
+  "coordinatorPicker": {
+    "label": "Koordinatör e-postası",
+    "placeholder": "ornek@kurum.com",
+    "hint": "Aramak için en az {min} karakter yaz.",
+    "searching": "Aranıyor…",
+    "searchFailed": "Koordinatörler aranamadı.",
+    "noMatches": "Bu e-postayla başlayan bir koordinatör yok. menton'da hesabı olmayan birini davet etmek için e-postanın tamamını yaz.",
+    "results": "Eşleşen koordinatörler",
+    "resultCount": "{count, plural, one {# koordinatör bulundu} other {# koordinatör bulundu}}",
+    "add": "Ekle",
+    "addNamed": "{name} ekle",
+    "inviteTitle": "{email} adresiyle menton'da hesap yok. Koordinatör olarak davet edebilirsin.",
+    "inviteNote": "Program kaydedilince bu kişiye koordinatör hesabı açılır ve şifresini belirlemesi için bir e-posta gönderilir. Bağlantı tek kullanımlık ve yaklaşık 1 saat geçerli; süresi dolarsa kişi giriş sayfasındaki \"Şifremi unuttum\" ile yenisini alabilir.",
+    "inviteName": "Ad soyad",
+    "invite": "Davet et",
+    "chosen": "Seçilen koordinatörler",
+    "invitedTag": "Davet edilecek",
+    "remove": "{name} kaldır",
+    "someone": "kullanıcı",
+    "refusal": {
+      "PROMOTABLE": "{name} menton'da {role} olarak kayıtlı. Koordinatör yapmak için önce Kullanıcılar › Koordinatör ekle bölümünü kullan.",
+      "REACTIVATABLE": "{name} pasif bir koordinatör. Önce Kullanıcılar bölümünden yeniden etkinleştir.",
+      "ALREADY_COORDINATOR": "{name} bu programın koordinatörü zaten.",
+      "ADMIN": "Bu e-posta bir yöneticiye ait.",
+      "TEAM_MEMBER": "{name} bir startup ekibinde. Takım üyeleri koordinatör yapılamaz.",
+      "MENTOR_IN_MENTORSHIP": "{name} planlı ya da aktif bir mentorluk yürütüyor. Mentorlukları bitmeden koordinatör yapılamaz."
+    },
+    "added": "{name} programa eklendi.",
+    "invited": "{name} programa eklendi; şifre belirleme e-postası {email} adresine gönderildi.",
+    "addFailed": "Koordinatör eklenemedi."
   },
   "adminUsers": {
     "tabs": {
@@ -4847,6 +4877,90 @@
     "rejected": "{name} reddedildi.",
     "approved": "{name} onaylandı.",
     "decideFailed": "Karar kaydedilemedi.",
+    "deleteUser": {
+      "title": "Kullanıcıyı sil",
+      "body": "Hesap, giriş bilgisi ve kişisel veriler kalıcı olarak silinir. Bu işlem geri alınamaz.",
+      "button": "Kullanıcıyı sil",
+      "dialogTitle": "Kullanıcı kalıcı olarak silinsin mi?",
+      "dialogBody": "{name} adlı kullanıcının hesabı silinecek. Bu işlem geri alınamaz.",
+      "deletedHeading": "Silinecekler",
+      "deleted": {
+        "account": "Hesap ve giriş bilgisi (aynı e-postayla yeniden kayıt olunabilir)",
+        "profile": "Profil, bildirimler ve diğer kişisel veriler",
+        "documents": "Kişinin yüklediği özgeçmiş, fotoğraf ve kişisel dosyalar"
+      },
+      "keptHeading": "Kalacaklar",
+      "kept": {
+        "history": "Başkalarıyla ortak geçmiş (görüşmeler, talepler, mesajlar); kişi “Silinmiş kullanıcı” olarak görünür",
+        "teams": "Başka üyesi olan takımlar ve dosyaları; tek üyesi bu kişi olan startup arşivlenir"
+      },
+      "emailLabel": "Onaylamak için kullanıcının e-postasını yaz",
+      "confirm": "Kalıcı olarak sil",
+      "deleting": "Siliniyor…",
+      "cancel": "Vazgeç",
+      "done": "Kullanıcı silindi.",
+      "donePending": "Kullanıcı silindi; giriş bilgisi ve dosyaların kaldırılması arka planda tamamlanacak.",
+      "failed": "Kullanıcı silinemedi.",
+      "signInAgain": "Bu işlem için yeniden giriş yapman gerekiyor."
+    },
+    "moveProgram": {
+      "action": "Programı değiştir",
+      "target": "Taşınacak program",
+      "chooseTarget": "Yeni programı seç",
+      "noTarget": "Takımın taşınabileceği başka açık program yok.",
+      "dialogTitle": "Takımın programı değiştirilsin mi?",
+      "dialogBody": "{team} takımı {from} programından {to} programına taşınacak.",
+      "movedHeading": "Yeni programa taşınacaklar",
+      "movedItems": {
+        "team": "Startup bilgileri, üyeler ve profilleri; takımın hiçbir bilgiyi yeniden girmesi gerekmez",
+        "approval": "Takımın onayı ve üye davet kodu",
+        "pendingChanges": "Koordinatör onayı bekleyen üye ayrılma ve çıkarma talepleri"
+      },
+      "keptHeading": "Eski programda kalacaklar",
+      "keptItems": {
+        "activity": "Mentorluklar, görüşmeler ve yanıtlanmış talepler; süren mentorluklar ve planlı görüşmeler eski programın adıyla devam eder",
+        "records": "Katılım kayıtları, raporlar, takımın yüklediği belgeler ve koordinatör yazışmaları"
+      },
+      "closedHeading": "Kapatılacaklar",
+      "closedItems": {
+        "openRequests": "Eski programın mentorlarına gönderilmiş, yanıt bekleyen mentorluk talepleri; mentorlarına bildirilir",
+        "openDocuments": "Eski programın istediği, takımın henüz yüklemediği belgeler"
+      },
+      "notice": "İki programın koordinatörlerine ve takımın üyelerine bildirim gider.",
+      "confirm": "Takımı taşı",
+      "moving": "Taşınıyor…",
+      "cancel": "Vazgeç",
+      "moved": "{team} takımı {program} programına taşındı.",
+      "movedClosingRequests": "{team} takımı {program} programına taşındı; yanıt bekleyen {count} talep kapatıldı.",
+      "failed": "Takımın programı değiştirilemedi."
+    },
+    "removeFromProgram": {
+      "action": "Programdan çıkar",
+      "actionFor": "Programdan çıkar: {program}",
+      "dialogTitle": "Mentor programdan çıkarılsın mı?",
+      "dialogBody": "{mentor}, {program} programının mentorları arasından çıkarılacak. Diğer programları etkilenmez.",
+      "stoppedHeading": "Sona erecekler",
+      "stoppedItems": {
+        "pool": "Mentor bu programın mentor havuzunda görünmez; programın takımlarına önerilmez ve onlardan yeni talep alamaz",
+        "programPages": "Mentor, programın haftalık planını ve duyurularını artık görmez"
+      },
+      "keptHeading": "Devam edecekler",
+      "keptItems": {
+        "activity": "Bu programda süren mentorluklar ve planlı görüşmeler; program adıyla devam eder",
+        "records": "Geçmiş görüşmeler, notlar ve raporlardaki kayıtlar programda kalır"
+      },
+      "withdrawnHeading": "Geri çekilecekler",
+      "withdrawnItems": {
+        "openRequests": "Bu programın takımlarının mentora gönderdiği, yanıt bekleyen mentorluk talepleri; talebi gönderenlere nedeni bildirilir"
+      },
+      "notice": "Mentora ve programın koordinatörlerine bildirim gider. Mentoru daha sonra “Programa ata” ile yeniden ekleyebilirsin.",
+      "confirm": "Mentoru çıkar",
+      "removing": "Çıkarılıyor…",
+      "cancel": "Vazgeç",
+      "removed": "{mentor}, {program} programından çıkarıldı.",
+      "removedClosingRequests": "{mentor}, {program} programından çıkarıldı; yanıt bekleyen {count} talep geri çekildi.",
+      "failed": "Mentor programdan çıkarılamadı."
+    },
     "revokeSignIns": {
       "button": "Tüm oturumlarını kapat",
       "confirm": "{name} tüm cihazlarda çıkış yapacak ve yeniden giriş yapması gerekecek. Emin misin?",
@@ -5832,9 +5946,7 @@
     "mentorDetailsLoadFailed": "Mentor bilgileri yüklenemedi.",
     "programReportLoadFailed": "Program raporu yüklenemedi.",
     "teamDetailLoadFailed": "Takım detayı yüklenemedi.",
-    "teamStageLoadFailed": "Takımın aşaması yüklenemedi.",
-    "stageInvalid": "Geçerli bir aşama seç.",
-    "stageUpdateFailed": "Aşama güncellenemedi.",
+    "teamStageLoadFailed": "Takımın fazı yüklenemedi.",
     "teamsLoadFailed": "Takımlar yüklenemedi.",
     "teamsAddFailed": "Takımlar eklenemedi.",
     "teamUpdateFailed": "Takım güncellenemedi.",
@@ -5966,6 +6078,7 @@
     "statusMustBeDecision": "Durum APPROVED veya REJECTED olmalıdır.",
     "accountStatusUpdateFailed": "Hesap durumu güncellenemedi.",
     "signInRevokeFailed": "Oturumlar kapatılamadı.",
+    "userDeleteFailed": "Kullanıcı silinemedi.",
     "noActiveMentorship": "Bu startup ile aktif bir mentorlüğünüz yok.",
     "meetingStartupRequired": "Toplantı için bir startup seçilmelidir.",
     "notInProgram": "Bu programa katılmadınız.",
@@ -5990,11 +6103,14 @@
     "mentorInviteFailed": "Mentor davet edilemedi.",
     "decisionSaveFailed": "Karar kaydedilemedi.",
     "programAssignFailed": "Programa eklenemedi.",
+    "programMoveFailed": "Takımın programı değiştirilemedi.",
+    "programMentorRemoveFailed": "Mentor programdan çıkarılamadı.",
     "eventAddFailed": "Etkinlik eklenemedi.",
     "phasesSaveFailed": "Fazlar kaydedilemedi.",
     "inviteRenewFailed": "Davet yenilenemedi.",
     "noteDeleteFailed": "Not silinemedi.",
     "emailCheckFailed": "E-posta kontrol edilemedi.",
+    "coordinatorSearchFailed": "Koordinatörler aranamadı.",
     "profileSaveFailed": "Profil kaydedilemedi.",
     "startupAddFailed": "Startup programa eklenemedi.",
     "documentRequestTargetRequired": "meetingId, mentorshipRequestId veya mentorshipId gerekli.",
@@ -6006,7 +6122,6 @@
     "teamChangesLoadFailed": "Takım talepleri yüklenemedi.",
     "startupResubmitFailed": "Startup tekrar gönderilemedi. Lütfen tekrar deneyin.",
     "teamRemovalRequestFailed": "Çıkarma talebi gönderilemedi.",
-    "syllabusReadFailed": "Müfredat okunamadı.",
     "startupCreateFailed": "Startup oluşturulamadı. Lütfen tekrar deneyin.",
     "startupJoinFailed": "Startup'a katılınamadı. Lütfen tekrar deneyin.",
     "teamChangeCancelFailed": "Talep geri alınamadı.",
@@ -6093,23 +6208,13 @@
     "addPhase": "Faz ekle"
   },
   "programCurriculum": {
-    "title": "Müfredat & fazlar",
-    "subtitle": "Fazlar mentinin süreç takibini ve Genel Bakış’taki faz çizelgesini belirler.",
+    "title": "Haftalık program & fazlar",
+    "subtitle": "Haftalık program PDF'inden haftalar ve fazlar çıkar. Fazlar takımların Süreç görünümünü ve Genel Bakış’taki faz çizelgesini belirler.",
     "addPhase": "Faz ekle",
-    "noFile": "Müfredat dosyası yok",
-    "noFileHint": "PDF yüklersen fazları dosyadan çıkarabilirsin.",
-    "uploaded": "Yüklendi {date}",
-    "reading": "Müfredat okunuyor…",
-    "chooseFile": "Müfredat PDF dosyası seç",
-    "uploadFile": "Dosya yükle",
-    "replaceFile": "Dosyayı güncelle",
-    "reread": "Fazları yeniden çıkar",
-    "reviewNote": "Dosyadan {count} faz çıkarıldı. Kaydedersen mevcut fazların yerini alır.",
-    "saveReview": "Fazları kaydet",
     "today": "Bugün",
     "todayWeek": "Bugün · {week}",
     "week": "hafta {current}/{total}",
-    "empty": "Henüz faz yok. “Faz ekle” ile başla ya da müfredat dosyası yükle.",
+    "empty": "Henüz faz yok. Haftalık programı yükle ya da “Faz ekle” ile başla.",
     "listLabel": "Program fazları",
     "lockNote": "Tamamlanan fazların tarihleri kilitlidir, adları düzenlenebilir. Değişiklikler {count} takımın süreç görünümünü günceller.",
     "done": "Tamamlandı",
@@ -6144,12 +6249,7 @@
     "save": "Kaydet",
     "saving": "Kaydediliyor…",
     "saved": "Fazlar kaydedildi.",
-    "saveFailed": "Fazlar kaydedilemedi.",
-    "readFailed": "Müfredat okunamadı.",
-    "uploadFailed": "Dosya yüklenemedi.",
-    "pdfOnly": "Yalnızca PDF yükleyebilirsin.",
-    "tooLarge": "Dosya en fazla 10 MB olabilir.",
-    "manualHint": "Bu sistemde müfredat dosyası otomatik okunmuyor; fazları burada, haftaları Haftalık plan'da elle ekle."
+    "saveFailed": "Fazlar kaydedilemedi."
   },
   "teamHistory": {
     "show": "Takım geçmişi",
@@ -6308,7 +6408,7 @@
         "label": "Koordinatör",
         "hint": "Programı yönetecek kişiler",
         "title": "Koordinatör ata",
-        "note": "Bir veya daha fazla koordinatör seç. Koordinatörler programın koşullarını yapılandırır."
+        "note": "Koordinatörü e-postasıyla ara ya da menton'da hesabı olmayan birini e-postasıyla davet et. Koordinatörler programın koşullarını yapılandırır."
       },
       "SUMMARY": {
         "label": "Özet",
@@ -6329,21 +6429,19 @@
     "start": "Başlangıç",
     "end": "Bitiş",
     "coordinatorsLabel": "Koordinatörler",
-    "coordinatorsFailed": "Koordinatörler yüklenemedi.",
-    "retry": "Tekrar dene",
-    "noCoordinators": "Onaylı koordinatör yok. Önce Kullanıcılar › Koordinatörler bölümünden bir koordinatör ekle.",
     "summaryType": "Program türü",
     "summaryName": "Program adı",
     "summaryDates": "Tarihler",
     "noDates": "Belirtilmedi",
     "summaryCoordinators": "Koordinatörler",
+    "invitedTag": "Davet edilecek",
     "summaryStatus": "Durum",
     "draft": "Taslak",
     "problems": {
       "TYPE_REQUIRED": "Bir program türü seç.",
       "NAME_REQUIRED": "Program adını yaz.",
       "DATES_ORDER": "Bitiş tarihi başlangıçtan önce olamaz.",
-      "COORDINATOR_REQUIRED": "En az bir koordinatör seç."
+      "COORDINATOR_REQUIRED": "En az bir koordinatör ekle."
     },
     "cancel": "Vazgeç",
     "back": "Geri",
@@ -6370,28 +6468,8 @@
     "past": "Geçmiş"
   },
   "studentProfileCompletion": {
-    "title": "Profilini tamamla",
-    "subtitle": "İlgi alanlarını ve hedefini seç; Profilim'den istediğin zaman değiştirebilirsin.",
-    "loading": "Profil yükleniyor…",
-    "loadError": "Profil yüklenemedi.",
-    "retry": "Tekrar dene",
-    "saved": "Profilin tamamlandı.",
-    "skipped": "Şimdilik atladın. İstersen daha sonra profilini tamamlayabilirsin.",
-    "home": "Ana sayfaya dön",
-    "step": "Adım {number} / 3",
-    "steps": {
-      "0": "İlgi alanların",
-      "1": "Alt konular",
-      "2": "Hedefin (isteğe bağlı)"
-    },
     "noTopics": "Henüz alan seçmedin. Geri dönebilir ya da seçim yapmadan devam edebilirsin.",
     "goal": "Hedefin (isteğe bağlı, en fazla 1000 karakter)",
-    "saveError": "Profilin kaydedilemedi. Tekrar deneyebilirsin.",
-    "back": "Geri",
-    "next": "Devam et",
-    "finish": "Profili tamamla",
-    "saving": "Kaydediliyor…",
-    "skip": "Şimdilik atla",
     "subtopics": {
       "study": "Örnek: Ders çalışma",
       "cv": "Örnek: CV hazırlama",
@@ -6728,8 +6806,7 @@
     "add": "Hafta ekle",
     "loading": "Haftalık plan yükleniyor…",
     "loadFailed": "Haftalık plan yüklenemedi.",
-    "empty": "Henüz haftalık plan yok. Müfredatı yüklediğinde AI haftaları önerir; dilersen elle de ekleyebilirsin.",
-    "proposedNote": "AI'nin müfredattan çıkardığı haftalar. Kontrol edip düzenledikten sonra kaydet; kaydedene kadar katılımcılar görmez.",
+    "empty": "Henüz haftalık plan yok. Haftalık programı yüklediğinde AI haftaları okur; dilersen elle de ekleyebilirsin.",
     "week": "Hafta",
     "weekLabel": "Hafta {week}",
     "weekNumberOf": "Hafta {week} numarası",
@@ -6753,6 +6830,72 @@
       "PAST_THE_END": "Hafta numaraları 1 ile {total} arasında olmalı."
     }
   },
+  "weeklyProgram": {
+    "manualHint": "Bu sistemde haftalık program dosyası otomatik okunmuyor; fazları burada, haftaları Haftalık plan’da elle ekle.",
+    "noFile": "Haftalık program dosyası yok",
+    "noFileHint": "PDF yükle; AI haftaları ve fazları dosyadan çıkarsın.",
+    "oldSyllabus": "Önceki müfredat dosyası · yalnızca görüntülenir",
+    "needsDates": "Önce programın başlangıç ve bitiş tarihlerini gir; haftalar bu tarihlere göre yerleşir.",
+    "uploaded": "Yüklendi {date}",
+    "reading": "Haftalık program okunuyor…",
+    "chooseFile": "Haftalık program PDF dosyası seç",
+    "uploadFile": "PDF yükle",
+    "replaceFile": "Yeni PDF yükle",
+    "reread": "Yeniden oku",
+    "reviewTitle": "Dosyadan okunan plan",
+    "reviewSubtitle": "{weeks} hafta ve {phases} faz okundu. Kontrol et, düzenle ve tek seferde kaydet; kaydedene kadar katılımcılar görmez.",
+    "phasesTitle": "Fazlar",
+    "phaseRange": "Hafta {first}–{last} · {dates}",
+    "phaseRangeOne": "Hafta {week} · {dates}",
+    "phaseName": "{n}. faz adı",
+    "phaseOutput": "{n}. fazın beklenen çıktısı",
+    "outputPlaceholder": "Beklenen çıktı (isteğe bağlı)",
+    "weeksTitle": "Haftalar",
+    "weekPhase": "Hafta {week} fazı",
+    "noPhase": "Faz yok",
+    "notesTitle": "Dosyadaki notlar",
+    "notesHint": "Haftalara ait olmayan satırlar kaydedilmez; gerekirse bir haftaya ekle.",
+    "readingWarningsTitle": "AI'nin notları",
+    "replaceTitle": "Bu programın kayıtlı bir planı var",
+    "replaceBody": "{phases} faz ve {weeks} hafta kayıtlı. Kaydedersen dosyadan okunan plan bunların yerini alır.",
+    "keepPast": "Geçmiş haftaları ve tamamlanan fazları koru",
+    "keepPastHint": "Hafta 1–{week} ve bitmiş fazlar olduğu gibi kalır; plan {next}. haftadan itibaren değişir.",
+    "keepPastNothing": "Program henüz ilk haftasında; korunacak geçmiş hafta yok.",
+    "keepPastEnded": "Program bitti; tüm haftalar ve bitmiş fazlar olduğu gibi kalır.",
+    "confirm": "Kayıtlı planın yerini almasını onaylıyorum",
+    "discard": "Vazgeç",
+    "save": "Planı kaydet",
+    "saving": "Kaydediliyor…",
+    "saved": "Haftalık program ve fazlar kaydedildi.",
+    "saveFailed": "Plan kaydedilemedi.",
+    "planChanged": "Program planı sen dosyayı okurken değişti. Dosyayı yeniden oku.",
+    "readFailed": "Haftalık program okunamadı.",
+    "uploadFailed": "Dosya yüklenemedi.",
+    "pdfOnly": "Yalnızca PDF yükleyebilirsin.",
+    "tooLarge": "Dosya en fazla 10 MB olabilir.",
+    "noWeeks": "Kaydetmek için en az bir hafta gerekli.",
+    "confirmFirst": "Kaydetmeden önce kayıtlı planın yerini almasını onayla.",
+    "weekProblems": {
+      "MISSING_TITLE": "Her haftaya bir başlık yaz.",
+      "REPEATED_WEEK": "Aynı hafta birden fazla kez var.",
+      "PAST_THE_END": "Hafta numaraları 1 ile {total} arasında olmalı."
+    },
+    "phaseProblems": {
+      "MISSING_NAME": "Her faza bir ad yaz.",
+      "TOO_MANY": "Bir programın en fazla 12 fazı olabilir.",
+      "OUT_OF_ORDER": "Fazlar sırayla ve çakışmadan ilerlemeli.",
+      "PAST_THE_END": "Fazlar programın {total}. haftasından sonra bitemez."
+    },
+    "warnings": {
+      "TEXT_CUT": "Dosya çok uzundu; sonu okunamadı.",
+      "DATES_DIFFER": "Dosyadaki tarih program takvimine uymuyor: hafta {weeks}. Haftalar program başlangıcına göre yerleştirildi.",
+      "WEEKS_DROPPED": "Programın dışında kalan ya da başlığı olmayan haftalar alınmadı: hafta {weeks}.",
+      "PHASES_REBUILT": "Fazlar haftaların konularına göre yeniden gruplandı; adlarını kontrol et.",
+      "PHASES_MERGED": "12'den fazla faz vardı; son fazlar birleştirildi.",
+      "NO_PHASES": "Dosyadan faz çıkarılamadı. Kaydettikten sonra “Faz ekle” ile ekleyebilirsin."
+    },
+    "unnamedPhase": "{n}. faz"
+  },
   "personSummary": {
     "back": "Geri",
     "loading": "Profil yükleniyor…",
@@ -6765,7 +6908,8 @@
     "statuses": {
       "APPROVED": "Onaylı",
       "PENDING": "Onay bekliyor",
-      "REJECTED": "Reddedildi"
+      "REJECTED": "Reddedildi",
+      "DELETED": "Silindi"
     },
     "linkedin": "LinkedIn profili",
     "about": "Hakkında",
@@ -6812,5 +6956,70 @@
     "availabilityDaysOff": "Yaklaşan izin günleri",
     "availabilityExtraSlots": "Ek zamanlar",
     "availabilityExtraSlot": "{day} · {time} ({minutes} dk)"
+  },
+  "odtuLanding": {
+    "navLabel": "Giriş ve yardım",
+    "help": "Yardım",
+    "overline": "ODTÜ için menton",
+    "title": "Office Hours ve akran mentörlüğü tek yerde",
+    "intro": "Akademisyenlerinden randevu al, rozeti doğrulanmış İŞKUR öğrencilerinden akran mentörlüğü iste ve tüm randevularını tek takvimde izle.",
+    "signupAction": "İŞKUR öğrencisi olarak kaydol",
+    "noSignupTag": "Kayıt gerekmez",
+    "noSignupText": "ODTÜ öğrencisi veya akademisyeniysen ODTÜ hesabınla giriş yapman yeterli.",
+    "featuresTitle": "Neler yapabilirsin?",
+    "features": {
+      "officeHours": {
+        "title": "Randevu talep et",
+        "caption": "Office Hours"
+      },
+      "peerMentoring": {
+        "title": "Mentor bul",
+        "caption": "Akran Mentörlüğü"
+      },
+      "appointments": {
+        "title": "Randevularını izle",
+        "caption": "Randevularım"
+      },
+      "advisor": {
+        "title": "Danışmanına ulaş",
+        "caption": "Akademik danışmanlık"
+      }
+    },
+    "audienceTitle": "Kimler için?",
+    "audience": {
+      "student": {
+        "badge": "Öğrenci",
+        "title": "ODTÜ öğrencileri",
+        "points": {
+          "first": "Office Hours randevusu al",
+          "second": "Sana uygun akran mentorunu bul",
+          "third": "Randevularını tek takvimde izle"
+        }
+      },
+      "iskur": {
+        "badge": "İŞKUR Öğrencisi",
+        "title": "Akran mentorları",
+        "points": {
+          "first": "Mentorluk eğitimini tamamla, rozetini al",
+          "second": "Mentorluk taleplerini yanıtla",
+          "third": "Görüşmelerini ve randevularını yönet"
+        }
+      },
+      "academic": {
+        "badge": "Akademisyen",
+        "title": "ODTÜ akademisyenleri",
+        "points": {
+          "first": "Haftalık müsaitliğini ekle",
+          "second": "Gelen randevu taleplerini yanıtla",
+          "third": "Danışan öğrencilerini tek yerde gör"
+        }
+      }
+    },
+    "banner": {
+      "title": "ODTÜ öğrencisi veya akademisyeni misin?",
+      "text": "ODTÜ hesabınla giriş yap. Office Hours, Akran Mentörlüğü ve akademik danışmanın hesabındaki bilgilere göre açılır."
+    },
+    "footer": "menton · ODTÜ",
+    "metaTitle": "menton · ODTÜ"
   }
 }

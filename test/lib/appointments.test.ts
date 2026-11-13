@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { AppointmentStatus } from "@/interfaces/appointment";
 import {
   APPOINTMENT_STATUS_TONE,
+  currentTime,
   isUpcoming,
   splitAppointments,
 } from "@/lib/appointments";
@@ -59,6 +60,63 @@ describe("isUpcoming with another time proposed", () => {
     expect(isUpcoming(request, new Date("2026-11-13T09:00:00.000Z"))).toBe(
       false,
     );
+  });
+});
+
+describe("currentTime and ordering with another time proposed", () => {
+  const moved = peerAppointment({
+    id: "moved",
+    status: AppointmentStatus.AlternativeProposed,
+    startsAt: "2026-11-10T08:00:00.000Z",
+    endsAt: "2026-11-10T08:30:00.000Z",
+    alternative: {
+      startsAt: "2026-11-14T08:00:00.000Z",
+      endsAt: "2026-11-14T08:30:00.000Z",
+    },
+  });
+  const sooner = peerAppointment({
+    id: "sooner",
+    startsAt: "2026-11-12T08:00:00.000Z",
+    endsAt: "2026-11-12T08:30:00.000Z",
+  });
+
+  it("stands at the proposed time while it is on the table, else at its own", () => {
+    expect(currentTime(moved)).toEqual(moved.alternative);
+    expect(currentTime(sooner)).toBe(sooner);
+  });
+
+  it("sorts by the proposed start, so a passed asked-for time is never first", () => {
+    const { upcoming } = splitAppointments(
+      [moved, sooner],
+      new Date("2026-11-11T09:00:00.000Z"),
+    );
+    expect(upcoming.map((item) => item.id)).toEqual(["sooner", "moved"]);
+  });
+});
+
+describe("isUpcoming on a partial row (#358's Pick) with another time proposed", () => {
+  const row = (alternativeEnd: string | null) => ({
+    status: AppointmentStatus.AlternativeProposed,
+    endsAt: "2026-11-10T08:30:00.000Z",
+    alternative:
+      alternativeEnd === null
+        ? null
+        : {
+            startsAt: new Date(
+              Date.parse(alternativeEnd) - 30 * 60_000,
+            ).toISOString(),
+            endsAt: alternativeEnd,
+          },
+  });
+  const now = new Date("2026-11-12T12:00:00.000Z");
+
+  it("stays upcoming when the asked-for time passed but the proposed time is ahead", () => {
+    expect(isUpcoming(row("2026-11-14T08:30:00.000Z"), now)).toBe(true);
+  });
+
+  it("is over once the proposed time passed, and falls back to its own end without one", () => {
+    expect(isUpcoming(row("2026-11-11T08:30:00.000Z"), now)).toBe(false);
+    expect(isUpcoming(row(null), now)).toBe(false);
   });
 });
 

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   CalendarFilter,
+  formatWeekdayDate,
   hourOf,
   isSameDay,
   monthGridCells,
@@ -9,6 +10,7 @@ import {
   startOfWeek,
   timeLabel,
   upcomingHourColumns,
+  weekdayName,
   weekDays,
   weekRangeLabel,
 } from "@/lib/calendar";
@@ -91,5 +93,15 @@ describe("week and month grid helpers", () => {
   it("labels the month in Turkish and English", () => {
     expect(monthLabel(new Date(2026, 8, 15), "tr")).toBe("Eylül 2026");
     expect(monthLabel(new Date(2026, 8, 15), "en")).toBe("September 2026");
+  });
+});
+
+describe("weekday labels", () => {
+  const thursday = new Date(2026, 10, 12, 14);
+
+  it("names the weekday and the day with its weekday", () => {
+    expect(weekdayName(thursday, "tr")).toBe("Perşembe");
+    expect(formatWeekdayDate(thursday, "tr")).toBe("12 Kasım Perşembe");
+    expect(formatWeekdayDate(thursday, "en")).toBe("Thursday, November 12");
   });
 });

@@ -1,16 +1,15 @@
+import type { NewCoordinatorInput } from "@/interfaces/admin-coordinator";
 import type {
   CoordinatorProgram,
   CoordinatorProgramDetail,
   CoordinatorRef,
   CreateProgramEventInput,
   CreateProgramInput,
-  ExtractSyllabusPhasesInput,
   ProgramEligibleEmail,
   ProgramEvent,
   ProgramPhaseInput,
   ProgramTeam,
   ProgramTeamDetail,
-  SyllabusPhases,
   TeamInviteInput,
   UpdateProgramDetailsInput,
 } from "@/interfaces/coordinator-program";
@@ -79,15 +78,6 @@ export async function replaceCoordinatorProgramPhases(
   );
 }
 
-export async function extractSyllabusPhases(input: ExtractSyllabusPhasesInput) {
-  return requireSuccess(
-    await httpClient.post<SyllabusPhases>(
-      "/api/coordinator/programs/syllabus/phases",
-      input,
-    ),
-  );
-}
-
 export async function launchCoordinatorProgram(programId: string) {
   return requireSuccess(
     await httpClient.post<CoordinatorProgramDetail>(
@@ -117,19 +107,23 @@ export async function getProgramCoordinators(programId: string) {
   );
 }
 
-export async function getProgramCoordinatorCandidates(programId: string) {
-  return requireSuccess(
-    await httpClient.get<CoordinatorRef[]>(
-      `${programUrl(programId)}/coordinators/candidates`,
-    ),
-  );
-}
-
 export async function addProgramCoordinator(programId: string, userId: string) {
   return requireSuccess(
     await httpClient.post<CoordinatorRef[]>(
       `${programUrl(programId)}/coordinators`,
       { userId },
+    ),
+  );
+}
+
+export async function inviteProgramCoordinator(
+  programId: string,
+  invite: NewCoordinatorInput,
+) {
+  return requireSuccess(
+    await httpClient.post<CoordinatorRef[]>(
+      `${programUrl(programId)}/coordinators`,
+      { invite },
     ),
   );
 }

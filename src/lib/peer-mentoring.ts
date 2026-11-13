@@ -1,14 +1,26 @@
 import type { ComponentProps } from "react";
 
 import type { StatusChip } from "@/components/admin/admin-ui";
-import { AppointmentSide } from "@/interfaces/appointment";
+import { AppointmentSide, type Appointment } from "@/interfaces/appointment";
 import { BadgeCode, BadgeStatus, type BadgeAward } from "@/interfaces/badges";
+import {
+  WEEKDAY_ORDER,
+  type MentorAvailabilityRule,
+  type Weekday,
+} from "@/interfaces/mentor";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import {
   PeerMentorGateState,
   type PeerTopicCategory,
 } from "@/interfaces/peer-mentoring";
-import { PeerCapacityNote } from "@/types/iskur-student";
+import type { ProfileCompletionCategory } from "@/interfaces/student-profile-completion";
+import { isUpcoming } from "@/lib/appointments";
+import { toTimeInput } from "@/lib/mentor-availability";
+import {
+  IskurHomeMode,
+  PeerCapacityNote,
+  PeerRequestAvailability,
+} from "@/types/iskur-student";
 
 type Tone = ComponentProps<typeof StatusChip>["tone"];
 
@@ -132,4 +144,184 @@ export function peerMentorCapacity(
     percent: Math.floor((filled / capacity) * 100),
     note,
   };
+}
+
+/** The backend's limits on the peer-mentor profile's texts. */
+export const PEER_HELP_WITH_MIN = 20;
+export const PEER_HELP_WITH_MAX = 2000;
+export const PEER_PROFILE_TEXT_MAX = 2000;
+export const PEER_ERASMUS_MAX = 500;
+
+export type WeeklyHours = { dayOfWeek: Weekday; start: string; end: string };
+
+/** The weekly ranges in week order, earliest first within a day, as HH:mm ("Salı 18:00 – 20:00" in the preview). */
+export function weeklyHours(
+  rules: readonly Pick<
+    MentorAvailabilityRule,
+    "dayOfWeek" | "startTime" | "endTime"
+  >[],
+): WeeklyHours[] {
+  return rules
+    .map((rule) => ({
+      dayOfWeek: rule.dayOfWeek,
+      start: toTimeInput(rule.startTime),
+      end: toTimeInput(rule.endTime),
+    }))
+    .sort(
+      (left, right) =>
+        WEEKDAY_ORDER.indexOf(left.dayOfWeek) -
+          WEEKDAY_ORDER.indexOf(right.dayOfWeek) ||
+        left.start.localeCompare(right.start),
+    );
+}
+
+type Subtopic = ProfileCompletionCategory["subtopics"][number];
+
+/** Each chosen category with its sub-topics marked as picked, and how many are ("3 alt konu seçildi"). */
+export function subtopicGroupsWithCounts(
+  groups: readonly ProfileCompletionCategory[],
+  selected: readonly string[],
+) {
+  return groups.map((group) => {
+    const subtopics = group.subtopics.map((sub) => ({
+      ...sub,
+      checked: selected.includes(sub.id),
+    }));
+    return {
+      id: group.id,
+      subtopics,
+      selectedCount: subtopics.filter((sub) => sub.checked).length,
+    };
+  });
+}
+
+/** The picked sub-topics in catalogue order, with their labels' keys; ids the catalogue no longer has are left out. */
+export function chosenSubtopics(
+  catalogue: readonly ProfileCompletionCategory[],
+  selected: readonly string[],
+): Subtopic[] {
+  return catalogue.flatMap((group) =>
+    group.subtopics.filter((sub) => selected.includes(sub.id)),
+  );
+}
+
+/** How many mentors "Sana önerilenler" shows. */
+export const RECOMMENDED_PEER_MENTOR_COUNT = 3;
+
+/**
+ * Keşfet: the first mentors with a "Neden önerildi?" reason (the backend already ranks them) are recommended; everyone
+ * else is listed under "Mentor ara". While the student filters, everything is a search result.
+ */
+export function splitRecommended<T extends { mentorId: string }>(
+  mentors: readonly T[],
+  hasReason: (mentor: T) => boolean,
+  filtered: boolean,
+): { recommended: T[]; others: T[] } {
+  if (filtered) return { recommended: [], others: [...mentors] };
+  const recommended = mentors
+    .filter(hasReason)
+    .slice(0, RECOMMENDED_PEER_MENTOR_COUNT);
+  const picked = new Set(recommended.map((mentor) => mentor.mentorId));
+  return {
+    recommended,
+    others: mentors.filter((mentor) => !picked.has(mentor.mentorId)),
+  };
+}
+
+/** A request that ended without a mentorship; Mentorluklarım offers "Başka Mentor Bul" on it. */
+export const CLOSED_PEER_REQUEST_STATUSES: readonly MentorshipRequestStatus[] =
+  [MentorshipRequestStatus.Declined, MentorshipRequestStatus.Withdrawn];
+
+/** Mentorluklarım: accepted requests are the active mentorships; the rest are "Taleplerim". */
+export function splitPeerRequests<
+  T extends { status: MentorshipRequestStatus },
+>(requests: readonly T[]): { active: T[]; others: T[] } {
+  return {
+    active: requests.filter(
+      (request) => request.status === MentorshipRequestStatus.Accepted,
+    ),
+    others: requests.filter(
+      (request) => request.status !== MentorshipRequestStatus.Accepted,
+    ),
+  };
+}
+
+/**
+ * Whether the student can ask this mentor now. A running mentorship comes first, then an open request (the student
+ * already asked, full or not), then a full capacity.
+ */
+export function peerRequestAvailability(
+  hasOpenRequest: boolean,
+  capacityFull: boolean,
+  isMentoring = false,
+): PeerRequestAvailability {
+  if (isMentoring) return PeerRequestAvailability.Mentoring;
+  if (hasOpenRequest) return PeerRequestAvailability.Requested;
+  if (capacityFull) return PeerRequestAvailability.Full;
+  return PeerRequestAvailability.Open;
+}
+
+/** A peer mentor's profile page on the Mentorluk Al side. */
+export function peerMentorProfileHref(mentorId: string) {
+  return `/student/peer-mentoring/mentors/${encodeURIComponent(mentorId)}`;
+}
+
+type CatalogueSubTopic = ProfileCompletionCategory["subtopics"][number];
+
+/** The sub-topics a filter can offer: the chosen category's, or every listed category's, each once. */
+export function subTopicOptions(
+  catalogue: readonly ProfileCompletionCategory[],
+  category: PeerTopicCategory | null,
+): CatalogueSubTopic[] {
+  const seen = new Set<string>();
+  return catalogue
+    .filter((item) => category === null || item.id === category)
+    .flatMap((item) => item.subtopics)
+    .filter((sub) => {
+      if (seen.has(sub.id)) return false;
+      seen.add(sub.id);
+      return true;
+    });
+}
+
+/** Each sub-topic id the mentor offers, with its catalogue entry when there is one (older free text has none). */
+export function offeredSubTopics(
+  catalogue: readonly ProfileCompletionCategory[],
+  ids: readonly string[],
+): { id: string; entry: CatalogueSubTopic | null }[] {
+  const byId = new Map(
+    catalogue.flatMap((item) => item.subtopics).map((sub) => [sub.id, sub]),
+  );
+  return ids.map((id) => ({ id, entry: byId.get(id) ?? null }));
+}
+
+/**
+ * Each peer request's next meeting: the earliest one still to come (not refused, called off or over). A cancelled or
+ * past meeting is never "Sıradaki görüşme".
+ */
+export function nextSessionsByRequest<
+  T extends Pick<
+    Appointment,
+    "requestId" | "status" | "startsAt" | "endsAt" | "alternative"
+  >,
+>(appointments: readonly T[], now: Date): Map<string, T> {
+  const next = new Map<string, T>();
+  for (const item of appointments) {
+    if (!item.requestId || !isUpcoming(item, now)) continue;
+    const current = next.get(item.requestId);
+    if (!current || Date.parse(item.startsAt) < Date.parse(current.startsAt)) {
+      next.set(item.requestId, item);
+    }
+  }
+  return next;
+}
+
+/** Which İŞKUR blocks the home shows; a session that lags behind a new badge waits like a missing profile. */
+export function iskurHomeMode(
+  gate: PeerMentorGateState,
+  hasProfile: boolean,
+): IskurHomeMode {
+  if (gate === PeerMentorGateState.NoBadge) return IskurHomeMode.Training;
+  if (gate !== PeerMentorGateState.Earned) return IskurHomeMode.None;
+  return hasProfile ? IskurHomeMode.Mentor : IskurHomeMode.CreateProfile;
 }

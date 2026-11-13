@@ -2,7 +2,11 @@ import type { AxiosRequestConfig } from "axios";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ProgramMemberKind } from "@/interfaces/admin-overview";
-import { assignToProgram } from "@/lib/api/admin-program-members";
+import {
+  assignToProgram,
+  moveStartupToProgram,
+  removeMentorFromProgram,
+} from "@/lib/api/admin-program-members";
 import { backendRequest } from "@/lib/server/backend-client";
 
 vi.mock("@/lib/server/backend-client", () => ({
@@ -23,6 +27,25 @@ const cases: RequestCase[] = [
     {
       method: "POST",
       url: "/api/admin/programs/prog%2F1/startups/org%201",
+      params: { actorId: "admin-1" },
+    },
+  ],
+  [
+    "moves a startup into the program in the path, naming the one it leaves",
+    () => moveStartupToProgram("admin-1", "prog/2", "org 1", "program-1"),
+    {
+      method: "POST",
+      url: "/api/admin/programs/prog%2F2/startups/org%201/move",
+      params: { actorId: "admin-1" },
+      data: { fromProgramId: "program-1" },
+    },
+  ],
+  [
+    "removes a mentor from the program in the path",
+    () => removeMentorFromProgram("admin-1", "prog/1", "mentor 1"),
+    {
+      method: "POST",
+      url: "/api/admin/programs/prog%2F1/mentors/mentor%201/remove",
       params: { actorId: "admin-1" },
     },
   ],

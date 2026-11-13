@@ -12,7 +12,7 @@ import {
   StatusChip,
 } from "@/components/admin/admin-ui";
 import { TeamHistory } from "@/components/common/team-history";
-import { TeamStage } from "@/components/coordinator/team-stage";
+import { TeamPhase } from "@/components/coordinator/team-phase";
 import { ProfileLink } from "@/components/people/profile-link";
 import { useOptionLabel } from "@/hooks/use-option-label";
 import { useProgramTeamDetail } from "@/hooks/use-program-team-detail";
@@ -141,7 +141,7 @@ export function TeamDetailDrawer({
               ) : null}
 
               <Section title={t("stage")}>
-                <TeamStage
+                <TeamPhase
                   programId={programId}
                   organizationId={organizationId}
                 />
