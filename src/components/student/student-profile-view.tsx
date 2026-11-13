@@ -112,7 +112,6 @@ function InterestsCard() {
           </Button>
         </InlineAlert>
       ) : draft ? (
-        // TEST UI: placeholder until the design team's screen; replace when it arrives.
         <form
           className="mt-5 flex flex-col gap-5"
           onSubmit={(event) => {
