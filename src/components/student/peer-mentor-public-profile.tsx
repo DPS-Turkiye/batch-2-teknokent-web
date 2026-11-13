@@ -1,6 +1,5 @@
 "use client";
 
-import { Link2 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
@@ -13,6 +12,7 @@ import {
   WhyRecommended,
 } from "@/components/student/peer-mentor-directory";
 import { PeerMentorRequestDialog } from "@/components/student/peer-mentor-request-dialog";
+import { PeerMentorSharedEvidence } from "@/components/student/peer-mentor-shared-evidence";
 import { usePeerMentor } from "@/hooks/use-peer-mentoring";
 import { formatYearMonth } from "@/lib/peer-mentoring";
 import { httpUrlOrNull, initials } from "@/lib/utils";
@@ -157,22 +157,10 @@ export function PeerMentorPublicProfile({ mentorId }: { mentorId: string }) {
                 </dl>
               </section>
             ) : null}
-            {linkedinUrl ? (
-              <section aria-labelledby="mentor-links" className="space-y-2">
-                <h2 id="mentor-links" className="type-label text-text-primary">
-                  {t("links")}
-                </h2>
-                <a
-                  href={linkedinUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 type-label text-text-accent hover:underline"
-                >
-                  <Link2 aria-hidden className="size-4" />
-                  {t("linkedin")} <span className="sr-only">{t("newTab")}</span>
-                </a>
-              </section>
-            ) : null}
+            <PeerMentorSharedEvidence
+              mentorId={mentorId}
+              linkedinUrl={linkedinUrl}
+            />
           </Card>
           <aside className="flex w-full flex-col gap-6 lg:w-[400px] lg:shrink-0">
             <WhyRecommended reasons={view.reasons} />

@@ -1045,6 +1045,7 @@
       "sendFailed": "Couldn't send the meeting assistant.",
       "stopFailed": "Couldn't stop the meeting assistant.",
       "transcriptFailed": "Couldn't get the meeting transcript.",
+      "botStateFailed": "Could not read the bot's status.",
       "reportFailed": "Couldn't create the meeting report."
     },
     "coordinatorEvent": {
@@ -1926,7 +1927,7 @@
     "nameFallback": "Startup",
     "logo": "{name} logo",
     "fallbackName": "My startup",
-    "stage": "{stage} stage",
+    "stage": "Phase: {stage}",
     "tabsLabel": "Startup tabs",
     "tabs": {
       "profile": "Profile",
@@ -2086,15 +2087,6 @@
     "syllabus": "Syllabus",
     "weekly-program": "Weekly program"
   },
-  "startupStages": {
-    "PROBLEM": "Problem",
-    "SOLUTION": "Solution",
-    "MVP": "MVP",
-    "BUSINESS_MODEL": "Business model",
-    "MARKET": "Market",
-    "FINANCE": "Finance",
-    "PITCH": "Pitch"
-  },
   "startupFiles": {
     "filters": {
       "all": "All",
@@ -2185,7 +2177,7 @@
       "CANCELLED": "Cancelled"
     },
     "action": {
-      "current": "Current stage",
+      "current": "Current phase",
       "completed": "Completed",
       "continue": "Continue",
       "start": "Start"
@@ -2202,20 +2194,23 @@
     "upload": "Upload assignment",
     "uploadLabel": "Upload the assignment for {title}",
     "loading": "Loading the process…",
-    "stages": "Stages",
+    "stages": "Phases",
     "focus": "Focus round",
-    "noRound": "No round planned for this stage yet.",
-    "assignments": "Your assignments in this stage",
+    "noRound": "No round is planned for this phase yet.",
+    "assignments": "Your assignments in this phase",
     "assignmentsHint": "Each row says who the assignment came from and what it belongs to.",
-    "thisStage": "This stage →",
+    "thisStage": "This phase →",
     "all": "All ({count}) →",
-    "stageEmpty": "No assignments for this stage yet.",
-    "completedStages": "Completed stages",
-    "noCompleted": "No completed stages yet.",
+    "stageEmpty": "No assignments here yet.",
+    "completedStages": "Completed phases",
+    "noCompleted": "No phase completed yet.",
     "completedCount": "{count, plural, one {# assignment done} other {# assignments done}}",
     "uploaded": "Assignment uploaded.",
     "uploadFailed": "Couldn't upload the assignment.",
-    "stageUpdated": "Stage updated."
+    "noPhases": "The program's phases haven't been added yet. Your assignments are below.",
+    "unphased": "Assignments without a phase ({count})",
+    "unphasedTitle": "Assignments without a phase",
+    "allAssignmentsTitle": "Your assignments"
   },
   "personalProfile": {
     "comingSoon": "This section is coming soon.",
@@ -2277,6 +2272,9 @@
     "uploading": "Uploading CV…",
     "reading": "Reading your CV and filling in the fields…",
     "manual": "Your CV is not read automatically on this system; the file is only stored. Fill in your profile yourself."
+  },
+  "cvConsent": {
+    "label": "I agree to my CV being read: my email, phone and Turkish ID numbers are masked on our system first; other details such as my name, schools and employers are not. The text is then parsed by an AI service abroad (USA) to fill my profile fields. If I do not agree, my CV is only stored and I fill the fields myself."
   },
   "editableChips": {
     "add": "Add…",
@@ -2598,7 +2596,8 @@
     "status": {
       "PENDING": "Under coordinator review",
       "APPROVED": "Approved",
-      "REJECTED": "Not approved"
+      "REJECTED": "Not approved",
+      "DELETED": "Deleted"
     },
     "loading": "Loading...",
     "signedOutTitle": "Sign in to see your application status",
@@ -3370,6 +3369,17 @@
     "transcriptShareFailed": "Couldn't send the transcript.",
     "reportShareFailed": "Couldn't send the report.",
     "botSent": "Bot sent — admit it in the meeting; the transcript will show up here.",
+    "botNoticeLabel": "Recording bot status",
+    "botNotice": {
+      "joining": "The recording bot is connecting to the meeting…",
+      "waitingForAdmission": "The recording bot is in the waiting room. When the join request appears in Meet, click “Admit”.",
+      "waitingTooLong": "The bot has waited {minutes} minutes. If you see no join request in Meet, Google may not have let it in: stop the bot and send it again.",
+      "recording": "The recording bot is in the meeting and recording.",
+      "couldNotJoin": "The recording bot could not join the meeting. You can send it again.",
+      "notAdmittedInTime": "The recording bot left because nobody admitted it in time. Send it again and click “Admit” in Meet.",
+      "rejected": "The recording bot's join request was declined.",
+      "left": "The recording bot has left the meeting."
+    },
     "reportView": {
       "noTopic": "Couldn't find the topic or date in the transcript",
       "summary": "Summary",
@@ -3420,17 +3430,6 @@
       "CANCELLED": "Cancelled",
       "EXPIRED": "Expired",
       "WITHDRAWN": "Withdrawn"
-    },
-    "role": {
-      "MENTOR": "As mentor",
-      "MENTEE": "As mentee",
-      "OFFICE_HOURS": "Office Hours"
-    },
-    "card": {
-      "place": "Place: {place}",
-      "alternative": "Suggested alternative (not confirmed yet)",
-      "rejectReason": "Reason: {reason}",
-      "join": "Join the session"
     }
   },
   "odtuWorkspaces": {
@@ -4107,6 +4106,7 @@
     "launched": "{name} was launched.",
     "launchFailed": "The program could not be launched.",
     "launchNeedsCoordinator": "Assign a coordinator before launching.",
+    "waitingSuffix": "· +{count} waiting",
     "participantTabs": {
       "TEAMS": "Teams",
       "MENTOR_POOL": "Mentor pool",
@@ -4280,7 +4280,7 @@
       "codeHint": "The lead shares this code with the team members",
       "membersJoined": "{count, plural, one {# member} other {# members}} joined",
       "copy": "Copy",
-      "stage": "Process stage",
+      "stage": "Process phase",
       "members": "Team members · {count}",
       "noMembers": "No members have joined yet.",
       "joinedOn": "Joined · {date}",
@@ -4292,15 +4292,11 @@
       "messageTeam": "Message the team"
     },
     "stage": {
-      "loading": "Loading the stage…",
-      "loadFailed": "Couldn't load the stage.",
-      "none": "No stage chosen",
-      "update": "Update the stage",
-      "newStage": "New stage",
-      "cancel": "Cancel",
-      "saving": "Saving…",
-      "save": "Save",
-      "saveFailed": "Couldn't update the stage. Try again."
+      "loading": "Loading the phase…",
+      "loadFailed": "Couldn't load the team's phase.",
+      "none": "No phase is running today",
+      "noPhases": "The program has no phases yet",
+      "byDate": "The phase follows the program's phases and dates; change them in Program Settings."
     }
   },
   "programLaunch": {
@@ -4868,6 +4864,90 @@
     "rejected": "{name} was rejected.",
     "approved": "{name} was approved.",
     "decideFailed": "Couldn't save the decision.",
+    "deleteUser": {
+      "title": "Delete user",
+      "body": "The account, its login and personal data are deleted for good. This cannot be undone.",
+      "button": "Delete user",
+      "dialogTitle": "Delete this user for good?",
+      "dialogBody": "{name}'s account will be deleted. This cannot be undone.",
+      "deletedHeading": "What is deleted",
+      "deleted": {
+        "account": "The account and its login (the same e-mail can sign up again)",
+        "profile": "Profile, notifications and other personal data",
+        "documents": "The CV, photo and personal files the person uploaded"
+      },
+      "keptHeading": "What stays",
+      "kept": {
+        "history": "History shared with others (meetings, requests, messages); the person shows as “Silinmiş kullanıcı”",
+        "teams": "Teams that have other members, with their files; a startup whose only member this is gets archived"
+      },
+      "emailLabel": "Type the user's e-mail to confirm",
+      "confirm": "Delete for good",
+      "deleting": "Deleting…",
+      "cancel": "Cancel",
+      "done": "User deleted.",
+      "donePending": "User deleted; removing the login and files will finish in the background.",
+      "failed": "Couldn't delete the user.",
+      "signInAgain": "You need to sign in again for this action."
+    },
+    "moveProgram": {
+      "action": "Change program",
+      "target": "Program to move to",
+      "chooseTarget": "Choose the new program",
+      "noTarget": "There is no other open program the team can move to.",
+      "dialogTitle": "Change the team's program?",
+      "dialogBody": "{team} will move from the {from} program to the {to} program.",
+      "movedHeading": "Moves to the new program",
+      "movedItems": {
+        "team": "Startup information, members and their profiles; the team does not re-enter anything",
+        "approval": "The team's approval and its member invite code",
+        "pendingChanges": "Member leave and removal requests waiting for a coordinator"
+      },
+      "keptHeading": "Stays in the old program",
+      "keptItems": {
+        "activity": "Mentorships, meetings and answered requests; running mentorships and booked meetings continue under the old program's name",
+        "records": "Attendance records, reports, the documents the team uploaded and coordinator messages"
+      },
+      "closedHeading": "Will be closed",
+      "closedItems": {
+        "openRequests": "Mentorship requests sent to the old program's mentors that are still waiting for an answer; their mentors are told",
+        "openDocuments": "Documents the old program asked for that the team has not uploaded yet"
+      },
+      "notice": "The coordinators of both programs and the team's members are notified.",
+      "confirm": "Move the team",
+      "moving": "Moving…",
+      "cancel": "Cancel",
+      "moved": "{team} was moved to the {program} program.",
+      "movedClosingRequests": "{team} was moved to the {program} program; {count} requests waiting for an answer were closed.",
+      "failed": "The team's program could not be changed."
+    },
+    "removeFromProgram": {
+      "action": "Remove from program",
+      "actionFor": "Remove from program: {program}",
+      "dialogTitle": "Remove the mentor from the program?",
+      "dialogBody": "{mentor} will be removed from the mentors of the {program} program. Their other programs are not affected.",
+      "stoppedHeading": "What stops",
+      "stoppedItems": {
+        "pool": "The mentor no longer appears in this program's mentor pool; they are not recommended to its teams and cannot get new requests from them",
+        "programPages": "The mentor no longer sees the program's weekly plan and announcements"
+      },
+      "keptHeading": "What keeps running",
+      "keptItems": {
+        "activity": "Running mentorships and booked meetings in this program; they continue under the program's name",
+        "records": "Past meetings, notes and the records in reports stay with the program"
+      },
+      "withdrawnHeading": "What is withdrawn",
+      "withdrawnItems": {
+        "openRequests": "Mentorship requests this program's teams sent to the mentor that are still waiting for an answer; the people who sent them are told why"
+      },
+      "notice": "The mentor and the program's coordinators are notified. You can add the mentor back later with “Add to program”.",
+      "confirm": "Remove mentor",
+      "removing": "Removing…",
+      "cancel": "Cancel",
+      "removed": "{mentor} was removed from the {program} program.",
+      "removedClosingRequests": "{mentor} was removed from the {program} program; {count} requests waiting for an answer were withdrawn.",
+      "failed": "The mentor could not be removed from the program."
+    },
     "revokeSignIns": {
       "button": "End all sign-ins",
       "confirm": "{name} will be signed out on every device and has to sign in again. Continue?",
@@ -5853,9 +5933,7 @@
     "mentorDetailsLoadFailed": "Could not load the mentor's details.",
     "programReportLoadFailed": "Could not load the program report.",
     "teamDetailLoadFailed": "Could not load the team's details.",
-    "teamStageLoadFailed": "Could not load the team's stage.",
-    "stageInvalid": "Choose a valid stage.",
-    "stageUpdateFailed": "Could not update the stage.",
+    "teamStageLoadFailed": "Couldn't load the team's phase.",
     "teamsLoadFailed": "Could not load the teams.",
     "teamsAddFailed": "Could not add the teams.",
     "teamUpdateFailed": "Could not update the team.",
@@ -5987,6 +6065,7 @@
     "statusMustBeDecision": "The status must be APPROVED or REJECTED.",
     "accountStatusUpdateFailed": "Could not update the account status.",
     "signInRevokeFailed": "Could not end the sign-ins.",
+    "userDeleteFailed": "Couldn't delete the user.",
     "noActiveMentorship": "You have no active mentorship with this startup.",
     "meetingStartupRequired": "Choose a startup for the meeting.",
     "notInProgram": "You are not part of this program.",
@@ -6011,6 +6090,8 @@
     "mentorInviteFailed": "Could not invite the mentor.",
     "decisionSaveFailed": "Could not save the decision.",
     "programAssignFailed": "Could not add to the program.",
+    "programMoveFailed": "The team's program could not be changed.",
+    "programMentorRemoveFailed": "The mentor could not be removed from the program.",
     "eventAddFailed": "Could not add the event.",
     "phasesSaveFailed": "Could not save the phases.",
     "inviteRenewFailed": "Could not renew the invitation.",
@@ -6028,7 +6109,6 @@
     "teamChangesLoadFailed": "Could not load the team requests.",
     "startupResubmitFailed": "Could not send the startup again. Please try again.",
     "teamRemovalRequestFailed": "Could not send the removal request.",
-    "syllabusReadFailed": "Couldn't read the syllabus.",
     "startupCreateFailed": "Could not create the startup. Please try again.",
     "startupJoinFailed": "Could not join the startup. Please try again.",
     "teamChangeCancelFailed": "Could not withdraw the request.",
@@ -6040,6 +6120,7 @@
     "peerMentoringLoadFailed": "Couldn't load peer mentoring.",
     "peerMentoringRequestFailed": "Couldn't send the request.",
     "officeHoursFailed": "The office hours action could not be completed.",
+    "officeHoursLoadFailed": "Could not load office hours.",
     "invalidRequestBody": "The request body could not be read.",
     "invalidRequestFields": "Some fields in the request are missing or invalid.",
     "peerMentorProfileSaveFailed": "Couldn't save your mentor profile.",
@@ -6115,23 +6196,13 @@
     "addPhase": "Add a phase"
   },
   "programCurriculum": {
-    "title": "Curriculum & phases",
-    "subtitle": "Phases drive each team’s progress tracking and the phase timeline on the Overview.",
+    "title": "Weekly program & phases",
+    "subtitle": "Weeks and phases come from the weekly program PDF. Phases drive the teams' Process view and the phase chart on Overview.",
     "addPhase": "Add a phase",
-    "noFile": "No curriculum file",
-    "noFileHint": "Upload a PDF to read the phases from it.",
-    "uploaded": "Uploaded {date}",
-    "reading": "Reading the curriculum…",
-    "chooseFile": "Choose a curriculum PDF",
-    "uploadFile": "Upload a file",
-    "replaceFile": "Replace the file",
-    "reread": "Read the phases again",
-    "reviewNote": "{count} phases were read from the file. Saving replaces the current phases.",
-    "saveReview": "Save the phases",
     "today": "Today",
     "todayWeek": "Today · {week}",
     "week": "week {current}/{total}",
-    "empty": "No phases yet. Start with “Add a phase” or upload a curriculum file.",
+    "empty": "No phases yet. Upload the weekly program or start with “Add phase”.",
     "listLabel": "Program phases",
     "lockNote": "Finished phases keep their dates; their names can still change. Changes update the progress view of {count} teams.",
     "done": "Done",
@@ -6166,12 +6237,7 @@
     "save": "Save",
     "saving": "Saving…",
     "saved": "Phases saved.",
-    "saveFailed": "Could not save the phases.",
-    "readFailed": "Could not read the curriculum.",
-    "uploadFailed": "Could not upload the file.",
-    "pdfOnly": "Only PDF files can be uploaded.",
-    "tooLarge": "The file can be at most 10 MB.",
-    "manualHint": "Syllabus files are not read automatically on this system; add the phases here and the weeks in the weekly plan by hand."
+    "saveFailed": "Could not save the phases."
   },
   "teamHistory": {
     "show": "Team history",
@@ -6472,7 +6538,9 @@
         "DECLINED": "Not available",
         "MORE_INFO_REQUESTED": "More info requested",
         "COUNTER_PROPOSED": "Other times offered",
-        "WITHDRAWN": "Withdrawn"
+        "WITHDRAWN": "Withdrawn",
+        "CANCELLED": "Cancelled",
+        "EXPIRED": "Expired"
       },
       "with": "With {name}",
       "asked": "Requested times",
@@ -6728,8 +6796,7 @@
     "add": "Add week",
     "loading": "Loading the weekly plan…",
     "loadFailed": "Couldn't load the weekly plan.",
-    "empty": "No weekly plan yet. When you upload the syllabus, the AI proposes the weeks; you can also add them by hand.",
-    "proposedNote": "Weeks the AI read from the syllabus. Check and edit them, then save; participants don't see them until you do.",
+    "empty": "No weekly plan yet. Upload the weekly program and the AI reads the weeks; you can also add them by hand.",
     "week": "Week",
     "weekLabel": "Week {week}",
     "weekNumberOf": "Week {week} number",
@@ -6753,6 +6820,72 @@
       "PAST_THE_END": "Week numbers must be between 1 and {total}."
     }
   },
+  "weeklyProgram": {
+    "manualHint": "Automatic weekly program reading is disabled here; add phases here and weeks in the Weekly plan manually.",
+    "noFile": "No weekly program file",
+    "noFileHint": "Upload a PDF and the AI reads the weeks and phases from it.",
+    "oldSyllabus": "Earlier syllabus file · view only",
+    "needsDates": "Set the program's start and end dates first; the weeks are placed on them.",
+    "uploaded": "Uploaded {date}",
+    "reading": "Reading the weekly program…",
+    "chooseFile": "Choose the weekly program PDF",
+    "uploadFile": "Upload PDF",
+    "replaceFile": "Upload a new PDF",
+    "reread": "Read again",
+    "reviewTitle": "Plan read from the file",
+    "reviewSubtitle": "{weeks, plural, one {# week} other {# weeks}} and {phases, plural, one {# phase} other {# phases}} read. Check, edit and save them in one step; participants see nothing until you save.",
+    "phasesTitle": "Phases",
+    "phaseRange": "Weeks {first}–{last} · {dates}",
+    "phaseRangeOne": "Week {week} · {dates}",
+    "phaseName": "Name of phase {n}",
+    "phaseOutput": "Expected output of phase {n}",
+    "outputPlaceholder": "Expected output (optional)",
+    "weeksTitle": "Weeks",
+    "weekPhase": "Phase of week {week}",
+    "noPhase": "No phase",
+    "notesTitle": "Notes in the file",
+    "notesHint": "Lines that belong to no week are not saved; add them to a week if needed.",
+    "readingWarningsTitle": "The AI's notes",
+    "replaceTitle": "This program already has a plan",
+    "replaceBody": "{phases, plural, one {# phase} other {# phases}} and {weeks, plural, one {# week} other {# weeks}} are saved. Saving replaces them with the plan read from the file.",
+    "keepPast": "Keep past weeks and completed phases",
+    "keepPastHint": "Weeks 1–{week} and finished phases stay as they are; the plan changes from week {next}.",
+    "keepPastNothing": "The program is in its first week; there are no past weeks to keep.",
+    "keepPastEnded": "The program has ended; every week and finished phase stays as it is.",
+    "confirm": "I confirm replacing the saved plan",
+    "discard": "Discard",
+    "save": "Save plan",
+    "saving": "Saving…",
+    "saved": "Weekly program and phases saved.",
+    "saveFailed": "Couldn't save the plan.",
+    "planChanged": "The program's plan changed while you were reading the file. Read the file again.",
+    "readFailed": "Couldn't read the weekly program.",
+    "uploadFailed": "Couldn't upload the file.",
+    "pdfOnly": "You can only upload a PDF.",
+    "tooLarge": "The file can be at most 10 MB.",
+    "noWeeks": "At least one week is needed to save.",
+    "confirmFirst": "Confirm replacing the saved plan before saving.",
+    "weekProblems": {
+      "MISSING_TITLE": "Give every week a title.",
+      "REPEATED_WEEK": "A week appears more than once.",
+      "PAST_THE_END": "Week numbers must be between 1 and {total}."
+    },
+    "phaseProblems": {
+      "MISSING_NAME": "Give every phase a name.",
+      "TOO_MANY": "A program can have at most 12 phases.",
+      "OUT_OF_ORDER": "Phases must follow each other without overlapping.",
+      "PAST_THE_END": "Phases cannot end after week {total} of the program."
+    },
+    "warnings": {
+      "TEXT_CUT": "The file was too long; its end couldn't be read.",
+      "DATES_DIFFER": "A date in the file doesn't fit the program calendar: week {weeks}. Weeks were placed from the program start.",
+      "WEEKS_DROPPED": "Weeks outside the program or without a title were left out: week {weeks}.",
+      "PHASES_REBUILT": "Phases were regrouped by the weeks' topics; check their names.",
+      "PHASES_MERGED": "There were more than 12 phases; the last ones were merged.",
+      "NO_PHASES": "No phases could be read. Add them with “Add phase” after saving."
+    },
+    "unnamedPhase": "Phase {n}"
+  },
   "personSummary": {
     "back": "Back",
     "loading": "Loading the profile…",
@@ -6765,7 +6898,8 @@
     "statuses": {
       "APPROVED": "Approved",
       "PENDING": "Awaiting approval",
-      "REJECTED": "Rejected"
+      "REJECTED": "Rejected",
+      "DELETED": "Deleted"
     },
     "linkedin": "LinkedIn profile",
     "about": "About",
@@ -6812,5 +6946,70 @@
     "availabilityDaysOff": "Upcoming days off",
     "availabilityExtraSlots": "Extra times",
     "availabilityExtraSlot": "{day} · {time} ({minutes} min)"
+  },
+  "odtuLanding": {
+    "navLabel": "Sign-in and help",
+    "help": "Help",
+    "overline": "menton for METU",
+    "title": "Office Hours and peer mentoring in one place",
+    "intro": "Book time with your academics, ask İŞKUR students with a verified badge for peer mentoring and follow all your appointments in one calendar.",
+    "signupAction": "Sign up as an İŞKUR student",
+    "noSignupTag": "No sign-up needed",
+    "noSignupText": "If you are a METU student or academic, your METU account is all you need.",
+    "featuresTitle": "What you can do",
+    "features": {
+      "officeHours": {
+        "title": "Request an appointment",
+        "caption": "Office Hours"
+      },
+      "peerMentoring": {
+        "title": "Find a mentor",
+        "caption": "Peer mentoring"
+      },
+      "appointments": {
+        "title": "Follow your appointments",
+        "caption": "My appointments"
+      },
+      "advisor": {
+        "title": "Reach your advisor",
+        "caption": "Academic advising"
+      }
+    },
+    "audienceTitle": "Who is it for?",
+    "audience": {
+      "student": {
+        "badge": "Student",
+        "title": "METU students",
+        "points": {
+          "first": "Book Office Hours",
+          "second": "Find a peer mentor who fits you",
+          "third": "Follow your appointments in one calendar"
+        }
+      },
+      "iskur": {
+        "badge": "İŞKUR Student",
+        "title": "Peer mentors",
+        "points": {
+          "first": "Finish the mentoring training and earn your badge",
+          "second": "Answer mentoring requests",
+          "third": "Manage your meetings and appointments"
+        }
+      },
+      "academic": {
+        "badge": "Academic",
+        "title": "METU academics",
+        "points": {
+          "first": "Add your weekly availability",
+          "second": "Answer appointment requests",
+          "third": "See your advisees in one place"
+        }
+      }
+    },
+    "banner": {
+      "title": "Are you a METU student or academic?",
+      "text": "Sign in with your METU account. Office Hours, peer mentoring and your academic advisor open based on your account."
+    },
+    "footer": "menton · METU",
+    "metaTitle": "menton · METU"
   }
 }

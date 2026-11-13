@@ -40,7 +40,7 @@ const UPLOAD_UNREACHABLE_MESSAGE =
  * requireSuccess hides English server messages behind a generic "check the
  * fields" text, which is wrong for a refused file, so the reason is read first.
  */
-function uploaded(response: AxiosResponse<StoredDocument>) {
+function uploaded<T>(response: AxiosResponse<T>) {
   const body = response.data as unknown;
   const reason =
     response.status >= 400 &&
@@ -56,35 +56,30 @@ function uploaded(response: AxiosResponse<StoredDocument>) {
 
 /**
  * The Amplify-hosted frontend's own edge blocks any request body over ~8KB on
- * its proxy routes, so this goes straight to the backend instead of through
- * /api/documents. Always resolves a fresh Firebase token when the caller
- * doesn't already have one on hand, rather than requiring every call site to
- * plumb it through. Locally, if the public backend is unreachable, falls back
- * to the Next.js /api/documents proxy.
+ * its proxy routes, so an upload goes straight to the backend at `path`
+ * instead of through this app's route of the same path. Always resolves a
+ * fresh Firebase token when the caller doesn't already have one on hand,
+ * rather than requiring every call site to plumb it through. Locally, if the
+ * public backend is unreachable, falls back to the Next.js proxy.
  */
-export async function uploadDocument(
-  file: File,
-  kind: DocumentKind,
+export async function postUpload<T>(
+  path: string,
+  data: FormData,
   idToken?: string,
-  meetingId?: string,
-) {
+): Promise<T> {
   const token = idToken ?? (await currentIdToken());
   if (!token) {
     throw new Error(clientText("sessionExpired"));
   }
-  const data = new FormData();
-  data.set("file", file);
-  data.set("kind", kind);
-  if (meetingId) data.set("meetingId", meetingId);
 
   const post = (url: string) =>
-    httpClient.post<StoredDocument>(url, data, {
+    httpClient.post<T>(url, data, {
       headers: { Authorization: `Bearer ${token}` },
       timeout: UPLOAD_TIMEOUT_MS,
     });
 
   try {
-    return uploaded(await post(`${getPublicBackendUrl()}/api/documents`));
+    return uploaded(await post(`${getPublicBackendUrl()}${path}`));
   } catch (error) {
     if (
       !(error instanceof ClientApiError) ||
@@ -94,7 +89,7 @@ export async function uploadDocument(
     }
   }
   try {
-    return uploaded(await post("/api/documents"));
+    return uploaded(await post(path));
   } catch (error) {
     if (
       error instanceof ClientApiError &&
@@ -108,6 +103,19 @@ export async function uploadDocument(
     }
     throw error;
   }
+}
+
+export async function uploadDocument(
+  file: File,
+  kind: DocumentKind,
+  idToken?: string,
+  meetingId?: string,
+) {
+  const data = new FormData();
+  data.set("file", file);
+  data.set("kind", kind);
+  if (meetingId) data.set("meetingId", meetingId);
+  return postUpload<StoredDocument>("/api/documents", data, idToken);
 }
 
 /** The signed-in person's own files, newest first, through their session. */

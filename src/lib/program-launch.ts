@@ -168,3 +168,14 @@ export function setupSteps(
   ];
   return steps.every((step) => step.done) ? null : steps;
 }
+
+/**
+ * Rows of the Takımlar list the program's team count leaves out: invited teams whose lead has not joined, and joined
+ * ones still waiting for approval (the list shows those as joined, so their status cannot single them out).
+ */
+export function waitingTeamCount(
+  teams: readonly ProgramTeam[],
+  countedTeams: number,
+) {
+  return Math.max(0, teams.length - countedTeams);
+}

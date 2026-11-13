@@ -1,6 +1,12 @@
-// TEST UI: placeholder until the design team's screen; replace when it arrives.
-import { StudentAppointmentsView } from "@/components/student/appointments-view";
+import { IskurAppointmentsView } from "@/components/student/iskur-appointments-view";
+import { sentToParam } from "@/lib/student-appointments";
 
-export default function StudentAppointmentsPage() {
-  return <StudentAppointmentsView />;
+/** `?sent=<name>`: arriving right after a request was sent shows its confirmation banner. */
+export default async function StudentAppointmentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ sent?: string | string[] }>;
+}) {
+  const { sent } = await searchParams;
+  return <IskurAppointmentsView sentTo={sentToParam(sent)} />;
 }

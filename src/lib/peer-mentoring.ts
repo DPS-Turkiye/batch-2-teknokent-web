@@ -21,6 +21,7 @@ import { isUpcoming } from "@/lib/appointments";
 import { toTimeInput } from "@/lib/mentor-availability";
 import {
   ExperienceCardProblem,
+  IskurHomeMode,
   PeerCapacityNote,
   PeerRequestAvailability,
   type ExperienceCardForm,
@@ -444,4 +445,14 @@ export function nextSessionsByRequest<
     }
   }
   return next;
+}
+
+/** Which İŞKUR blocks the home shows; a session that lags behind a new badge waits like a missing profile. */
+export function iskurHomeMode(
+  gate: PeerMentorGateState,
+  hasProfile: boolean,
+): IskurHomeMode {
+  if (gate === PeerMentorGateState.NoBadge) return IskurHomeMode.Training;
+  if (gate !== PeerMentorGateState.Earned) return IskurHomeMode.None;
+  return hasProfile ? IskurHomeMode.Mentor : IskurHomeMode.CreateProfile;
 }

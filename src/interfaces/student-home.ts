@@ -4,6 +4,6 @@ import type { Appointment } from "@/interfaces/appointment";
 export type StudentHome = {
   /** False until the student finishes or skips the 3-step profile completion. */
   profileCompleted: boolean;
-  /** Appointments still ahead (pending, alternative proposed or confirmed), soonest first, at most three. */
-  upcomingAppointments: Appointment[];
+  /** Every appointment of the student; Ana Sayfa picks what is ahead (see `lib/student-home.ts`). */
+  appointments: Appointment[];
 };

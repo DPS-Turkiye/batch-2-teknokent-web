@@ -24,6 +24,7 @@ export const teamInviteSchema = z.object({
 });
 
 export const programPhaseSchema = z.object({
+  id: stringOrNullSchema,
   name: z.string(),
   startDate: stringOrNullSchema,
   endDate: stringOrNullSchema,

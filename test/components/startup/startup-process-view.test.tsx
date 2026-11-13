@@ -8,11 +8,11 @@ import { useStartupProcess } from "@/hooks/use-startup-process";
 import { ActionItemStatus } from "@/interfaces/action-item";
 import { UserRole } from "@/interfaces/session";
 import {
-  StartupStage,
   StartupStageState,
   type ProcessAssignment,
 } from "@/interfaces/startup-process";
 import { expectLength } from "@test/fixtures/list-assertions";
+import { processPhase } from "@test/fixtures/startup-process";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/components/startup/startup-page-frame", () => ({
@@ -29,7 +29,8 @@ vi.mock("@/hooks/use-startup-process", () => ({
 
 const uploadAssignment = vi.fn();
 const toggleShowAll = vi.fn();
-const selectStage = vi.fn();
+const selectPhase = vi.fn();
+const selectUnphased = vi.fn();
 
 function assignment(
   id: string,
@@ -39,7 +40,7 @@ function assignment(
   return {
     id,
     roundId: "round-1",
-    stage: StartupStage.Finance,
+    phaseId: "mvp",
     title,
     description: null,
     status: ActionItemStatus.Open,
@@ -55,6 +56,14 @@ function assignment(
 
 type Process = ReturnType<typeof useStartupProcess>;
 
+const PROBLEM = processPhase("problem", "Problemi Keşfet", {
+  startDate: "2026-06-12",
+  endDate: "2026-07-08",
+  state: StartupStageState.Completed,
+});
+const MVP = processPhase("mvp", "MVP", { state: StartupStageState.Current });
+const MODEL = processPhase("model", "İş Modeli");
+
 function state(overrides: Partial<Process> = {}): Process {
   return {
     assignments: [
@@ -62,60 +71,42 @@ function state(overrides: Partial<Process> = {}): Process {
         dueDate: "2026-08-30",
       }),
       assignment("model", "B2B2C hipotezi", {
-        stage: StartupStage.BusinessModel,
+        phaseId: "model",
         status: ActionItemStatus.Completed,
         createdByName: "Selin Kaya",
       }),
     ],
-    completedStages: [
+    assignmentsTitle: "Bu fazdaki ödevlerin",
+    completedPhases: [
       {
-        stage: StartupStage.Problem,
-        startsOn: "2026-06-12",
-        endsOn: "2026-07-08",
+        phase: PROBLEM,
         completedAssignments: 4,
       },
     ],
     error: null,
     isLoading: false,
     roundName: (roundId) => (roundId === "round-1" ? "MVP test turu" : null),
-    selectStage,
+    hasPhases: true,
+    phaseCards: [
+      { phase: PROBLEM, done: 4, total: 4, percent: 100, action: "completed" },
+      { phase: MVP, done: 3, total: 4, percent: 75, action: "current" },
+      { phase: MODEL, done: 0, total: 0, percent: 0, action: "start" },
+    ],
+    selectPhase,
+    selectUnphased,
     selectedRound: {
       id: "round-1",
       title: "Value proposition & onboarding",
       name: "MVP test turu",
-      stage: StartupStage.Mvp,
+      phaseId: "mvp",
       startsOn: "2026-08-02",
       endsOn: "2026-08-31",
     },
-    selectedStage: StartupStage.Mvp,
+    selectedPhaseId: "mvp",
     showAll: false,
-    stageCards: [
-      {
-        stage: StartupStage.Problem,
-        state: StartupStageState.Completed,
-        done: 4,
-        total: 4,
-        percent: 100,
-        action: "completed",
-      },
-      {
-        stage: StartupStage.Mvp,
-        state: StartupStageState.Current,
-        done: 3,
-        total: 4,
-        percent: 75,
-        action: "current",
-      },
-      {
-        stage: StartupStage.BusinessModel,
-        state: StartupStageState.Upcoming,
-        done: 0,
-        total: 0,
-        percent: 0,
-        action: "start",
-      },
-    ],
+    showUnphased: false,
     toggleShowAll,
+    unphasedCount: 0,
     totalAssignments: 7,
     uploadAssignment,
     uploadingAssignmentId: null,
@@ -136,27 +127,27 @@ describe("StartupProcessView", () => {
       </InLocale>,
     );
 
-    const stages = within(screen.getByRole("region", { name: "Stages" }));
-    const mvp = stages.getByRole("button", { name: "MVP · 3 / 4 done" });
-    expect(within(mvp).getByText("Current stage")).toBeInTheDocument();
+    const phases = within(screen.getByRole("region", { name: "Phases" }));
+    const mvp = phases.getByRole("button", { name: "MVP · 3 / 4 done" });
+    expect(within(mvp).getByText("Current phase")).toBeInTheDocument();
     expect(
-      stages.getByRole("button", {
-        name: "Business model · No assignments yet",
+      phases.getByRole("button", {
+        name: "İş Modeli · No assignments yet",
       }),
     ).toHaveTextContent("Start");
     expect(screen.getByText("2 · Aug 31")).toBeInTheDocument();
   });
 
-  it("shows a card per stage with the chosen stage's round", () => {
+  it("shows a card per program phase with the chosen phase's round", () => {
     renderWithQueryClient(<StartupProcessView />);
 
-    const stages = within(screen.getByRole("region", { name: "Aşamalar" }));
+    const stages = within(screen.getByRole("region", { name: "Fazlar" }));
     const mvp = stages.getByRole("button", { name: "MVP · 3 / 4 tamamlandı" });
     expect(mvp).toHaveAttribute("aria-pressed", "true");
     expect(mvp).toHaveAttribute("aria-current", "step");
     expect(within(mvp).getByText("75%")).toBeInTheDocument();
-    expect(within(mvp).getByText("Mevcut aşama")).toBeInTheDocument();
-    const problem = stages.getByRole("button", { name: /^Problem/ });
+    expect(within(mvp).getByText("Mevcut faz")).toBeInTheDocument();
+    const problem = stages.getByRole("button", { name: /^Problemi Keşfet/ });
     expect(problem).toHaveAttribute("aria-pressed", "false");
     expect(within(problem).getByText("Tamamlandı")).toBeInTheDocument();
     expect(
@@ -168,20 +159,54 @@ describe("StartupProcessView", () => {
     expect(screen.getByText("2 · 31 Ağu")).toBeInTheDocument();
   });
 
-  it("opens a stage when its card is clicked", async () => {
+  it("opens a phase when its card is clicked", async () => {
     const user = userEvent.setup();
     renderWithQueryClient(<StartupProcessView />);
 
     await user.click(screen.getByRole("button", { name: /^İş Modeli/ }));
 
-    expect(selectStage).toHaveBeenCalledWith(StartupStage.BusinessModel);
+    expect(selectPhase).toHaveBeenCalledWith("model");
+  });
+
+  it("offers the Ödevler no phase covers when there are any", async () => {
+    vi.mocked(useStartupProcess).mockReturnValue(state({ unphasedCount: 2 }));
+    const user = userEvent.setup();
+    renderWithQueryClient(<StartupProcessView />);
+
+    await user.click(
+      screen.getByRole("button", { name: "Fazsız görevler (2)" }),
+    );
+
+    expect(selectUnphased).toHaveBeenCalled();
+  });
+
+  it("says the program has no phases yet and lists every Ödev without cards", () => {
+    vi.mocked(useStartupProcess).mockReturnValue(
+      state({
+        hasPhases: false,
+        phaseCards: [],
+        selectedPhaseId: null,
+        selectedRound: null,
+        completedPhases: [],
+        assignmentsTitle: "Ödevlerin",
+      }),
+    );
+    renderWithQueryClient(<StartupProcessView />);
+
+    expect(
+      screen.getByText("Programın fazları henüz eklenmedi. Ödevlerin aşağıda."),
+    ).toBeVisible();
+    expect(screen.queryByRole("button", { name: /^MVP/ })).toBeNull();
+    expect(screen.queryByRole("region", { name: "Odak turu" })).toBeNull();
+    expect(screen.getByRole("region", { name: "Ödevlerin" })).toBeVisible();
+    expect(screen.queryByRole("button", { name: /Tümü/ })).toBeNull();
   });
 
   it("lists each Ödev with where it came from, its due date and status", () => {
     renderWithQueryClient(<StartupProcessView />);
 
     const items = within(
-      screen.getByRole("region", { name: "Bu aşamadaki ödevlerin" }),
+      screen.getByRole("region", { name: "Bu fazdaki ödevlerin" }),
     ).getAllByRole("listitem");
     expectLength(items, 2);
     const [open, done] = items;
@@ -220,7 +245,7 @@ describe("StartupProcessView", () => {
     ).toBeDisabled();
   });
 
-  it("switches between the stage's Ödevler and every Ödev", async () => {
+  it("switches between the phase's Ödevler and every Ödev", async () => {
     const user = userEvent.setup();
     const { rerender } = renderWithQueryClient(<StartupProcessView />);
 
@@ -230,17 +255,17 @@ describe("StartupProcessView", () => {
     vi.mocked(useStartupProcess).mockReturnValue(state({ showAll: true }));
     rerender(<StartupProcessView />);
 
-    expect(screen.getByRole("button", { name: "Bu aşama →" })).toHaveAttribute(
+    expect(screen.getByRole("button", { name: "Bu faz →" })).toHaveAttribute(
       "aria-pressed",
       "true",
     );
   });
 
-  it("dates the finished stages and counts their Ödevler", () => {
+  it("dates the finished phases and counts their Ödevler", () => {
     renderWithQueryClient(<StartupProcessView />);
 
     const completed = screen.getByRole("region", {
-      name: "Tamamlanan aşamalar",
+      name: "Tamamlanan fazlar",
     });
     expect(
       within(completed).getByText("12 Haz – 8 Tem 2026"),
@@ -254,7 +279,7 @@ describe("StartupProcessView", () => {
     vi.mocked(useStartupProcess).mockReturnValue(
       state({
         assignments: [],
-        completedStages: [],
+        completedPhases: [],
         selectedRound: null,
         totalAssignments: 0,
       }),
@@ -263,13 +288,11 @@ describe("StartupProcessView", () => {
     renderWithQueryClient(<StartupProcessView />);
 
     expect(
-      screen.getByText("Bu aşama için henüz bir tur planlanmadı."),
+      screen.getByText("Bu faz için henüz bir tur planlanmadı."),
     ).toBeInTheDocument();
+    expect(screen.getByText("Burada henüz ödev yok.")).toBeInTheDocument();
     expect(
-      screen.getByText("Bu aşama için henüz ödev yok."),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("Henüz tamamlanan bir aşama yok."),
+      screen.getByText("Henüz tamamlanan bir faz yok."),
     ).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /Tümü/ }),
