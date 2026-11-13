@@ -3432,17 +3432,6 @@
       "CANCELLED": "İptal Edildi",
       "EXPIRED": "Süresi Doldu",
       "WITHDRAWN": "Geri Çekildi"
-    },
-    "role": {
-      "MENTOR": "Mentor olarak",
-      "MENTEE": "Mentee olarak",
-      "OFFICE_HOURS": "Office Hours"
-    },
-    "card": {
-      "place": "Yer: {place}",
-      "alternative": "Önerilen alternatif (henüz onaylanmadı)",
-      "rejectReason": "Gerekçe: {reason}",
-      "join": "Görüşmeye katıl"
     }
   },
   "odtuWorkspaces": {
@@ -6133,6 +6122,7 @@
     "peerMentoringLoadFailed": "Akran mentörlüğü bilgileri yüklenemedi.",
     "peerMentoringRequestFailed": "Talep gönderilemedi.",
     "officeHoursFailed": "Ofis saatleri işlemi tamamlanamadı.",
+    "officeHoursLoadFailed": "Ofis saatleri yüklenemedi.",
     "invalidRequestBody": "İstek gövdesi okunamadı.",
     "invalidRequestFields": "İstekteki bazı bilgiler eksik ya da geçersiz.",
     "peerMentorProfileSaveFailed": "Mentor profilin kaydedilemedi.",
@@ -6550,7 +6540,9 @@
         "DECLINED": "Uygun değil",
         "MORE_INFO_REQUESTED": "Ek bilgi istendi",
         "COUNTER_PROPOSED": "Başka saat önerildi",
-        "WITHDRAWN": "Geri çekildi"
+        "WITHDRAWN": "Geri çekildi",
+        "CANCELLED": "İptal edildi",
+        "EXPIRED": "Süresi doldu"
       },
       "with": "{name} ile",
       "asked": "İstenen saatler",
