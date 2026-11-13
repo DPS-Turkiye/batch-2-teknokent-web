@@ -3430,17 +3430,6 @@
       "CANCELLED": "Cancelled",
       "EXPIRED": "Expired",
       "WITHDRAWN": "Withdrawn"
-    },
-    "role": {
-      "MENTOR": "As mentor",
-      "MENTEE": "As mentee",
-      "OFFICE_HOURS": "Office Hours"
-    },
-    "card": {
-      "place": "Place: {place}",
-      "alternative": "Suggested alternative (not confirmed yet)",
-      "rejectReason": "Reason: {reason}",
-      "join": "Join the session"
     }
   },
   "odtuWorkspaces": {
