@@ -175,7 +175,34 @@
       "projects": "Your projects",
       "erasmus": "Abroad / exchange experience (optional)",
       "onePerLine": "One per line.",
-      "cardsSoon": "Adding internships, clubs and jobs as cards with their documents is coming soon."
+      "cardsTitle": "Your experience cards",
+      "cardsHint": "Add internships, projects, clubs or jobs.",
+      "newCard": "New experience",
+      "editCard": "Edit experience",
+      "cardTitle": "Experience title",
+      "organization": "Organisation",
+      "startedOn": "Start",
+      "endedOn": "End",
+      "endedOnHint": "Leave empty if it's still going on.",
+      "summary": "Short description",
+      "cancel": "Cancel",
+      "save": "Save experience",
+      "add": "Add experience",
+      "addAnother": "Add another experience",
+      "edit": "Edit",
+      "remove": "Remove",
+      "range": "{start} – {end}",
+      "ongoing": "Ongoing",
+      "evidenceSoon": "Backing an experience with a document is coming soon.",
+      "problems": {
+        "title": "Write the experience title.",
+        "organization": "Write the organisation.",
+        "start": "Pick the start month.",
+        "endBeforeStart": "The end can't be before the start.",
+        "month": "Write the month as 2025-07."
+      },
+      "monthPlaceholder": "YYYY-MM",
+      "missingStart": "Start month missing: edit to add it."
     },
     "helpWith": {
       "tipsTitle": "For a good description",
@@ -266,7 +293,8 @@
       "noCapacity": "Not set",
       "links": "Your links",
       "linkShown": "Shown on my profile",
-      "noLinks": "No links added"
+      "noLinks": "No links added",
+      "experience": "Relevant experience"
     },
     "back": "Back",
     "next": "Continue",
@@ -279,7 +307,9 @@
     "errors": {
       "categories": "Pick at least one category.",
       "helpWith": "This text must be at least {min} characters.",
-      "link": "The link must start with http:// or https://."
+      "link": "The link must start with http:// or https://.",
+      "experienceOpen": "Save or cancel the open experience first.",
+      "experienceStart": "Edit the experiences that have no start month."
     }
   },
   "take": {
@@ -343,6 +373,8 @@
       "thisWeekOpen": "Free slots",
       "thisWeekFull": "No free slots",
       "newTab": "(opens in a new tab)",
+      "experienceRange": "{start} – {end}",
+      "ongoing": "Ongoing",
       "sharedDocuments": "Shared documents",
       "view": "View",
       "viewFile": "View {name}",

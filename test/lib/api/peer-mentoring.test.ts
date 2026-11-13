@@ -153,6 +153,8 @@ const cases: RequestCase[] = [
         erasmus: "",
         helpWith: "C",
         linkedinUrl: "",
+        levels: {},
+        experiences: [],
       }),
     {
       method: "PUT",
@@ -165,6 +167,8 @@ const cases: RequestCase[] = [
         erasmus: "",
         helpWith: "C",
         linkedinUrl: "",
+        levels: {},
+        experiences: [],
         actorId: "student-1",
       },
     },

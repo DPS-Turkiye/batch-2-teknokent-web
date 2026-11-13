@@ -279,6 +279,8 @@ describe("PeerMentorGiveView", () => {
       department: "Endüstri Mühendisliği",
       classYear: 4,
       menteeCapacity: 3,
+      levels: {},
+      experiences: [],
     });
     vi.mocked(getReceivedPeerRequests).mockResolvedValue([
       received("r1", MentorshipRequestStatus.Pending),
@@ -364,6 +366,8 @@ describe("PeerMentorGiveView", () => {
       department: null,
       classYear: null,
       menteeCapacity: 3,
+      levels: {},
+      experiences: [],
     });
     vi.mocked(getAvailabilitySettings).mockResolvedValue({
       rules: [],
@@ -390,6 +394,8 @@ describe("PeerMentorGiveView", () => {
       department: null,
       classYear: null,
       menteeCapacity: 3,
+      levels: {},
+      experiences: [],
     });
     vi.mocked(getReceivedPeerRequests).mockRejectedValue(
       new ClientApiError("Talepler okunamadı.", 500),
@@ -416,6 +422,8 @@ describe("PeerMentorGiveView", () => {
       department: null,
       classYear: null,
       menteeCapacity: null,
+      levels: {},
+      experiences: [],
     });
     vi.mocked(getAvailabilitySettings).mockResolvedValue({
       rules: [],

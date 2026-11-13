@@ -17,6 +17,7 @@ import {
   MENTOR_PROFILE_QUERY_KEY,
   useMentorAvailabilitySettings,
 } from "@/hooks/use-mentor-profile";
+import { usePeerExperienceCards } from "@/hooks/use-peer-experience-cards";
 import {
   PEER_MENTOR_COUNTS_QUERY_KEY,
   PEER_MENTOR_QUERY_KEY,
@@ -34,8 +35,11 @@ import type {
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import {
   PeerMentorGateState,
+  type PeerExperienceCard,
   type PeerMentorProfile,
   type PeerTopicCategory,
+  type PeerTopicLevel,
+  type PeerTopicLevels,
   type SavePeerMentorProfileInput,
 } from "@/interfaces/peer-mentoring";
 import { UserRole } from "@/interfaces/session";
@@ -53,9 +57,11 @@ import {
 } from "@/lib/client/peer-mentoring";
 import { getPeerMentorCategories } from "@/lib/client/student-profile-completion";
 import { getStudentTraining } from "@/lib/client/training";
+import { withKeys, withoutKeys, type Keyed } from "@/lib/keyed-list";
 import {
   chosenSubtopics,
   latestGateAward,
+  levelsFor,
   PEER_ERASMUS_MAX,
   PEER_HELP_WITH_MAX,
   PEER_HELP_WITH_MIN,
@@ -282,6 +288,8 @@ type WizardDraft = {
   erasmus: string;
   helpWith: string;
   linkedinUrl: string;
+  levels: PeerTopicLevels;
+  experiences: Keyed<PeerExperienceCard>[];
 };
 
 const EMPTY_DRAFT: WizardDraft = {
@@ -292,6 +300,8 @@ const EMPTY_DRAFT: WizardDraft = {
   erasmus: "",
   helpWith: "",
   linkedinUrl: "",
+  levels: {},
+  experiences: [],
 };
 
 /** A new peer mentor starts with no weekly hours, three mentees and 30-minute sessions. */
@@ -321,6 +331,8 @@ function toDraft(profile: PeerMentorProfile): WizardDraft {
     erasmus: profile.erasmus ?? "",
     helpWith: profile.helpWith,
     linkedinUrl: profile.linkedinUrl ?? "",
+    levels: profile.levels,
+    experiences: withKeys(profile.experiences),
   };
 }
 
@@ -335,6 +347,8 @@ export function toPeerMentorProfileInput(
     erasmus: draft.erasmus.trim(),
     helpWith: draft.helpWith.trim(),
     linkedinUrl: draft.linkedinUrl.trim(),
+    levels: levelsFor(draft.levels, draft.topics),
+    experiences: withoutKeys(draft.experiences),
   };
 }
 
@@ -376,7 +390,12 @@ export function usePeerMentorWizard() {
   const [error, setError] = useState<string | null>(null);
   const [availabilityDraft, setAvailabilityDraft] =
     useState<UpdateMentorAvailabilitySettingsPayload | null>(null);
-  const draft = edits ?? (existing ? toDraft(existing) : EMPTY_DRAFT);
+  // Built once per loaded profile, so the cards keep their row keys until the first edit takes over.
+  const loaded = useMemo(
+    () => (existing ? toDraft(existing) : EMPTY_DRAFT),
+    [existing],
+  );
+  const draft = edits ?? loaded;
   const categories = catalogue.data ?? [];
 
   const availabilitySettings = useMemo(
@@ -405,6 +424,9 @@ export function usePeerMentorWizard() {
     setError(null);
     setEdits(update(draft));
   };
+  const experienceCards = usePeerExperienceCards(draft.experiences, (next) =>
+    change((current) => ({ ...current, experiences: next })),
+  );
 
   const stepError = (current: PeerMentorWizardStep) => {
     if (
@@ -412,6 +434,20 @@ export function usePeerMentorWizard() {
       draft.topics.length === 0
     ) {
       return t("errors.categories");
+    }
+    // Moving on would drop the card being typed.
+    if (
+      current === PeerMentorWizardStep.Experience &&
+      experienceCards.form !== null
+    ) {
+      return t("errors.experienceOpen");
+    }
+    // An older card has no start month, which the backend needs to publish it.
+    if (
+      current === PeerMentorWizardStep.Experience &&
+      draft.experiences.some((card) => !card.startedOn)
+    ) {
+      return t("errors.experienceStart");
     }
     if (
       current === PeerMentorWizardStep.HelpWith &&
@@ -491,8 +527,18 @@ export function usePeerMentorWizard() {
       change((current) => toggleInterestTopic(current, id, categories)),
     toggleSubtopic: (id: string) =>
       change((current) => toggleInterestSubtopic(current, id)),
+    levelOf: (category: PeerTopicCategory) => draft.levels[category] ?? null,
+    setLevel: (category: PeerTopicCategory, level: PeerTopicLevel) =>
+      change((current) => ({
+        ...current,
+        levels: { ...current.levels, [category]: level },
+      })),
+    experienceCards,
     setField: (
-      field: Exclude<keyof WizardDraft, "topics" | "subtopics">,
+      field: Exclude<
+        keyof WizardDraft,
+        "topics" | "subtopics" | "levels" | "experiences"
+      >,
       value: string,
     ) => change((current) => ({ ...current, [field]: value })),
     next: () => {

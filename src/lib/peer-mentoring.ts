@@ -10,16 +10,21 @@ import {
 } from "@/interfaces/mentor";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import {
+  PeerExperienceKind,
   PeerMentorGateState,
+  type PeerExperienceCard,
   type PeerTopicCategory,
+  type PeerTopicLevels,
 } from "@/interfaces/peer-mentoring";
 import type { ProfileCompletionCategory } from "@/interfaces/student-profile-completion";
 import { isUpcoming } from "@/lib/appointments";
 import { toTimeInput } from "@/lib/mentor-availability";
 import {
+  ExperienceCardProblem,
   IskurHomeMode,
   PeerCapacityNote,
   PeerRequestAvailability,
+  type ExperienceCardForm,
 } from "@/types/iskur-student";
 
 type Tone = ComponentProps<typeof StatusChip>["tone"];
@@ -313,12 +318,112 @@ const MONTH_KEYS = [
 export type MonthKey = (typeof MONTH_KEYS)[number];
 
 /** The day and month a mentorship began, for "3 Kasım'dan beri": Turkish picks the suffix by month. */
-export function mentorshipSince(acceptedAt: string): {
-  day: number;
-  month: MonthKey;
-} {
+export function mentorshipSince(
+  acceptedAt: string,
+): { day: number; month: MonthKey } | null {
   const date = new Date(acceptedAt);
-  return { day: date.getDate(), month: MONTH_KEYS[date.getMonth()] ?? "jan" };
+  const month = MONTH_KEYS[date.getMonth()];
+  return month ? { day: date.getDate(), month } : null;
+}
+
+/** A month as the backend takes it ("2025-07"). */
+export const YEAR_MONTH = /^\d{4}-(0[1-9]|1[0-2])$/;
+
+/** The backend's limits on an experience card. */
+export const PEER_EXPERIENCE_CARDS_MAX = 10;
+export const PEER_EXPERIENCE_TITLE_MAX = 200;
+export const PEER_EXPERIENCE_SUMMARY_MAX = 300;
+
+export const EMPTY_EXPERIENCE_FORM: ExperienceCardForm = {
+  title: "",
+  organization: "",
+  startedOn: "",
+  endedOn: "",
+  summary: "",
+};
+
+/** The first thing stopping the card from being saved; the design asks for a title, an organisation and a start. */
+export function experienceCardProblem(
+  form: ExperienceCardForm,
+): ExperienceCardProblem | null {
+  if (!form.title.trim()) return ExperienceCardProblem.Title;
+  if (!form.organization.trim()) return ExperienceCardProblem.Organization;
+  if (!form.startedOn) return ExperienceCardProblem.Start;
+  if (
+    !YEAR_MONTH.test(form.startedOn) ||
+    (form.endedOn && !YEAR_MONTH.test(form.endedOn))
+  ) {
+    return ExperienceCardProblem.Month;
+  }
+  // "yyyy-MM" strings compare in date order.
+  if (form.endedOn && form.endedOn < form.startedOn) {
+    return ExperienceCardProblem.EndBeforeStart;
+  }
+  return null;
+}
+
+export function toExperienceCard(form: ExperienceCardForm): PeerExperienceCard {
+  return {
+    kind: PeerExperienceKind.Other,
+    title: form.title.trim(),
+    organization: form.organization.trim() || null,
+    startedOn: form.startedOn,
+    endedOn: form.endedOn || null,
+    summary: form.summary.trim() || null,
+  };
+}
+
+export function toExperienceForm(card: PeerExperienceCard): ExperienceCardForm {
+  return {
+    title: card.title,
+    organization: card.organization ?? "",
+    startedOn: card.startedOn ?? "",
+    endedOn: card.endedOn ?? "",
+    summary: card.summary ?? "",
+  };
+}
+
+/** "Temmuz 2025" from "2025-07", read the same in every time zone. */
+export function formatYearMonth(value: string, locale: string) {
+  const [year, month] = value.split("-").map(Number);
+  if (!year || !month) return value;
+  return new Intl.DateTimeFormat(locale, {
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(Date.UTC(year, month - 1, 1)));
+}
+
+/** The chosen categories' levels only: a level outlives neither its category nor a deselection. */
+export function levelsFor(
+  levels: PeerTopicLevels,
+  chosen: readonly PeerTopicCategory[],
+): PeerTopicLevels {
+  return Object.fromEntries(
+    chosen.flatMap((category) => {
+      const level = levels[category];
+      return level ? [[category, level]] : [];
+    }),
+  );
+}
+
+/** The field a problem is about, so the form can mark it. */
+export function experienceProblemField(
+  problem: ExperienceCardProblem,
+  form: ExperienceCardForm,
+): keyof ExperienceCardForm {
+  switch (problem) {
+    case ExperienceCardProblem.Title:
+      return "title";
+    case ExperienceCardProblem.Organization:
+      return "organization";
+    case ExperienceCardProblem.Start:
+      return "startedOn";
+    case ExperienceCardProblem.Month:
+      return YEAR_MONTH.test(form.startedOn) ? "endedOn" : "startedOn";
+    case ExperienceCardProblem.EndBeforeStart:
+      return "endedOn";
+  }
 }
 
 /**

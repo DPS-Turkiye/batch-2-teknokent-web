@@ -41,6 +41,25 @@ export enum PeerRequestAvailability {
   Full = "full",
 }
 
+/** Why an experience card can't be saved yet. */
+export enum ExperienceCardProblem {
+  Title = "title",
+  Organization = "organization",
+  Start = "start",
+  /** A browser without a month picker shows a text box, where anything can be typed. */
+  Month = "month",
+  EndBeforeStart = "endBeforeStart",
+}
+
+/** The "Yeni deneyim" form as typed; months as "yyyy-MM" (a month input's value). */
+export type ExperienceCardForm = {
+  title: string;
+  organization: string;
+  startedOn: string;
+  endedOn: string;
+  summary: string;
+};
+
 /** What the İŞKUR home adds next to the shared student home. */
 export enum IskurHomeMode {
   /** Not an İŞKUR student nor a peer mentor (or the badge was taken back): the shared home only. */

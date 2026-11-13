@@ -165,8 +165,10 @@ function ActiveMentorship({
   const tTopic = useTranslations("peerTopics");
   const locale = useLocale();
   const since = (acceptedAt: string) => {
-    const { day, month } = mentorshipSince(acceptedAt);
-    return t("since", { day, month: t(`sinceMonth.${month}`) });
+    const start = mentorshipSince(acceptedAt);
+    return start
+      ? ` · ${t("since", { day: start.day, month: t(`sinceMonth.${start.month}`) })}`
+      : null;
   };
   return (
     <article
@@ -181,7 +183,7 @@ function ActiveMentorship({
           </h3>
           <p className="type-body-sm text-text-secondary">
             {tTopic(request.category)}
-            {request.acceptedAt ? ` · ${since(request.acceptedAt)}` : null}
+            {request.acceptedAt ? since(request.acceptedAt) : null}
           </p>
           {session ? (
             <p className="flex items-center gap-1.5 type-caption text-text-accent">

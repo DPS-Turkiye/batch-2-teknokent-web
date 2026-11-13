@@ -5,14 +5,21 @@ import { BadgeCode, BadgeStatus } from "@/interfaces/badges";
 import { Weekday } from "@/interfaces/mentor";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import {
+  PeerExperienceKind,
   PeerMentorGateState,
   PeerTopicCategory,
+  PeerTopicLevel,
 } from "@/interfaces/peer-mentoring";
 import type { ProfileCompletionCategory } from "@/interfaces/student-profile-completion";
 import {
   chosenSubtopics,
+  EMPTY_EXPERIENCE_FORM,
+  experienceCardProblem,
+  experienceProblemField,
+  formatYearMonth,
   iskurHomeMode,
   latestGateAward,
+  levelsFor,
   mentorshipSince,
   nextSessionsByRequest,
   offeredSubTopics,
@@ -26,9 +33,14 @@ import {
   splitRecommended,
   subtopicGroupsWithCounts,
   subTopicOptions,
+  toExperienceCard,
+  toExperienceForm,
   weeklyHours,
 } from "@/lib/peer-mentoring";
+import enIskur from "@/messages/ia/iskur/en.json";
+import trIskur from "@/messages/ia/iskur/tr.json";
 import {
+  ExperienceCardProblem,
   IskurHomeMode,
   PeerCapacityNote,
   PeerRequestAvailability,
@@ -375,7 +387,114 @@ describe("mentorshipSince", () => {
       day: 3,
       month: "nov",
     });
-    expect(mentorshipSince("2026-10-15T12:00:00+03:00").month).toBe("oct");
+    expect(mentorshipSince("2026-10-15T12:00:00+03:00")?.month).toBe("oct");
+    expect(mentorshipSince("not a date")).toBeNull();
+  });
+
+  it("has every month's form in both languages", () => {
+    for (let month = 1; month <= 12; month += 1) {
+      const key = mentorshipSince(
+        `2026-${String(month).padStart(2, "0")}-15T12:00:00+03:00`,
+      )?.month;
+      expect(key).toBeDefined();
+      if (!key) continue;
+      expect(trIskur.take.mine.sinceMonth[key]).toBeTruthy();
+      expect(enIskur.take.mine.sinceMonth[key]).toBeTruthy();
+    }
+  });
+});
+
+describe("experience cards", () => {
+  const filled = {
+    title: " Yaz stajyeri ",
+    organization: " ABC Lojistik ",
+    startedOn: "2025-07",
+    endedOn: "",
+    summary: "  ",
+  };
+
+  it("asks for a title, an organisation and a start, and an end no earlier than the start", () => {
+    expect(experienceCardProblem(EMPTY_EXPERIENCE_FORM)).toBe(
+      ExperienceCardProblem.Title,
+    );
+    expect(experienceCardProblem({ ...filled, organization: " " })).toBe(
+      ExperienceCardProblem.Organization,
+    );
+    expect(experienceCardProblem({ ...filled, startedOn: "" })).toBe(
+      ExperienceCardProblem.Start,
+    );
+    expect(experienceCardProblem({ ...filled, endedOn: "2025-06" })).toBe(
+      ExperienceCardProblem.EndBeforeStart,
+    );
+    expect(experienceCardProblem({ ...filled, endedOn: "2025-07" })).toBeNull();
+    // A browser without a month picker lets anything be typed.
+    expect(experienceCardProblem({ ...filled, startedOn: "Temmuz 2025" })).toBe(
+      ExperienceCardProblem.Month,
+    );
+    expect(experienceCardProblem({ ...filled, endedOn: "2025-13" })).toBe(
+      ExperienceCardProblem.Month,
+    );
+  });
+
+  it("points each problem at its field", () => {
+    expect(
+      experienceProblemField(ExperienceCardProblem.Organization, filled),
+    ).toBe("organization");
+    expect(
+      experienceProblemField(ExperienceCardProblem.Month, {
+        ...filled,
+        startedOn: "Temmuz",
+      }),
+    ).toBe("startedOn");
+    expect(
+      experienceProblemField(ExperienceCardProblem.Month, {
+        ...filled,
+        endedOn: "Ağustos",
+      }),
+    ).toBe("endedOn");
+    expect(
+      experienceProblemField(ExperienceCardProblem.EndBeforeStart, filled),
+    ).toBe("endedOn");
+    expect(experienceCardProblem(filled)).toBeNull();
+  });
+
+  it("turns the form into a trimmed card and back", () => {
+    const card = toExperienceCard(filled);
+    expect(card).toEqual({
+      kind: PeerExperienceKind.Other,
+      title: "Yaz stajyeri",
+      organization: "ABC Lojistik",
+      startedOn: "2025-07",
+      endedOn: null,
+      summary: null,
+    });
+    expect(toExperienceForm(card)).toEqual({
+      title: "Yaz stajyeri",
+      organization: "ABC Lojistik",
+      startedOn: "2025-07",
+      endedOn: "",
+      summary: "",
+    });
+  });
+
+  it("names a month the same way in every time zone", () => {
+    expect(formatYearMonth("2025-07", "tr")).toBe("Temmuz 2025");
+    expect(formatYearMonth("2024-09", "en")).toBe("September 2024");
+    expect(formatYearMonth("not-a-month", "tr")).toBe("not-a-month");
+  });
+
+  it("keeps levels only for the chosen categories", () => {
+    expect(
+      levelsFor(
+        {
+          [PeerTopicCategory.CareerInternship]: PeerTopicLevel.Advanced,
+          [PeerTopicCategory.International]: PeerTopicLevel.Basic,
+        },
+        [PeerTopicCategory.CareerInternship, PeerTopicCategory.CampusLife],
+      ),
+    ).toEqual({
+      [PeerTopicCategory.CareerInternship]: PeerTopicLevel.Advanced,
+    });
   });
 });
 
