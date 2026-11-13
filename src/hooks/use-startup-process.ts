@@ -5,7 +5,6 @@ import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
 import { DocumentKind } from "@/interfaces/startup-document";
-import type { StartupStage } from "@/interfaces/startup-process";
 import { ToastTone } from "@/interfaces/toast";
 import { uploadDocument } from "@/lib/client/documents";
 import {
@@ -13,21 +12,26 @@ import {
   submitAssignment,
 } from "@/lib/client/startup-process";
 import {
-  completedStages,
-  roundForStage,
-  stageCards,
+  completedPhases,
+  phaseCards,
+  roundForPhase,
+  unphasedAssignments,
 } from "@/lib/startup-process";
 import { useToast } from "@/stores/toast-store";
 
 export const STARTUP_PROCESS_QUERY_KEY = ["startup-process"] as const;
 
-/** The Süreç tab: the stage cards, the chosen stage's round and its Ödevler. */
+/**
+ * The Süreç tab: one card per phase of the team's program, the chosen phase's round and its Ödevler. Without
+ * phases the Ödevler are one flat list; those no phase covers are listed under "Fazsız görevler".
+ */
 export function useStartupProcess() {
   const t = useTranslations("startupProcess");
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   const [showAll, setShowAll] = useState(false);
-  const [pickedStage, setPickedStage] = useState<StartupStage | null>(null);
+  const [pickedPhaseId, setPickedPhaseId] = useState<string | null>(null);
+  const [showUnphased, setShowUnphased] = useState(false);
   const query = useQuery({
     queryKey: STARTUP_PROCESS_QUERY_KEY,
     queryFn: getStartupProcess,
@@ -56,47 +60,81 @@ export function useStartupProcess() {
   });
 
   const process = query.data ?? null;
-  // The current stage is open until a card is picked.
-  const selectedStage =
-    pickedStage ?? process?.currentStage ?? process?.stages[0]?.stage ?? null;
+  const hasPhases = (process?.phases.length ?? 0) > 0;
+  // The current phase is open until a card is picked; a picked phase that is gone falls back to it.
+  const picked = process?.phases.some((phase) => phase.id === pickedPhaseId)
+    ? pickedPhaseId
+    : null;
+  const selectedPhaseId =
+    picked ?? process?.currentPhaseId ?? process?.phases[0]?.id ?? null;
   const allAssignments = useMemo(() => process?.assignments ?? [], [process]);
-  const assignments = useMemo(
-    () =>
-      showAll || !selectedStage
-        ? allAssignments
-        : allAssignments.filter(
-            (assignment) => assignment.stage === selectedStage,
-          ),
-    [allAssignments, selectedStage, showAll],
+  const unphased = useMemo(
+    () => unphasedAssignments(allAssignments),
+    [allAssignments],
   );
+  const assignments = useMemo(() => {
+    if (!hasPhases || showAll) return allAssignments;
+    if (showUnphased) return unphased;
+    return allAssignments.filter(
+      (assignment) => assignment.phaseId === selectedPhaseId,
+    );
+  }, [
+    allAssignments,
+    hasPhases,
+    selectedPhaseId,
+    showAll,
+    showUnphased,
+    unphased,
+  ]);
   const roundNames = useMemo(
     () =>
       new Map((process?.rounds ?? []).map((round) => [round.id, round.name])),
     [process],
   );
-  const stagesDone = useMemo(
-    () => (process ? completedStages(process) : []),
+  const phasesDone = useMemo(
+    () => (process ? completedPhases(process) : []),
     [process],
   );
-  const cards = useMemo(() => (process ? stageCards(process) : []), [process]);
+  const cards = useMemo(() => (process ? phaseCards(process) : []), [process]);
+
+  const assignmentsTitle =
+    !hasPhases || showAll
+      ? t("allAssignmentsTitle")
+      : showUnphased
+        ? t("unphasedTitle")
+        : t("assignments");
 
   return {
     assignments,
-    completedStages: stagesDone,
+    assignmentsTitle,
+    completedPhases: phasesDone,
     error: query.error,
     isLoading: query.isLoading,
     roundName: (roundId: string | null) =>
       roundId ? (roundNames.get(roundId) ?? null) : null,
-    selectStage: (stage: StartupStage) => {
-      setPickedStage(stage);
+    hasPhases,
+    phaseCards: cards,
+    selectPhase: (phaseId: string) => {
+      setPickedPhaseId(phaseId);
+      setShowAll(false);
+      setShowUnphased(false);
+    },
+    selectedPhaseId: showUnphased ? null : selectedPhaseId,
+    selectedRound:
+      process && selectedPhaseId && !showUnphased
+        ? roundForPhase(process, selectedPhaseId)
+        : null,
+    showAll,
+    showUnphased,
+    selectUnphased: () => {
+      setShowUnphased(true);
       setShowAll(false);
     },
-    selectedRound:
-      process && selectedStage ? roundForStage(process, selectedStage) : null,
-    selectedStage,
-    showAll,
-    stageCards: cards,
-    toggleShowAll: () => setShowAll((current) => !current),
+    toggleShowAll: () => {
+      setShowAll((current) => !current);
+      setShowUnphased(false);
+    },
+    unphasedCount: hasPhases ? unphased.length : 0,
     totalAssignments: allAssignments.length,
     uploadAssignment: (assignmentId: string, file: File) =>
       upload.mutate({ assignmentId, file }),

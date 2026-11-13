@@ -271,7 +271,9 @@ function ProgramRow({
             : "text-[#22262b]"
         }`}
       >
-        {program.startupCount === 0 ? "—" : program.acceptedMentorCount}
+        {program.startupCount === 0 && program.acceptedMentorCount === 0
+          ? "—"
+          : program.acceptedMentorCount}
       </span>
       <span>
         <HealthBar green={health.green} amber={health.amber} red={health.red} />

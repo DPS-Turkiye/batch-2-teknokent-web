@@ -340,5 +340,38 @@
         "dec": "Aralık'tan"
       }
     }
+  },
+  "home": {
+    "giving": {
+      "title": "Mentorluk verdiğim",
+      "hint": "Akran mentoru olarak",
+      "all": "Mentorluk Ver",
+      "empty": "Yanıt bekleyen talep yok.",
+      "new": "Yeni talep",
+      "sentAt": "{topic} · {date}",
+      "accept": "Kabul Et",
+      "decline": "Reddet",
+      "more": "+{count} talep daha"
+    },
+    "mentor": {
+      "title": "Mentor profilin",
+      "active": "Aktif",
+      "badge": "Rozet",
+      "badgeVerified": "Doğrulandı",
+      "capacity": "Kapasite",
+      "capacityValue": "{used} / {capacity} mentee",
+      "noCapacity": "Belirlenmedi",
+      "open": "Mentor Profilim"
+    },
+    "training": {
+      "title": "Akran mentoru ol",
+      "body": "Programının eğitimini tamamla, rozetini al ve diğer öğrencilere mentorluk ver.",
+      "action": "Mentorluk Ver'e git"
+    },
+    "createProfile": {
+      "title": "Rozetin doğrulandı",
+      "body": "Mentor profilini oluştur; yayınladığında öğrenciler seni keşfedebilir.",
+      "action": "Mentor profilini oluştur"
+    }
   }
 }

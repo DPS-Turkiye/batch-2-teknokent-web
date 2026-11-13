@@ -14,7 +14,8 @@ const weeklyProgramUrl = (programId: string) =>
 
 /**
  * OCR and the AI call can outlast the default timeout, as an upload does. With the coordinator's own token the
- * backend counts the read against that person's budget instead of the one shared by every BFF call.
+ * backend counts the read against that person's budget instead of the one shared by every BFF call; the backend
+ * lets a token reach this one coordinator path since v1.6.54. Without a token it goes on the service credentials.
  */
 export function readWeeklyProgram(
   actorId: string,

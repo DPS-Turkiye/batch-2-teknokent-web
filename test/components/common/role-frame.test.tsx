@@ -269,3 +269,44 @@ describe("RoleFrame theme", () => {
     expect(screen.getByText("Admin", { selector: "p" })).toBeInTheDocument();
   });
 });
+
+describe("RoleFrame nav per edition", () => {
+  const nav = [
+    {
+      href: "/admin",
+      label: "home" as const,
+      icon: "/admin/nav-home.svg",
+      match: (path: string) => path === "/admin",
+    },
+    {
+      href: "/office-hours",
+      label: "officeHours" as const,
+      icon: "/admin/nav-calendar.svg",
+      match: () => false,
+    },
+  ];
+  const frame = (
+    <RoleFrame
+      allowedRoles={[UserRole.Admin]}
+      homeHref="/admin"
+      menuLabel="adminMenu"
+      nav={nav}
+    >
+      <p>Workspace</p>
+    </RoleFrame>
+  );
+
+  it("leaves out the other edition's pages and keeps its own", () => {
+    const teknokent = renderWithQueryClient(frame);
+    expect(screen.getByRole("link", { name: "Anasayfa" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Office Hours" })).toBeNull();
+    teknokent.unmount();
+
+    current = { ...admin, edition: Edition.Odtu };
+    renderWithQueryClient(frame);
+    expect(screen.getByRole("link", { name: "Office Hours" })).toHaveAttribute(
+      "href",
+      "/office-hours",
+    );
+  });
+});

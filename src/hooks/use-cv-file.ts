@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { useAiFeatureRefusal, useAiFeatures } from "@/hooks/use-ai-features";
 import {
@@ -17,13 +17,14 @@ import type { CvSource } from "@/lib/client/profile-analysis";
  * A profile's CV in edit mode: the one on file, replacing it, and reading it.
  * A chosen file is stored straight away; what is read goes to `onRead`, which
  * only fills the form, so the profile changes on Kaydet. Where profile parsing
- * is switched off the file is only stored and the form is filled by hand.
+ * is switched off, or the person has not ticked the reading consent (unticked by
+ * default), the file is only stored and the form is filled by hand.
  */
 export function useCvFile<T>({
   read,
   onRead,
 }: {
-  read: (source: CvSource) => Promise<T>;
+  read: (source: CvSource, consentAccepted: boolean) => Promise<T>;
   onRead: (result: T) => void;
 }) {
   const queryClient = useQueryClient();
@@ -32,8 +33,18 @@ export function useCvFile<T>({
   const storedCv = useStoredDocuments().byKind(DocumentKind.Cv);
   const [selected, setSelected] = useState<UploadedFile | null>(null);
   const [filled, setFilled] = useState(false);
+  const [consent, setConsentState] = useState(false);
+  // The upload finishes after the click that chose the file, so whether to read
+  // it is decided by the box as it is then, not as it was at the click.
+  const consentRef = useRef(false);
   const parse = useMutation({
-    mutationFn: read,
+    mutationFn: ({
+      source,
+      consentAccepted,
+    }: {
+      source: CvSource;
+      consentAccepted: boolean;
+    }) => read(source, consentAccepted),
     onError: (error) => {
       refused(error);
     },
@@ -49,6 +60,11 @@ export function useCvFile<T>({
     setFilled(true);
   }
 
+  function setConsent(next: boolean) {
+    consentRef.current = next;
+    setConsentState(next);
+  }
+
   function choose(file: UploadedFile | null) {
     setSelected(file);
     setFilled(false);
@@ -56,15 +72,20 @@ export function useCvFile<T>({
     if (!raw) return;
     upload.mutate(raw, {
       onSuccess: () => {
-        if (canRead) parse.mutate(raw, { onSuccess: fill });
+        const consentAccepted = consentRef.current;
+        if (canRead && consentAccepted)
+          parse.mutate({ source: raw, consentAccepted }, { onSuccess: fill });
       },
     });
   }
 
   function fillFromStored() {
-    if (!storedCv || !canRead) return;
+    if (!storedCv || !canRead || !consent) return;
     setFilled(false);
-    parse.mutate({ documentId: storedCv.id }, { onSuccess: fill });
+    parse.mutate(
+      { source: { documentId: storedCv.id }, consentAccepted: consent },
+      { onSuccess: fill },
+    );
   }
 
   const isBusy = upload.isPending || parse.isPending;
@@ -79,7 +100,12 @@ export function useCvFile<T>({
     storedIsPdf,
     choose,
     canRead,
-    canFill: canRead && storedIsPdf && !isBusy,
+    consent,
+    setConsent,
+    canFill: canRead && consent && storedIsPdf && !isBusy,
+    // A CV chosen before the consent was ticked is stored unread, so reading
+    // it stays on offer until something has been filled in.
+    offerFill: Boolean(storedCv) && !filled && !isBusy,
     fillFromStored,
     isUploading: upload.isPending,
     isParsing: parse.isPending,

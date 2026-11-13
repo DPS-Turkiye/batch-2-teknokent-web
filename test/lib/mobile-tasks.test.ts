@@ -4,10 +4,7 @@ import { ActionItemStatus } from "@/interfaces/action-item";
 import { ProgramEventKind } from "@/interfaces/coordinator-program";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { MobileTaskSource, MobileTaskTone } from "@/interfaces/mobile";
-import {
-  StartupStage,
-  type ProcessAssignment,
-} from "@/interfaces/startup-process";
+import type { ProcessAssignment } from "@/interfaces/startup-process";
 import {
   collectTasks,
   completedTasks,
@@ -40,7 +37,7 @@ function assignment(
   return {
     id: "p1",
     roundId: null,
-    stage: StartupStage.Mvp,
+    phaseId: null,
     title: "Finansal model",
     description: null,
     status: ActionItemStatus.Open,

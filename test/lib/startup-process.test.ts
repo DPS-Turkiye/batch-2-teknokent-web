@@ -3,21 +3,23 @@ import { describe, expect, it } from "vitest";
 import { ActionItemStatus } from "@/interfaces/action-item";
 import { UserRole } from "@/interfaces/session";
 import {
-  StartupStage,
   StartupStageState,
   type ProcessAssignment,
-  type StartupProcess,
+  type StartupRound,
 } from "@/interfaces/startup-process";
 import {
   ASSIGNMENT_STATUS_TONES,
   assignmentSourceKind,
   ChipTone,
-  completedStages,
+  completedPhases,
+  currentPhase,
   formatRoundRange,
   formatStageRange,
-  roundForStage,
-  stageCards,
+  phaseCards,
+  roundForPhase,
+  unphasedAssignments,
 } from "@/lib/startup-process";
+import { processPhase, startupProcess } from "@test/fixtures/startup-process";
 
 function assignment(
   overrides: Partial<ProcessAssignment> = {},
@@ -25,7 +27,7 @@ function assignment(
   return {
     id: "a-1",
     roundId: "round-1",
-    stage: StartupStage.Finance,
+    phaseId: "finance",
     title: "Finansal model taslağı",
     description: null,
     status: ActionItemStatus.Open,
@@ -81,167 +83,118 @@ describe("assignmentSourceKind", () => {
   });
 });
 
-describe("completedStages", () => {
-  it("dates each finished stage by its rounds and counts its finished Ödevler", () => {
-    const process: StartupProcess = {
-      organizationId: "org-1",
-      currentStage: StartupStage.Mvp,
-      stages: [
-        { stage: StartupStage.Problem, state: StartupStageState.Completed },
-        { stage: StartupStage.Solution, state: StartupStageState.Completed },
-        { stage: StartupStage.Mvp, state: StartupStageState.Current },
-      ],
-      currentRound: null,
-      rounds: [
-        {
-          id: "r-2",
-          title: "Görüşmeler",
-          name: "Problem turu 2",
-          stage: StartupStage.Problem,
-          startsOn: "2026-06-25",
-          endsOn: "2026-07-08",
-        },
-        {
-          id: "r-1",
-          title: "Keşif",
-          name: "Problem turu 1",
-          stage: StartupStage.Problem,
-          startsOn: "2026-06-12",
-          endsOn: "2026-06-24",
-        },
-      ],
-      assignments: [
-        assignment({
-          stage: StartupStage.Problem,
-          status: ActionItemStatus.Completed,
-        }),
-        assignment({ stage: StartupStage.Problem }),
-        assignment({
-          stage: StartupStage.Mvp,
-          status: ActionItemStatus.Completed,
-        }),
-      ],
-    };
+const problem = processPhase("problem", "Problemi Keşfet", {
+  startDate: "2026-06-01",
+  endDate: "2026-06-30",
+  state: StartupStageState.Completed,
+});
+const idea = processPhase("idea", "Fikir ve Değer", {
+  startDate: "2026-07-01",
+  endDate: "2026-07-31",
+  state: StartupStageState.Completed,
+});
+const mvp = processPhase("mvp", "MVP", {
+  startDate: "2026-08-01",
+  endDate: "2026-08-31",
+  state: StartupStageState.Current,
+});
+const market = processPhase("market", "Pazar");
+const pitch = processPhase("pitch", "Sunum");
 
-    expect(completedStages(process)).toEqual([
-      {
-        stage: StartupStage.Problem,
-        startsOn: "2026-06-12",
-        endsOn: "2026-07-08",
-        completedAssignments: 1,
-      },
-      {
-        stage: StartupStage.Solution,
-        startsOn: null,
-        endsOn: null,
-        completedAssignments: 0,
-      },
+describe("completedPhases", () => {
+  it("lists finished phases with the Ödevler finished in them", () => {
+    const process = startupProcess({
+      currentPhaseId: "mvp",
+      phases: [problem, idea, mvp],
+      assignments: [
+        assignment({ phaseId: "problem", status: ActionItemStatus.Completed }),
+        assignment({ phaseId: "problem" }),
+        assignment({ phaseId: "mvp", status: ActionItemStatus.Completed }),
+      ],
+    });
+
+    expect(completedPhases(process)).toEqual([
+      { phase: problem, completedAssignments: 1 },
+      { phase: idea, completedAssignments: 0 },
     ]);
   });
 });
 
-describe("stageCards", () => {
-  it("rates each stage by its Ödevler and names the card's next step", () => {
-    const process: StartupProcess = {
-      organizationId: "org-1",
-      currentStage: StartupStage.Mvp,
-      stages: [
-        { stage: StartupStage.Solution, state: StartupStageState.Completed },
-        { stage: StartupStage.Mvp, state: StartupStageState.Current },
-        { stage: StartupStage.Market, state: StartupStageState.Upcoming },
-        { stage: StartupStage.Pitch, state: StartupStageState.Upcoming },
-      ],
-      currentRound: null,
-      rounds: [],
+describe("phaseCards", () => {
+  it("counts each phase's own Ödevler, leaves cancelled ones out and picks the action", () => {
+    const process = startupProcess({
+      currentPhaseId: "mvp",
+      phases: [idea, mvp, market, pitch],
       assignments: [
-        assignment({
-          stage: StartupStage.Mvp,
-          status: ActionItemStatus.Completed,
-        }),
-        assignment({ stage: StartupStage.Mvp }),
-        assignment({
-          stage: StartupStage.Mvp,
-          status: ActionItemStatus.Cancelled,
-        }),
-        assignment({
-          stage: StartupStage.Market,
-          status: ActionItemStatus.Completed,
-        }),
-        assignment({ stage: StartupStage.Market }),
-        assignment({ stage: StartupStage.Market }),
+        assignment({ phaseId: "mvp", status: ActionItemStatus.Completed }),
+        assignment({ phaseId: "mvp" }),
+        assignment({ phaseId: "mvp", status: ActionItemStatus.Cancelled }),
+        assignment({ phaseId: "market", status: ActionItemStatus.Completed }),
+        assignment({ phaseId: "market" }),
+        assignment({ phaseId: "market" }),
+        assignment({ phaseId: null }),
       ],
-    };
+    });
 
     expect(
-      stageCards(process).map(({ stage, done, total, percent, action }) => ({
-        stage,
+      phaseCards(process).map(({ phase, done, total, percent, action }) => ({
+        id: phase.id,
         done,
         total,
         percent,
         action,
       })),
     ).toEqual([
-      {
-        stage: StartupStage.Solution,
-        done: 0,
-        total: 0,
-        percent: 100,
-        action: "completed",
-      },
-      {
-        stage: StartupStage.Mvp,
-        done: 1,
-        total: 2,
-        percent: 50,
-        action: "current",
-      },
-      {
-        stage: StartupStage.Market,
-        done: 1,
-        total: 3,
-        percent: 33,
-        action: "continue",
-      },
-      {
-        stage: StartupStage.Pitch,
-        done: 0,
-        total: 0,
-        percent: 0,
-        action: "start",
-      },
+      { id: "idea", done: 0, total: 0, percent: 100, action: "completed" },
+      { id: "mvp", done: 1, total: 2, percent: 50, action: "current" },
+      { id: "market", done: 1, total: 3, percent: 33, action: "continue" },
+      { id: "pitch", done: 0, total: 0, percent: 0, action: "start" },
     ]);
   });
 });
 
-describe("roundForStage", () => {
-  const round = (id: string, stage: StartupStage, startsOn: string) => ({
+describe("roundForPhase", () => {
+  const round = (
+    id: string,
+    phaseId: string | null,
+    startsOn: string,
+  ): StartupRound => ({
     id,
     title: id,
     name: id,
-    stage,
+    phaseId,
     startsOn,
-    endsOn: "2026-12-31",
+    endsOn: startsOn,
   });
-  const focus = round("focus", StartupStage.Mvp, "2026-08-02");
-  const process: StartupProcess = {
-    organizationId: "org-1",
-    currentStage: StartupStage.Mvp,
-    stages: [],
+  const focus = round("focus", "mvp", "2026-08-02");
+  const process = startupProcess({
     currentRound: focus,
     rounds: [
-      round("later-mvp", StartupStage.Mvp, "2026-10-01"),
       focus,
-      round("old-problem", StartupStage.Problem, "2026-06-12"),
-      round("new-problem", StartupStage.Problem, "2026-06-25"),
+      round("later-mvp", "mvp", "2026-10-01"),
+      round("old-problem", "problem", "2026-06-12"),
+      round("new-problem", "problem", "2026-06-25"),
     ],
-    assignments: [],
-  };
+  });
 
-  it("uses the focus round for its stage and the latest round for the others", () => {
-    expect(roundForStage(process, StartupStage.Mvp)?.id).toBe("focus");
-    expect(roundForStage(process, StartupStage.Problem)?.id).toBe(
-      "new-problem",
-    );
-    expect(roundForStage(process, StartupStage.Pitch)).toBeNull();
+  it("opens the focus round for its phase, else the phase's latest round", () => {
+    expect(roundForPhase(process, "mvp")?.id).toBe("focus");
+    expect(roundForPhase(process, "problem")?.id).toBe("new-problem");
+    expect(roundForPhase(process, "pitch")).toBeNull();
+  });
+});
+
+describe("unphasedAssignments and currentPhase", () => {
+  it("finds the Ödevler no phase covers and the phase today falls in", () => {
+    const loose = assignment({ id: "loose", phaseId: null });
+    const process = startupProcess({
+      currentPhaseId: "mvp",
+      phases: [problem, mvp],
+      assignments: [assignment({ phaseId: "mvp" }), loose],
+    });
+
+    expect(unphasedAssignments(process.assignments)).toEqual([loose]);
+    expect(currentPhase(process)).toBe(mvp);
+    expect(currentPhase(startupProcess({ phases: [problem] }))).toBeNull();
   });
 });

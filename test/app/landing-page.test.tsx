@@ -1,8 +1,8 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import Home, { dynamic } from "@/app/(public)/page";
+import Home, { dynamic, generateMetadata } from "@/app/(public)/page";
 import { styles } from "@/components/landing/landing-styles";
 import { UserRole, type AppSession } from "@/interfaces/session";
 import { InLocale } from "@test/test-utils";
@@ -25,6 +25,88 @@ describe("Landing page", () => {
   beforeEach(() => {
     mockSession = null;
     isLoading = false;
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("gives the ODTÜ deployment its own front page, without Teknokent's startup pitch", () => {
+    vi.stubEnv("APP_EDITION", "ODTU");
+    render(
+      <InLocale locale="tr">
+        <Home />
+      </InLocale>,
+    );
+
+    expect(
+      screen.getByRole("heading", {
+        level: 1,
+        name: "Office Hours ve akran mentörlüğü tek yerde",
+      }),
+    ).toBeInTheDocument();
+    for (const link of screen.getAllByRole("link", { name: "Giriş Yap" })) {
+      expect(link).toHaveAttribute("href", "/login");
+    }
+    expect(screen.getAllByRole("link", { name: "Giriş Yap" })).toHaveLength(3);
+    expect(
+      screen.getByRole("link", { name: "İŞKUR öğrencisi olarak kaydol" }),
+    ).toHaveAttribute("href", "/signup");
+    expect(screen.getByRole("link", { name: "Yardım" })).toHaveAttribute(
+      "href",
+      "mailto:info@menton.com.tr",
+    );
+    expect(
+      screen.getAllByRole("heading", { level: 3 }).map((h) => h.textContent),
+    ).toEqual([
+      "Randevu talep et",
+      "Mentor bul",
+      "Randevularını izle",
+      "Danışmanına ulaş",
+      "ODTÜ öğrencileri",
+      "Akran mentorları",
+      "ODTÜ akademisyenleri",
+    ]);
+    expect(
+      screen.getByRole("heading", {
+        level: 2,
+        name: "ODTÜ öğrencisi veya akademisyeni misin?",
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("names the page after the deployment's edition", async () => {
+    expect(await generateMetadata()).toEqual({
+      title: { absolute: "menton · ODTÜ Teknokent" },
+    });
+
+    vi.stubEnv("APP_EDITION", "ODTU");
+    expect(await generateMetadata()).toEqual({
+      title: { absolute: "menton · ODTÜ" },
+    });
+  });
+
+  it("offers a signed-in ODTÜ visitor their workspace and no sign-up", () => {
+    vi.stubEnv("APP_EDITION", "ODTU");
+    mockSession = {
+      userId: "u-1",
+      email: "ayse@metu.edu.tr",
+      fullName: "Ayşe Yılmaz",
+      jobTitle: "",
+      role: UserRole.Mentee,
+    };
+    render(
+      <InLocale locale="tr">
+        <Home />
+      </InLocale>,
+    );
+
+    expect(
+      screen.getAllByRole("link", { name: "Ayşe olarak devam et" }),
+    ).toHaveLength(3);
+    expect(
+      screen.queryByRole("link", { name: "İŞKUR öğrencisi olarak kaydol" }),
+    ).toBeNull();
   });
 
   it("renders per request so the CDN never hands phones the desktop page", () => {
