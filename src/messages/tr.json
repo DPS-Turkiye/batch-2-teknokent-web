@@ -2595,7 +2595,8 @@
     "status": {
       "PENDING": "Koordinatör incelemesinde",
       "APPROVED": "Onaylandı",
-      "REJECTED": "Onaylanmadı"
+      "REJECTED": "Onaylanmadı",
+      "DELETED": "Silindi"
     },
     "loading": "Yükleniyor...",
     "signedOutTitle": "Başvuru durumunu görmek için giriş yap",
@@ -4872,6 +4873,32 @@
     "rejected": "{name} reddedildi.",
     "approved": "{name} onaylandı.",
     "decideFailed": "Karar kaydedilemedi.",
+    "deleteUser": {
+      "title": "Kullanıcıyı sil",
+      "body": "Hesap, giriş bilgisi ve kişisel veriler kalıcı olarak silinir. Bu işlem geri alınamaz.",
+      "button": "Kullanıcıyı sil",
+      "dialogTitle": "Kullanıcı kalıcı olarak silinsin mi?",
+      "dialogBody": "{name} adlı kullanıcının hesabı silinecek. Bu işlem geri alınamaz.",
+      "deletedHeading": "Silinecekler",
+      "deleted": {
+        "account": "Hesap ve giriş bilgisi (aynı e-postayla yeniden kayıt olunabilir)",
+        "profile": "Profil, bildirimler ve diğer kişisel veriler",
+        "documents": "Kişinin yüklediği özgeçmiş, fotoğraf ve kişisel dosyalar"
+      },
+      "keptHeading": "Kalacaklar",
+      "kept": {
+        "history": "Başkalarıyla ortak geçmiş (görüşmeler, talepler, mesajlar); kişi “Silinmiş kullanıcı” olarak görünür",
+        "teams": "Başka üyesi olan takımlar ve dosyaları; tek üyesi bu kişi olan startup arşivlenir"
+      },
+      "emailLabel": "Onaylamak için kullanıcının e-postasını yaz",
+      "confirm": "Kalıcı olarak sil",
+      "deleting": "Siliniyor…",
+      "cancel": "Vazgeç",
+      "done": "Kullanıcı silindi.",
+      "donePending": "Kullanıcı silindi; giriş bilgisi ve dosyaların kaldırılması arka planda tamamlanacak.",
+      "failed": "Kullanıcı silinemedi.",
+      "signInAgain": "Bu işlem için yeniden giriş yapman gerekiyor."
+    },
     "revokeSignIns": {
       "button": "Tüm oturumlarını kapat",
       "confirm": "{name} tüm cihazlarda çıkış yapacak ve yeniden giriş yapması gerekecek. Emin misin?",
@@ -5989,6 +6016,7 @@
     "statusMustBeDecision": "Durum APPROVED veya REJECTED olmalıdır.",
     "accountStatusUpdateFailed": "Hesap durumu güncellenemedi.",
     "signInRevokeFailed": "Oturumlar kapatılamadı.",
+    "userDeleteFailed": "Kullanıcı silinemedi.",
     "noActiveMentorship": "Bu startup ile aktif bir mentorlüğünüz yok.",
     "meetingStartupRequired": "Toplantı için bir startup seçilmelidir.",
     "notInProgram": "Bu programa katılmadınız.",
@@ -6816,7 +6844,8 @@
     "statuses": {
       "APPROVED": "Onaylı",
       "PENDING": "Onay bekliyor",
-      "REJECTED": "Reddedildi"
+      "REJECTED": "Reddedildi",
+      "DELETED": "Silindi"
     },
     "linkedin": "LinkedIn profili",
     "about": "Hakkında",

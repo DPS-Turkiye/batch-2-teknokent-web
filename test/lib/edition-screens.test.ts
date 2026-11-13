@@ -7,6 +7,7 @@ import {
   adminUserTabsOf,
   loginOptionsOf,
   offersLogin,
+  offersUserDeletion,
   programTypesOf,
   signupRolesOf,
 } from "@/lib/edition-screens";
@@ -86,5 +87,12 @@ describe("adminUserTabsOf", () => {
       UserTab.Students,
       UserTab.Academics,
     ]);
+  });
+});
+
+describe("offersUserDeletion", () => {
+  it("offers deleting a user in Teknokent only; ODTÜ deletion is deferred", () => {
+    expect(offersUserDeletion(Edition.Teknokent)).toBe(true);
+    expect(offersUserDeletion(Edition.Odtu)).toBe(false);
   });
 });
