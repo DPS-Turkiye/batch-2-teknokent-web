@@ -447,6 +447,7 @@ function AppointmentDetail({
   actions: ReactNode;
 }) {
   const t = useTranslations("iaStudent.appointments.calendar");
+  const tList = useTranslations("iaStudent.appointments");
   const tKind = useTranslations("iaStudent.common.kind");
   const tTopic = useTranslations("peerTopics");
   const locale = useLocale();
@@ -492,7 +493,16 @@ function AppointmentDetail({
           {`${formatDayMonth(new Date(shown.startsAt), locale)} · ${timeLabel(shown.startsAt, locale)} – ${timeLabel(shown.endsAt, locale)}`}
         </p>
       </div>
-      {actions ? <div className="mt-4 flex gap-3">{actions}</div> : null}
+      {appointment.counterpartMessage ? (
+        <p className="mt-3 type-body-sm break-words text-text-secondary">
+          {tList("counterpartMessage", {
+            message: appointment.counterpartMessage,
+          })}
+        </p>
+      ) : null}
+      {actions ? (
+        <div className="mt-4 flex flex-wrap gap-3">{actions}</div>
+      ) : null}
     </Card>
   );
 }

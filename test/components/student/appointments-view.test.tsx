@@ -114,6 +114,96 @@ describe("StudentAppointmentsView", () => {
     ).toBeVisible();
   });
 
+  it("lets the student decline an alternative, which withdraws the request", async () => {
+    vi.mocked(answerOfficeHoursAlternative).mockResolvedValue({
+      ...alternative,
+      status: AppointmentStatus.Withdrawn,
+    });
+    renderWithQueryClient(<StudentAppointmentsView />);
+    await userEvent.click(await screen.findByRole("tab", { name: /Talepler/ }));
+    const card = within(await panel()).getByRole("article");
+    await userEvent.click(within(card).getByRole("button", { name: "Reddet" }));
+    expect(answerOfficeHoursAlternative).toHaveBeenCalledWith(
+      "alt",
+      false,
+      null,
+    );
+    expect(
+      await screen.findByText(
+        "Önerilen saati reddettin; talebin geri çekildi.",
+      ),
+    ).toBeVisible();
+  });
+
+  it("shows every offered time with the academician's note and takes the one picked", async () => {
+    const times = [
+      {
+        startsAt: "2026-11-13T07:30:00.000Z",
+        endsAt: "2026-11-13T08:00:00.000Z",
+      },
+      {
+        startsAt: "2026-11-16T08:00:00.000Z",
+        endsAt: "2026-11-16T08:30:00.000Z",
+      },
+      {
+        startsAt: "2026-11-17T12:00:00.000Z",
+        endsAt: "2026-11-17T12:30:00.000Z",
+      },
+    ];
+    vi.mocked(getStudentAppointments).mockResolvedValue([
+      {
+        ...alternative,
+        alternatives: times,
+        counterpartMessage: "Perşembe dolu, bunlardan biri olur mu?",
+        canAcceptAlternative: true,
+        canWithdraw: false,
+      },
+    ]);
+    vi.mocked(answerOfficeHoursAlternative).mockResolvedValue({
+      ...alternative,
+      status: AppointmentStatus.Confirmed,
+    });
+    renderWithQueryClient(<StudentAppointmentsView />);
+    await userEvent.click(await screen.findByRole("tab", { name: /Talepler/ }));
+    const card = within(await panel()).getByRole("article");
+
+    expect(
+      within(card).getByText(
+        "Akademisyenin mesajı: Perşembe dolu, bunlardan biri olur mu?",
+      ),
+    ).toBeVisible();
+    expect(
+      within(card).queryByRole("button", { name: "Reddet" }),
+    ).not.toBeInTheDocument();
+    const accepts = within(card).getAllByRole("button", {
+      name: /saatini kabul et$/,
+    });
+    expect(accepts).toHaveLength(3);
+    await userEvent.click(accepts[1] ?? document.body);
+    expect(answerOfficeHoursAlternative).toHaveBeenCalledWith(
+      "alt",
+      true,
+      times[1]?.startsAt,
+    );
+  });
+
+  it("gives the reason a cancelled appointment was called off", async () => {
+    vi.mocked(getStudentAppointments).mockResolvedValue([
+      {
+        ...alternative,
+        status: AppointmentStatus.Cancelled,
+        alternative: null,
+        rejectReason: "Fakülte kurulu",
+        canAcceptAlternative: false,
+      },
+    ]);
+    renderWithQueryClient(<StudentAppointmentsView />);
+    await userEvent.click(await screen.findByRole("tab", { name: /Geçmiş/ }));
+    const card = within(await panel()).getByRole("article");
+    expect(within(card).getByText("Gerekçe: Fakülte kurulu")).toBeVisible();
+    expect(within(card).queryByRole("button")).not.toBeInTheDocument();
+  });
+
   it("adds a kind's answer buttons through renderActions", async () => {
     renderWithQueryClient(
       <StudentAppointmentsView

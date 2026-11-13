@@ -88,6 +88,7 @@
       "proposed": "Proposed"
     },
     "rejectReason": "Reason: {reason}",
+    "counterpartMessage": "The academician's message: {message}",
     "legend": {
       "title": "What do the statuses mean?",
       "PENDING": "The academician or mentor hasn't answered yet. The appointment isn't set.",
@@ -223,6 +224,7 @@
     },
     "answer": {
       "accept": "Accept the proposed time",
+      "acceptTime": "Accept {time}",
       "decline": "Decline",
       "accepted": "You accepted the proposed time; your appointment is confirmed.",
       "declined": "You declined the proposed time; your request was withdrawn.",

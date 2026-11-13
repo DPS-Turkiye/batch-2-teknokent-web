@@ -6,9 +6,10 @@ import {
   AppointmentStatus,
 } from "@/interfaces/appointment";
 import { OfficeHoursRequestStatus } from "@/interfaces/office-hours";
-import type {
-  OfficeHoursListedAcademician,
-  OfficeHoursStudentRequest,
+import {
+  OfficeHoursStudentAction,
+  type OfficeHoursListedAcademician,
+  type OfficeHoursStudentRequest,
 } from "@/interfaces/office-hours-me";
 import { ClientApiError } from "@/lib/client/api";
 import {
@@ -44,8 +45,6 @@ const listed: OfficeHoursListedAcademician = {
   academicTitle: "Doç. Dr.",
   department: "Bilgisayar Mühendisliği",
   faculty: "Mühendislik",
-  place: "A-204",
-  onlineLink: null,
   contactEmail: null,
   meetingMinutes: 30,
 };
@@ -85,7 +84,7 @@ beforeEach(() => {
 });
 
 describe("student Office Hours client", () => {
-  it("shows the listed academicians in the screens' shape, with nothing yet for what has no source", async () => {
+  it("shows the listed academicians in the screens' shape, with nothing yet for what has no source or comes only with a meeting", async () => {
     vi.mocked(getListedAcademicians).mockResolvedValue([listed]);
 
     expect(await getOfficeHoursAcademicians()).toEqual([
@@ -100,7 +99,7 @@ describe("student Office Hours client", () => {
         about: null,
         topics: [],
         courses: [],
-        place: "A-204",
+        place: null,
         durationMinutes: 30,
         responseTime: null,
       },
@@ -216,6 +215,8 @@ describe("student Office Hours client", () => {
     [OfficeHoursRequestStatus.Accepted, AppointmentStatus.Confirmed],
     [OfficeHoursRequestStatus.Declined, AppointmentStatus.Rejected],
     [OfficeHoursRequestStatus.Withdrawn, AppointmentStatus.Withdrawn],
+    [OfficeHoursRequestStatus.Cancelled, AppointmentStatus.Cancelled],
+    [OfficeHoursRequestStatus.Expired, AppointmentStatus.Expired],
   ])("reads %s as %s on Randevularım", async (status, shown) => {
     vi.mocked(getMyOfficeHoursRequests).mockResolvedValue([
       request({ status }),
@@ -226,15 +227,29 @@ describe("student Office Hours client", () => {
     expect(appointment?.status).toBe(shown);
   });
 
-  it("carries the academician's other time, and the place and link once it is a meeting", async () => {
+  it("carries every time the academician offered with their note, and the place and link once it is a meeting", async () => {
+    const offeredTimes = [
+      {
+        startsAt: "2026-11-25T10:00:00+03:00",
+        endsAt: "2026-11-25T10:30:00+03:00",
+      },
+      {
+        startsAt: "2026-11-26T11:00:00+03:00",
+        endsAt: "2026-11-26T11:30:00+03:00",
+      },
+      {
+        startsAt: "2026-11-27T15:00:00+03:00",
+        endsAt: "2026-11-27T15:30:00+03:00",
+      },
+    ];
     vi.mocked(getMyOfficeHoursRequests).mockResolvedValue([
       request({
         status: OfficeHoursRequestStatus.CounterProposed,
-        proposedTimes: [
-          {
-            startsAt: "2026-11-25T10:00:00+03:00",
-            endsAt: "2026-11-25T10:30:00+03:00",
-          },
+        proposedTimes: offeredTimes,
+        academicianMessage: "Salı dolu, bunlardan biri olur mu?",
+        allowedActions: [
+          OfficeHoursStudentAction.AcceptProposed,
+          OfficeHoursStudentAction.Withdraw,
         ],
       }),
       request({
@@ -247,14 +262,61 @@ describe("student Office Hours client", () => {
 
     const [offered, booked] = await getStudentOfficeHoursAppointments();
 
-    expect(offered?.alternative).toEqual({
-      startsAt: "2026-11-25T10:00:00+03:00",
-      endsAt: "2026-11-25T10:30:00+03:00",
+    expect(offered).toMatchObject({
+      alternative: offeredTimes[0],
+      alternatives: offeredTimes,
+      counterpartMessage: "Salı dolu, bunlardan biri olur mu?",
+      canAcceptAlternative: true,
+      canWithdraw: true,
     });
     expect(booked).toMatchObject({
       place: "A-204",
       onlineUrl: "https://meet.example.com/x",
+      canAcceptAlternative: false,
+      canWithdraw: false,
     });
+  });
+
+  it("shows the academician's question while it waits on the student", async () => {
+    vi.mocked(getMyOfficeHoursRequests).mockResolvedValue([
+      request({
+        status: OfficeHoursRequestStatus.MoreInfoRequested,
+        academicianMessage: "Hangi şirkete başvuruyorsun?",
+        allowedActions: [OfficeHoursStudentAction.Withdraw],
+      }),
+    ]);
+
+    const [appointment] = await getStudentOfficeHoursAppointments();
+
+    expect(appointment).toMatchObject({
+      status: AppointmentStatus.Pending,
+      counterpartMessage: "Hangi şirkete başvuruyorsun?",
+      canAcceptAlternative: false,
+    });
+  });
+
+  it("gives the reason a meeting was called off, and the rejection reason otherwise", async () => {
+    vi.mocked(getMyOfficeHoursRequests).mockResolvedValue([
+      request({
+        status: OfficeHoursRequestStatus.Cancelled,
+        cancellation: {
+          cancelledById: "oh-1",
+          reason: "Fakülte kurulu",
+          cancelledAt: "2026-11-23T09:00:00Z",
+          late: false,
+        },
+      }),
+      request({
+        id: "request-2",
+        status: OfficeHoursRequestStatus.Declined,
+        rejectionReason: "Bu konu dersin dışında",
+      }),
+    ]);
+
+    const [cancelled, declined] = await getStudentOfficeHoursAppointments();
+
+    expect(cancelled?.rejectReason).toBe("Fakülte kurulu");
+    expect(declined?.rejectReason).toBe("Bu konu dersin dışında");
   });
 
   it("shows no requests for an account Office Hours does not know", async () => {

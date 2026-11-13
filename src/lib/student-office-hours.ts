@@ -2,6 +2,7 @@ import {
   AppointmentKind,
   AppointmentStatus,
   type Appointment,
+  type AppointmentTime,
 } from "@/interfaces/appointment";
 import type { InstitutionRecord } from "@/interfaces/institution";
 import type {
@@ -125,12 +126,22 @@ export function officeHoursRequestErrors(
   return errors.title || errors.description ? errors : null;
 }
 
-/** Only an Office Hours request with another time proposed waits on the student's answer. */
+/**
+ * Only an Office Hours request with other times offered waits on the student's answer: what the backend allows, or
+ * the status where it sent no such list.
+ */
 export function canAnswerAlternative(appointment: Appointment) {
   return (
     appointment.kind === AppointmentKind.OfficeHours &&
-    appointment.status === AppointmentStatus.AlternativeProposed
+    (appointment.canAcceptAlternative ??
+      appointment.status === AppointmentStatus.AlternativeProposed)
   );
+}
+
+/** Every time the academician offered; the sample data carries only the one. */
+export function offeredTimes(appointment: Appointment): AppointmentTime[] {
+  if (appointment.alternatives) return appointment.alternatives;
+  return appointment.alternative ? [appointment.alternative] : [];
 }
 
 const SUNDAY = 0;

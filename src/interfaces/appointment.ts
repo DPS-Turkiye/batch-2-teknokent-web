@@ -54,5 +54,16 @@ export type Appointment = AppointmentTime & {
   onlineUrl: string | null;
   /** Set while the status is AlternativeProposed: the time the other side offered instead. */
   alternative: AppointmentTime | null;
+  /** Office Hours: every time the academician offered (up to three); `alternative` is the first of them. */
+  alternatives?: AppointmentTime[] | undefined;
+  /** Why it was rejected, or why it was called off when cancelled. */
   rejectReason: string | null;
+  /** Office Hours: the academician's question, or the note they sent with the times they offered. */
+  counterpartMessage?: string | null | undefined;
+  /**
+   * Office Hours: whether the student may take an offered time or withdraw, as the backend allows it. Absent where
+   * there is no such list (the sample data); the screens then go by the status.
+   */
+  canAcceptAlternative?: boolean | undefined;
+  canWithdraw?: boolean | undefined;
 };

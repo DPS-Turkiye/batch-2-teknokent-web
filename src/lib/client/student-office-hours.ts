@@ -5,9 +5,10 @@ import {
   type Appointment,
 } from "@/interfaces/appointment";
 import { OfficeHoursRequestStatus } from "@/interfaces/office-hours";
-import type {
-  OfficeHoursListedAcademician,
-  OfficeHoursStudentRequest,
+import {
+  OfficeHoursStudentAction,
+  type OfficeHoursListedAcademician,
+  type OfficeHoursStudentRequest,
 } from "@/interfaces/office-hours-me";
 import type {
   OfficeHoursAcademician,
@@ -37,9 +38,14 @@ const APPOINTMENT_STATUS: Record<OfficeHoursRequestStatus, AppointmentStatus> =
     [OfficeHoursRequestStatus.Accepted]: AppointmentStatus.Confirmed,
     [OfficeHoursRequestStatus.Declined]: AppointmentStatus.Rejected,
     [OfficeHoursRequestStatus.Withdrawn]: AppointmentStatus.Withdrawn,
+    [OfficeHoursRequestStatus.Cancelled]: AppointmentStatus.Cancelled,
+    [OfficeHoursRequestStatus.Expired]: AppointmentStatus.Expired,
   };
 
-/** Tags, about, topics, courses and response time have no source yet; the screens leave out what is empty. */
+/**
+ * Tags, about, topics, courses and response time have no source yet, and where to meet comes only once a request is
+ * a meeting; the screens leave out what is empty.
+ */
 function toAcademician(
   listed: OfficeHoursListedAcademician,
 ): OfficeHoursAcademician {
@@ -54,7 +60,7 @@ function toAcademician(
     about: null,
     topics: [],
     courses: [],
-    place: listed.place,
+    place: null,
     durationMinutes: listed.meetingMinutes,
     responseTime: null,
   };
@@ -84,7 +90,15 @@ function toAppointment(request: OfficeHoursStudentRequest): Appointment {
     place: request.place,
     onlineUrl: request.onlineLink,
     alternative: request.proposedTimes[0] ?? null,
-    rejectReason: request.rejectionReason,
+    alternatives: request.proposedTimes,
+    rejectReason: request.cancellation?.reason ?? request.rejectionReason,
+    counterpartMessage: request.academicianMessage,
+    canAcceptAlternative: request.allowedActions.includes(
+      OfficeHoursStudentAction.AcceptProposed,
+    ),
+    canWithdraw: request.allowedActions.includes(
+      OfficeHoursStudentAction.Withdraw,
+    ),
   };
 }
 

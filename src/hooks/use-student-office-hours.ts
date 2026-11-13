@@ -38,6 +38,7 @@ import {
   filterAcademicians,
   firstBookableWeekDay,
   freeSlots,
+  offeredTimes,
   OFFICE_HOURS_DESCRIPTION_MAX,
   OFFICE_HOURS_LOOKAHEAD_DAYS,
   OFFICE_HOURS_TITLE_MAX,
@@ -374,18 +375,17 @@ export function useOfficeHoursBooking(id: string) {
   };
 }
 
-/** "Önerilen Saati Kabul Et" / "Reddet" on an Office Hours request with another time proposed. */
+/**
+ * "Önerilen Saati Kabul Et" / "Reddet" on an Office Hours request with other times offered: take one of them, or
+ * withdraw the request.
+ */
 export function useOfficeHoursAlternativeAnswer(appointment: Appointment) {
   const t = useTranslations("iaStudent.officeHours.answer");
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   const answer = useMutation({
-    mutationFn: (accept: boolean) =>
-      answerOfficeHoursAlternative(
-        appointment.id,
-        accept,
-        appointment.alternative?.startsAt ?? null,
-      ),
+    mutationFn: (time: string | null) =>
+      answerOfficeHoursAlternative(appointment.id, time !== null, time),
     onSuccess: () =>
       Promise.all([
         queryClient.invalidateQueries({
@@ -398,11 +398,11 @@ export function useOfficeHoursAlternativeAnswer(appointment: Appointment) {
         }),
       ]),
   });
-  const respond = async (accept: boolean) => {
+  const respond = async (time: string | null) => {
     try {
-      await answer.mutateAsync(accept);
+      await answer.mutateAsync(time);
       showToast({
-        message: t(accept ? "accepted" : "declined"),
+        message: t(time === null ? "declined" : "accepted"),
         tone: ToastTone.Success,
       });
     } catch (error) {
@@ -413,8 +413,10 @@ export function useOfficeHoursAlternativeAnswer(appointment: Appointment) {
     }
   };
   return {
-    accept: () => respond(true),
-    decline: () => respond(false),
+    times: offeredTimes(appointment),
+    canDecline: appointment.canWithdraw ?? true,
+    accept: (time: string) => respond(time),
+    decline: () => respond(null),
     isAnswering: answer.isPending,
   };
 }
