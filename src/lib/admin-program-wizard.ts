@@ -1,5 +1,6 @@
 import type { CreateProgramInput } from "@/interfaces/coordinator-program";
 import type { ProgramType } from "@/interfaces/program";
+import { splitChoices, type CoordinatorChoice } from "@/lib/coordinator-picker";
 
 export enum WizardStep {
   Type = "TYPE",
@@ -23,17 +24,20 @@ export type ProgramWizardDraft = {
   description: string;
   startDate: string;
   endDate: string;
-  coordinatorIds: string[];
+  coordinators: CoordinatorChoice[];
 };
 
-export function emptyWizardDraft(): ProgramWizardDraft {
+/** A new draft; when the edition offers a single program type, it is already chosen. */
+export function emptyWizardDraft(
+  programTypes: readonly ProgramType[],
+): ProgramWizardDraft {
   return {
-    type: null,
+    type: programTypes.length === 1 ? (programTypes[0] ?? null) : null,
     name: "",
     description: "",
     startDate: "",
     endDate: "",
-    coordinatorIds: [],
+    coordinators: [],
   };
 }
 
@@ -51,14 +55,10 @@ export function stepProblem(
       return WizardProblem.DatesOrder;
     }
   }
-  if (step === WizardStep.Coordinators && draft.coordinatorIds.length === 0) {
+  if (step === WizardStep.Coordinators && draft.coordinators.length === 0) {
     return WizardProblem.CoordinatorRequired;
   }
   return null;
-}
-
-export function toggleCoordinator(ids: string[], id: string) {
-  return ids.includes(id) ? ids.filter((item) => item !== id) : [...ids, id];
 }
 
 export function createProgramInput(
@@ -71,6 +71,6 @@ export function createProgramInput(
     description: draft.description.trim() || null,
     startDate: draft.startDate || null,
     endDate: draft.endDate || null,
-    coordinatorIds: draft.coordinatorIds,
+    ...splitChoices(draft.coordinators),
   };
 }

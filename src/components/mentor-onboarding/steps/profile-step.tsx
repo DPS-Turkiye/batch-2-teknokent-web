@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useRef } from "react";
 
 import { EducationListEditor } from "@/components/mentors/education-list-editor";
+import { CvConsent } from "@/components/onboarding/cv-consent";
 import {
   ONBOARDING_TONES,
   OnboardingTone,
@@ -36,6 +37,13 @@ function UploadPhase({ wizard }: { wizard: MentorOnboarding }) {
   const inputRef = useRef<HTMLInputElement>(null);
   return (
     <div className="flex flex-col gap-3">
+      {wizard.canReadCv ? (
+        <CvConsent
+          tone={OnboardingTone.Mentor}
+          checked={wizard.cvConsent}
+          onChange={wizard.setCvConsent}
+        />
+      ) : null}
       <div className="rounded-[20px] border border-[#e4e7ea] bg-white px-6 py-3">
         <button
           type="button"
@@ -54,6 +62,14 @@ function UploadPhase({ wizard }: { wizard: MentorOnboarding }) {
             </span>
           </span>
           <span className="text-sm text-[#676e78]">{copy("uploadHint")}</span>
+          {wizard.canReadCv ? null : (
+            <>
+              {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+              <span className="text-[13px] text-[#676e78]">
+                {copy("uploadOnlyHint")}
+              </span>
+            </>
+          )}
         </button>
         <input
           ref={inputRef}
@@ -113,7 +129,9 @@ function ParsingPhase({ wizard }: { wizard: MentorOnboarding }) {
       <div className="mt-9 h-2.5 w-full overflow-hidden rounded-[10px] bg-[#edf0f2]">
         <div className="h-2.5 w-2/3 animate-pulse rounded-[10px] bg-[#26a4ff]" />
       </div>
-      <p className="mt-5 text-sm text-[#676e78]">{copy("parsing")}</p>
+      <p className="mt-5 text-sm text-[#676e78]">
+        {wizard.readsCv ? copy("parsing") : copy("uploading")}
+      </p>
       <p className="mt-4 text-[13px] text-[#676e78]">{copy("parsingHint")}</p>
     </section>
   );

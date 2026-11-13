@@ -12,7 +12,8 @@ import {
   StatusChip,
 } from "@/components/admin/admin-ui";
 import { TeamHistory } from "@/components/common/team-history";
-import { TeamStage } from "@/components/coordinator/team-stage";
+import { TeamPhase } from "@/components/coordinator/team-phase";
+import { ProfileLink } from "@/components/people/profile-link";
 import { useOptionLabel } from "@/hooks/use-option-label";
 import { useProgramTeamDetail } from "@/hooks/use-program-team-detail";
 import { mentorshipHref } from "@/lib/coordinator-calendar";
@@ -140,7 +141,7 @@ export function TeamDetailDrawer({
               ) : null}
 
               <Section title={t("stage")}>
-                <TeamStage
+                <TeamPhase
                   programId={programId}
                   organizationId={organizationId}
                 />
@@ -169,12 +170,14 @@ export function TeamDetailDrawer({
                           <TeamHistory userId={member.id} />
                         </div>
                         {member.joinedAt ? (
-                          <span className="text-[12px] text-[#858c96]">
+                          <span className="shrink-0 whitespace-nowrap text-[12px] text-[#858c96]">
                             {t("joinedOn", {
                               date: formatShortDate(member.joinedAt, locale),
                             })}
                           </span>
                         ) : null}
+                        {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+                        <ProfileLink userId={member.id} name={member.name} />
                       </li>
                     ))}
                   </ul>

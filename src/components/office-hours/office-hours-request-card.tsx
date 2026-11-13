@@ -23,6 +23,8 @@ const STATUS_TONE: Record<OfficeHoursRequestStatus, string> = {
   [OfficeHoursRequestStatus.MoreInfoRequested]: "bg-[#f2f8fc] text-[#1592ea]",
   [OfficeHoursRequestStatus.CounterProposed]: "bg-[#f2f8fc] text-[#1592ea]",
   [OfficeHoursRequestStatus.Withdrawn]: "bg-[#f4f5f7] text-[#676e78]",
+  [OfficeHoursRequestStatus.Cancelled]: "bg-[#fdf1f1] text-[#c0392b]",
+  [OfficeHoursRequestStatus.Expired]: "bg-[#f4f5f7] text-[#676e78]",
 };
 
 const DECISION_PLACEHOLDER: Record<

@@ -5,43 +5,47 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { ADMIN_OVERVIEW_QUERY_KEY } from "@/hooks/use-admin-overview";
 import {
-  ADMIN_OVERVIEW_QUERY_KEY,
-  useAdminOverview,
-} from "@/hooks/use-admin-overview";
+  COORDINATOR_INVITE_CHECK_QUERY_KEY,
+  COORDINATOR_SEARCH_QUERY_KEY,
+} from "@/hooks/use-coordinator-picker";
 import { coordinatorProgramQueryKey } from "@/hooks/use-coordinator-program";
+import { useEdition } from "@/hooks/use-edition";
 import type { ProgramType } from "@/interfaces/program";
 import { ToastTone } from "@/interfaces/toast";
-import { approvedCoordinatorsOf } from "@/lib/admin-model";
 import {
   createProgramInput,
   emptyWizardDraft,
   stepProblem,
-  toggleCoordinator,
   WIZARD_STEPS,
   WizardStep,
   type ProgramWizardDraft,
   type WizardProblem,
 } from "@/lib/admin-program-wizard";
 import { createCoordinatorProgram } from "@/lib/client/coordinator-programs";
+import type { CoordinatorChoice } from "@/lib/coordinator-picker";
+import { programTypesOf } from "@/lib/edition-screens";
 import { errorMessage } from "@/lib/utils";
 import { useToast } from "@/stores/toast-store";
 
-/** The admin's "Yeni Program Oluştur": type, details, coordinators, summary; saved as a draft at the end. */
+/**
+ * The admin's "Yeni Program Oluştur": type, details, coordinators, summary; saved as a draft at the end. Only the
+ * deployment's own program types are offered; the backend refuses the others. Coordinators are picked by email search
+ * or invited by email; invited people get their account when the program is saved.
+ */
 export function useAdminProgramWizard() {
   const t = useTranslations("adminProgramWizard");
   const router = useRouter();
   const queryClient = useQueryClient();
   const { showToast } = useToast();
-  const overview = useAdminOverview();
+  const programTypes = programTypesOf(useEdition());
   const [step, setStep] = useState(WizardStep.Type);
-  const [draft, setDraft] = useState<ProgramWizardDraft>(emptyWizardDraft);
+  const [draft, setDraft] = useState<ProgramWizardDraft>(() =>
+    emptyWizardDraft(programTypes),
+  );
   const [problem, setProblem] = useState<WizardProblem | null>(null);
   const stepIndex = WIZARD_STEPS.indexOf(step);
-
-  const coordinators = overview.data
-    ? approvedCoordinatorsOf(overview.data)
-    : [];
 
   const create = useMutation({
     mutationFn: (type: ProgramType) =>
@@ -53,6 +57,12 @@ export function useAdminProgramWizard() {
       );
       void queryClient.invalidateQueries({
         queryKey: ADMIN_OVERVIEW_QUERY_KEY,
+      });
+      void queryClient.invalidateQueries({
+        queryKey: COORDINATOR_SEARCH_QUERY_KEY,
+      });
+      void queryClient.invalidateQueries({
+        queryKey: COORDINATOR_INVITE_CHECK_QUERY_KEY,
       });
       showToast({
         message: t("created", { name: detail.program.name }),
@@ -72,19 +82,11 @@ export function useAdminProgramWizard() {
     step,
     stepIndex,
     last: stepIndex === WIZARD_STEPS.length - 1,
+    programTypes,
     draft,
     update,
-    coordinators,
-    coordinatorsLoading: overview.isLoading,
-    coordinatorsError: overview.error
-      ? errorMessage(overview.error, t("coordinatorsFailed"))
-      : null,
-    retryCoordinators: () => void overview.refetch(),
-    chosenCoordinators: coordinators.filter((user) =>
-      draft.coordinatorIds.includes(user.id),
-    ),
-    toggleCoordinator: (id: string) =>
-      update({ coordinatorIds: toggleCoordinator(draft.coordinatorIds, id) }),
+    setCoordinators: (coordinators: CoordinatorChoice[]) =>
+      update({ coordinators }),
     error: problem
       ? t(`problems.${problem}`)
       : create.error

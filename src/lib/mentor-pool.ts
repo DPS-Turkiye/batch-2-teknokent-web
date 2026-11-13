@@ -136,6 +136,18 @@ export function poolRowNote(row: MentorPoolRow, t: PoolT, now = new Date()) {
   }
 }
 
+/**
+ * The mentor id to open "Profili gör" with, or null. The backend only shows a mentor in the pool or one who asked to
+ * join; a coordinator's open invite does not count, so invited rows get no link.
+ */
+export function profileMentorId(row: MentorPoolRow) {
+  const reachable =
+    row.status === MentorPoolStatus.Active ||
+    row.status === MentorPoolStatus.Full ||
+    row.status === MentorPoolStatus.AwaitingApproval;
+  return reachable ? row.mentorId : null;
+}
+
 export function loadShare(row: MentorPoolRow) {
   return row.capacity > 0
     ? Math.min(100, (row.activeTeams / row.capacity) * 100)
@@ -149,4 +161,9 @@ export function mentorInviteLink(code: string, origin: string) {
 
 export function rowKey(row: MentorPoolRow) {
   return row.mentorId ?? row.inviteId ?? row.email;
+}
+
+/** Pool rows not yet in the program's mentor count: unanswered invitations and mentors asking to join. */
+export function waitingPoolCount(rows: readonly MentorPoolRow[]) {
+  return rows.filter((row) => !ACTIVE_STATUSES.has(row.status)).length;
 }

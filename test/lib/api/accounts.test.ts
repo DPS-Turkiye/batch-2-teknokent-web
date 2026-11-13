@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { UserAccountStatus, UserRole } from "@/interfaces/session";
 import {
   decideAccountStatus,
+  deleteUser,
   fetchUser,
   fetchUsers,
   revokeSignIns,
@@ -99,5 +100,18 @@ describe("accounts server API", () => {
   it.each(cases)("%s", async (_description, call, request) => {
     await call();
     expect(backendRequest).toHaveBeenCalledWith(request);
+  });
+
+  it("deletes a user with the admin's own token, never the service credentials", async () => {
+    await deleteUser("user/1", "ayse@example.com", "id-token");
+
+    expect(backendRequest).toHaveBeenCalledWith(
+      {
+        method: "POST",
+        url: "/api/admin/users/user%2F1/delete",
+        data: { confirmEmail: "ayse@example.com" },
+      },
+      { idToken: "id-token" },
+    );
   });
 });

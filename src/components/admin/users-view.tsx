@@ -15,15 +15,21 @@ import {
   ApproveCoordinatorDialog,
   CoordinatorApplicationDialog,
 } from "@/components/admin/coordinator-approval";
+import { DeleteUserButton } from "@/components/admin/delete-user-section";
+import { MoveTeamProgram } from "@/components/admin/move-team-program";
+import { RemoveMentorFromProgram } from "@/components/admin/remove-mentor-from-program";
 import { RevokeSignInsButton } from "@/components/admin/revoke-sign-ins-button";
 import { TeamHistory } from "@/components/common/team-history";
+import { ProfileLink } from "@/components/people/profile-link";
 import { useAdminOverview } from "@/hooks/use-admin-overview";
 import {
+  useAdminUserTabs,
   useCoordinatorsTable,
   useMentorsTable,
   useTeamsTable,
 } from "@/hooks/use-admin-users";
 import { useOptionLabel } from "@/hooks/use-option-label";
+import { usePersonProfileHref } from "@/hooks/use-person-profile-href";
 import {
   ProgramMemberKind,
   type AdminOverview,
@@ -35,9 +41,10 @@ import { MentorshipStatus } from "@/interfaces/coordinator-mentorship";
 import { UserAccountStatus } from "@/interfaces/session";
 import {
   activeMentorshipFor,
-  assignableProgramsForStartup,
+  canRemoveMentorFromProgram,
   coordinatorsOf,
   mentorsOf,
+  moveTargetsForStartup,
   programsForCoordinator,
   startupsOf,
 } from "@/lib/admin-model";
@@ -54,6 +61,7 @@ import {
   TEAM_FILTERS,
   TEAM_SECTIONS,
   teamHealth,
+  USER_TAB_HREFS,
   type FilterCounts,
 } from "@/lib/admin-users";
 import { initials } from "@/lib/utils";
@@ -65,6 +73,13 @@ import {
   type UserFilter,
 } from "@/types/admin-users";
 
+type TabLink = {
+  href: string;
+  label: string;
+  count: number | null;
+  dot?: string;
+};
+
 type AccountDecision = UserAccountStatus.Approved | UserAccountStatus.Rejected;
 
 export function UsersView({ tab }: { tab: UserTab }) {
@@ -72,44 +87,41 @@ export function UsersView({ tab }: { tab: UserTab }) {
   const query = useAdminOverview();
   const focusUserId = useSearchParams().get("user");
   const [inviteOpen, setInviteOpen] = useState(false);
+  const offeredTabs = useAdminUserTabs();
   if (!query.data) {
     return <QueryNotice isLoading={query.isLoading} error={query.error} />;
   }
   const data = query.data;
-  const tabs = [
-    {
-      id: UserTab.Coordinators,
-      href: "/admin/users",
+  const tabLinks: Record<UserTab, TabLink> = {
+    [UserTab.Coordinators]: {
+      href: USER_TAB_HREFS[UserTab.Coordinators],
       label: t("tabs.coordinators"),
       count: coordinatorsOf(data).length,
     },
-    {
-      id: UserTab.Mentors,
-      href: "/admin/users/mentors",
+    [UserTab.Mentors]: {
+      href: USER_TAB_HREFS[UserTab.Mentors],
       label: t("tabs.mentors"),
       count: mentorsOf(data).length,
       dot: "#26a4ff",
     },
-    {
-      id: UserTab.Teams,
-      href: "/admin/users/teams",
+    [UserTab.Teams]: {
+      href: USER_TAB_HREFS[UserTab.Teams],
       label: t("tabs.teams"),
       count: startupsOf(data).length,
       dot: "#ff6a3d",
     },
-    {
-      id: UserTab.Students,
-      href: "/admin/users/students",
+    [UserTab.Students]: {
+      href: USER_TAB_HREFS[UserTab.Students],
       label: t("tabs.students"),
       count: null,
     },
-    {
-      id: UserTab.Academics,
-      href: "/admin/users/academics",
+    [UserTab.Academics]: {
+      href: USER_TAB_HREFS[UserTab.Academics],
       label: t("tabs.academics"),
       count: null,
     },
-  ];
+  };
+  const tabs = offeredTabs.map((id) => ({ id, ...tabLinks[id] }));
 
   return (
     <div className="space-y-6">
@@ -350,6 +362,8 @@ function MentorsTable({
 }) {
   const t = useTranslations("adminUsers");
   const optionLabel = useOptionLabel();
+  const tProfile = useTranslations("personSummary");
+  const profileHref = usePersonProfileHref();
   const table = useMentorsTable(data, focusUserId);
   const { selected } = table;
 
@@ -383,7 +397,7 @@ function MentorsTable({
           <EmptyNote>{t("noMentors")}</EmptyNote>
         ) : (
           table.visible.map(
-            ({ user, programs, mentorships, stale, pendingInvite }) => (
+            ({ user, acceptedPrograms, mentorships, stale, pendingInvite }) => (
               <div
                 key={user.id}
                 className={`${mentorCols} border-b border-[#f0f2f4] px-5 py-3.5 last:border-0`}
@@ -421,7 +435,10 @@ function MentorsTable({
                     ))
                   )}
                 </span>
-                <ProgramChips programs={programs} empty={t("unassigned")} />
+                <ProgramChips
+                  programs={acceptedPrograms}
+                  empty={t("unassigned")}
+                />
                 <LoadBar count={mentorships.length} warning={stale} />
                 <span className="flex items-center justify-end gap-1">
                   {user.status === UserAccountStatus.Pending ? (
@@ -438,6 +455,8 @@ function MentorsTable({
                         label: t("detail"),
                         onClick: () => table.select(user.id),
                       },
+                      // TEST UI: placeholder until the design team's screen; replace when it arrives.
+                      { label: tProfile("open"), href: profileHref(user.id) },
                     ]}
                   />
                 </span>
@@ -741,8 +760,9 @@ function CoordinatorDrawer({
             </p>
           ) : null}
         </div>
-        <div className="border-t border-[#e9ecef] px-6 py-4">
+        <div className="flex flex-wrap items-start gap-2 border-t border-[#e9ecef] px-6 py-4">
           <RevokeSignInsButton user={user} />
+          <DeleteUserButton user={user} onDeleted={onClose} />
         </div>
       </aside>
     </div>
@@ -817,6 +837,10 @@ function MentorDrawer({
                 {t("mentorshipCount", { count: mentorships.length })}
                 {activity ? t("registered", { when: activity.label }) : ""}
               </p>
+              {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+              <div className="mt-2">
+                <ProfileLink userId={user.id} name={user.fullName} />
+              </div>
             </div>
           </div>
           <button
@@ -885,14 +909,19 @@ function MentorDrawer({
                 {programs.map((item) => (
                   <li
                     key={item.id}
-                    className="rounded-[20px] border border-[#e9ecef] px-4 py-3"
+                    className="flex items-center justify-between gap-3 rounded-[20px] border border-[#e9ecef] px-4 py-3"
                   >
-                    <p className="font-medium">{item.name}</p>
-                    <p className="text-[12.5px] text-[#858c96]">
-                      {isInvitePending(item, user.id)
-                        ? t("invitePending")
-                        : t("accepted")}
-                    </p>
+                    <div className="min-w-0">
+                      <p className="font-medium">{item.name}</p>
+                      <p className="text-[12.5px] text-[#858c96]">
+                        {isInvitePending(item, user.id)
+                          ? t("invitePending")
+                          : t("accepted")}
+                      </p>
+                    </div>
+                    {canRemoveMentorFromProgram(item, user.id) ? (
+                      <RemoveMentorFromProgram mentor={user} program={item} />
+                    ) : null}
                   </li>
                 ))}
               </ul>
@@ -930,8 +959,9 @@ function MentorDrawer({
             </p>
           ) : null}
         </div>
-        <div className="border-t border-[#e9ecef] px-6 py-4">
+        <div className="flex flex-wrap items-start gap-2 border-t border-[#e9ecef] px-6 py-4">
           <RevokeSignInsButton user={user} />
+          <DeleteUserButton user={user} onDeleted={onClose} />
         </div>
       </aside>
     </div>
@@ -1046,10 +1076,10 @@ function TeamDrawer({
                 <span className="text-[#858c96]">{t("programField")}</span>
                 {startup.programName}
               </p>
-              <AssignToProgram
-                kind={ProgramMemberKind.Startups}
-                targetId={startup.id}
-                programs={assignableProgramsForStartup(data, startup.id)}
+              <MoveTeamProgram
+                team={startup}
+                programs={moveTargetsForStartup(data, startup)}
+                onMoved={requestClose}
               />
               <p>
                 <span className="text-[#858c96]">{t("sectorField")}</span>
@@ -1077,11 +1107,17 @@ function TeamDrawer({
                     key={member.id}
                     className="rounded-[20px] border border-[#e9ecef] px-4 py-3"
                   >
-                    <p className="font-medium">{member.fullName}</p>
-                    <p className="text-[12.5px] text-[#858c96]">
-                      {member.email}
-                      {member.jobTitle ? ` · ${member.jobTitle}` : ""}
-                    </p>
+                    {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="font-medium">{member.fullName}</p>
+                        <p className="text-[12.5px] text-[#858c96]">
+                          {member.email}
+                          {member.jobTitle ? ` · ${member.jobTitle}` : ""}
+                        </p>
+                      </div>
+                      <ProfileLink userId={member.id} name={member.fullName} />
+                    </div>
                     <TeamHistory userId={member.id} />
                   </li>
                 ))}
@@ -1346,11 +1382,11 @@ function LoadBar({ count, warning }: { count: number; warning: boolean }) {
   );
 }
 
-function RowMenu({
-  items,
-}: {
-  items: { label: string; onClick: () => void }[];
-}) {
+/** A menu entry either acts on the row or, for navigation, is a real link. */
+type RowMenuItem =
+  { label: string; onClick: () => void } | { label: string; href: string };
+
+function RowMenu({ items }: { items: RowMenuItem[] }) {
   const t = useTranslations("adminUsers");
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -1377,19 +1413,29 @@ function RowMenu({
       </button>
       {open ? (
         <div className="absolute right-0 z-20 mt-1 min-w-[180px] rounded-2xl border border-[#e9ecef] bg-white p-1 shadow-[0_8px_24px_rgba(33,38,43,0.12)]">
-          {items.map((item) => (
-            <button
-              key={item.label}
-              type="button"
-              onClick={() => {
-                setOpen(false);
-                item.onClick();
-              }}
-              className="block w-full rounded-xl px-3 py-2 text-left text-[13px] text-[#22262b] hover:bg-[#f5f6f8]"
-            >
-              {item.label}
-            </button>
-          ))}
+          {items.map((item) =>
+            "href" in item ? (
+              <Link
+                key={item.label}
+                href={item.href}
+                className="block w-full rounded-xl px-3 py-2 text-left text-[13px] text-[#22262b] hover:bg-[#f5f6f8]"
+              >
+                {item.label}
+              </Link>
+            ) : (
+              <button
+                key={item.label}
+                type="button"
+                onClick={() => {
+                  setOpen(false);
+                  item.onClick();
+                }}
+                className="block w-full rounded-xl px-3 py-2 text-left text-[13px] text-[#22262b] hover:bg-[#f5f6f8]"
+              >
+                {item.label}
+              </button>
+            ),
+          )}
         </div>
       ) : null}
     </div>

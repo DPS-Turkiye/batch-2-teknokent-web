@@ -4,6 +4,7 @@ import {
   MentorshipRequestStatus,
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
+import { parseEmailDomains } from "@/lib/email";
 import { MeetingStatus, type MeetingStatusMeta } from "@/types/assistant";
 import { MentorshipWorkspaceTab } from "@/types/mentorship";
 
@@ -48,6 +49,11 @@ export function getBackendHealthUrl(): string {
   return `${BACKEND_URL}${BACKEND_HEALTH_PATH}`;
 }
 
+/** Sign-up e-mail domains for this deployment (metu.edu.tr for ODTÜ); empty lets any address sign up. */
+export const ALLOWED_EMAIL_DOMAINS = parseEmailDomains(
+  process.env.NEXT_PUBLIC_ALLOWED_EMAIL_DOMAINS,
+);
+
 export const EMAIL_VERIFICATION_EXEMPT = [
   "admin@teknokent.demo",
   "coordinator@teknokent.demo",
@@ -71,7 +77,8 @@ export function getBotApiUrl(): string {
   return BOT_API_PATH;
 }
 
-export function getStopBotApiUrl(
+/** The meeting's bot: GET reads its state, DELETE stops it. */
+export function getMeetingBotApiUrl(
   platform: string,
   nativeMeetingId: string,
 ): string {
@@ -252,6 +259,16 @@ export const MEETING_STATUS_META: Record<MeetingStatus, MeetingStatusMeta> = {
 export const DOCUMENT_UPLOAD_ACCEPT = ".pdf,.docx,.xlsx,.pptx";
 /** Mirrors the backend's DocumentKind limit for documents (images stay at 5 MB). */
 export const DOCUMENT_MAX_BYTES = 25 * 1024 * 1024;
+
+/**
+ * The version of the CV-reading consent text (`cvConsent.label`) the person was
+ * shown. The backend stores it with each consent, so change it whenever that
+ * text changes.
+ */
+export const CV_CONSENT_TEXT_VERSION = "cv-parsing-2026-11-13";
+
+/** The same, for the startup import's own consent text (`profileTools` `consent`). */
+export const STARTUP_IMPORT_CONSENT_TEXT_VERSION = "startup-import-2026-11-13";
 
 export const SUPPORT_EMAIL = "info@menton.com.tr";
 

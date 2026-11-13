@@ -10,6 +10,8 @@ import {
   PoolFilter,
   poolFilterOptions,
   poolRowNote,
+  profileMentorId,
+  waitingPoolCount,
 } from "@/lib/mentor-pool";
 import { translatorIn } from "@test/translators";
 
@@ -119,5 +121,41 @@ describe("mentor pool helpers", () => {
     expect(mentorInviteLink("abc", "https://menton.com.tr")).toBe(
       "https://menton.com.tr/signup?role=mentor&programInvite=abc",
     );
+  });
+});
+
+describe("profileMentorId", () => {
+  it("opens profiles only where the backend shows them", () => {
+    expect(profileMentorId(row())).toBe("mentor-1");
+    expect(profileMentorId(row({ status: MentorPoolStatus.Full }))).toBe(
+      "mentor-1",
+    );
+    expect(
+      profileMentorId(row({ status: MentorPoolStatus.AwaitingApproval })),
+    ).toBe("mentor-1");
+    for (const status of [
+      MentorPoolStatus.Invited,
+      MentorPoolStatus.InviteExpiring,
+      MentorPoolStatus.InviteExpired,
+    ]) {
+      expect(profileMentorId(row({ status }))).toBeNull();
+    }
+    expect(profileMentorId(row({ mentorId: null }))).toBeNull();
+  });
+});
+
+describe("waitingPoolCount", () => {
+  it("counts every pool row the program's mentor count leaves out", () => {
+    expect(
+      waitingPoolCount([
+        row(),
+        row({ status: MentorPoolStatus.Full }),
+        row({ status: MentorPoolStatus.AwaitingApproval }),
+        row({ status: MentorPoolStatus.Invited }),
+        row({ status: MentorPoolStatus.InviteExpiring }),
+        row({ status: MentorPoolStatus.InviteExpired }),
+      ]),
+    ).toBe(4);
+    expect(waitingPoolCount([])).toBe(0);
   });
 });

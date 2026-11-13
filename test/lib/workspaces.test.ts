@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { Edition } from "@/interfaces/edition";
 import { IdentityKind, UserRole, type AppSession } from "@/interfaces/session";
 import { Workspace } from "@/interfaces/workspace";
 import { activeWorkspaceOf, workspacesOf } from "@/lib/workspaces";
@@ -36,21 +37,43 @@ describe("workspacesOf", () => {
         account(UserRole.Academician, {
           permissions: [UserRole.Mentee, UserRole.Academician],
           institutionKinds: [IdentityKind.Student, IdentityKind.Academic],
+          edition: Edition.Odtu,
         }),
       ),
     ).toEqual([Workspace.OdtuAcademician, Workspace.OdtuStudent]);
   });
 
-  // D6: an ODTÜ student who is also on a startup team keeps both.
-  it("gives a founder who is also an ODTÜ student both workspaces", () => {
+  // D6 is retired (T4): each deployment opens only its own side of an account that holds both.
+  it("opens only the Girişim side of an ODTÜ student's startup in the Teknokent edition", () => {
+    const founder = {
+      organizationId: "org-1",
+      institutionKinds: [IdentityKind.Student],
+    };
+    expect(workspacesOf(account(UserRole.Mentee, founder))).toEqual([
+      Workspace.GirisimMentee,
+    ]);
     expect(
       workspacesOf(
-        account(UserRole.Mentee, {
-          organizationId: "org-1",
-          institutionKinds: [IdentityKind.Student],
-        }),
+        account(UserRole.Mentee, { ...founder, edition: Edition.Teknokent }),
+      ),
+    ).toEqual([Workspace.GirisimMentee]);
+    expect(
+      workspacesOf(
+        account(UserRole.Mentee, { ...founder, edition: Edition.Odtu }),
       ),
     ).toEqual([Workspace.OdtuStudent, Workspace.GirisimMentee]);
+  });
+
+  it("opens no ODTÜ workspace in the Teknokent edition", () => {
+    expect(
+      workspacesOf(
+        account(UserRole.Academician, {
+          permissions: [UserRole.Mentee, UserRole.Academician],
+          institutionKinds: [IdentityKind.Student, IdentityKind.Academic],
+          edition: Edition.Teknokent,
+        }),
+      ),
+    ).toEqual([]);
   });
 
   // Peer mentoring is part of the student workspace, and İŞKUR's team of one is not a startup.
@@ -62,6 +85,7 @@ describe("workspacesOf", () => {
           individualMentee: true,
           permissions: [UserRole.Mentee, UserRole.Mentor],
           institutionKinds: [IdentityKind.Student],
+          edition: Edition.Odtu,
         }),
       ),
     ).toEqual([Workspace.OdtuStudent]);
@@ -76,6 +100,7 @@ describe("workspacesOf", () => {
           personalOrganization: true,
           permissions: [UserRole.Mentee],
           institutionKinds: [IdentityKind.Student],
+          edition: Edition.Odtu,
         }),
       ),
     ).toEqual([Workspace.OdtuStudent]);
@@ -97,6 +122,7 @@ describe("activeWorkspaceOf", () => {
   const assistant = account(UserRole.Academician, {
     permissions: [UserRole.Mentee, UserRole.Academician],
     institutionKinds: [IdentityKind.Student, IdentityKind.Academic],
+    edition: Edition.Odtu,
   });
 
   it("keeps the chosen workspace and falls back once the account lost it", () => {

@@ -5,21 +5,29 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { useSession } from "@/components/providers/session-provider";
+import {
+  useAppSession,
+  useSession,
+} from "@/components/providers/session-provider";
 import { useMyBadges } from "@/hooks/use-badges";
 import { useInstitutionRecord } from "@/hooks/use-institution-record";
 import {
   MENTOR_AVAILABILITY_QUERY_KEY,
   MENTOR_AVAILABILITY_SETTINGS_QUERY_KEY,
   MENTOR_PROFILE_QUERY_KEY,
+  useMentorAvailabilitySettings,
 } from "@/hooks/use-mentor-profile";
+import { usePeerExperienceCards } from "@/hooks/use-peer-experience-cards";
 import {
+  PEER_MENTOR_COUNTS_QUERY_KEY,
+  PEER_MENTOR_QUERY_KEY,
   PEER_MENTORING_REQUESTS_QUERY_KEY,
   PEER_MENTORS_QUERY_KEY,
 } from "@/hooks/use-peer-mentoring";
 import { PEER_MENTOR_CATEGORIES_QUERY_KEY } from "@/hooks/use-student-profile-completion";
 import { STUDENT_TRAINING_QUERY_KEY } from "@/hooks/use-student-training";
 import { useWeeklyAvailabilityForm } from "@/hooks/use-weekly-availability-form";
+import { BadgeStatus } from "@/interfaces/badges";
 import type {
   MentorAvailabilitySettings,
   UpdateMentorAvailabilitySettingsPayload,
@@ -27,8 +35,11 @@ import type {
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import {
   PeerMentorGateState,
+  type PeerExperienceCard,
   type PeerMentorProfile,
   type PeerTopicCategory,
+  type PeerTopicLevel,
+  type PeerTopicLevels,
   type SavePeerMentorProfileInput,
 } from "@/interfaces/peer-mentoring";
 import { UserRole } from "@/interfaces/session";
@@ -46,11 +57,21 @@ import {
 } from "@/lib/client/peer-mentoring";
 import { getPeerMentorCategories } from "@/lib/client/student-profile-completion";
 import { getStudentTraining } from "@/lib/client/training";
+import { withKeys, withoutKeys, type Keyed } from "@/lib/keyed-list";
 import {
+  chosenSubtopics,
   latestGateAward,
+  levelsFor,
+  PEER_ERASMUS_MAX,
+  PEER_HELP_WITH_MAX,
+  PEER_HELP_WITH_MIN,
+  PEER_MENTOR_GIVE_HREF,
   PEER_MENTOR_TRAINING_HREF,
-  PEER_REQUEST_MESSAGE_MIN,
+  PEER_PROFILE_TEXT_MAX,
+  peerMentorCapacity,
   peerMentorGateState,
+  subtopicGroupsWithCounts,
+  weeklyHours,
 } from "@/lib/peer-mentoring";
 import { hasPermission } from "@/lib/permissions";
 import {
@@ -58,8 +79,9 @@ import {
   toggleInterestSubtopic,
   toggleInterestTopic,
 } from "@/lib/student-interests";
-import { errorMessage } from "@/lib/utils";
+import { errorMessage, initials } from "@/lib/utils";
 import { useToast } from "@/stores/toast-store";
+import { PeerGiveTab } from "@/types/iskur-student";
 
 export const PEER_MENTOR_PROFILE_QUERY_KEY = [
   "peer-mentoring",
@@ -101,6 +123,7 @@ export function usePeerMentorGate() {
   return {
     state,
     gateAward,
+    expired: gateAward?.status === BadgeStatus.Expired,
     isLoading: badges.isLoading || institution.isLoading,
     sessionBehind,
   };
@@ -196,6 +219,52 @@ export function usePeerRequestDecision() {
   };
 }
 
+/**
+ * Mentorluk Ver once the profile is published: the open tab (requests first), the received requests, the decision
+ * actions and the "Kapasiten" card's numbers.
+ */
+export function usePeerGivePublished(profileCapacity: number | null) {
+  const [tab, setTab] = useState(PeerGiveTab.Requests);
+  const received = useReceivedPeerRequests();
+  const decision = usePeerRequestDecision();
+  // The availability tab saves the capacity to the settings, not the profile; read it there so the card follows a save.
+  const settings = useMentorAvailabilitySettings();
+  const menteeCapacity =
+    settings.data === undefined
+      ? profileCapacity
+      : settings.data.menteeCapacity;
+  const loaded = received.query.data !== undefined;
+  return {
+    tab,
+    setTab,
+    received,
+    decision,
+    loaded,
+    // Until the requests load the mentee count is unknown, so the card waits instead of showing 0.
+    capacity: loaded
+      ? peerMentorCapacity(received.mentees.length, menteeCapacity)
+      : null,
+  };
+}
+
+/** Who the wizard's preview card shows: the student, from the session and the institution record. */
+export function usePeerMentorPreviewPerson() {
+  const session = useAppSession();
+  const institution = useInstitutionRecord();
+  const gate = usePeerMentorGate();
+  const fullName = session?.fullName ?? "";
+  const department = institution.data?.departmentName ?? null;
+  const classYear = institution.data?.classYear ?? null;
+  return {
+    fullName,
+    initials: initials(fullName),
+    department,
+    classYear,
+    showSeparator: department !== null && classYear !== null,
+    badgeVerified: gate.state === PeerMentorGateState.Earned,
+  };
+}
+
 export enum PeerMentorWizardStep {
   Categories,
   Subtopics,
@@ -219,6 +288,8 @@ type WizardDraft = {
   erasmus: string;
   helpWith: string;
   linkedinUrl: string;
+  levels: PeerTopicLevels;
+  experiences: Keyed<PeerExperienceCard>[];
 };
 
 const EMPTY_DRAFT: WizardDraft = {
@@ -229,6 +300,8 @@ const EMPTY_DRAFT: WizardDraft = {
   erasmus: "",
   helpWith: "",
   linkedinUrl: "",
+  levels: {},
+  experiences: [],
 };
 
 /** A new peer mentor starts with no weekly hours, three mentees and 30-minute sessions. */
@@ -258,6 +331,8 @@ function toDraft(profile: PeerMentorProfile): WizardDraft {
     erasmus: profile.erasmus ?? "",
     helpWith: profile.helpWith,
     linkedinUrl: profile.linkedinUrl ?? "",
+    levels: profile.levels,
+    experiences: withKeys(profile.experiences),
   };
 }
 
@@ -272,6 +347,8 @@ export function toPeerMentorProfileInput(
     erasmus: draft.erasmus.trim(),
     helpWith: draft.helpWith.trim(),
     linkedinUrl: draft.linkedinUrl.trim(),
+    levels: levelsFor(draft.levels, draft.topics),
+    experiences: withoutKeys(draft.experiences),
   };
 }
 
@@ -293,7 +370,7 @@ function toSettings(
  * availability settings live on the profile row the publish creates; publishing saves the profile, then the hours.
  */
 export function usePeerMentorWizard() {
-  const t = useTranslations("odtuWorkspaces.student.peerMentoring.wizard");
+  const t = useTranslations("iaIskur.wizard");
   const router = useRouter();
   const { showToast } = useToast();
   const queryClient = useQueryClient();
@@ -313,7 +390,12 @@ export function usePeerMentorWizard() {
   const [error, setError] = useState<string | null>(null);
   const [availabilityDraft, setAvailabilityDraft] =
     useState<UpdateMentorAvailabilitySettingsPayload | null>(null);
-  const draft = edits ?? (existing ? toDraft(existing) : EMPTY_DRAFT);
+  // Built once per loaded profile, so the cards keep their row keys until the first edit takes over.
+  const loaded = useMemo(
+    () => (existing ? toDraft(existing) : EMPTY_DRAFT),
+    [existing],
+  );
+  const draft = edits ?? loaded;
   const categories = catalogue.data ?? [];
 
   const availabilitySettings = useMemo(
@@ -342,6 +424,9 @@ export function usePeerMentorWizard() {
     setError(null);
     setEdits(update(draft));
   };
+  const experienceCards = usePeerExperienceCards(draft.experiences, (next) =>
+    change((current) => ({ ...current, experiences: next })),
+  );
 
   const stepError = (current: PeerMentorWizardStep) => {
     if (
@@ -350,11 +435,25 @@ export function usePeerMentorWizard() {
     ) {
       return t("errors.categories");
     }
+    // Moving on would drop the card being typed.
+    if (
+      current === PeerMentorWizardStep.Experience &&
+      experienceCards.form !== null
+    ) {
+      return t("errors.experienceOpen");
+    }
+    // An older card has no start month, which the backend needs to publish it.
+    if (
+      current === PeerMentorWizardStep.Experience &&
+      draft.experiences.some((card) => !card.startedOn)
+    ) {
+      return t("errors.experienceStart");
+    }
     if (
       current === PeerMentorWizardStep.HelpWith &&
-      draft.helpWith.trim().length < PEER_REQUEST_MESSAGE_MIN
+      draft.helpWith.trim().length < PEER_HELP_WITH_MIN
     ) {
-      return t("errors.helpWith", { min: PEER_REQUEST_MESSAGE_MIN });
+      return t("errors.helpWith", { min: PEER_HELP_WITH_MIN });
     }
     if (
       current === PeerMentorWizardStep.Links &&
@@ -382,12 +481,14 @@ export function usePeerMentorWizard() {
         MENTOR_AVAILABILITY_QUERY_KEY,
         MENTOR_PROFILE_QUERY_KEY,
         PEER_MENTORS_QUERY_KEY,
+        PEER_MENTOR_QUERY_KEY,
+        PEER_MENTOR_COUNTS_QUERY_KEY,
         PEER_MENTORING_REQUESTS_QUERY_KEY,
       ]) {
         void queryClient.invalidateQueries({ queryKey });
       }
       showToast({ message: t("published"), tone: ToastTone.Success });
-      router.push("/student/peer-mentoring?as=MENTOR");
+      router.push(PEER_MENTOR_GIVE_HREF);
     },
     onError: (publishError) =>
       setError(errorMessage(publishError, t("publishFailed"))),
@@ -401,15 +502,43 @@ export function usePeerMentorWizard() {
     isLoading: profile.isLoading || catalogue.isLoading,
     loadError: profile.error ?? catalogue.error,
     categories,
-    subtopicGroups: chosenCategories(categories, draft.topics),
+    categoryOptions: categories.map((item) => ({
+      id: item.id,
+      checked: draft.topics.includes(item.id),
+    })),
+    subtopicGroups: subtopicGroupsWithCounts(
+      chosenCategories(categories, draft.topics),
+      draft.subtopics,
+    ),
+    previewSubtopics: chosenSubtopics(categories, draft.subtopics),
     availability,
     availabilitySettings,
+    weeklyHours: weeklyHours(availabilitySettings.rules),
+    helpWithLength: draft.helpWith.trim().length,
+    helpWithMin: PEER_HELP_WITH_MIN,
+    helpWithMax: PEER_HELP_WITH_MAX,
+    textMax: PEER_PROFILE_TEXT_MAX,
+    erasmusMax: PEER_ERASMUS_MAX,
+    previewHelpWith: draft.helpWith.trim(),
+    previewLinkedin: draft.linkedinUrl.trim(),
+    isFirst: step === PeerMentorWizardStep.Categories,
+    isLast: step === PeerMentorWizardStep.Preview,
     toggleTopic: (id: PeerTopicCategory) =>
       change((current) => toggleInterestTopic(current, id, categories)),
     toggleSubtopic: (id: string) =>
       change((current) => toggleInterestSubtopic(current, id)),
+    levelOf: (category: PeerTopicCategory) => draft.levels[category] ?? null,
+    setLevel: (category: PeerTopicCategory, level: PeerTopicLevel) =>
+      change((current) => ({
+        ...current,
+        levels: { ...current.levels, [category]: level },
+      })),
+    experienceCards,
     setField: (
-      field: Exclude<keyof WizardDraft, "topics" | "subtopics">,
+      field: Exclude<
+        keyof WizardDraft,
+        "topics" | "subtopics" | "levels" | "experiences"
+      >,
       value: string,
     ) => change((current) => ({ ...current, [field]: value })),
     next: () => {

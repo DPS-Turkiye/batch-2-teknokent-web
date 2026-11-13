@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Bot,
   CalendarDays,
   ClipboardList,
   FolderKanban,
@@ -36,9 +37,11 @@ import {
   useSession,
 } from "@/components/providers/session-provider";
 import { StartupGate } from "@/components/startup/startup-gate";
+import { useEdition } from "@/hooks/use-edition";
 import { useIndividualProgram } from "@/hooks/use-individual-program";
 import { useProfilePhoto } from "@/hooks/use-profile-photo";
 import { UserRole } from "@/interfaces/session";
+import { openNavItems } from "@/lib/edition-nav";
 import { roleWorkspace } from "@/lib/role-workspace";
 import { STUDENT_PROJECT_HREF } from "@/lib/startup-tabs";
 import { initials } from "@/lib/utils";
@@ -152,6 +155,13 @@ function buildNavigation(
         href: "/mentor-dashboard/messages",
         icon: MessageCircle,
       },
+      // Mentors get the meeting assistant in the top bar; everyone else opens it from a meeting.
+      {
+        id: AppArea.Assistant,
+        label: "assistant",
+        href: "/assistant",
+        icon: Bot,
+      },
     ];
   const workspaceNav = MENTEE_WORKSPACE_NAV[workspace];
   const menteeNavigation: NavigationItem[] = [
@@ -201,6 +211,7 @@ export function AppShell({
     null,
   );
   const session = useAppSession();
+  const edition = useEdition();
   const { logout } = useSession();
   const photo = useProfilePhoto();
   const student = useIndividualProgram();
@@ -210,14 +221,17 @@ export function AppShell({
   // A page opts out by passing menteeHome={false}; omitting it gives every
   // mentee the revised frame, so a new page cannot forget to ask for it.
   const menteeFrame = menteeHome ?? session?.role === UserRole.Mentee;
-  const navigation = buildNavigation(
-    isMentor ? UserRole.Mentor : session?.role,
-    menteeFrame,
-    student.isLoading
-      ? MenteeWorkspace.Unknown
-      : student.individual
-        ? MenteeWorkspace.StudentProject
-        : MenteeWorkspace.Startup,
+  const navigation = openNavItems(
+    edition,
+    buildNavigation(
+      isMentor ? UserRole.Mentor : session?.role,
+      menteeFrame,
+      student.isLoading
+        ? MenteeWorkspace.Unknown
+        : student.individual
+          ? MenteeWorkspace.StudentProject
+          : MenteeWorkspace.Startup,
+    ),
   );
   const usesRevisedNav = isMentor || menteeFrame;
   const displayName = session?.fullName ?? t("fallbackName");
@@ -247,7 +261,7 @@ export function AppShell({
             <MentonWordmark href={homeHref} />
           </div>
           <nav
-            className={`mx-auto hidden items-center rounded-full bg-[#fcfcfd] lg:flex ${usesRevisedNav ? "gap-4 p-2 shadow-[0_7px_14.5px_rgba(100,100,111,0.10)]" : "border border-[#e4e7ea] p-1"}`}
+            className={`mx-auto hidden items-center rounded-full bg-[#fcfcfd] lg:flex ${usesRevisedNav ? `${isMentor ? "gap-1 xl:gap-4" : "gap-4"} p-2 shadow-[0_7px_14.5px_rgba(100,100,111,0.10)]` : "border border-[#e4e7ea] p-1"}`}
             aria-label={t("mainMenu")}
           >
             {navigation.map((item) => {
@@ -258,9 +272,15 @@ export function AppShell({
                   key={`${item.label}-${item.href}`}
                   href={item.href}
                   aria-current={selected ? "page" : undefined}
-                  className={`flex items-center justify-center gap-2 rounded-full text-[13px] font-medium transition ${usesRevisedNav ? (isMentor ? "h-[42px] w-[160px] px-3" : "h-[42px] px-3.5") : "h-10 gap-1.5 px-3 xl:gap-2 xl:px-4"} ${selected ? (isMentor ? "bg-[#26a4ff] text-white" : menteeFrame ? "bg-[#e5701d] text-white" : "bg-[#fdebdd] text-[#c85816]") : "text-[#676e78] hover:bg-white hover:text-[#22262b]"}`}
+                  data-tour={`nav-${item.label}`}
+                  className={`flex items-center justify-center gap-2 rounded-full text-[13px] font-medium transition ${usesRevisedNav ? (isMentor ? "h-[42px] px-3 xl:w-[160px]" : "h-[42px] px-3.5") : "h-10 gap-1.5 px-3 xl:gap-2 xl:px-4"} ${selected ? (isMentor ? "bg-[#26a4ff] text-white" : menteeFrame ? "bg-[#e5701d] text-white" : "bg-[#fdebdd] text-[#c85816]") : "text-[#676e78] hover:bg-white hover:text-[#22262b]"}`}
                 >
-                  <Icon className="size-4" strokeWidth={1.8} aria-hidden />
+                  {/* Five mentor items fit beside the logo and account menu only from xl with their icons. */}
+                  <Icon
+                    className={`size-4 ${isMentor ? "hidden xl:block" : ""}`}
+                    strokeWidth={1.8}
+                    aria-hidden
+                  />
                   {t(`nav.${item.label}`)}
                 </Link>
               );

@@ -1,6 +1,7 @@
+import type { NewCoordinatorInput } from "@/interfaces/admin-coordinator";
 import type { CoordinatorMentorship } from "@/interfaces/coordinator-mentorship";
 import type { ProgramStatus, ProgramType } from "@/interfaces/program";
-import type { ProgramPlanWeek } from "@/interfaces/program-week";
+import type { DocumentKind } from "@/interfaces/startup-document";
 
 export enum ProgramLifecycle {
   Draft = "DRAFT",
@@ -19,12 +20,13 @@ export type ProgramPhase = {
   expectedOutput?: string | null;
 };
 
-/** The syllabus file a program's phases were taken from. */
+/** The file a program's plan was read from: a weekly program, or an older syllabus (`kind` tells which). */
 export type ProgramSyllabus = {
   id: string;
   filename: string;
   sizeBytes: number;
   uploadedAt: string;
+  kind: DocumentKind;
 };
 
 /** A program as its coordinator sees it (`GET /api/coordinator/programs`). */
@@ -159,27 +161,12 @@ export type UpdateProgramDetailsInput = {
 };
 
 export type ProgramPhaseInput = {
+  /** A saved phase sent back with its id keeps it, so Süreç assignments stay linked; a new one has none. */
+  id?: string | null;
   name: string;
   startDate: string | null;
   endDate: string | null;
   expectedOutput?: string | null;
-};
-
-/** A phase read from a syllabus; nothing is saved until the coordinator confirms it. */
-export type ProposedPhase = ProgramPhaseInput;
-
-/** Phases and a week-by-week plan read from a syllabus; nothing is saved until the coordinator confirms them. */
-export type SyllabusPhases = {
-  phases: ProposedPhase[];
-  /** Missing from a backend that predates the week plan. */
-  weeks?: ProgramPlanWeek[];
-  pageCount: number;
-};
-
-export type ExtractSyllabusPhasesInput = {
-  documentId: string;
-  startDate: string | null;
-  endDate: string | null;
 };
 
 /** WAITING: the code was handed out but the team lead has not signed up with it yet. */
@@ -207,6 +194,10 @@ export type ProgramTeam = {
 
 export type TeamInviteInput = { teamName: string; leadEmail: string };
 
+/** Who to add to an existing program: an approved coordinator, or an email to invite. */
+export type ProgramCoordinatorTarget =
+  { userId: string } | { invite: NewCoordinatorInput };
+
 /** The admin's "Yeni Program Oluştur", sent in one request; the program starts as a draft. */
 export type CreateProgramInput = {
   type: ProgramType;
@@ -215,6 +206,8 @@ export type CreateProgramInput = {
   startDate: string | null;
   endDate: string | null;
   coordinatorIds: string[];
+  /** Emails with no account yet: the backend opens a coordinator account and mails a password link. */
+  newCoordinators: NewCoordinatorInput[];
   defaultMentorCapacity?: number | undefined;
   meetingFrequencyDays?: number | undefined;
   communicationGapDays?: number | undefined;

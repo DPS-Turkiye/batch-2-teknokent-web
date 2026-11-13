@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { ProgramEventKind } from "@/interfaces/coordinator-program";
 import { ProgramType } from "@/interfaces/program";
+import { normalizeEmail } from "@/lib/coordinator-picker";
 import { stringOrNullSchema } from "@/lib/server/request-body";
 
 /** A program rule left out or sent as null keeps the backend's default or the saved value. */
@@ -23,6 +24,7 @@ export const teamInviteSchema = z.object({
 });
 
 export const programPhaseSchema = z.object({
+  id: stringOrNullSchema,
   name: z.string(),
   startDate: stringOrNullSchema,
   endDate: stringOrNullSchema,
@@ -36,6 +38,21 @@ export const createProgramSchema = z.object({
   startDate: stringOrNullSchema,
   endDate: stringOrNullSchema,
   coordinatorIds: z.array(z.string()),
+  newCoordinators: z
+    .array(
+      z.object({
+        fullName: z.string().trim().min(1).max(255),
+        email: z.email().max(255),
+      }),
+    )
+    .max(10)
+    // The picker never sends an e-mail twice; a body that does is refused rather than quietly merged.
+    .refine(
+      (invites) =>
+        new Set(invites.map((invite) => normalizeEmail(invite.email))).size ===
+        invites.length,
+    )
+    .default([]),
   defaultMentorCapacity: optionalNumberSchema,
   meetingFrequencyDays: optionalNumberSchema,
   communicationGapDays: optionalNumberSchema,

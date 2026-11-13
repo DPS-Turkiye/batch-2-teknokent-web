@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import {
+  assistantLinkBoxValue,
   assistantStatusFor,
   isAssistantCalendarMeeting,
+  isForeignMeetingLink,
   matchCalendarMeetingId,
   toAssistantMeeting,
   withAssistantOverlay,
@@ -61,6 +63,33 @@ describe("assistant calendar meetings", () => {
       nativeMeetingId: "aaa-bbbb-ccc",
       status: AssistantStatus.Completed,
     });
+  });
+
+  it("shows what the user typed in the link box, even an empty box, over the prefill", () => {
+    const prefill = "https://meet.google.com/aaa-bbbb-ccc";
+    expect(assistantLinkBoxValue(null, prefill)).toBe(prefill);
+    expect(assistantLinkBoxValue("", prefill)).toBe("");
+    expect(
+      assistantLinkBoxValue("https://meet.google.com/zzz-zzzz-zzz", prefill),
+    ).toBe("https://meet.google.com/zzz-zzzz-zzz");
+  });
+
+  it("flags a complete Meet link that is none of the calendar meetings", () => {
+    expect(
+      isForeignMeetingLink([meeting()], "https://meet.google.com/zzz-zzzz-zzz"),
+    ).toBe(true);
+    expect(isForeignMeetingLink([meeting()], "zzz-zzzz-zzz")).toBe(true);
+  });
+
+  it("does not flag the user's own meeting, an untouched box or a half-typed link", () => {
+    expect(
+      isForeignMeetingLink([meeting()], "https://meet.google.com/aaa-bbbb-ccc"),
+    ).toBe(false);
+    expect(isForeignMeetingLink([meeting()], null)).toBe(false);
+    expect(isForeignMeetingLink([meeting()], "")).toBe(false);
+    expect(
+      isForeignMeetingLink([meeting()], "https://meet.google.com/zzz-zz"),
+    ).toBe(false);
   });
 
   it("matches a pasted Meet URL to the calendar row", () => {

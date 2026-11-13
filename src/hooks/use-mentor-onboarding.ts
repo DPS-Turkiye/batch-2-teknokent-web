@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { useAiFeatureRefusal, useAiFeatures } from "@/hooks/use-ai-features";
 import { useOnboardingDraftSync } from "@/hooks/use-onboarding-draft-sync";
 import { clientText } from "@/i18n/client-texts";
 import {
@@ -118,6 +119,8 @@ export function useMentorOnboarding(
   account: { fullName: string } = { fullName: "" },
 ) {
   const t = useTranslations("mentorOnboarding");
+  const canReadCv = useAiFeatures().profileParsing;
+  const refused = useAiFeatureRefusal();
   const [step, setStep] = useState<MentorOnboardingStep>(
     MentorOnboardingStep.Profile,
   );
@@ -131,6 +134,8 @@ export function useMentorOnboarding(
   const [isSaving, setIsSaving] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [parseNote, setParseNote] = useState("");
+  // The CV reading consent: unticked until the person ticks it, and never saved with the draft.
+  const [cvConsent, setCvConsent] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [draftSavedAt, setDraftSavedAt] = useState<number | null>(null);
   const [editingExperience, setEditingExperience] = useState<number | null>(
@@ -260,9 +265,17 @@ export function useMentorOnboarding(
         );
         setCvUploaded(true);
         setDraft((current) => ({ ...current, cvStoredName: file.name }));
+        if (!canReadCv || !cvConsent) {
+          setPhase(IntroPhase.Review);
+          return;
+        }
         try {
           const cv = toMentorCvResult(
-            await parseStoredCv(stored.id, ProfileAnalysisType.Mentor),
+            await parseStoredCv(
+              stored.id,
+              cvConsent,
+              ProfileAnalysisType.Mentor,
+            ),
           );
           setDraft((current) => {
             const names =
@@ -277,7 +290,8 @@ export function useMentorOnboarding(
               student: fillStudies(current.student, cv.studies),
             };
           });
-        } catch {
+        } catch (failure) {
+          refused(failure);
           setParseNote(t("cvUnreadable"));
         }
         setPhase(IntroPhase.Review);
@@ -286,7 +300,7 @@ export function useMentorOnboarding(
         setPhase(IntroPhase.Upload);
       }
     },
-    [t],
+    [t, canReadCv, cvConsent, refused],
   );
 
   const enterManually = useCallback(() => setPhase(IntroPhase.Review), []);
@@ -602,6 +616,10 @@ export function useMentorOnboarding(
     isSaving,
     uploadError,
     parseNote,
+    canReadCv,
+    cvConsent,
+    setCvConsent,
+    readsCv: canReadCv && cvConsent,
     saveError,
     draftSavedAt,
     droppedFiles,

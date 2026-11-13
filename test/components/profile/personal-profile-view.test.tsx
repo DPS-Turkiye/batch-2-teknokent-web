@@ -30,6 +30,7 @@ const cvActions = {
   choose: vi.fn<Cv["choose"]>(),
   fillFromStored: vi.fn<Cv["fillFromStored"]>(),
   setExpertise: vi.fn<Cv["setExpertise"]>(),
+  setConsent: vi.fn<Cv["setConsent"]>(),
 };
 
 function mockCv(overrides: Partial<Cv> = {}) {
@@ -38,7 +39,10 @@ function mockCv(overrides: Partial<Cv> = {}) {
     selected: null,
     storedName: "gulse-cv.pdf",
     storedIsPdf: true,
+    canRead: true,
+    consent: true,
     canFill: true,
+    offerFill: true,
     isUploading: false,
     isParsing: false,
     error: null,

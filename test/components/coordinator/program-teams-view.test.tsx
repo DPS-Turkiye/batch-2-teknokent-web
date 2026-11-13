@@ -7,7 +7,7 @@ import {
   TeamJoinStatus,
   type ProgramTeam,
 } from "@/interfaces/coordinator-program";
-import { StartupStage } from "@/interfaces/startup-process";
+import { StartupStageState } from "@/interfaces/startup-process";
 import {
   addProgramTeams,
   getCoordinatorProgram,
@@ -17,9 +17,9 @@ import {
   sendProgramTeamCode,
   updateProgramTeam,
 } from "@/lib/client/coordinator-programs";
-import { getTeamProcess, updateTeamStage } from "@/lib/client/startup-process";
+import { getTeamProcess } from "@/lib/client/startup-process";
 import { coordinatorProgramDetail } from "@test/fixtures/coordinator-programs";
-import { startupProcess } from "@test/fixtures/startup-process";
+import { processPhase, startupProcess } from "@test/fixtures/startup-process";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 // Rendered outside the App Router, the real usePathname returns null.
@@ -40,11 +40,19 @@ vi.mock("@/lib/client/coordinator-programs", () => ({
 }));
 vi.mock("@/lib/client/startup-process", () => ({
   getTeamProcess: vi.fn(),
-  updateTeamStage: vi.fn(),
 }));
 
-const teamProcess = (currentStage: StartupStage | null) =>
-  startupProcess({ currentStage });
+const teamProcess = (current: boolean) =>
+  startupProcess({
+    currentPhaseId: current ? "mvp" : null,
+    phases: [
+      processPhase("mvp", "MVP", {
+        startDate: "2026-08-03",
+        endDate: "2026-08-30",
+        state: current ? StartupStageState.Current : StartupStageState.Upcoming,
+      }),
+    ],
+  });
 
 const joined: ProgramTeam = {
   inviteId: "invite-1",
@@ -193,6 +201,9 @@ describe("ProgramTeamsView", () => {
 
     const drawer = await screen.findByRole("dialog", { name: "Takım detayı" });
     expect(await within(drawer).findByText("Cem Tunç")).toBeInTheDocument();
+    expect(
+      within(drawer).getByRole("link", { name: "Profili gör: Cem Tunç" }),
+    ).toHaveAttribute("href", "/coordinator/people/member-1");
     expect(getProgramTeamDetail).toHaveBeenCalledWith("program-1", "org-1");
     expect(
       within(drawer).getByRole("link", { name: "Takıma mesaj gönder" }),
@@ -205,7 +216,7 @@ describe("ProgramTeamsView", () => {
     ).toBeInTheDocument();
   });
 
-  it("lets the coordinator move a joined team to another stage", async () => {
+  it("shows a joined team's phase read-only, as the program's dates set it", async () => {
     const user = userEvent.setup();
     vi.mocked(getProgramTeamDetail).mockResolvedValue({
       organizationId: "org-1",
@@ -216,37 +227,38 @@ describe("ProgramTeamsView", () => {
       members: [],
       mentorships: [],
     });
-    vi.mocked(getTeamProcess).mockResolvedValue(teamProcess(StartupStage.Mvp));
-    vi.mocked(updateTeamStage).mockResolvedValue(
-      teamProcess(StartupStage.Market),
-    );
+    vi.mocked(getTeamProcess).mockResolvedValue(teamProcess(true));
     renderWithQueryClient(<ProgramTeamsView programId="program-1" />);
 
     await user.click(await screen.findByRole("button", { name: "Detay" }));
     const drawer = await screen.findByRole("dialog", { name: "Takım detayı" });
     expect(await within(drawer).findByText("MVP")).toBeInTheDocument();
+    expect(within(drawer).getByText("3 Ağu – 30 Ağu")).toBeInTheDocument();
     expect(getTeamProcess).toHaveBeenCalledWith("program-1", "org-1");
-
-    await user.click(
-      within(drawer).getByRole("button", { name: "Aşamayı güncelle" }),
-    );
-    const save = within(drawer).getByRole("button", { name: "Kaydet" });
-    expect(save).toBeDisabled();
-    await user.selectOptions(
-      within(drawer).getByRole("combobox", { name: "Yeni aşama" }),
-      "Pazar",
-    );
-    await user.click(save);
-
-    expect(updateTeamStage).toHaveBeenCalledWith(
-      "program-1",
-      "org-1",
-      StartupStage.Market,
-    );
-    expect(await within(drawer).findByText("Pazar")).toBeInTheDocument();
     expect(
-      within(drawer).queryByRole("combobox", { name: "Yeni aşama" }),
+      within(drawer).queryByRole("button", { name: "Aşamayı güncelle" }),
     ).not.toBeInTheDocument();
+  });
+
+  it("says when no phase is running today", async () => {
+    const user = userEvent.setup();
+    vi.mocked(getProgramTeamDetail).mockResolvedValue({
+      organizationId: "org-1",
+      name: "Kavşak",
+      sector: null,
+      lead: null,
+      code: null,
+      members: [],
+      mentorships: [],
+    });
+    vi.mocked(getTeamProcess).mockResolvedValue(teamProcess(false));
+    renderWithQueryClient(<ProgramTeamsView programId="program-1" />);
+
+    await user.click(await screen.findByRole("button", { name: "Detay" }));
+    const drawer = await screen.findByRole("dialog", { name: "Takım detayı" });
+    expect(
+      await within(drawer).findByText("Bugün süren bir faz yok"),
+    ).toBeInTheDocument();
   });
 
   it("copies a team code", async () => {

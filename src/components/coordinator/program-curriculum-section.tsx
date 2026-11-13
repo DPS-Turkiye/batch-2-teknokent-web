@@ -3,16 +3,14 @@
 import {
   CalendarDays,
   Check,
-  FileText,
   Info,
   Lock,
   Pencil,
   PlusCircle,
-  RefreshCw,
   X,
 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { useRef, useState, type HTMLAttributes } from "react";
+import { useState, type HTMLAttributes } from "react";
 
 import { AdminOverlay } from "@/components/admin/admin-ui";
 import {
@@ -21,8 +19,11 @@ import {
   PhaseTimeline,
 } from "@/components/coordinator/program-phase-list";
 import { ProgramWeekPlanEditor } from "@/components/coordinator/program-week-plan-editor";
+import { WeeklyProgramCard } from "@/components/coordinator/weekly-program-card";
+import { WeeklyProgramReview } from "@/components/coordinator/weekly-program-review";
 import { useProgramCurriculum } from "@/hooks/use-program-curriculum";
 import { useProgramWeekPlan } from "@/hooks/use-program-week-plan";
+import { useWeeklyProgramImport } from "@/hooks/use-weekly-program-import";
 import type { CoordinatorProgramDetail } from "@/interfaces/coordinator-program";
 import {
   SettingsSection,
@@ -34,7 +35,7 @@ import {
   phaseDateRange,
   PhaseStatus,
 } from "@/lib/program-phases";
-import { formatDayMonth, formatLongDate } from "@/lib/utils";
+import { formatDayMonth } from "@/lib/utils";
 
 type Curriculum = ReturnType<typeof useProgramCurriculum>;
 
@@ -43,7 +44,7 @@ const OUTLINE_BUTTON =
 const DARK_BUTTON =
   "rounded-full bg-[#22262b] px-[14px] py-2 text-[12.5px] font-medium text-white disabled:bg-[#aeb4bc]";
 
-/** Program Ayarları › Müfredat & fazlar (Figma 1346:7526); each phase opens its own drawer (1346:8343). */
+/** Program Ayarları › Haftalık program & fazlar; each phase opens its own drawer. */
 export function ProgramCurriculumSection({
   programId,
   detail,
@@ -55,10 +56,13 @@ export function ProgramCurriculumSection({
 }) {
   const t = useTranslations("programCurriculum");
   const weekPlan = useProgramWeekPlan(programId, detail.program);
-  const curriculum = useProgramCurriculum(programId, detail, weekPlan.propose);
+  const curriculum = useProgramCurriculum(programId, detail);
+  const weekly = useWeeklyProgramImport(programId, detail);
   const program = detail.program;
   const [dragging, setDragging] = useState<number | null>(null);
-  const locked = archived || curriculum.saving;
+  // The import and the two editors each replace a whole list, so one waits while another is open.
+  const importing = weekly.reviewing || weekly.saving;
+  const locked = archived || curriculum.saving || importing;
   const week =
     program.currentWeek && program.totalWeeks
       ? t("week", { current: program.currentWeek, total: program.totalWeeks })
@@ -91,39 +95,17 @@ export function ProgramCurriculumSection({
         </button>
       </div>
 
-      <SyllabusCard curriculum={curriculum} archived={archived} />
+      <WeeklyProgramCard
+        weekly={weekly}
+        blocked={
+          archived ||
+          weekPlan.dirty ||
+          curriculum.editing !== null ||
+          curriculum.saving
+        }
+      />
 
-      {curriculum.reviewing ? (
-        <div
-          role="status"
-          className="flex flex-wrap items-center gap-3 rounded-[18px] border border-[#22262b] px-4 py-3"
-        >
-          <p className="min-w-0 flex-1 text-[12.5px] text-[#22262b]">
-            {t("reviewNote", { count: curriculum.phases.length })}
-          </p>
-          <button
-            type="button"
-            onClick={curriculum.discardReview}
-            disabled={curriculum.saving}
-            className={OUTLINE_BUTTON}
-          >
-            {t("cancel")}
-          </button>
-          <button
-            type="button"
-            onClick={curriculum.confirmReview}
-            disabled={curriculum.saving}
-            className={DARK_BUTTON}
-          >
-            {t("saveReview")}
-          </button>
-          {curriculum.reviewError ? (
-            <p role="alert" className="w-full text-[12.5px] text-[#d9464b]">
-              {curriculum.reviewError}
-            </p>
-          ) : null}
-        </div>
-      ) : null}
+      {weekly.reviewing ? <WeeklyProgramReview weekly={weekly} /> : null}
 
       <PhaseTimeline
         phases={curriculum.phases}
@@ -134,7 +116,7 @@ export function ProgramCurriculumSection({
             {week ? t("todayWeek", { week }) : t("today")}
           </span>
         }
-        statusOf={curriculum.reviewing ? undefined : curriculum.statusOf}
+        statusOf={curriculum.statusOf}
       />
 
       {curriculum.phases.length === 0 ? (
@@ -175,7 +157,7 @@ export function ProgramCurriculumSection({
         {t("lockNote", { count: program.teamCount })}
       </p>
 
-      <ProgramWeekPlanEditor plan={weekPlan} locked={archived} />
+      <ProgramWeekPlanEditor plan={weekPlan} locked={archived || importing} />
 
       {curriculum.editing ? (
         <PhaseDrawer
@@ -185,73 +167,6 @@ export function ProgramCurriculumSection({
         />
       ) : null}
     </section>
-  );
-}
-
-function SyllabusCard({
-  curriculum,
-  archived,
-}: {
-  curriculum: Curriculum;
-  archived: boolean;
-}) {
-  const t = useTranslations("programCurriculum");
-  const locale = useLocale();
-  const input = useRef<HTMLInputElement>(null);
-  const syllabus = curriculum.syllabus;
-  const busy = archived || curriculum.readingFile || curriculum.saving;
-  return (
-    <div className="flex flex-wrap items-center gap-3 rounded-[20px] bg-[#f5f6f8] px-[14px] py-3">
-      <span className="grid size-[38px] shrink-0 place-items-center rounded-xl bg-white">
-        <FileText aria-hidden className="size-[18px] text-[#676e78]" />
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="block truncate text-[13.5px] font-medium text-[#22262b]">
-          {syllabus ? syllabus.filename : t("noFile")}
-        </span>
-        <span className="block text-[12px] text-[#858c96]">
-          {curriculum.readingFile
-            ? t("reading")
-            : syllabus
-              ? t("uploaded", {
-                  date: formatLongDate(syllabus.uploadedAt, locale),
-                })
-              : t("noFileHint")}
-        </span>
-      </span>
-      <input
-        ref={input}
-        type="file"
-        accept="application/pdf,.pdf"
-        className="sr-only"
-        disabled={busy}
-        aria-label={t("chooseFile")}
-        onChange={(event) => {
-          const file = event.target.files?.[0];
-          if (file) curriculum.chooseFile(file);
-          event.target.value = "";
-        }}
-      />
-      <button
-        type="button"
-        disabled={busy}
-        onClick={() => input.current?.click()}
-        className={OUTLINE_BUTTON}
-      >
-        {syllabus ? t("replaceFile") : t("uploadFile")}
-      </button>
-      {syllabus ? (
-        <button
-          type="button"
-          disabled={busy}
-          onClick={curriculum.reread}
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-[14px] py-2 text-[12.5px] font-medium text-[#22262b] disabled:text-[#aeb4bc]"
-        >
-          <RefreshCw aria-hidden className="size-[15px]" />
-          {t("reread")}
-        </button>
-      ) : null}
-    </div>
   );
 }
 

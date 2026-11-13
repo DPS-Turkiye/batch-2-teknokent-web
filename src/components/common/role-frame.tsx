@@ -12,16 +12,29 @@ import { NotificationMenu } from "@/components/common/notification-menu";
 import { FeedbackButton } from "@/components/dashboard/feedback-button";
 import { AccountSettingsDialog } from "@/components/hoc/account-dialogs";
 import { WorkspaceSwitcher } from "@/components/hoc/workspace-switcher";
+import { ProductTour } from "@/components/product-tour/product-tour";
 import {
   useAppSession,
   useSession,
 } from "@/components/providers/session-provider";
+import { useEdition } from "@/hooks/use-edition";
 import { useRoleGate } from "@/hooks/use-role-gate";
 import { UserRole } from "@/interfaces/session";
 import { Workspace } from "@/interfaces/workspace";
+import { openNavItems } from "@/lib/edition-nav";
 import { initials } from "@/lib/utils";
 import type messages from "@/messages/tr.json";
 import { IaAccent } from "@/types/ia-theme";
+
+/** ODTÜ red for the ODTÜ workspaces (Figma "Nav / Öğrenci" and "Nav / Akademisyen"); the neutral theme otherwise. */
+const WORKSPACE_ACCENT: Record<Workspace, IaAccent | null> = {
+  [Workspace.Admin]: null,
+  [Workspace.Coordinator]: null,
+  [Workspace.OdtuAcademician]: IaAccent.Odtu,
+  [Workspace.OdtuStudent]: IaAccent.Odtu,
+  [Workspace.GirisimMentor]: null,
+  [Workspace.GirisimMentee]: null,
+};
 
 export type RoleMenuLabel = Extract<
   keyof (typeof messages)["roleFrame"],
@@ -75,13 +88,16 @@ export function RoleFrame({
 
   return (
     <RoleShell
-      accent={workspace === Workspace.OdtuStudent ? IaAccent.Odtu : undefined}
+      accent={
+        workspace ? (WORKSPACE_ACCENT[workspace] ?? undefined) : undefined
+      }
       homeHref={homeHref}
       menuLabel={menuLabel}
       nav={nav}
       roleLabel={roleLabel}
     >
       {children}
+      {workspace ? <ProductTour workspace={workspace} /> : null}
     </RoleShell>
   );
 }
@@ -94,7 +110,7 @@ function RoleShell({
   roleLabel: workspaceLabel,
   children,
 }: {
-  /** The design-system theme: ODTÜ red for students, the neutral ink theme otherwise. */
+  /** The design-system theme: ODTÜ red for the ODTÜ workspaces, the neutral ink theme otherwise. */
   accent?: IaAccent | undefined;
   homeHref: string;
   menuLabel: RoleMenuLabel;
@@ -104,6 +120,7 @@ function RoleShell({
 }) {
   const pathname = usePathname();
   const session = useAppSession();
+  const shownNav = openNavItems(useEdition(), nav);
   const { logout } = useSession();
   const t = useTranslations("appShell");
   const tFrame = useTranslations("roleFrame");
@@ -133,7 +150,7 @@ function RoleShell({
             aria-label={tFrame(menuLabel)}
             className="hidden items-center gap-0.5 rounded-full border border-border-subtle bg-background-surface p-1.5 shadow-hover lg:flex"
           >
-            {nav.map((item) => (
+            {shownNav.map((item) => (
               <NavLink
                 key={item.href}
                 item={item}
@@ -223,7 +240,7 @@ function RoleShell({
             aria-label={tFrame(menuLabel)}
             className="space-y-1 border-t border-[#f0f2f4] px-4 py-3 lg:hidden"
           >
-            {nav.map((item) =>
+            {shownNav.map((item) =>
               item.disabled ? (
                 <span
                   key={item.href}
@@ -275,6 +292,7 @@ function NavLink({ item, active }: { item: RoleNavItem; active: boolean }) {
     return (
       <span
         aria-disabled="true"
+        data-tour={`nav-${item.label}`}
         title={t("soon")}
         className="flex cursor-default items-center gap-2 whitespace-nowrap rounded-full px-3 py-[11px] text-[14px] leading-[1.3] text-[#cfd4da] xl:px-4"
       >

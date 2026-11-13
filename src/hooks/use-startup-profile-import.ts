@@ -8,6 +8,7 @@ import {
 import { useTranslations } from "next-intl";
 import { useRef, useState } from "react";
 
+import { useAiFeatureRefusal, useAiFeatures } from "@/hooks/use-ai-features";
 import {
   PROFILE_ANALYSIS_MUTATION_KEY,
   useProfileAnalysisRecord,
@@ -25,6 +26,9 @@ export function useStartupProfileImport() {
   const labels = useTranslations("profileTools");
   const client = useQueryClient();
   const record = useProfileAnalysisRecord();
+  // Where the deck cannot be read the manual editor is the only way in, so it stays open.
+  const canRead = useAiFeatures().profileParsing;
+  const refused = useAiFeatureRefusal();
   const [inputVersion, setInputVersion] = useState(0);
   const [file, setFile] = useState<File | null>(null);
   const [consent, setConsent] = useState(false);
@@ -81,13 +85,19 @@ export function useStartupProfileImport() {
           file,
           profileType: ProfileAnalysisType.Startup,
           ocrMode,
+          consentAccepted: consent,
         }),
       );
       setFile(null);
       setInputVersion((value) => value + 1);
       setConsent(false);
-    } catch {
-      setError(t("processFailed"));
+    } catch (failure) {
+      if (refused(failure)) {
+        setShowManual(true);
+        setError(labels("readOff"));
+      } else {
+        setError(t("processFailed"));
+      }
     } finally {
       busy.current = false;
     }
@@ -108,7 +118,8 @@ export function useStartupProfileImport() {
     setConsent,
     ocrMode,
     setOcrMode,
-    showManual,
+    canRead,
+    showManual: showManual || !canRead,
     setShowManual,
     isPending: upload.isPending || mutationsPending,
     error,

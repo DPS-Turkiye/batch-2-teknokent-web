@@ -1,23 +1,25 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import AssistantPage from "@/app/assistant/page";
+import { useAiFeatures } from "@/hooks/use-ai-features";
 import { useMeetings } from "@/hooks/use-meetings";
 import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import {
   getAssistantShareApiUrl,
   getBotApiUrl,
+  getMeetingBotApiUrl,
   getMeetingReportApiUrl,
-  getStopBotApiUrl,
   getTranscriptApiUrl,
   TRANSCRIPT_POLL_MS,
 } from "@/lib/const";
 import { currentIdToken } from "@/lib/firebase/auth";
 import { httpClient } from "@/lib/http-client";
+import { aiFeatures } from "@test/fixtures/ai-features";
 import { createAxiosResponse } from "@test/fixtures/health";
 import { successQuery } from "@test/mocks/query-results";
-import { InLocale } from "@test/test-utils";
+import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/components/hoc/app-shell", () => ({
   AppShell: ({ children }: { children: React.ReactNode }) => (
@@ -38,6 +40,13 @@ vi.mock("next/navigation", async (importOriginal) => ({
 vi.mock("@/hooks/use-meetings", () => ({
   useMeetings: vi.fn(),
 }));
+
+vi.mock("@/hooks/use-ai-features", () => ({
+  useAiFeatures: vi.fn(),
+  useAiFeatureRefusal: () => refused,
+}));
+
+const refused = vi.fn();
 
 vi.mock("@/lib/firebase/auth", () => ({ currentIdToken: vi.fn() }));
 
@@ -82,10 +91,11 @@ describe("AssistantPage integration", () => {
     vi.mocked(httpClient.patch).mockResolvedValue(
       createAxiosResponse({ id: "meeting-1" }, 200),
     );
+    vi.mocked(useAiFeatures).mockReturnValue(aiFeatures());
   });
 
   it("reads in English", () => {
-    render(
+    renderWithQueryClient(
       <InLocale locale="en">
         <AssistantPage />
       </InLocale>,
@@ -119,7 +129,7 @@ describe("AssistantPage integration", () => {
       throw new Error(`Unexpected POST URL: ${url}`);
     });
 
-    render(<AssistantPage />);
+    renderWithQueryClient(<AssistantPage />);
 
     await user.type(
       screen.getByPlaceholderText("Toplantı linki yapıştır…"),
@@ -145,6 +155,61 @@ describe("AssistantPage integration", () => {
         signedIn,
       );
     });
+  });
+
+  it("tells the host to admit the bot while it waits in the Meet lobby", async () => {
+    const user = userEvent.setup();
+    vi.mocked(httpClient.post).mockResolvedValue(
+      createAxiosResponse(
+        {
+          id: "51",
+          platform: "google_meet",
+          nativeMeetingId: "abc-defg-hij",
+          status: "joining",
+          title: "Lobi testi",
+        },
+        201,
+      ),
+    );
+    vi.mocked(httpClient.get).mockImplementation(async (url: string) =>
+      url === getMeetingBotApiUrl("google_meet", "abc-defg-hij")
+        ? createAxiosResponse(
+            {
+              platform: "google_meet",
+              nativeMeetingId: "abc-defg-hij",
+              state: "WAITING_FOR_ADMISSION",
+              endReason: null,
+              requestedAt: new Date().toISOString(),
+            },
+            200,
+          )
+        : createAxiosResponse({ segments: [] }, 200),
+    );
+
+    renderWithQueryClient(<AssistantPage />);
+
+    await user.type(
+      screen.getByPlaceholderText("Toplantı linki yapıştır…"),
+      "https://meet.google.com/abc-defg-hij",
+    );
+    await user.click(screen.getByRole("button", { name: "Bot ekle" }));
+
+    expect(
+      await screen.findByRole("status", { name: "Kayıt botunun durumu" }),
+    ).toHaveTextContent("Kayıt botu bekleme odasında.");
+  });
+
+  it("keeps a pasted link and warns when it is not a meeting in the calendar", async () => {
+    const user = userEvent.setup();
+    renderWithQueryClient(<AssistantPage />);
+
+    const box = screen.getByPlaceholderText("Toplantı linki yapıştır…");
+    await user.type(box, "https://meet.google.com/zzz-zzzz-zzz");
+
+    expect(box).toHaveValue("https://meet.google.com/zzz-zzzz-zzz");
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Bu bağlantı takviminde bir toplantıya ait değil; asistan yalnızca Menton takvimindeki toplantılara katılabilir.",
+    );
   });
 
   it("stops an added meeting then generates a report from the transcript", async () => {
@@ -198,7 +263,7 @@ describe("AssistantPage integration", () => {
       createAxiosResponse({}, 204),
     );
 
-    render(<AssistantPage />);
+    renderWithQueryClient(<AssistantPage />);
 
     await user.type(
       screen.getByPlaceholderText("Toplantı linki yapıştır…"),
@@ -216,7 +281,7 @@ describe("AssistantPage integration", () => {
 
     await waitFor(() => {
       expect(httpClient.delete).toHaveBeenCalledWith(
-        getStopBotApiUrl("google_meet", "abc-defg-hij"),
+        getMeetingBotApiUrl("google_meet", "abc-defg-hij"),
         signedIn,
       );
     });
@@ -232,6 +297,69 @@ describe("AssistantPage integration", () => {
     expect(screen.getByText("Düzenlenebilir")).toBeInTheDocument();
     expect(screen.getByText("Mentorluk Gorusmesi")).toBeInTheDocument();
     expect(screen.getByText("Toplanti verimli gecti.")).toBeInTheDocument();
+  });
+
+  it("keeps only the transcript, with no report button, when meeting reports are switched off", async () => {
+    vi.mocked(useAiFeatures).mockReturnValue(
+      aiFeatures({ meetingReport: false }),
+    );
+    const user = userEvent.setup();
+    vi.mocked(httpClient.get).mockResolvedValue(
+      createAxiosResponse(
+        {
+          segments: [
+            { id: "s1", speaker: "Ayşe", text: "Merhaba", at: "00:10" },
+          ],
+        },
+        200,
+      ),
+    );
+    vi.mocked(httpClient.post).mockImplementation(async (url: string) => {
+      if (url === getBotApiUrl()) {
+        return createAxiosResponse(
+          {
+            id: "bot-1",
+            platform: "google_meet",
+            nativeMeetingId: "abc-defg-hij",
+            status: "scheduled",
+            title: "Yeni Test Toplantisi",
+          },
+          201,
+        );
+      }
+      throw new Error(`Unexpected POST URL: ${url}`);
+    });
+    vi.mocked(httpClient.delete).mockResolvedValue(
+      createAxiosResponse({}, 204),
+    );
+
+    renderWithQueryClient(<AssistantPage />);
+    await user.type(
+      screen.getByPlaceholderText("Toplantı linki yapıştır…"),
+      "https://meet.google.com/abc-defg-hij",
+    );
+    await user.click(screen.getByRole("button", { name: "Bot ekle" }));
+    await waitFor(() => {
+      expect(
+        screen.getAllByText("Yeni Test Toplantisi").length,
+      ).toBeGreaterThan(0);
+    });
+    await user.click(screen.getByRole("button", { name: "Asistanı durdur" }));
+    await waitFor(() => {
+      expect(httpClient.delete).toHaveBeenCalled();
+    });
+
+    expect(
+      await screen.findByText(
+        "Bu sistemde toplantı raporu üretilmiyor; yalnızca transkript tutulur.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Rapor üret" })).toBeNull();
+    expect(httpClient.post).not.toHaveBeenCalledWith(
+      getMeetingReportApiUrl("google_meet", "abc-defg-hij"),
+      undefined,
+      expect.anything(),
+    );
   });
 
   it("does not generate a report after stop when the transcript is empty", async () => {
@@ -256,7 +384,7 @@ describe("AssistantPage integration", () => {
       createAxiosResponse({}, 204),
     );
 
-    render(<AssistantPage />);
+    renderWithQueryClient(<AssistantPage />);
 
     await user.type(
       screen.getByPlaceholderText("Toplantı linki yapıştır…"),
@@ -274,7 +402,7 @@ describe("AssistantPage integration", () => {
 
     await waitFor(() => {
       expect(httpClient.delete).toHaveBeenCalledWith(
-        getStopBotApiUrl("google_meet", "abc-defg-hij"),
+        getMeetingBotApiUrl("google_meet", "abc-defg-hij"),
         signedIn,
       );
     });
@@ -319,7 +447,7 @@ describe("AssistantPage integration", () => {
       createAxiosResponse({}, 204),
     );
 
-    const first = render(<AssistantPage />);
+    const first = renderWithQueryClient(<AssistantPage />);
     expect((await screen.findAllByText("Canlı")).length).toBeGreaterThan(0);
 
     await user.click(screen.getByRole("button", { name: "Asistanı durdur" }));
@@ -335,7 +463,7 @@ describe("AssistantPage integration", () => {
     vi.mocked(useMeetings).mockReturnValue(
       meetingsQuery([{ ...liveMeeting, status: MeetingStatus.Completed }]),
     );
-    render(<AssistantPage />);
+    renderWithQueryClient(<AssistantPage />);
 
     expect((await screen.findAllByText("Bitti")).length).toBeGreaterThan(0);
     expect(screen.queryAllByText("Canlı")).toHaveLength(0);
@@ -393,7 +521,7 @@ describe("AssistantPage integration", () => {
       createAxiosResponse({ message: "Meeting could not be updated." }, 502),
     );
 
-    render(<AssistantPage />);
+    renderWithQueryClient(<AssistantPage />);
     expect((await screen.findAllByText("Canlı")).length).toBeGreaterThan(0);
 
     await user.click(screen.getByRole("button", { name: "Asistanı durdur" }));
@@ -452,7 +580,7 @@ describe("AssistantPage integration", () => {
       return createAxiosResponse({ segments: [] }, 200);
     });
 
-    render(<AssistantPage />);
+    renderWithQueryClient(<AssistantPage />);
 
     expect(
       (await screen.findAllByText("Mentorluk — Ürün roadmap")).length,
@@ -529,7 +657,7 @@ describe("AssistantPage integration", () => {
       createAxiosResponse({}, 204),
     );
 
-    render(<AssistantPage />);
+    renderWithQueryClient(<AssistantPage />);
 
     await waitFor(() => {
       expect(

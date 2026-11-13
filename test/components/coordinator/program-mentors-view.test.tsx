@@ -3,6 +3,10 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ProgramMentorsView } from "@/components/coordinator/program-mentors-view";
+import {
+  TeamJoinStatus,
+  type ProgramTeam,
+} from "@/interfaces/coordinator-program";
 import { MentorPoolStatus, type MentorPoolRow } from "@/interfaces/mentor-pool";
 import {
   cancelMentorInvite,
@@ -10,10 +14,14 @@ import {
   getCoordinatorProgram,
   getMentorPool,
   getMentorReview,
+  getProgramTeams,
   inviteProgramMentor,
   renewMentorInvite,
 } from "@/lib/client/coordinator-programs";
-import { coordinatorProgramDetail } from "@test/fixtures/coordinator-programs";
+import {
+  coordinatorProgram,
+  coordinatorProgramDetail,
+} from "@test/fixtures/coordinator-programs";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 // Rendered outside the App Router, the real usePathname returns null.
@@ -25,6 +33,7 @@ vi.mock("next/navigation", async (importOriginal) => ({
 vi.mock("@/lib/client/coordinator-programs", () => ({
   getCoordinatorProgram: vi.fn(),
   getMentorPool: vi.fn(),
+  getProgramTeams: vi.fn(),
   inviteProgramMentor: vi.fn(),
   withdrawProgramMentorInvite: vi.fn(),
   getMentorReview: vi.fn(),
@@ -71,6 +80,23 @@ const invited: MentorPoolRow = {
   inviteCode: "abc123",
 };
 
+function teamRow(inviteId: string): ProgramTeam {
+  return {
+    inviteId,
+    organizationId: null,
+    name: inviteId,
+    status: TeamJoinStatus.Waiting,
+    leadName: null,
+    leadEmail: `${inviteId}@team.co`,
+    code: "BIGG26-K4TX",
+    invitedAt: "2026-09-20T10:00:00Z",
+    joinedAt: null,
+    memberCount: 0,
+    codeSentAt: null,
+    codeSendFailed: false,
+  };
+}
+
 describe("ProgramMentorsView", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -78,6 +104,46 @@ describe("ProgramMentorsView", () => {
       coordinatorProgramDetail(),
     );
     vi.mocked(getMentorPool).mockResolvedValue([active, awaiting, invited]);
+    vi.mocked(getProgramTeams).mockResolvedValue([]);
+  });
+
+  it("adds the listed teams the program does not count yet to the Takımlar count", async () => {
+    vi.mocked(getCoordinatorProgram).mockResolvedValue(
+      coordinatorProgramDetail({
+        program: coordinatorProgram({ teamCount: 1 }),
+      }),
+    );
+    vi.mocked(getProgramTeams).mockResolvedValue([
+      teamRow("t-1"),
+      teamRow("t-2"),
+      teamRow("t-3"),
+    ]);
+    renderWithQueryClient(<ProgramMentorsView programId="program-1" />);
+
+    const tabs = await screen.findByRole("navigation", {
+      name: "Katılımcılar",
+    });
+    expect(
+      await within(tabs).findByRole("link", {
+        name: /^Takımlar\s*1 · \+2 bekleyen$/,
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("adds the mentors the pool lists but the count leaves out to the Mentor Havuzu count", async () => {
+    renderWithQueryClient(<ProgramMentorsView programId="program-1" />);
+
+    await screen.findByText("Nihan Öztürk");
+    const tabs = screen.getByRole("navigation", { name: "Katılımcılar" });
+    expect(
+      await within(tabs).findByRole("link", {
+        name: /^Mentor Havuzu\s*28 · \+2 bekleyen$/,
+      }),
+    ).toBeInTheDocument();
+    expect(
+      within(tabs).getByRole("link", { name: /^Takımlar\s*42$/ }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("· +2 bekleyen")).toBeInTheDocument();
   });
 
   it("shows load, pending checks and invites, and filters to the invites", async () => {
@@ -91,6 +157,29 @@ describe("ProgramMentorsView", () => {
     await user.click(screen.getByRole("button", { name: "Davet bekliyor 1" }));
     expect(screen.queryByText("Nihan Öztürk")).not.toBeInTheDocument();
     expect(screen.getByText("cagri@yilmazfinans.com")).toBeInTheDocument();
+  });
+
+  it("links pool mentors and join requests to their profile, but not open invites", async () => {
+    renderWithQueryClient(<ProgramMentorsView programId="program-1" />);
+
+    await screen.findByText("Nihan Öztürk");
+    expect(
+      within(screen.getByRole("row", { name: /Nihan Öztürk/ })).getByRole(
+        "link",
+        { name: "Profili gör: Nihan Öztürk" },
+      ),
+    ).toHaveAttribute("href", "/coordinator/people/mentor-1");
+    expect(
+      within(screen.getByRole("row", { name: /Zeynep Arslan/ })).getByRole(
+        "link",
+        { name: "Profili gör: Zeynep Arslan" },
+      ),
+    ).toHaveAttribute("href", "/coordinator/people/mentor-2");
+    expect(
+      within(
+        screen.getByRole("row", { name: /cagri@yilmazfinans\.com/ }),
+      ).queryByRole("link", { name: /^Profili gör/ }),
+    ).toBeNull();
   });
 
   it("reads in English and filters by capacity", async () => {

@@ -44,6 +44,10 @@ export enum OfficeHoursRequestStatus {
   MoreInfoRequested = "MORE_INFO_REQUESTED",
   CounterProposed = "COUNTER_PROPOSED",
   Withdrawn = "WITHDRAWN",
+  /** Called off after it was accepted (FR-OH-14). */
+  Cancelled = "CANCELLED",
+  /** Left unanswered past its time (FR-OH-15); nothing more can happen to it. */
+  Expired = "EXPIRED",
 }
 
 /** Still waiting on someone: the student may withdraw these, and they count toward the academic's student limit. */

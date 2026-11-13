@@ -3,6 +3,8 @@ import academicianEn from "@/messages/ia/academician/en.json";
 import academicianTr from "@/messages/ia/academician/tr.json";
 import coordinatorEn from "@/messages/ia/coordinator/en.json";
 import coordinatorTr from "@/messages/ia/coordinator/tr.json";
+import iskurReportsEn from "@/messages/ia/iskur-reports/en.json";
+import iskurReportsTr from "@/messages/ia/iskur-reports/tr.json";
 import iskurEn from "@/messages/ia/iskur/en.json";
 import iskurTr from "@/messages/ia/iskur/tr.json";
 import kitEn from "@/messages/ia/kit/en.json";
@@ -18,25 +20,30 @@ import tourTr from "@/messages/ia/tour/tr.json";
  * The IA Revizyon screens keep their copy in one catalog pair per screen group, so parallel work on the groups
  * never edits the same file. Each pair is one top-level namespace.
  */
-export const IA_MESSAGES = {
-  [Locale.Tr]: {
-    iaKit: kitTr,
-    iaStudent: studentTr,
-    iaIskur: iskurTr,
-    iaAcademician: academicianTr,
-    iaCoordinator: coordinatorTr,
-    iaProfile: profileTr,
-    iaTour: tourTr,
-  },
+const TR_CATALOGS = {
+  iaKit: kitTr,
+  iaStudent: studentTr,
+  iaIskur: iskurTr,
+  iaIskurReports: iskurReportsTr,
+  iaAcademician: academicianTr,
+  iaCoordinator: coordinatorTr,
+  iaProfile: profileTr,
+  iaTour: tourTr,
+};
+
+/** Each catalog's Turkish shape; English must match it key for key. */
+export type IaMessages = typeof TR_CATALOGS;
+
+export const IA_MESSAGES: Record<Locale, IaMessages> = {
+  [Locale.Tr]: TR_CATALOGS,
   [Locale.En]: {
     iaKit: kitEn,
     iaStudent: studentEn,
     iaIskur: iskurEn,
+    iaIskurReports: iskurReportsEn,
     iaAcademician: academicianEn,
     iaCoordinator: coordinatorEn,
     iaProfile: profileEn,
     iaTour: tourEn,
   },
 };
-
-export type IaMessages = (typeof IA_MESSAGES)[Locale.Tr];

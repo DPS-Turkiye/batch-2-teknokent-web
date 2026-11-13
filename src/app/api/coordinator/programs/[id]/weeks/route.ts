@@ -1,5 +1,4 @@
 import type { NextRequest } from "next/server";
-import { z } from "zod";
 
 import {
   fetchProgramWeekPlan,
@@ -10,32 +9,9 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import { weekPlanSchema } from "@/lib/server/program-week-schemas";
 import { readJsonBody } from "@/lib/server/request-body";
 import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
-
-/** Each line is trimmed and blank ones are dropped. */
-const linesSchema = z
-  .array(z.string())
-  .transform((lines) =>
-    lines.map((line) => line.trim()).filter((line) => line !== ""),
-  );
-
-const weekPlanSchema = z.object({
-  weeks: z.array(
-    z.object({
-      week: z.number(),
-      title: z.string(),
-      topics: linesSchema,
-      activities: linesSchema,
-      deliverables: linesSchema,
-      // Round-tripped from the GET; an AI week without the flag was saved as not inferred before.
-      inferred: z
-        .boolean()
-        .nullish()
-        .transform((inferred) => inferred ?? false),
-    }),
-  ),
-});
 
 type Context = { params: Promise<{ id: string }> };
 

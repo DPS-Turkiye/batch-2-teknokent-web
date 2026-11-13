@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   CalendarFilter,
+  formatWeekdayDate,
   hourOf,
   isSameDay,
   monthGridCells,
@@ -10,6 +11,7 @@ import {
   startOfWeek,
   timeLabel,
   upcomingHourColumns,
+  weekdayName,
   weekDays,
   weekRangeLabel,
 } from "@/lib/calendar";
@@ -146,5 +148,15 @@ describe("placeInLanes", () => {
       ["middle", 2],
       ["late", 1],
     ]);
+  });
+});
+
+describe("weekday labels", () => {
+  const thursday = new Date(2026, 10, 12, 14);
+
+  it("names the weekday and the day with its weekday", () => {
+    expect(weekdayName(thursday, "tr")).toBe("Perşembe");
+    expect(formatWeekdayDate(thursday, "tr")).toBe("12 Kasım Perşembe");
+    expect(formatWeekdayDate(thursday, "en")).toBe("Thursday, November 12");
   });
 });

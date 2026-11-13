@@ -3,8 +3,10 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { RoleFrame } from "@/components/common/role-frame";
+import { Edition } from "@/interfaces/edition";
 import { IdentityKind, UserRole, type AppSession } from "@/interfaces/session";
 import { Workspace } from "@/interfaces/workspace";
+import { IaAccent } from "@/types/ia-theme";
 import { itemAt } from "@test/fixtures/list-assertions";
 import { renderWithQueryClient } from "@test/test-utils";
 
@@ -26,11 +28,25 @@ vi.mock("@/components/providers/session-provider", () => ({
   useAppSession: () => current,
   useSession: () => ({ session: current, isLoading: false, logout: vi.fn() }),
 }));
+// The theme test checks only the frame's paint, so it lets the student in whatever the deployment's edition is.
+const gate = vi.hoisted(() => ({ forceAllowed: false }));
+vi.mock("@/hooks/use-role-gate", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/hooks/use-role-gate")>();
+  return {
+    useRoleGate: (...args: Parameters<typeof actual.useRoleGate>) => {
+      const real = actual.useRoleGate(...args);
+      return gate.forceAllowed
+        ? { ...real, allowed: true, isLoading: false }
+        : real;
+    },
+  };
+});
 vi.mock("@/components/common/notification-menu", () => ({
   NotificationMenu: () => null,
 }));
 
 beforeEach(() => {
+  gate.forceAllowed = false;
   pathname = "/admin";
   current = admin;
 });
@@ -120,6 +136,7 @@ describe("RoleFrame desktop nav between lg and xl", () => {
     );
     const soon = screen.getByText("Kullanıcılar").closest("[aria-disabled]");
     expect(soon).toHaveClass("whitespace-nowrap", "px-3", "xl:px-4");
+    expect(soon).toHaveAttribute("data-tour", "nav-users");
     const account = document.querySelector<HTMLElement>(
       'button[aria-haspopup="menu"]',
     )!;
@@ -138,6 +155,7 @@ describe("RoleFrame workspace switch", () => {
     role: UserRole.Academician,
     permissions: [UserRole.Mentee, UserRole.Academician],
     institutionKinds: [IdentityKind.Student, IdentityKind.Academic],
+    edition: Edition.Odtu,
   };
   const frame = (
     <RoleFrame
@@ -187,7 +205,8 @@ describe("RoleFrame theme", () => {
     institutionKinds: [IdentityKind.Student],
   };
 
-  it("paints the student workspace in ODTÜ red and staff frames in ink", () => {
+  it("paints the ODTÜ workspaces in ODTÜ red and staff frames in ink", () => {
+    gate.forceAllowed = true;
     current = student;
     const { container, unmount } = renderWithQueryClient(
       <RoleFrame
@@ -201,9 +220,38 @@ describe("RoleFrame theme", () => {
     );
     expect(container.querySelector("[data-ia-accent]")).toHaveAttribute(
       "data-ia-accent",
-      "odtu",
+      IaAccent.Odtu,
     );
     unmount();
+
+    // Figma "Nav / Akademisyen" (78:838) uses the same red pill as the student nav.
+    const academician = renderWithQueryClient(
+      <RoleFrame
+        workspace={Workspace.OdtuAcademician}
+        homeHref="/academician"
+        menuLabel="academicianMenu"
+        nav={[]}
+      >
+        <p>Academician</p>
+      </RoleFrame>,
+    );
+    expect(
+      academician.container.querySelector("[data-ia-accent]"),
+    ).toHaveAttribute("data-ia-accent", IaAccent.Odtu);
+    academician.unmount();
+
+    const coordinator = renderWithQueryClient(
+      <RoleFrame
+        workspace={Workspace.Coordinator}
+        homeHref="/coordinator"
+        menuLabel="adminMenu"
+        nav={[]}
+      >
+        <p>Coordinator</p>
+      </RoleFrame>,
+    );
+    expect(coordinator.container.querySelector("[data-ia-accent]")).toBeNull();
+    coordinator.unmount();
 
     current = admin;
     const staff = renderWithQueryClient(
@@ -217,6 +265,48 @@ describe("RoleFrame theme", () => {
       </RoleFrame>,
     );
     expect(staff.container.querySelector("[data-ia-accent]")).toBeNull();
+    gate.forceAllowed = false;
     expect(screen.getByText("Admin", { selector: "p" })).toBeInTheDocument();
+  });
+});
+
+describe("RoleFrame nav per edition", () => {
+  const nav = [
+    {
+      href: "/admin",
+      label: "home" as const,
+      icon: "/admin/nav-home.svg",
+      match: (path: string) => path === "/admin",
+    },
+    {
+      href: "/office-hours",
+      label: "officeHours" as const,
+      icon: "/admin/nav-calendar.svg",
+      match: () => false,
+    },
+  ];
+  const frame = (
+    <RoleFrame
+      allowedRoles={[UserRole.Admin]}
+      homeHref="/admin"
+      menuLabel="adminMenu"
+      nav={nav}
+    >
+      <p>Workspace</p>
+    </RoleFrame>
+  );
+
+  it("leaves out the other edition's pages and keeps its own", () => {
+    const teknokent = renderWithQueryClient(frame);
+    expect(screen.getByRole("link", { name: "Anasayfa" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Office Hours" })).toBeNull();
+    teknokent.unmount();
+
+    current = { ...admin, edition: Edition.Odtu };
+    renderWithQueryClient(frame);
+    expect(screen.getByRole("link", { name: "Office Hours" })).toHaveAttribute(
+      "href",
+      "/office-hours",
+    );
   });
 });
