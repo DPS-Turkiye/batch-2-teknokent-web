@@ -6671,32 +6671,6 @@
       "proposedPast": "Geçmiş bir saat önerilemez.",
       "pickOne": "Bir saat seç."
     },
-    "appointments": {
-      "title": "Randevularım",
-      "subtitle": "Onaylanmış ofis saati randevuların. Talepler Randevu Talepleri'nde.",
-      "upcoming": "Yaklaşan",
-      "past": "Geçmiş",
-      "cancelled": "İptal edilenler",
-      "empty": "Henüz randevun yok.",
-      "course": "Ders: {course}",
-      "place": "Yer: {place}",
-      "online": "Çevrim içi bağlantı",
-      "lateCancel": "Son 24 saatte iptal edildi",
-      "reason": "Neden: {reason}",
-      "cancel": "Randevuyu iptal et",
-      "cancelReason": "Öğrenciye iptal nedeni",
-      "cancelReasonHint": "Başlangıca 24 saatten az kaldığı için neden yazman gerekiyor.",
-      "confirmCancel": "İptal et",
-      "keep": "Vazgeç",
-      "needReason": "Son 24 saatteki iptal için neden yaz.",
-      "cancelledToast": "Randevu iptal edildi; öğrenciye bildirilecek.",
-      "cancelFailed": "Randevu iptal edilemedi; liste yenilendi.",
-      "emptyView": {
-        "upcoming": "Yaklaşan randevun yok.",
-        "past": "Geçmiş randevun yok.",
-        "cancelled": "İptal edilen randevu yok."
-      }
-    },
     "calendar": {
       "title": "Takvim",
       "subtitle": "Ofis saatlerin: her hafta tekrarlayan saatler, tek seferlik saatler ve uygun olmadığın tarihler. Değişiklikler mevcut randevuları etkilemez.",

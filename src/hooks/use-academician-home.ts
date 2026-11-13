@@ -4,6 +4,10 @@ import { useQuery } from "@tanstack/react-query";
 import { useLocale, useTranslations } from "next-intl";
 
 import {
+  useAvailabilityRows,
+  type AvailabilityRow,
+} from "@/hooks/use-availability-rows";
+import {
   useInstitutionAdvisees,
   useInstitutionRecord,
 } from "@/hooks/use-institution-record";
@@ -13,7 +17,7 @@ import {
   type OfficeHoursRequest,
 } from "@/interfaces/academician-office-hours";
 import type { AppointmentTime } from "@/interfaces/appointment";
-import type { AvailabilityItem } from "@/lib/academician-availability";
+import { appointmentsHref } from "@/lib/academician-calendar";
 import { daysSince, greetingName, homeSummary } from "@/lib/academician-home";
 import {
   ACADEMICIAN_APPOINTMENTS_QUERY_KEY,
@@ -30,10 +34,8 @@ import {
   getAcademicianAvailability,
   getAcademicianRequests,
 } from "@/lib/client/academician-office-hours";
-import { formatDateRange } from "@/lib/format";
-import { exceptionLabel } from "@/lib/mentor-availability";
 import { dayPart } from "@/lib/utils";
-import { AvailabilityItemKind } from "@/types/academician-office-hours";
+import { AppointmentsFilter } from "@/types/academician-calendar";
 
 export type HomeRequestCard = {
   id: string;
@@ -45,20 +47,11 @@ export type HomeRequestCard = {
   acceptTime: AppointmentTime | null;
   canDecline: boolean;
   canPropose: boolean;
+  /** The request's drawer on Randevularım. */
+  href: string;
 };
 
-export type HomeAvailabilityRow = {
-  key: string;
-  kind: AvailabilityItemKind;
-  label: string;
-  /** The hours; empty for a day off, whose label says it all. */
-  hours: string;
-};
-
-const ONE_OFF_DAY: Intl.DateTimeFormatOptions = {
-  day: "numeric",
-  month: "short",
-};
+export type HomeAvailabilityRow = AvailabilityRow;
 
 /** Ana Sayfa: what needs the academician today, from the same queries as Randevularım. */
 export function useAcademicianHome() {
@@ -66,6 +59,7 @@ export function useAcademicianHome() {
   const tGreeting = useTranslations("common.greeting");
   const tWeekday = useTranslations("options.weekday");
   const locale = useLocale();
+  const toRow = useAvailabilityRows({ everyWeek: false });
   const record = useInstitutionRecord();
   const advisees = useInstitutionAdvisees();
   const requests = useQuery({
@@ -112,12 +106,8 @@ export function useAcademicianHome() {
   const advisor = adviseeIds(advisees.data ?? []);
   const name = greetingName(record.data?.fullName ?? null);
   const hello = tGreeting(dayPart(now));
-  const clock = new Intl.DateTimeFormat(locale, {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-  const hours = (startsAt: string, endsAt: string) =>
-    formatDateRange(clock, new Date(startsAt), new Date(endsAt));
+  const calendarHref = (search: Parameters<typeof appointmentsHref>[1]) =>
+    appointmentsHref(ACADEMICIAN_ROUTES.appointments, search);
 
   const toCard = (request: OfficeHoursRequest): HomeRequestCard => {
     const [first] = request.requestedTimes;
@@ -134,47 +124,8 @@ export function useAcademicianHome() {
       canPropose: request.allowedActions.includes(
         OfficeHoursRequestAction.ProposeTimes,
       ),
+      href: calendarHref({ request: request.id }),
     };
-  };
-
-  const toRow = (item: AvailabilityItem): HomeAvailabilityRow => {
-    switch (item.kind) {
-      case AvailabilityItemKind.Recurring:
-        return {
-          key: item.rule.id,
-          kind: item.kind,
-          label: tWeekday(item.rule.dayOfWeek),
-          hours: `${item.rule.startTime} – ${item.rule.endTime}`,
-        };
-      case AvailabilityItemKind.OneOff:
-        return {
-          key: item.oneOff.id ?? item.oneOff.startsAt,
-          kind: item.kind,
-          label: t("common.oneOff", {
-            date: new Intl.DateTimeFormat(locale, ONE_OFF_DAY).format(
-              new Date(item.oneOff.startsAt),
-            ),
-          }),
-          hours: hours(item.oneOff.startsAt, item.oneOff.endsAt),
-        };
-      case AvailabilityItemKind.Unavailable: {
-        const { reason } = item.exception;
-        const days = exceptionLabel(
-          { ...item.exception, reason: null },
-          locale,
-          now,
-        );
-        return {
-          key: item.exception.id ?? item.exception.startsOn,
-          kind: item.kind,
-          label:
-            reason === null
-              ? t("common.unavailable", { days })
-              : t("common.unavailableBecause", { days, reason }),
-          hours: "",
-        };
-      }
-    }
   };
 
   const oldest = summary.oldestRequestedAt;
@@ -227,8 +178,9 @@ export function useAcademicianHome() {
         time: turkeyTime(item.startsAt, locale),
         studentName: item.counterpart.fullName,
         topic: item.topic,
+        href: calendarHref({ appointment: item.id }),
       })),
-      availability: summary.availability.map(toRow),
+      availability: summary.availability.map((item) => toRow(item, now)),
       accept: (card: HomeRequestCard) => {
         if (card.acceptTime === null) return;
         answer(card.id, {
@@ -237,7 +189,10 @@ export function useAcademicianHome() {
         });
       },
       answeringId,
-      links: ACADEMICIAN_ROUTES,
+      links: {
+        ...ACADEMICIAN_ROUTES,
+        allRequests: calendarHref({ filter: AppointmentsFilter.Requests }),
+      },
     },
   };
 }
