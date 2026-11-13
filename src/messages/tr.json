@@ -4116,6 +4116,7 @@
     "launched": "{name} başlatıldı.",
     "launchFailed": "Program başlatılamadı.",
     "launchNeedsCoordinator": "Başlatmadan önce bir koordinatör ata.",
+    "waitingSuffix": "· +{count} bekleyen",
     "participantTabs": {
       "TEAMS": "Takımlar",
       "MENTOR_POOL": "Mentor Havuzu",
