@@ -6,6 +6,7 @@ import { StudentProfileView } from "@/components/student/student-profile-view";
 import { StudyLevel, type InstitutionRecord } from "@/interfaces/institution";
 import { PeerTopicCategory } from "@/interfaces/peer-mentoring";
 import { IdentityKind } from "@/interfaces/session";
+import { Workspace } from "@/interfaces/workspace";
 import { ClientApiError } from "@/lib/client/api";
 import {
   EMPTY_PROFILE_COMPLETION,
@@ -43,6 +44,14 @@ vi.mock("@/lib/client/badges", async () => {
   };
 });
 const upload = vi.fn();
+const replay = vi.fn();
+const tourReplay = vi.fn((_workspace: Workspace) => ({
+  available: true,
+  replay,
+}));
+vi.mock("@/hooks/use-product-tour", () => ({
+  useProductTourReplay: (workspace: Workspace) => tourReplay(workspace),
+}));
 vi.mock("@/hooks/use-profile-photo", () => ({
   useProfilePhoto: () => ({ photoUrl: null, isUploading: false, upload }),
 }));
@@ -189,6 +198,32 @@ describe("StudentProfileView › side cards", () => {
   it("explains where the details show", () => {
     renderWithQueryClient(<StudentProfileView />);
     expect(screen.getByText("Bilgilerin nerede görünür?")).toBeVisible();
+  });
+});
+
+describe("StudentProfileView › product tour", () => {
+  beforeEach(() => {
+    replay.mockReset();
+    tourReplay.mockReset().mockReturnValue({ available: true, replay });
+  });
+
+  it("replays the student tour from Profilim", async () => {
+    const user = userEvent.setup();
+    renderWithQueryClient(<StudentProfileView />);
+
+    await user.click(screen.getByRole("button", { name: "Turu tekrar izle" }));
+
+    expect(tourReplay).toHaveBeenCalledWith(Workspace.OdtuStudent);
+    expect(replay).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows no replay button when the workspace has no tour", async () => {
+    tourReplay.mockReturnValue({ available: false, replay });
+    renderWithQueryClient(<StudentProfileView />);
+    await screen.findByText("Kariyer ve Staj");
+    expect(
+      screen.queryByRole("button", { name: "Turu tekrar izle" }),
+    ).toBeNull();
   });
 });
 
