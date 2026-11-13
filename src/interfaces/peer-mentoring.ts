@@ -92,6 +92,8 @@ export type PeerMentoringRequest = {
   message: string;
   status: MentorshipRequestStatus;
   createdAt: string;
+  /** When the mentor accepted: the mentorship's start; null until then. */
+  acceptedAt: string | null;
 };
 
 /** `POST /api/peer-mentoring/requests`; the message is 20–1000 characters. */
