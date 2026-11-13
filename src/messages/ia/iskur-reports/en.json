@@ -1,0 +1,17 @@
+{
+  "status": {
+    "draft": "Draft",
+    "missingInfo": "Missing information",
+    "inReview": "In review",
+    "revisionRequested": "Revision needed",
+    "approved": "Approved",
+    "completed": "Completed",
+    "awaitingOutput": "Awaiting output",
+    "notStarted": "Not started yet"
+  },
+  "duration": {
+    "minutes": "{minutes} min",
+    "hoursMinutes": "{hours} h {minutes} min",
+    "recordedNote": "Recorded time is for information only; it is not an approved working time."
+  }
+}

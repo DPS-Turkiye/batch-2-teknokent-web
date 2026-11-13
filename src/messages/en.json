@@ -6127,6 +6127,8 @@
     "peerCategoriesLoadFailed": "Could not load the categories.",
     "peerCategoriesSaveFailed": "Could not save the categories.",
     "peerCategoriesInvalid": "The category list is not valid.",
+    "peerReportsLoadFailed": "The reports could not be loaded.",
+    "peerReportSaveFailed": "The report could not be saved.",
     "studentProfileCompletionLoadFailed": "Couldn't load your interests.",
     "studentProfileCompletionSaveFailed": "Couldn't save your interests.",
     "studentAppointmentsLoadFailed": "Couldn't load your appointments.",
