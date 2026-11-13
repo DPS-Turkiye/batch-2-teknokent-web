@@ -373,5 +373,17 @@
       "body": "Mentor profilini oluştur; yayınladığında öğrenciler seni keşfedebilir.",
       "action": "Mentor profilini oluştur"
     }
+  },
+  "appointments": {
+    "filterLabel": "Görüşmelerde rolün",
+    "roles": {
+      "all": "Tümü",
+      "asMentor": "Mentor olarak",
+      "asMentee": "Mentee olarak"
+    },
+    "legend": {
+      "asMentor": "Mentorluk verdiğin görüşmeler",
+      "asMentee": "Mentorluk ya da Office Hours randevusu aldığın görüşmeler"
+    }
   }
 }

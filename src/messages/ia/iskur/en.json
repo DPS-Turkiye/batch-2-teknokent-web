@@ -373,5 +373,17 @@
       "body": "Create your mentor profile; once it's published, students can discover you.",
       "action": "Create your mentor profile"
     }
+  },
+  "appointments": {
+    "filterLabel": "Your role in meetings",
+    "roles": {
+      "all": "All",
+      "asMentor": "As mentor",
+      "asMentee": "As mentee"
+    },
+    "legend": {
+      "asMentor": "Meetings where you give mentoring",
+      "asMentee": "Meetings where you get mentoring or an Office Hours slot"
+    }
   }
 }
