@@ -1,5 +1,6 @@
 import type {
   ProgramMemberKind,
+  ProgramMentorRemoval,
   ProgramTeamMove,
 } from "@/interfaces/admin-overview";
 import { requireSuccess } from "@/lib/client/api";
@@ -27,6 +28,18 @@ export async function moveStartupToProgram(
     await httpClient.post<ProgramTeamMove>(
       `/api/admin/programs/${encodeURIComponent(targetProgramId)}/startups/${encodeURIComponent(organizationId)}/move`,
       { fromProgramId },
+    ),
+  );
+}
+
+/** Takes an accepted mentor out of the program's pool. */
+export async function removeMentorFromProgram(
+  programId: string,
+  mentorId: string,
+) {
+  return requireSuccess(
+    await httpClient.post<ProgramMentorRemoval>(
+      `/api/admin/programs/${encodeURIComponent(programId)}/mentors/${encodeURIComponent(mentorId)}/remove`,
     ),
   );
 }

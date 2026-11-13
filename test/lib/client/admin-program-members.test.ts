@@ -2,11 +2,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   ProgramMemberKind,
+  type ProgramMentorRemoval,
   type ProgramTeamMove,
 } from "@/interfaces/admin-overview";
 import {
   assignToProgram,
   moveStartupToProgram,
+  removeMentorFromProgram,
 } from "@/lib/client/admin-program-members";
 import { ClientApiError } from "@/lib/client/api";
 import { httpClient } from "@/lib/http-client";
@@ -25,6 +27,15 @@ const move: ProgramTeamMove = {
   toProgramName: "Kuluçka 2026",
   movedAt: "2026-11-13T12:00:00Z",
   withdrawnRequests: 0,
+};
+
+const removal: ProgramMentorRemoval = {
+  id: "removal-1",
+  mentorId: "mentor 1",
+  programId: "prog/1",
+  programName: "Kuluçka 2026",
+  removedAt: "2026-11-13T12:00:00Z",
+  withdrawnRequests: 1,
 };
 
 describe("admin program members client", () => {
@@ -71,6 +82,42 @@ describe("admin program members client", () => {
       moveStartupToProgram("program-2", "org-1", "program-1"),
     ).rejects.toThrow(
       new ClientApiError("Takım zaten bu programda.", 400, "INVALID_REQUEST"),
+    );
+  });
+
+  it("removes a mentor from the program in the path", async () => {
+    vi.mocked(httpClient.post).mockResolvedValue(
+      createAxiosResponse(removal, 200),
+    );
+
+    await expect(
+      removeMentorFromProgram("prog/1", "mentor 1"),
+    ).resolves.toEqual(removal);
+
+    expect(httpClient.post).toHaveBeenCalledWith(
+      "/api/admin/programs/prog%2F1/mentors/mentor%201/remove",
+    );
+  });
+
+  it("surfaces the backend's reason when the removal is refused", async () => {
+    vi.mocked(httpClient.post).mockResolvedValue(
+      createAxiosResponse(
+        {
+          code: "INVALID_REQUEST",
+          message: "Mentor bu programda kayıtlı değil.",
+        },
+        400,
+      ),
+    );
+
+    await expect(
+      removeMentorFromProgram("program-1", "mentor-1"),
+    ).rejects.toThrow(
+      new ClientApiError(
+        "Mentor bu programda kayıtlı değil.",
+        400,
+        "INVALID_REQUEST",
+      ),
     );
   });
 });

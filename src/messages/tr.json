@@ -4934,6 +4934,33 @@
       "movedClosingRequests": "{team} takımı {program} programına taşındı; yanıt bekleyen {count} talep kapatıldı.",
       "failed": "Takımın programı değiştirilemedi."
     },
+    "removeFromProgram": {
+      "action": "Programdan çıkar",
+      "actionFor": "Programdan çıkar: {program}",
+      "dialogTitle": "Mentor programdan çıkarılsın mı?",
+      "dialogBody": "{mentor}, {program} programının mentorları arasından çıkarılacak. Diğer programları etkilenmez.",
+      "stoppedHeading": "Sona erecekler",
+      "stoppedItems": {
+        "pool": "Mentor bu programın mentor havuzunda görünmez; programın takımlarına önerilmez ve onlardan yeni talep alamaz",
+        "programPages": "Mentor, programın haftalık planını ve duyurularını artık görmez"
+      },
+      "keptHeading": "Devam edecekler",
+      "keptItems": {
+        "activity": "Bu programda süren mentorluklar ve planlı görüşmeler; program adıyla devam eder",
+        "records": "Geçmiş görüşmeler, notlar ve raporlardaki kayıtlar programda kalır"
+      },
+      "withdrawnHeading": "Geri çekilecekler",
+      "withdrawnItems": {
+        "openRequests": "Bu programın takımlarının mentora gönderdiği, yanıt bekleyen mentorluk talepleri; talebi gönderenlere nedeni bildirilir"
+      },
+      "notice": "Mentora ve programın koordinatörlerine bildirim gider. Mentoru daha sonra “Programa ata” ile yeniden ekleyebilirsin.",
+      "confirm": "Mentoru çıkar",
+      "removing": "Çıkarılıyor…",
+      "cancel": "Vazgeç",
+      "removed": "{mentor}, {program} programından çıkarıldı.",
+      "removedClosingRequests": "{mentor}, {program} programından çıkarıldı; yanıt bekleyen {count} talep geri çekildi.",
+      "failed": "Mentor programdan çıkarılamadı."
+    },
     "revokeSignIns": {
       "button": "Tüm oturumlarını kapat",
       "confirm": "{name} tüm cihazlarda çıkış yapacak ve yeniden giriş yapması gerekecek. Emin misin?",
@@ -6077,6 +6104,7 @@
     "decisionSaveFailed": "Karar kaydedilemedi.",
     "programAssignFailed": "Programa eklenemedi.",
     "programMoveFailed": "Takımın programı değiştirilemedi.",
+    "programMentorRemoveFailed": "Mentor programdan çıkarılamadı.",
     "eventAddFailed": "Etkinlik eklenemedi.",
     "phasesSaveFailed": "Fazlar kaydedilemedi.",
     "inviteRenewFailed": "Davet yenilenemedi.",

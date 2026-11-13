@@ -2,6 +2,7 @@ import "server-only";
 
 import type {
   ProgramMemberKind,
+  ProgramMentorRemoval,
   ProgramTeamMove,
 } from "@/interfaces/admin-overview";
 import { backendRequest } from "@/lib/server/backend-client";
@@ -31,5 +32,18 @@ export function moveStartupToProgram(
     url: `/api/admin/programs/${encodeURIComponent(targetProgramId)}/startups/${encodeURIComponent(organizationId)}/move`,
     params: { actorId },
     data: { fromProgramId },
+  });
+}
+
+/** Takes an accepted mentor out of the program's pool. */
+export function removeMentorFromProgram(
+  actorId: string,
+  programId: string,
+  mentorId: string,
+) {
+  return backendRequest<ProgramMentorRemoval>({
+    method: "POST",
+    url: `/api/admin/programs/${encodeURIComponent(programId)}/mentors/${encodeURIComponent(mentorId)}/remove`,
+    params: { actorId },
   });
 }

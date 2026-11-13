@@ -46,6 +46,17 @@ export type ProgramTeamMove = {
   withdrawnRequests: number;
 };
 
+/** A mentor's removal from a program, as the backend recorded it. */
+export type ProgramMentorRemoval = {
+  id: string;
+  mentorId: string;
+  programId: string;
+  programName: string;
+  removedAt: string;
+  /** Unanswered mentorship requests to the mentor in that program that the removal withdrew. */
+  withdrawnRequests: number;
+};
+
 export type AdminStartup = {
   id: string;
   name: string;
