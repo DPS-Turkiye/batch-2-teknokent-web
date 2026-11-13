@@ -6129,6 +6129,8 @@
     "peerCategoriesLoadFailed": "Kategoriler yüklenemedi.",
     "peerCategoriesSaveFailed": "Kategoriler kaydedilemedi.",
     "peerCategoriesInvalid": "Kategori listesi geçersiz.",
+    "peerReportsLoadFailed": "Raporlar yüklenemedi.",
+    "peerReportSaveFailed": "Rapor kaydedilemedi.",
     "studentProfileCompletionLoadFailed": "İlgi alanların yüklenemedi.",
     "studentProfileCompletionSaveFailed": "İlgi alanların kaydedilemedi.",
     "studentAppointmentsLoadFailed": "Randevuların yüklenemedi.",

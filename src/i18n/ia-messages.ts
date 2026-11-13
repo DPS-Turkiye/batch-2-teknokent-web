@@ -3,6 +3,8 @@ import academicianEn from "@/messages/ia/academician/en.json";
 import academicianTr from "@/messages/ia/academician/tr.json";
 import coordinatorEn from "@/messages/ia/coordinator/en.json";
 import coordinatorTr from "@/messages/ia/coordinator/tr.json";
+import iskurReportsEn from "@/messages/ia/iskur-reports/en.json";
+import iskurReportsTr from "@/messages/ia/iskur-reports/tr.json";
 import iskurEn from "@/messages/ia/iskur/en.json";
 import iskurTr from "@/messages/ia/iskur/tr.json";
 import kitEn from "@/messages/ia/kit/en.json";
@@ -22,6 +24,7 @@ const TR_CATALOGS = {
   iaKit: kitTr,
   iaStudent: studentTr,
   iaIskur: iskurTr,
+  iaIskurReports: iskurReportsTr,
   iaAcademician: academicianTr,
   iaCoordinator: coordinatorTr,
   iaProfile: profileTr,
@@ -37,6 +40,7 @@ export const IA_MESSAGES: Record<Locale, IaMessages> = {
     iaKit: kitEn,
     iaStudent: studentEn,
     iaIskur: iskurEn,
+    iaIskurReports: iskurReportsEn,
     iaAcademician: academicianEn,
     iaCoordinator: coordinatorEn,
     iaProfile: profileEn,
