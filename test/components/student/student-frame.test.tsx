@@ -85,10 +85,9 @@ describe("StudentFrame", () => {
       "/student/profile",
     );
     const officeHours = within(nav).getByRole("link", {
-      name: /^Office Hours/,
+      name: "Office Hours",
     });
     expect(officeHours).toHaveAttribute("href", "/student/office-hours");
-    expect(within(officeHours).getByText("Yakında")).toBeVisible();
     expect(
       within(nav).getByRole("link", { name: "Randevularım" }),
     ).toHaveAttribute("href", "/student/appointments");

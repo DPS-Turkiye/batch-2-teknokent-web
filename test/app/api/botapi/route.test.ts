@@ -1,8 +1,12 @@
 import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { DELETE, POST } from "@/app/api/botapi/route";
-import { createMeetingBot, stopMeetingBotBackend } from "@/lib/botapi";
+import { DELETE, GET, POST } from "@/app/api/botapi/route";
+import {
+  createMeetingBot,
+  fetchMeetingBotStateBackend,
+  stopMeetingBotBackend,
+} from "@/lib/botapi";
 
 vi.mock("@/lib/session", () => ({
   getSessionIds: vi
@@ -11,6 +15,7 @@ vi.mock("@/lib/session", () => ({
 }));
 vi.mock("@/lib/botapi", () => ({
   createMeetingBot: vi.fn(),
+  fetchMeetingBotStateBackend: vi.fn(),
   stopMeetingBotBackend: vi.fn(),
 }));
 
@@ -216,6 +221,95 @@ describe("assistant bot API route", () => {
     expect(response.status).toBe(403);
     await expect(response.json()).resolves.toMatchObject({
       code: "FORBIDDEN",
+    });
+  });
+
+  it("returns the bot's state for a meeting", async () => {
+    const state = {
+      platform: "google_meet",
+      nativeMeetingId: "abc-defg-hij",
+      state: "WAITING_FOR_ADMISSION",
+      endReason: null,
+      requestedAt: "2026-11-11T20:03:06Z",
+    };
+    vi.mocked(fetchMeetingBotStateBackend).mockResolvedValue({
+      data: state,
+      status: 200,
+    });
+
+    const response = await GET(
+      new NextRequest(
+        "http://localhost/api/botapi?platform=google_meet&nativeMeetingId=abc-defg-hij",
+        { headers: bearer },
+      ),
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual(state);
+    expect(fetchMeetingBotStateBackend).toHaveBeenCalledWith(
+      "google_meet",
+      "abc-defg-hij",
+      "firebase-token",
+    );
+  });
+
+  it("returns 400 when the state query is incomplete", async () => {
+    const response = await GET(
+      new NextRequest("http://localhost/api/botapi?platform=google_meet", {
+        headers: bearer,
+      }),
+    );
+
+    expect(response.status).toBe(400);
+    expect(fetchMeetingBotStateBackend).not.toHaveBeenCalled();
+  });
+
+  it("answers 401 to read a bot's state without the caller's own token", async () => {
+    const response = await GET(
+      new NextRequest(
+        "http://localhost/api/botapi?platform=google_meet&nativeMeetingId=abc-defg-hij",
+      ),
+    );
+
+    expect(response.status).toBe(401);
+    expect(fetchMeetingBotStateBackend).not.toHaveBeenCalled();
+  });
+
+  it("answers a localized 403 for the bot of a meeting the caller is not part of", async () => {
+    vi.mocked(fetchMeetingBotStateBackend).mockResolvedValue({
+      data: {
+        message: "Only a participant of this meeting can use its assistant.",
+      },
+      status: 403,
+    });
+
+    const response = await GET(
+      new NextRequest(
+        "http://localhost/api/botapi?platform=google_meet&nativeMeetingId=abc-defg-hij",
+        { headers: bearer },
+      ),
+    );
+
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toMatchObject({
+      code: "FORBIDDEN",
+    });
+  });
+
+  it("returns 502 when the state call throws", async () => {
+    vi.mocked(fetchMeetingBotStateBackend).mockRejectedValue(new Error("boom"));
+
+    const response = await GET(
+      new NextRequest(
+        "http://localhost/api/botapi?platform=google_meet&nativeMeetingId=abc-defg-hij",
+        { headers: bearer },
+      ),
+    );
+
+    expect(response.status).toBe(502);
+    await expect(response.json()).resolves.toEqual({
+      code: "BACKEND_UNAVAILABLE",
+      message: "Toplantı asistanı hizmetine ulaşılamıyor.",
     });
   });
 });

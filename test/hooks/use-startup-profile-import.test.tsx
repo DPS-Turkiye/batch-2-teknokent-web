@@ -3,6 +3,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useAppSession } from "@/components/providers/session-provider";
 import { useStartupProfileImport } from "@/hooks/use-startup-profile-import";
+import {
+  ProfileAnalysisType,
+  ProfileOcrMode,
+} from "@/interfaces/profile-analysis";
 import { UserRole, type AppSession } from "@/interfaces/session";
 import { ClientApiError } from "@/lib/client/api";
 import { uploadProfileAnalysis } from "@/lib/client/profile-analysis";
@@ -52,6 +56,12 @@ describe("startup import guards", () => {
       void result.current.extract();
     });
     await waitFor(() => expect(uploadProfileAnalysis).toHaveBeenCalledTimes(1));
+    expect(uploadProfileAnalysis).toHaveBeenCalledWith({
+      file: expect.any(File),
+      profileType: ProfileAnalysisType.Startup,
+      ocrMode: ProfileOcrMode.Auto,
+      consentAccepted: true,
+    });
     await act(async () => {
       resolve(analysis());
       await first;

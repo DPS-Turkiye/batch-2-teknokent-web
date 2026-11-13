@@ -1,16 +1,18 @@
 import { AxiosError } from "axios";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { MeetingBotState } from "@/interfaces/meeting-bot";
 import {
   addMeetingBot,
+  fetchMeetingBotStatus,
   fetchTranscript,
   generateMeetingReport,
   stopMeetingBot,
 } from "@/lib/assistant";
 import {
   getBotApiUrl,
+  getMeetingBotApiUrl,
   getMeetingReportApiUrl,
-  getStopBotApiUrl,
   getTranscriptApiUrl,
 } from "@/lib/const";
 import { currentIdToken } from "@/lib/firebase/auth";
@@ -126,7 +128,7 @@ describe("assistant lib", () => {
     await stopMeetingBot("google_meet", "abc-defg-hij");
 
     expect(httpClient.delete).toHaveBeenCalledWith(
-      getStopBotApiUrl("google_meet", "abc-defg-hij"),
+      getMeetingBotApiUrl("google_meet", "abc-defg-hij"),
       signedIn,
     );
   });
@@ -208,5 +210,48 @@ describe("assistant lib", () => {
     ).rejects.toThrow("Oturumunuz sona erdi. Lütfen tekrar giriş yapın.");
     expect(httpClient.get).not.toHaveBeenCalled();
     expect(httpClient.post).not.toHaveBeenCalled();
+  });
+
+  it("fetchMeetingBotStatus reads the bot's state with the caller's token", async () => {
+    vi.mocked(httpClient.get).mockResolvedValue(
+      createAxiosResponse(
+        {
+          platform: "google_meet",
+          nativeMeetingId: "abc-defg-hij",
+          state: "ACTIVE",
+          endReason: null,
+          requestedAt: "2026-11-11T20:03:06Z",
+        },
+        200,
+      ),
+    );
+
+    await expect(
+      fetchMeetingBotStatus("google_meet", "abc-defg-hij"),
+    ).resolves.toMatchObject({ state: MeetingBotState.Active });
+    expect(httpClient.get).toHaveBeenCalledWith(
+      getMeetingBotApiUrl("google_meet", "abc-defg-hij"),
+      signedIn,
+    );
+  });
+
+  it("fetchMeetingBotStatus refuses an answer that is not a bot state", async () => {
+    vi.mocked(httpClient.get).mockResolvedValue(
+      createAxiosResponse({ segments: [] }, 200),
+    );
+
+    await expect(
+      fetchMeetingBotStatus("google_meet", "abc-defg-hij"),
+    ).rejects.toThrow("Botun durumu okunamadı.");
+  });
+
+  it("fetchMeetingBotStatus hides the backend's English error", async () => {
+    vi.mocked(httpClient.get).mockRejectedValue(
+      createAxiosError({ detail: "Failed to read bot state" }, 502),
+    );
+
+    await expect(
+      fetchMeetingBotStatus("google_meet", "abc-defg-hij"),
+    ).rejects.toThrow("Botun durumu okunamadı. (502)");
   });
 });

@@ -17,6 +17,7 @@ import {
   experienceCardProblem,
   experienceProblemField,
   formatYearMonth,
+  iskurHomeMode,
   latestGateAward,
   levelsFor,
   mentorshipSince,
@@ -40,6 +41,7 @@ import enIskur from "@/messages/ia/iskur/en.json";
 import trIskur from "@/messages/ia/iskur/tr.json";
 import {
   ExperienceCardProblem,
+  IskurHomeMode,
   PeerCapacityNote,
   PeerRequestAvailability,
 } from "@/types/iskur-student";
@@ -528,5 +530,43 @@ describe("nextSessionsByRequest", () => {
       now,
     );
     expect(next.size).toBe(0);
+  });
+
+  it("keeps a request whose asked-for time passed while the proposed time is still ahead", () => {
+    const moved = {
+      ...session(
+        "r4",
+        "2026-11-08T09:00:00.000Z",
+        AppointmentStatus.AlternativeProposed,
+      ),
+      alternative: {
+        startsAt: "2026-11-13T09:00:00.000Z",
+        endsAt: "2026-11-13T09:30:00.000Z",
+      },
+    };
+    expect(nextSessionsByRequest([moved], now).get("r4")).toBe(moved);
+  });
+});
+
+describe("iskurHomeMode", () => {
+  it("adds nothing for students who cannot give peer mentoring or lost the badge", () => {
+    expect(iskurHomeMode(PeerMentorGateState.Hidden, false)).toBe(
+      IskurHomeMode.None,
+    );
+    expect(iskurHomeMode(PeerMentorGateState.Revoked, true)).toBe(
+      IskurHomeMode.None,
+    );
+  });
+
+  it("points to the training, then the wizard, then shows the mentor blocks", () => {
+    expect(iskurHomeMode(PeerMentorGateState.NoBadge, false)).toBe(
+      IskurHomeMode.Training,
+    );
+    expect(iskurHomeMode(PeerMentorGateState.Earned, false)).toBe(
+      IskurHomeMode.CreateProfile,
+    );
+    expect(iskurHomeMode(PeerMentorGateState.Earned, true)).toBe(
+      IskurHomeMode.Mentor,
+    );
   });
 });

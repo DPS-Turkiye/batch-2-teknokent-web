@@ -17,11 +17,13 @@ import {
   programForOrganization,
   programOfMentorship,
 } from "@/lib/admin-model";
+import { USER_TAB_HREFS } from "@/lib/admin-users";
 import {
   HomeInterventionKind,
   HomeProgramScope,
   InterventionTone,
 } from "@/types/admin-home";
+import { UserTab } from "@/types/admin-users";
 
 export type HomeT = ReturnType<typeof useTranslations<"adminHome">>;
 
@@ -49,7 +51,7 @@ export type Intervention = {
 export const HOME_PROGRAM_SCOPES = Object.values(HomeProgramScope);
 
 const INTERVENTIONS_HREF = "/admin/mentorships/interventions";
-const MENTORS_HREF = "/admin/users/mentors";
+const MENTORS_HREF = USER_TAB_HREFS[UserTab.Mentors];
 
 /** How many programs the waiting teams are spread over. */
 export function waitingProgramCount(waiting: AdminStartup[]) {

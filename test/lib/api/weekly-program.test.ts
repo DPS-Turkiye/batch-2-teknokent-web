@@ -27,6 +27,17 @@ describe("weekly program server API", () => {
     );
   });
 
+  it("falls back to the service credentials when there is no token", async () => {
+    await readWeeklyProgram("coord-1", "prog-1", "doc-1");
+
+    expect(backendRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: "/api/coordinator/programs/prog-1/weekly-program/read",
+      }),
+      { idToken: undefined },
+    );
+  });
+
   it("saves the reviewed plan with the actor", async () => {
     const input = {
       documentId: "doc-1",
