@@ -23,7 +23,7 @@ export async function POST(
     if (!session) throw new SessionRequiredError();
     const { id } = await params;
     if (!isOfficeHoursId(id)) {
-      return invalidRequest("invalidRequestFields", ["id"]);
+      return await invalidRequest("invalidRequestFields", ["id"]);
     }
     const body = await readJsonBody(request, officeHoursAnswerSchema);
     if (!body.ok) return body.response;

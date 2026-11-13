@@ -18,7 +18,7 @@ export async function GET(
     if (!session) throw new SessionRequiredError();
     const { id } = await params;
     if (!isOfficeHoursId(id)) {
-      return invalidRequest("invalidRequestFields", ["id"]);
+      return await invalidRequest("invalidRequestFields", ["id"]);
     }
     return backendResponse(await fetchListedAcademician(session.userId, id));
   } catch (error) {
