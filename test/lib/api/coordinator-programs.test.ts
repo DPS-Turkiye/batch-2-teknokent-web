@@ -18,7 +18,6 @@ import {
   createMatch,
   decideProgramApproval,
   decideProgramMentor,
-  extractSyllabusPhases,
   fetchCoordinatorProgram,
   fetchCoordinatorPrograms,
   fetchMatching,
@@ -153,25 +152,6 @@ const programCases: RequestCase[] = [
         startsAt: "2026-03-01T10:00:00Z",
         endsAt: null,
         description: null,
-        actorId: ACTOR,
-      },
-    },
-  ],
-  [
-    "asks the syllabus reader for phases with the actor added to the body",
-    () =>
-      extractSyllabusPhases(ACTOR, {
-        documentId: "doc-1",
-        startDate: "2026-01-05",
-        endDate: "2026-06-01",
-      }),
-    {
-      method: "POST",
-      url: "/api/coordinator/programs/syllabus/phases",
-      data: {
-        documentId: "doc-1",
-        startDate: "2026-01-05",
-        endDate: "2026-06-01",
         actorId: ACTOR,
       },
     },

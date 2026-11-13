@@ -5,6 +5,8 @@ import { UserRole } from "@/interfaces/session";
 import {
   createPeerMentoringRequest,
   getPeerCategories,
+  getPeerMentor,
+  getPeerMentorCounts,
   getPeerMentoringRequests,
   getPeerMentorProfile,
   getPeerMentors,
@@ -73,6 +75,41 @@ const calls: ClientCall[] = [
     ],
   },
   {
+    title:
+      "getPeerMentors sends a sub-topic and asks for this week only when set",
+    call: () =>
+      getPeerMentors({
+        category: null,
+        query: "",
+        subTopic: "fixture-cv",
+        availableThisWeek: true,
+      }),
+    method: "get",
+    args: [
+      "/api/peer-mentoring/mentors",
+      {
+        params: {
+          category: undefined,
+          q: undefined,
+          subTopic: "fixture-cv",
+          availableThisWeek: true,
+        },
+      },
+    ],
+  },
+  {
+    title: "getPeerMentor reads one mentor by id",
+    call: () => getPeerMentor("8c5f0f0e-6a3e-4c55-9d2d-2a7c7b1f0a11"),
+    method: "get",
+    args: ["/api/peer-mentoring/mentors/8c5f0f0e-6a3e-4c55-9d2d-2a7c7b1f0a11"],
+  },
+  {
+    title: "getPeerMentorCounts reads the mentors per category",
+    call: () => getPeerMentorCounts(),
+    method: "get",
+    args: ["/api/peer-mentoring/mentor-counts"],
+  },
+  {
     title: "getPeerCategories reads a student's categories with no side param",
     call: () => getPeerCategories(),
     method: "get",
@@ -125,6 +162,25 @@ describe("peer mentoring client", () => {
   });
 
   itSendsEachClientCall(calls);
+
+  it("getPeerMentor answers null for a mentor the directory doesn't list or a malformed id", async () => {
+    vi.mocked(httpClient.get).mockResolvedValueOnce(
+      createMentorResponse({ message: "Bulunamadı." }, 404),
+    );
+    await expect(getPeerMentor("someone")).resolves.toBeNull();
+
+    vi.mocked(httpClient.get).mockResolvedValueOnce(
+      createMentorResponse({ message: "Geçersiz." }, 400),
+    );
+    await expect(getPeerMentor("not-a-uuid")).resolves.toBeNull();
+  });
+
+  it("getPeerMentor still fails on a server error", async () => {
+    vi.mocked(httpClient.get).mockResolvedValueOnce(
+      createMentorResponse({ message: "Hata" }, 500),
+    );
+    await expect(getPeerMentor("someone")).rejects.toThrow();
+  });
 
   it("getPeerMentorProfile answers null before the wizard has published a profile", async () => {
     vi.mocked(httpClient.get).mockResolvedValue(

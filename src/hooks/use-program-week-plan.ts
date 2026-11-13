@@ -4,7 +4,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
-import type { ProgramPlanWeek } from "@/interfaces/program-week";
 import { ToastTone } from "@/interfaces/toast";
 import {
   getProgramWeekPlan,
@@ -27,8 +26,8 @@ export const programWeekPlanQueryKey = (programId: string) =>
   ["coordinator-program", programId, "weeks"] as const;
 
 /**
- * Müfredat & fazlar › Haftalık plan. Shows the saved weeks; the AI's weeks from a syllabus read, or any edit,
- * turn it into a draft that is saved or discarded as a whole.
+ * Haftalık program & fazlar › Haftalık plan. Shows the saved weeks; any edit turns them into a draft that is
+ * saved or discarded as a whole. Weeks read from a weekly program file are saved by useWeeklyProgramImport.
  */
 export function useProgramWeekPlan(
   programId: string,
@@ -42,7 +41,6 @@ export function useProgramWeekPlan(
     queryFn: () => getProgramWeekPlan(programId),
   });
   const [draft, setDraft] = useState<WeekDraft[] | null>(null);
-  const [proposed, setProposed] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
   const totalWeeks =
     query.data?.totalWeeks ??
@@ -60,7 +58,6 @@ export function useProgramWeekPlan(
     onSuccess: (saved) => {
       client.setQueryData(programWeekPlanQueryKey(programId), saved);
       setDraft(null);
-      setProposed(false);
       showToast({ message: t("saved"), tone: ToastTone.Success });
     },
     onError: (failure) =>
@@ -83,15 +80,9 @@ export function useProgramWeekPlan(
     isLoading: query.isLoading,
     loadError: query.error,
     dirty: draft !== null,
-    proposed,
     problem,
     isSaving: save.isPending,
     canAdd: nextFreeWeek(weeks, totalWeeks) !== null,
-    /** The AI's weeks from a syllabus read become the draft to review. */
-    propose: (proposal: ProgramPlanWeek[]) => {
-      change(proposal.map(weekDraftOf));
-      setProposed(true);
-    },
     update: (index: number, patch: Partial<WeekDraft>) =>
       change(
         weeks.map((week, at) => (at === index ? { ...week, ...patch } : week)),
@@ -117,7 +108,6 @@ export function useProgramWeekPlan(
     },
     discard: () => {
       setDraft(null);
-      setProposed(false);
       setProblem(null);
     },
     save: () => {

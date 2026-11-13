@@ -11,8 +11,10 @@ import {
 import type { ProfileCompletionCategory } from "@/interfaces/student-profile-completion";
 import {
   chosenSubtopics,
+  iskurHomeMode,
   latestGateAward,
   nextSessionsByRequest,
+  offeredSubTopics,
   PEER_REQUEST_STATUS_TONE,
   peerMentorCapacity,
   peerMentorGateState,
@@ -22,9 +24,11 @@ import {
   splitPeerRequests,
   splitRecommended,
   subtopicGroupsWithCounts,
+  subTopicOptions,
   weeklyHours,
 } from "@/lib/peer-mentoring";
 import {
+  IskurHomeMode,
   PeerCapacityNote,
   PeerRequestAvailability,
 } from "@/types/iskur-student";
@@ -322,6 +326,48 @@ describe("peerMentorProfileHref", () => {
   });
 });
 
+describe("sub-topic helpers", () => {
+  const catalogue: ProfileCompletionCategory[] = [
+    {
+      id: PeerTopicCategory.CareerInternship,
+      subtopics: [
+        { id: "cv", labelKey: "cv" },
+        { id: "shared", labelKey: "time" },
+      ],
+    },
+    {
+      id: PeerTopicCategory.International,
+      subtopics: [
+        { id: "exchange", labelKey: "exchange" },
+        { id: "shared", labelKey: "time" },
+      ],
+    },
+  ];
+
+  it("offers the chosen category's sub-topics, or every category's once", () => {
+    expect(
+      subTopicOptions(catalogue, PeerTopicCategory.International).map(
+        (sub) => sub.id,
+      ),
+    ).toEqual(["exchange", "shared"]);
+    expect(subTopicOptions(catalogue, null).map((sub) => sub.id)).toEqual([
+      "cv",
+      "shared",
+      "exchange",
+    ]);
+    expect(subTopicOptions(catalogue, PeerTopicCategory.CampusLife)).toEqual(
+      [],
+    );
+  });
+
+  it("pairs a mentor's sub-topics with their catalogue entry, keeping unknown ones", () => {
+    expect(offeredSubTopics(catalogue, ["exchange", "Serbest"])).toEqual([
+      { id: "exchange", entry: { id: "exchange", labelKey: "exchange" } },
+      { id: "Serbest", entry: null },
+    ]);
+  });
+});
+
 describe("nextSessionsByRequest", () => {
   const now = new Date("2026-11-09T09:00:00.000Z");
   const session = (
@@ -369,5 +415,28 @@ describe("nextSessionsByRequest", () => {
       },
     };
     expect(nextSessionsByRequest([moved], now).get("r4")).toBe(moved);
+  });
+});
+
+describe("iskurHomeMode", () => {
+  it("adds nothing for students who cannot give peer mentoring or lost the badge", () => {
+    expect(iskurHomeMode(PeerMentorGateState.Hidden, false)).toBe(
+      IskurHomeMode.None,
+    );
+    expect(iskurHomeMode(PeerMentorGateState.Revoked, true)).toBe(
+      IskurHomeMode.None,
+    );
+  });
+
+  it("points to the training, then the wizard, then shows the mentor blocks", () => {
+    expect(iskurHomeMode(PeerMentorGateState.NoBadge, false)).toBe(
+      IskurHomeMode.Training,
+    );
+    expect(iskurHomeMode(PeerMentorGateState.Earned, false)).toBe(
+      IskurHomeMode.CreateProfile,
+    );
+    expect(iskurHomeMode(PeerMentorGateState.Earned, true)).toBe(
+      IskurHomeMode.Mentor,
+    );
   });
 });

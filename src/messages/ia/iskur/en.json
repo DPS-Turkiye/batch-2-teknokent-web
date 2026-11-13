@@ -268,6 +268,10 @@
       "requested": "Your request is awaiting an answer",
       "full": "No places left",
       "nameSuffix": ", {name}",
+      "mentorCount": "{count, plural, one {# mentor} other {# mentors}}",
+      "subTopicFilter": "Sub-topic",
+      "allSubTopics": "All sub-topics",
+      "availableThisWeek": "Available this week",
       "mentoring": "Already your mentor"
     },
     "profile": {
@@ -277,7 +281,20 @@
       "badgeVerified": "Badge verified",
       "topics": "Topics they can help with",
       "helpWith": "How can I help students?",
-      "requestNote": "Once {name} accepts your request, the mentorship starts and you can plan meetings."
+      "requestNote": "Once {name} accepts your request, the mentorship starts and you can plan meetings.",
+      "experience": "Relevant experience",
+      "strongCourses": "Strong courses",
+      "projects": "Projects",
+      "erasmus": "Abroad / exchange experience",
+      "links": "Links",
+      "linkedin": "LinkedIn profile",
+      "availability": "Availability",
+      "noHours": "No weekly hours yet.",
+      "hoursRange": "{start} – {end}",
+      "thisWeek": "This week",
+      "thisWeekOpen": "Free slots",
+      "thisWeekFull": "No free slots",
+      "newTab": "(opens in a new tab)"
     },
     "dialog": {
       "title": "Send a mentoring request",
@@ -307,6 +324,39 @@
       "seeAppointment": "Go to appointment",
       "findAnother": "Find another mentor",
       "note": "A mentorship is the relationship between you and your mentor. Your meetings are listed under \"My appointments\"."
+    }
+  },
+  "home": {
+    "giving": {
+      "title": "Mentoring I give",
+      "hint": "As a peer mentor",
+      "all": "Give mentoring",
+      "empty": "No requests waiting for an answer.",
+      "new": "New request",
+      "sentAt": "{topic} · {date}",
+      "accept": "Accept",
+      "decline": "Decline",
+      "more": "+{count} more requests"
+    },
+    "mentor": {
+      "title": "Your mentor profile",
+      "active": "Active",
+      "badge": "Badge",
+      "badgeVerified": "Verified",
+      "capacity": "Capacity",
+      "capacityValue": "{used} / {capacity} mentees",
+      "noCapacity": "Not set",
+      "open": "My mentor profile"
+    },
+    "training": {
+      "title": "Become a peer mentor",
+      "body": "Complete your program's training, earn your badge and mentor other students.",
+      "action": "Go to Give mentoring"
+    },
+    "createProfile": {
+      "title": "Your badge is verified",
+      "body": "Create your mentor profile; once it's published, students can discover you.",
+      "action": "Create your mentor profile"
     }
   }
 }

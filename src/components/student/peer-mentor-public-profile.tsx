@@ -1,5 +1,6 @@
 "use client";
 
+import { Link2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
@@ -13,20 +14,23 @@ import {
 } from "@/components/student/peer-mentor-directory";
 import { PeerMentorRequestDialog } from "@/components/student/peer-mentor-request-dialog";
 import { usePeerMentor } from "@/hooks/use-peer-mentoring";
-import { initials } from "@/lib/utils";
+import { httpUrlOrNull, initials } from "@/lib/utils";
 
 const BACK_HREF = "/student/peer-mentoring";
 
 /**
- * A peer mentor's profile as students see it: who they are, the topics they help with, why they were recommended and
- * the request button. Built from the mentor card the directory returns.
+ * A peer mentor's profile as students see it: who they are, the topics and sub-topics they help with, their
+ * experience and links, why they were recommended, their weekly hours and the request button.
  */
 export function PeerMentorPublicProfile({ mentorId }: { mentorId: string }) {
   const t = useTranslations("iaIskur.take.profile");
   const tDiscover = useTranslations("iaIskur.take.discover");
   const tTopic = useTranslations("peerTopics");
+  const tSubTopic = useTranslations("studentProfileCompletion.subtopics");
+  const tDay = useTranslations("options.weekday");
   const view = usePeerMentor(mentorId);
   const { mentor } = view;
+  const linkedinUrl = httpUrlOrNull(mentor?.linkedinUrl);
 
   return (
     <div className="space-y-8">
@@ -76,6 +80,13 @@ export function PeerMentorPublicProfile({ mentorId }: { mentorId: string }) {
                     <Tag tone={TagTone.Accent}>{tTopic(category)}</Tag>
                   </li>
                 ))}
+                {view.subTopics.map(({ id, entry }) => (
+                  <li key={id}>
+                    <Tag tone={TagTone.Accent}>
+                      {entry ? tSubTopic(entry.labelKey) : id}
+                    </Tag>
+                  </li>
+                ))}
               </ul>
             </section>
             <section aria-labelledby="mentor-help" className="space-y-2">
@@ -86,9 +97,96 @@ export function PeerMentorPublicProfile({ mentorId }: { mentorId: string }) {
                 {mentor.helpWith}
               </p>
             </section>
+            {mentor.strongCourses.length > 0 ||
+            mentor.projects.length > 0 ||
+            mentor.erasmus ? (
+              <section
+                aria-labelledby="mentor-experience"
+                className="space-y-3"
+              >
+                <h2
+                  id="mentor-experience"
+                  className="type-label text-text-primary"
+                >
+                  {t("experience")}
+                </h2>
+                <dl className="space-y-3">
+                  <ExperienceLine
+                    label={t("strongCourses")}
+                    items={mentor.strongCourses}
+                  />
+                  <ExperienceLine
+                    label={t("projects")}
+                    items={mentor.projects}
+                  />
+                  <ExperienceLine
+                    label={t("erasmus")}
+                    items={mentor.erasmus ? [mentor.erasmus] : []}
+                  />
+                </dl>
+              </section>
+            ) : null}
+            {linkedinUrl ? (
+              <section aria-labelledby="mentor-links" className="space-y-2">
+                <h2 id="mentor-links" className="type-label text-text-primary">
+                  {t("links")}
+                </h2>
+                <a
+                  href={linkedinUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 type-label text-text-accent hover:underline"
+                >
+                  <Link2 aria-hidden className="size-4" />
+                  {t("linkedin")} <span className="sr-only">{t("newTab")}</span>
+                </a>
+              </section>
+            ) : null}
           </Card>
           <aside className="flex w-full flex-col gap-6 lg:w-[400px] lg:shrink-0">
             <WhyRecommended reasons={view.reasons} />
+            <Card labelledBy="mentor-availability" className="space-y-4">
+              <h2
+                id="mentor-availability"
+                className="type-title-card text-text-primary"
+              >
+                {t("availability")}
+              </h2>
+              {view.weeklyHours.length === 0 ? (
+                <p className="type-body-sm text-text-secondary">
+                  {t("noHours")}
+                </p>
+              ) : (
+                <dl className="space-y-3">
+                  {view.weeklyHours.map((range) => (
+                    <div
+                      key={`${range.dayOfWeek}-${range.start}-${range.end}`}
+                      className="flex items-center justify-between gap-4"
+                    >
+                      <dt className="type-body-sm text-text-secondary">
+                        {tDay(range.dayOfWeek)}
+                      </dt>
+                      <dd className="type-label text-text-primary">
+                        {t("hoursRange", {
+                          start: range.start,
+                          end: range.end,
+                        })}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              )}
+              <p className="flex items-center justify-between gap-4 rounded-xl bg-card-featured-bg px-3 py-2.5">
+                <span className="type-body-sm text-text-secondary">
+                  {t("thisWeek")}
+                </span>
+                <span className="type-label text-text-accent">
+                  {mentor.availableThisWeek
+                    ? t("thisWeekOpen")
+                    : t("thisWeekFull")}
+                </span>
+              </p>
+            </Card>
             <Card className="space-y-3">
               <RequestButton
                 mentor={mentor}
@@ -109,6 +207,22 @@ export function PeerMentorPublicProfile({ mentorId }: { mentorId: string }) {
           ) : null}
         </div>
       ) : null}
+    </div>
+  );
+}
+
+function ExperienceLine({
+  label,
+  items,
+}: {
+  label: string;
+  items: readonly string[];
+}) {
+  if (items.length === 0) return null;
+  return (
+    <div className="space-y-1">
+      <dt className="type-caption text-text-muted">{label}</dt>
+      <dd className="type-body-sm text-text-secondary">{items.join(" · ")}</dd>
     </div>
   );
 }

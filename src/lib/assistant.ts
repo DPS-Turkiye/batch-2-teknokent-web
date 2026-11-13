@@ -1,15 +1,17 @@
 import axios, { type AxiosRequestConfig, type AxiosResponse } from "axios";
 
 import { clientText } from "@/i18n/client-texts";
+import type { MeetingBotStatus } from "@/interfaces/meeting-bot";
 import { amplifyBlockedMessage } from "@/lib/amplify-safe-body";
 import { bearerHeader } from "@/lib/client/bearer";
 import {
   getBotApiUrl,
+  getMeetingBotApiUrl,
   getMeetingReportApiUrl,
-  getStopBotApiUrl,
   getTranscriptApiUrl,
 } from "@/lib/const";
 import { httpClient, UPLOAD_TIMEOUT_MS } from "@/lib/http-client";
+import { parseMeetingBotStatus } from "@/lib/meeting-bot";
 import type {
   AddBotResult,
   MeetingReport,
@@ -95,13 +97,34 @@ export async function stopMeetingBot(
   try {
     requireAssistantOk(
       await httpClient.delete(
-        getStopBotApiUrl(platform, nativeMeetingId),
+        getMeetingBotApiUrl(platform, nativeMeetingId),
         await signedIn(),
       ),
       clientText("assistant.stopFailed"),
     );
   } catch (error) {
     wrapAssistantError(error, clientText("assistant.stopFailed"));
+  }
+}
+
+export async function fetchMeetingBotStatus(
+  platform: string,
+  nativeMeetingId: string,
+): Promise<MeetingBotStatus> {
+  try {
+    const status = parseMeetingBotStatus(
+      requireAssistantOk(
+        await httpClient.get<unknown>(
+          getMeetingBotApiUrl(platform, nativeMeetingId),
+          await signedIn(),
+        ),
+        clientText("assistant.botStateFailed"),
+      ),
+    );
+    if (!status) throw new Error(clientText("assistant.botStateFailed"));
+    return status;
+  } catch (error) {
+    wrapAssistantError(error, clientText("assistant.botStateFailed"));
   }
 }
 

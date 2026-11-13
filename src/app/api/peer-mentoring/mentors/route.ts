@@ -13,6 +13,8 @@ import {
 import { SessionRequiredError } from "@/lib/server/session-error";
 import { getSessionUser } from "@/lib/session";
 
+const SUB_TOPIC_MAX = 64;
+
 function categoryParam(value: string | null): PeerTopicCategory | undefined {
   return PEER_TOPIC_CATEGORIES.find((category) => category === value);
 }
@@ -23,10 +25,16 @@ export async function GET(request: NextRequest) {
     if (!session) throw new SessionRequiredError();
     const params = request.nextUrl.searchParams;
     const q = params.get("q")?.trim();
+    const subTopic = params.get("subTopic")?.trim();
     return backendResponse(
       await fetchPeerMentors(session.userId, {
         category: categoryParam(params.get("category")),
         q: q || undefined,
+        // Catalogue ids are short; anything longer cannot match one.
+        subTopic:
+          subTopic && subTopic.length <= SUB_TOPIC_MAX ? subTopic : undefined,
+        availableThisWeek:
+          params.get("availableThisWeek") === "true" ? true : undefined,
       }),
     );
   } catch (error) {

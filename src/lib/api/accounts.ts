@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { BackendUser, UserAccountStatus } from "@/interfaces/session";
+import type { UserDeletionResult } from "@/interfaces/user-deletion";
 import { HttpMethod } from "@/lib/http-method";
 import { backendRequest } from "@/lib/server/backend-client";
 
@@ -48,6 +49,25 @@ export function decideAccountStatus(
     url: `/api/users/${encodeURIComponent(userId)}/status`,
     data: { actorId, status },
   });
+}
+
+/**
+ * Sent with the admin's own Firebase token instead of an actor id: the backend takes the acting admin from the
+ * token and refuses this call on the shared service credentials.
+ */
+export function deleteUser(
+  userId: string,
+  confirmEmail: string,
+  idToken: string,
+) {
+  return backendRequest<UserDeletionResult>(
+    {
+      method: HttpMethod.Post,
+      url: `/api/admin/users/${encodeURIComponent(userId)}/delete`,
+      data: { confirmEmail },
+    },
+    { idToken },
+  );
 }
 
 export function revokeSignIns(userId: string, actorId: string) {

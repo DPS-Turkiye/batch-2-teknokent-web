@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import type { WeeklyProgramPhaseInput } from "@/interfaces/weekly-program";
+import { ClientApiError } from "@/lib/client/api";
 import { weekDraftOf } from "@/lib/program-week";
 import {
+  isStalePlanError,
+  keepsEveryWeek,
   lastKeptWeek,
   moveWeekToPhase,
   phaseIndexOfWeek,
@@ -10,6 +13,7 @@ import {
   PhaseRangeProblem,
   phaseRangeProblem,
   replacesExistingPlan,
+  weekListLabel,
   weeklyProgramSaveInput,
 } from "@/lib/weekly-program";
 import {
@@ -124,6 +128,19 @@ describe("lastKeptWeek", () => {
   });
 });
 
+describe("keepsEveryWeek", () => {
+  it("keeps every week only once the program has ended", () => {
+    expect(
+      keepsEveryWeek(
+        lastKeptWeek({ phaseCount: 0, weekCount: 11, currentWeek: 12 }, true),
+        11,
+      ),
+    ).toBe(true);
+    expect(keepsEveryWeek(10, 11)).toBe(false);
+    expect(keepsEveryWeek(null, 11)).toBe(false);
+  });
+});
+
 describe("weeklyProgramSaveInput", () => {
   it("sends the reviewed weeks and phases without row keys, trimmed", () => {
     const [first, second] = phaseRangeDraftsOf(weeklyProgramProposal().phases);
@@ -188,5 +205,21 @@ describe("weeklyProgramSaveInput", () => {
         keepPast: false,
       }),
     ).toMatchObject({ seenPhaseCount: 3, seenWeekCount: 0 });
+  });
+});
+
+describe("isStalePlanError", () => {
+  it("is a 409 from the save, nothing else", () => {
+    expect(isStalePlanError(new ClientApiError("changed", 409))).toBe(true);
+    expect(isStalePlanError(new ClientApiError("bad", 400))).toBe(false);
+    expect(isStalePlanError(new Error("network"))).toBe(false);
+  });
+});
+
+describe("weekListLabel", () => {
+  it("lists the weeks a warning is about in the reader's language", () => {
+    expect(weekListLabel([8, 10], "tr")).toBe("8 ve 10");
+    expect(weekListLabel([3, 8, 10], "en")).toBe("3, 8, and 10");
+    expect(weekListLabel([5], "tr")).toBe("5");
   });
 });

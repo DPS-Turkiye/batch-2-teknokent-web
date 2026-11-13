@@ -1,7 +1,4 @@
-import type {
-  StartupProcess,
-  StartupStage,
-} from "@/interfaces/startup-process";
+import type { StartupProcess } from "@/interfaces/startup-process";
 import { requireSuccess } from "@/lib/client/api";
 import { httpClient } from "@/lib/http-client";
 
@@ -23,7 +20,7 @@ export async function submitAssignment(
   );
 }
 
-function teamStageUrl(programId: string, organizationId: string) {
+function teamProcessUrl(programId: string, organizationId: string) {
   return `/api/coordinator/programs/${encodeURIComponent(programId)}/team-details/${encodeURIComponent(organizationId)}/stage`;
 }
 
@@ -34,20 +31,7 @@ export async function getTeamProcess(
 ) {
   return requireSuccess(
     await httpClient.get<StartupProcess>(
-      teamStageUrl(programId, organizationId),
-    ),
-  );
-}
-
-export async function updateTeamStage(
-  programId: string,
-  organizationId: string,
-  stage: StartupStage,
-) {
-  return requireSuccess(
-    await httpClient.put<StartupProcess>(
-      teamStageUrl(programId, organizationId),
-      { stage },
+      teamProcessUrl(programId, organizationId),
     ),
   );
 }

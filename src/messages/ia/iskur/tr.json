@@ -268,6 +268,10 @@
       "requested": "Talebin yanıt bekliyor",
       "full": "Kontenjan dolu",
       "nameSuffix": ", {name}",
+      "mentorCount": "{count} mentor",
+      "subTopicFilter": "Alt konu",
+      "allSubTopics": "Tüm alt konular",
+      "availableThisWeek": "Bu hafta müsait",
       "mentoring": "Zaten mentorun"
     },
     "profile": {
@@ -277,7 +281,20 @@
       "badgeVerified": "Rozet doğrulandı",
       "topics": "Yardımcı olabileceği konular",
       "helpWith": "Öğrencilere nasıl yardımcı olabilirim?",
-      "requestNote": "{name} talebini kabul ettiğinde mentorluk başlar ve görüşme planlayabilirsiniz."
+      "requestNote": "{name} talebini kabul ettiğinde mentorluk başlar ve görüşme planlayabilirsiniz.",
+      "experience": "İlgili deneyim",
+      "strongCourses": "Güçlü olduğu dersler",
+      "projects": "Projeleri",
+      "erasmus": "Yurt dışı / değişim deneyimi",
+      "links": "Bağlantılar",
+      "linkedin": "LinkedIn profili",
+      "availability": "Müsaitlik",
+      "noHours": "Haftalık saat eklenmemiş.",
+      "hoursRange": "{start} – {end}",
+      "thisWeek": "Bu hafta",
+      "thisWeekOpen": "Boş saat var",
+      "thisWeekFull": "Boş saat yok",
+      "newTab": "(yeni sekmede açılır)"
     },
     "dialog": {
       "title": "Mentorluk talebi gönder",
@@ -307,6 +324,39 @@
       "seeAppointment": "Randevuya git",
       "findAnother": "Başka Mentor Bul",
       "note": "Mentorluk, mentorunla aranızdaki ilişkidir. Görüşmelerin \"Randevularım\" altında listelenir."
+    }
+  },
+  "home": {
+    "giving": {
+      "title": "Mentorluk verdiğim",
+      "hint": "Akran mentoru olarak",
+      "all": "Mentorluk Ver",
+      "empty": "Yanıt bekleyen talep yok.",
+      "new": "Yeni talep",
+      "sentAt": "{topic} · {date}",
+      "accept": "Kabul Et",
+      "decline": "Reddet",
+      "more": "+{count} talep daha"
+    },
+    "mentor": {
+      "title": "Mentor profilin",
+      "active": "Aktif",
+      "badge": "Rozet",
+      "badgeVerified": "Doğrulandı",
+      "capacity": "Kapasite",
+      "capacityValue": "{used} / {capacity} mentee",
+      "noCapacity": "Belirlenmedi",
+      "open": "Mentor Profilim"
+    },
+    "training": {
+      "title": "Akran mentoru ol",
+      "body": "Programının eğitimini tamamla, rozetini al ve diğer öğrencilere mentorluk ver.",
+      "action": "Mentorluk Ver'e git"
+    },
+    "createProfile": {
+      "title": "Rozetin doğrulandı",
+      "body": "Mentor profilini oluştur; yayınladığında öğrenciler seni keşfedebilir.",
+      "action": "Mentor profilini oluştur"
     }
   }
 }

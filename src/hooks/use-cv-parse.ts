@@ -5,6 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 import {
   parseCv,
   parseStoredCv,
+  type CvSource,
   type ParsedCvProfile,
 } from "@/lib/client/profile-analysis";
 
@@ -52,11 +53,17 @@ export function toCvParseResult(profile: ParsedCvProfile): CvParseResult {
  */
 export function useCvParse() {
   return useMutation({
-    mutationFn: async (source: File | { documentId: string }) =>
+    mutationFn: async ({
+      source,
+      consentAccepted,
+    }: {
+      source: CvSource;
+      consentAccepted: boolean;
+    }) =>
       toCvParseResult(
         await (source instanceof File
-          ? parseCv(source)
-          : parseStoredCv(source.documentId)),
+          ? parseCv(source, consentAccepted)
+          : parseStoredCv(source.documentId, consentAccepted)),
       ),
   });
 }

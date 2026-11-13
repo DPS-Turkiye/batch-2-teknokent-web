@@ -1,4 +1,5 @@
 import type { PublicBadge } from "@/interfaces/badges";
+import type { MentorAvailabilityRule } from "@/interfaces/mentor";
 import type { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 
 /** The board's eight peer-mentoring categories; the coordinator decides which are active. */
@@ -39,11 +40,38 @@ export type PeerMentorCard = {
   capacityFull: boolean;
   /** Active badges; a card shows the achievements. */
   badges: PublicBadge[];
+  /** A free slot in the coming seven days ("Bu hafta müsait"). */
+  availableThisWeek: boolean;
 };
 
 export type PeerMentorFilter = {
   category: PeerTopicCategory | null;
   query: string;
+  /** A sub-topic id from the interest catalogue; left out, any. */
+  subTopic?: string | null;
+  /** Only mentors with a free slot in the coming seven days. */
+  availableThisWeek?: boolean;
+};
+
+/**
+ * One peer mentor's profile page (`GET /api/peer-mentoring/mentors/{id}`): the card plus what the wizard published
+ * and the weekly hours. 404 for anyone the student's directory doesn't list.
+ */
+export type PeerMentorDetail = PeerMentorCard & {
+  /** Sub-topic ids from the interest catalogue. */
+  subTopics: string[];
+  strongCourses: string[];
+  projects: string[];
+  erasmus: string | null;
+  /** Only ever an http(s) link. */
+  linkedinUrl: string | null;
+  weeklyHours: MentorAvailabilityRule[];
+};
+
+/** How many of the program's peer mentors offer an active category (`GET /api/peer-mentoring/mentor-counts`). */
+export type PeerCategoryCount = {
+  category: PeerTopicCategory;
+  mentorCount: number;
 };
 
 export type PeerMentoringPerson = {

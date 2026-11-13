@@ -15,8 +15,22 @@ import {
 } from "@/lib/coordinator-picker";
 
 describe("admin program wizard", () => {
+  it("chooses the type up front only when the edition offers a single one", () => {
+    expect(emptyWizardDraft([ProgramType.StartupMentoring]).type).toBe(
+      ProgramType.StartupMentoring,
+    );
+    expect(
+      emptyWizardDraft([ProgramType.PeerMentoring, ProgramType.OfficeHours])
+        .type,
+    ).toBeNull();
+    expect(emptyWizardDraft([]).type).toBeNull();
+  });
+
   it("asks for a type, a name, dates in order and a coordinator", () => {
-    const draft = emptyWizardDraft();
+    const draft = emptyWizardDraft([
+      ProgramType.PeerMentoring,
+      ProgramType.OfficeHours,
+    ]);
     expect(stepProblem(WizardStep.Type, draft)).toBe(
       WizardProblem.TypeRequired,
     );
@@ -56,7 +70,10 @@ describe("admin program wizard", () => {
     expect(
       createProgramInput(
         {
-          ...emptyWizardDraft(),
+          ...emptyWizardDraft([
+            ProgramType.PeerMentoring,
+            ProgramType.OfficeHours,
+          ]),
           name: "  ODTÜ Akran 2027 ",
           description: " ",
           coordinators: [
