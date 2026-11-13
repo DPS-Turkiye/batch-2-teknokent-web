@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { Edition } from "@/interfaces/edition";
-import { isPathOpenIn, parseEdition } from "@/lib/edition";
+import { editionOf, isPathOpenIn, parseEdition } from "@/lib/edition";
 
 const ODTU_PAGES = [
   "/student",
@@ -83,5 +83,13 @@ describe("isPathOpenIn", () => {
   it.each(SHARED_PAGES)("keeps %s open in both editions", (path) => {
     expect(isPathOpenIn(Edition.Teknokent, path)).toBe(true);
     expect(isPathOpenIn(Edition.Odtu, path)).toBe(true);
+  });
+});
+
+describe("editionOf", () => {
+  it("reads the session's edition, and Teknokent for an older cookie or no session", () => {
+    expect(editionOf({ edition: Edition.Odtu })).toBe(Edition.Odtu);
+    expect(editionOf({})).toBe(Edition.Teknokent);
+    expect(editionOf(null)).toBe(Edition.Teknokent);
   });
 });

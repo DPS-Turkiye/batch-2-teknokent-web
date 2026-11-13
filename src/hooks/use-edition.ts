@@ -1,12 +1,10 @@
 "use client";
 
 import { useAppSession } from "@/components/providers/session-provider";
-import { Edition } from "@/interfaces/edition";
+import type { Edition } from "@/interfaces/edition";
+import { editionOf } from "@/lib/edition";
 
-/**
- * The edition of the deployment the signed-in user is on. A session cookie from before editions (or no session)
- * reads as Teknokent, the same default `workspacesOf` uses.
- */
+/** The edition of the deployment the signed-in user is on; see `editionOf`. */
 export function useEdition(): Edition {
-  return useAppSession()?.edition ?? Edition.Teknokent;
+  return editionOf(useAppSession());
 }

@@ -7,6 +7,7 @@ import type { AdminOverview, AdminUser } from "@/interfaces/admin-overview";
 import { Edition } from "@/interfaces/edition";
 import { UserAccountStatus, UserRole } from "@/interfaces/session";
 import { deleteUserAccount } from "@/lib/client/admin-users";
+import { ClientApiError } from "@/lib/client/api";
 import { currentIdToken } from "@/lib/firebase/auth";
 import { UserTab } from "@/types/admin-users";
 import { renderWithQueryClient } from "@test/test-utils";
@@ -171,5 +172,53 @@ describe("UsersView drawer › Kullanıcıyı sil", () => {
       screen.queryByRole("button", { name: "Tüm oturumlarını kapat" }),
     ).not.toBeInTheDocument();
     expect(invalidate).toHaveBeenCalledWith({ queryKey: ["admin-overview"] });
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["admin"] });
+  });
+
+  it("renders the dialog outside the drawer, and cancelling leaves the drawer open", async () => {
+    signIn();
+    const { user } = await openDrawer(UserTab.Mentors, "Deniz Yıldız");
+
+    await user.click(screen.getByRole("button", { name: "Kullanıcıyı sil" }));
+    const dialog = screen.getByRole("dialog", {
+      name: "Kullanıcı kalıcı olarak silinsin mi?",
+    });
+    // Inside the drawer's transformed panel a fixed overlay would be clipped to it.
+    expect(dialog.closest("aside")).toBeNull();
+
+    await user.click(within(dialog).getByRole("button", { name: "Vazgeç" }));
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Tüm oturumlarını kapat" }),
+    ).toBeInTheDocument();
+    expect(deleteUserAccount).not.toHaveBeenCalled();
+  });
+
+  it("keeps the drawer and the lists as they are when the backend refuses", async () => {
+    signIn();
+    vi.mocked(deleteUserAccount).mockRejectedValue(
+      new ClientApiError("Yöneticiler silinemez.", 400),
+    );
+    const { user, queryClient } = await openDrawer(
+      UserTab.Coordinators,
+      "Okan Yurt",
+    );
+    const invalidate = vi.spyOn(queryClient, "invalidateQueries");
+
+    await user.click(screen.getByRole("button", { name: "Kullanıcıyı sil" }));
+    await user.type(
+      screen.getByLabelText("Onaylamak için kullanıcının e-postasını yaz"),
+      "okan@x.test",
+    );
+    await user.click(screen.getByRole("button", { name: "Kalıcı olarak sil" }));
+
+    expect(
+      await screen.findByText("Yöneticiler silinemez."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Tüm oturumlarını kapat" }),
+    ).toBeInTheDocument();
+    expect(invalidate).not.toHaveBeenCalled();
   });
 });
