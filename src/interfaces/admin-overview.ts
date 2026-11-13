@@ -18,6 +18,8 @@ export type AdminProgram = {
   coordinatorId: string | null;
   /** Every assigned coordinator, comma-separated; null until one is assigned. */
   coordinatorName: string | null;
+  /** Every coordinator, first one first. Absent from a backend older than v1.6.53, so read it through `programsForCoordinator`. */
+  coordinatorIds?: string[];
   startupCount: number;
   acceptedMentorCount: number;
   pendingMentorCount: number;
@@ -53,6 +55,8 @@ export type AdminUser = {
   email: string;
   fullName: string;
   role: UserRole;
+  /** Every active permission, `role` included. Absent from a backend older than v1.6.53, so read it through `hasRole`. */
+  roles?: UserRole[];
   status: UserAccountStatus;
   organizationId: string | null;
   organizationName: string | null;

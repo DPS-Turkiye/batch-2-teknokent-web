@@ -3,17 +3,23 @@ import type {
   AdminOverview,
   AdminProgram,
   AdminStartup,
+  AdminUser,
 } from "@/interfaces/admin-overview";
 import { MentorshipStatus } from "@/interfaces/coordinator-mentorship";
 import { ProgramMentorStatus, ProgramStatus } from "@/interfaces/program";
 import { UserAccountStatus, UserRole } from "@/interfaces/session";
 
+/** A permission can come on top of the primary role (an academic who also mentors), so `roles` decides when present. */
+export function hasRole(user: AdminUser, role: UserRole) {
+  return (user.roles ?? [user.role]).includes(role);
+}
+
 export function coordinatorsOf(data: AdminOverview) {
-  return data.users.filter((user) => user.role === UserRole.Coordinator);
+  return data.users.filter((user) => hasRole(user, UserRole.Coordinator));
 }
 
 export function mentorsOf(data: AdminOverview) {
-  return data.users.filter((user) => user.role === UserRole.Mentor);
+  return data.users.filter((user) => hasRole(user, UserRole.Mentor));
 }
 
 export function pendingMentors(data: AdminOverview) {
@@ -91,8 +97,14 @@ export function needsAttention(item: AdminMentorship, now = new Date()) {
   return item.daysSinceMeeting >= 14;
 }
 
+/** Every program the user coordinates, the ones they were added to in its settings included. */
 export function programsForCoordinator(data: AdminOverview, userId: string) {
-  return data.programs.filter((program) => program.coordinatorId === userId);
+  return data.programs.filter((program) =>
+    (
+      program.coordinatorIds ??
+      (program.coordinatorId ? [program.coordinatorId] : [])
+    ).includes(userId),
+  );
 }
 
 export function programForOrganization(
@@ -143,9 +155,23 @@ export function assignableProgramsForStartup(
   );
 }
 
+/** The programs the mentor is in or invited to; a program that turned them down is not one of them. */
 export function programsForMentor(data: AdminOverview, userId: string) {
   return data.programs.filter((program) =>
-    program.mentors.some((mentor) => mentor.mentorId === userId),
+    program.mentors.some(
+      (mentor) =>
+        mentor.mentorId === userId &&
+        mentor.status !== ProgramMentorStatus.Rejected,
+    ),
+  );
+}
+
+/** Whether the mentor counts in the program's `acceptedMentorCount`. */
+export function isAcceptedMentor(program: AdminProgram, userId: string) {
+  return program.mentors.some(
+    (mentor) =>
+      mentor.mentorId === userId &&
+      mentor.status === ProgramMentorStatus.Accepted,
   );
 }
 

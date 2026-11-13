@@ -393,7 +393,7 @@ function MentorsTable({
           <EmptyNote>{t("noMentors")}</EmptyNote>
         ) : (
           table.visible.map(
-            ({ user, programs, mentorships, stale, pendingInvite }) => (
+            ({ user, acceptedPrograms, mentorships, stale, pendingInvite }) => (
               <div
                 key={user.id}
                 className={`${mentorCols} border-b border-[#f0f2f4] px-5 py-3.5 last:border-0`}
@@ -431,7 +431,10 @@ function MentorsTable({
                     ))
                   )}
                 </span>
-                <ProgramChips programs={programs} empty={t("unassigned")} />
+                <ProgramChips
+                  programs={acceptedPrograms}
+                  empty={t("unassigned")}
+                />
                 <LoadBar count={mentorships.length} warning={stale} />
                 <span className="flex items-center justify-end gap-1">
                   {user.status === UserAccountStatus.Pending ? (

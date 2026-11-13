@@ -12,6 +12,7 @@ import { ProgramMentorStatus } from "@/interfaces/program";
 import { UserAccountStatus } from "@/interfaces/session";
 import {
   activeMentorshipFor,
+  isAcceptedMentor,
   needsAttention,
   programsForCoordinator,
   programsForMentor,
@@ -224,7 +225,9 @@ export function filterMentors(
       return false;
     if (
       program &&
-      !programsForMentor(data, user.id).some((item) => item.name === program)
+      !data.programs.some(
+        (item) => item.name === program && isAcceptedMentor(item, user.id),
+      )
     ) {
       return false;
     }
@@ -259,6 +262,9 @@ export function mentorRow(data: AdminOverview, user: AdminUser) {
   return {
     user,
     programs,
+    acceptedPrograms: programs.filter((program) =>
+      isAcceptedMentor(program, user.id),
+    ),
     mentorships,
     stale: hasStaleMentorship(mentorships),
     pendingInvite: hasPendingInvite(user, programs),
