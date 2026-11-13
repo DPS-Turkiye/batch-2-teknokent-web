@@ -323,7 +323,22 @@
       "book": "Plan a meeting",
       "seeAppointment": "Go to appointment",
       "findAnother": "Find another mentor",
-      "note": "A mentorship is the relationship between you and your mentor. Your meetings are listed under \"My appointments\"."
+      "note": "A mentorship is the relationship between you and your mentor. Your meetings are listed under \"My appointments\".",
+      "since": "since {month} {day}",
+      "sinceMonth": {
+        "jan": "January",
+        "feb": "February",
+        "mar": "March",
+        "apr": "April",
+        "may": "May",
+        "jun": "June",
+        "jul": "July",
+        "aug": "August",
+        "sep": "September",
+        "oct": "October",
+        "nov": "November",
+        "dec": "December"
+      }
     }
   },
   "home": {
