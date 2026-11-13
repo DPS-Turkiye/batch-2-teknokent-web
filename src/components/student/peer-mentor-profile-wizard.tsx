@@ -33,6 +33,7 @@ import {
   PEER_EXPERIENCE_TITLE_MAX,
   PEER_MENTOR_GIVE_HREF,
 } from "@/lib/peer-mentoring";
+import { formatTime } from "@/lib/utils";
 import type { ExperienceCardForm } from "@/types/iskur-student";
 
 const STEP_KEY = {
@@ -60,9 +61,12 @@ type Wizard = ReturnType<typeof usePeerMentorWizard>;
  */
 export function PeerMentorProfileWizard() {
   const t = useTranslations("iaIskur.wizard");
+  const locale = useLocale();
   const wizard = usePeerMentorWizard();
   const { step } = wizard;
   const key = STEP_KEY[step];
+  const draftBusy =
+    wizard.isPublishing || wizard.isSavingDraft || wizard.isDiscardingDraft;
 
   return (
     <div className="space-y-8">
@@ -159,15 +163,31 @@ export function PeerMentorProfileWizard() {
               </Button>
             )}
             <div className="flex flex-wrap items-center gap-3">
-              {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
-              {/* Saving a draft needs a backend draft endpoint (open with Arya). */}
-              <span className="contents max-sm:hidden">
-                <Button variant={ButtonVariant.Ghost} disabled>
-                  {t("saveDraft")}
-                </Button>
-                <span className="sr-only">{t("draftSoon")}</span>
-              </span>
-              <Button type="submit" disabled={wizard.isPublishing}>
+              {wizard.draftSavedAt ? (
+                <>
+                  <span className="type-caption text-text-muted">
+                    {t("draftSavedAt", {
+                      time: formatTime(wizard.draftSavedAt, locale),
+                    })}
+                  </span>
+                  {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+                  <Button
+                    variant={ButtonVariant.Ghost}
+                    onClick={wizard.discardDraft}
+                    disabled={draftBusy}
+                  >
+                    {t("discardDraft")}
+                  </Button>
+                </>
+              ) : null}
+              <Button
+                variant={ButtonVariant.Secondary}
+                onClick={wizard.saveDraft}
+                disabled={draftBusy}
+              >
+                {wizard.isSavingDraft ? t("savingDraft") : t("saveDraft")}
+              </Button>
+              <Button type="submit" disabled={draftBusy}>
                 {wizard.isPublishing
                   ? t("publishing")
                   : wizard.isLast
