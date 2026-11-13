@@ -26,11 +26,15 @@ import { initials } from "@/lib/utils";
 import { PeerRequestAvailability } from "@/types/iskur-student";
 
 const ALL = "ALL";
+const FILTER_BASE =
+  "h-10 rounded-full border bg-background-surface px-4 type-label focus-visible:outline-2 focus-visible:outline-border-selected";
+const FILTER_CLASS = `${FILTER_BASE} border-border-default text-text-primary`;
 
 /** Mentorluk Al › Keşfet: the active categories, the recommended mentors, and a searchable list. */
 export function PeerMentorDirectory() {
   const t = useTranslations("iaIskur.take.discover");
   const tTopic = useTranslations("peerTopics");
+  const tSubTopic = useTranslations("studentProfileCompletion.subtopics");
   const directory = usePeerMentorDirectory();
   const mentors = directory.mentors.data;
 
@@ -48,6 +52,7 @@ export function PeerMentorDirectory() {
             {directory.categories.map((category) => {
               const art = CATEGORY_ART[category];
               const active = directory.category === category;
+              const count = directory.countOf(category);
               return (
                 <li key={category}>
                   <button
@@ -69,8 +74,16 @@ export function PeerMentorDirectory() {
                         className="shrink-0"
                       />
                     ) : null}
-                    <span className="type-label text-text-primary">
-                      {tTopic(category)}
+                    <span className="flex flex-col gap-1">
+                      <span className="type-label text-text-primary">
+                        {tTopic(category)}
+                      </span>
+                      {count === undefined ? null : (
+                        <span className="type-caption text-text-muted">
+                          <span className="sr-only">,</span>{" "}
+                          {t("mentorCount", { count })}
+                        </span>
+                      )}
                     </span>
                   </button>
                 </li>
@@ -117,7 +130,7 @@ export function PeerMentorDirectory() {
       ) : null}
 
       <Section id="peer-search-title" title={t("searchTitle")}>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
           <label className="relative block sm:w-96">
             <span className="sr-only">{t("search")}</span>
             <Search
@@ -142,7 +155,7 @@ export function PeerMentorDirectory() {
                   isEnumValue(PeerTopicCategory, value) ? value : null,
                 );
               }}
-              className="h-10 rounded-full border border-border-default bg-background-surface px-4 type-label text-text-primary focus-visible:outline-2 focus-visible:outline-border-selected"
+              className={FILTER_CLASS}
             >
               <option value={ALL}>{t("allCategories")}</option>
               {directory.categories.map((category) => (
@@ -152,6 +165,41 @@ export function PeerMentorDirectory() {
               ))}
             </select>
           </label>
+          {directory.subTopicOptions.length > 0 ? (
+            <label className="block">
+              <span className="sr-only">{t("subTopicFilter")}</span>
+              <select
+                value={directory.subTopic ?? ALL}
+                onChange={(event) => {
+                  const { value } = event.target;
+                  directory.setSubTopic(value === ALL ? null : value);
+                }}
+                className={FILTER_CLASS}
+              >
+                <option value={ALL}>{t("allSubTopics")}</option>
+                {directory.subTopicOptions.map((sub) => (
+                  <option key={sub.id} value={sub.id}>
+                    {tSubTopic(sub.labelKey)}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
+          <button
+            type="button"
+            aria-pressed={directory.availableThisWeek}
+            onClick={directory.toggleAvailableThisWeek}
+            className={`${FILTER_BASE} inline-flex items-center gap-1.5 ${
+              directory.availableThisWeek
+                ? "border-brand-odtu-primary text-text-accent"
+                : "border-border-default text-text-primary"
+            }`}
+          >
+            {directory.availableThisWeek ? (
+              <Check aria-hidden className="size-4" />
+            ) : null}
+            {t("availableThisWeek")}
+          </button>
         </div>
         <QueryNotice
           isLoading={directory.mentors.isLoading}
@@ -174,6 +222,11 @@ export function PeerMentorDirectory() {
                   {mentor.categories.map((category) => (
                     <Tag key={category}>{tTopic(category)}</Tag>
                   ))}
+                  {mentor.availableThisWeek ? (
+                    <span className="type-caption text-text-muted">
+                      {t("availableThisWeek")}
+                    </span>
+                  ) : null}
                   <Button
                     href={peerMentorProfileHref(mentor.mentorId)}
                     variant={ButtonVariant.Secondary}

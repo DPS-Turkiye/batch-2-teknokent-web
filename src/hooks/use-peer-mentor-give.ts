@@ -18,6 +18,8 @@ import {
   useMentorAvailabilitySettings,
 } from "@/hooks/use-mentor-profile";
 import {
+  PEER_MENTOR_COUNTS_QUERY_KEY,
+  PEER_MENTOR_QUERY_KEY,
   PEER_MENTORING_REQUESTS_QUERY_KEY,
   PEER_MENTORS_QUERY_KEY,
 } from "@/hooks/use-peer-mentoring";
@@ -443,6 +445,8 @@ export function usePeerMentorWizard() {
         MENTOR_AVAILABILITY_QUERY_KEY,
         MENTOR_PROFILE_QUERY_KEY,
         PEER_MENTORS_QUERY_KEY,
+        PEER_MENTOR_QUERY_KEY,
+        PEER_MENTOR_COUNTS_QUERY_KEY,
         PEER_MENTORING_REQUESTS_QUERY_KEY,
       ]) {
         void queryClient.invalidateQueries({ queryKey });
