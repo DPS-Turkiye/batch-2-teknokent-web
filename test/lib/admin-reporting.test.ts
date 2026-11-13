@@ -241,6 +241,29 @@ describe("pairsIn", () => {
       { ...stale, bottlenecks: 0, stale: true, goalDone: 0, goalTotal: 0 },
     ]);
   });
+
+  it("keeps the pair of a team that was moved to another program, but not its older pair without a program", () => {
+    const data = overview({
+      mentorships: [
+        adminMentorship({
+          id: "made-here",
+          organizationId: "org-7",
+          organizationName: "Vega",
+          programId: "program-1",
+        }),
+        adminMentorship({
+          id: "before-programs",
+          organizationId: "org-7",
+          organizationName: "Vega",
+          programId: null,
+        }),
+      ],
+    });
+
+    expect(pairsIn(data, program, NOW).map((pair) => pair.id)).toEqual([
+      "made-here",
+    ]);
+  });
 });
 
 describe("meetingRate", () => {

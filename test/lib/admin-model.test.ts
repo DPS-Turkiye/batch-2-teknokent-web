@@ -124,6 +124,18 @@ describe("admin-model program attribution", () => {
     expect(mentorshipInPrograms(item, [growth])).toBe(false);
   });
 
+  it("keeps a mentorship under the program it was made in after its team moved to another one", () => {
+    const item = mentorship("m-1", "program-1");
+    const starsAfterTheMove: AdminProgram = { ...stars, startups: [] };
+
+    expect(mentorshipInPrograms(item, [starsAfterTheMove])).toBe(true);
+    expect(mentorshipInPrograms(item, [growth])).toBe(false);
+    // One made before programs were recorded has nothing to stay with, so it follows its team.
+    expect(
+      mentorshipInPrograms(mentorship("m-old", null), [starsAfterTheMove]),
+    ).toBe(false);
+  });
+
   it("counts an older mentorship without a program in each of its team's programs", () => {
     for (const programId of [null, undefined]) {
       const item = mentorship("m-old", programId);
