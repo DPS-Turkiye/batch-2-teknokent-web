@@ -5,7 +5,11 @@ import {
 } from "@/interfaces/profile-analysis";
 import { requireSuccess } from "@/lib/client/api";
 import { bearerHeader } from "@/lib/client/bearer";
-import { getPublicBackendUrl } from "@/lib/const";
+import {
+  CV_CONSENT_TEXT_VERSION,
+  getPublicBackendUrl,
+  STARTUP_IMPORT_CONSENT_TEXT_VERSION,
+} from "@/lib/const";
 import { httpClient, UPLOAD_TIMEOUT_MS } from "@/lib/http-client";
 
 async function uploadConfig() {
@@ -32,6 +36,10 @@ export async function uploadProfileAnalysis(input: {
   const query = new URLSearchParams({
     profileType: input.profileType,
     consentAccepted: String(input.consentAccepted),
+    consentTextVersion:
+      input.profileType === ProfileAnalysisType.Startup
+        ? STARTUP_IMPORT_CONSENT_TEXT_VERSION
+        : CV_CONSENT_TEXT_VERSION,
     ocrMode: input.ocrMode,
   });
   if (input.appUserId) query.set("appUserId", input.appUserId);
@@ -133,6 +141,7 @@ export async function parseStoredCv(
   const query = new URLSearchParams({
     profileType,
     consentAccepted: String(consentAccepted),
+    consentTextVersion: CV_CONSENT_TEXT_VERSION,
   });
   return requireSuccess(
     await httpClient.post<ParsedCvProfile>(
@@ -153,6 +162,7 @@ export async function parseCv(
   const query = new URLSearchParams({
     profileType,
     consentAccepted: String(consentAccepted),
+    consentTextVersion: CV_CONSENT_TEXT_VERSION,
   });
   return requireSuccess(
     await httpClient.post<ParsedCvProfile>(
