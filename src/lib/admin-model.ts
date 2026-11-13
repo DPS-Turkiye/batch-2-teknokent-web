@@ -55,15 +55,21 @@ export function countsInProgram(item: AdminMentorship, programId: string) {
   return item.programId == null || item.programId === programId;
 }
 
+/**
+ * A mentorship belongs to the program it was made in, also after its team left that program (an admin moved it
+ * to another one). One made before programs were recorded belongs to each program its team is in today.
+ */
+export function belongsToProgram(item: AdminMentorship, program: AdminProgram) {
+  return item.programId == null
+    ? program.startups.some((startup) => startup.id === item.organizationId)
+    : item.programId === program.id;
+}
+
 export function mentorshipInPrograms(
   item: AdminMentorship,
   programs: AdminProgram[],
 ) {
-  return programs.some(
-    (program) =>
-      countsInProgram(item, program.id) &&
-      program.startups.some((startup) => startup.id === item.organizationId),
-  );
+  return programs.some((program) => belongsToProgram(item, program));
 }
 
 export function activeMentorshipFor(
