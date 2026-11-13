@@ -10,6 +10,10 @@ import {
   readCv,
   uploadProfileAnalysis,
 } from "@/lib/client/profile-analysis";
+import {
+  CV_CONSENT_TEXT_VERSION,
+  STARTUP_IMPORT_CONSENT_TEXT_VERSION,
+} from "@/lib/const";
 import { currentIdToken } from "@/lib/firebase/auth";
 import { httpClient } from "@/lib/http-client";
 import { itemAt } from "@test/fixtures/list-assertions";
@@ -157,6 +161,39 @@ describe("profile analysis uploads", () => {
       expect(
         new URLSearchParams(url.split("?")[1]).get("consentAccepted"),
       ).toBe("false");
+    }
+  });
+
+  it("names the consent text the person was shown on every read", async () => {
+    vi.mocked(httpClient.post).mockResolvedValue({ status: 200, data: {} });
+
+    await parseCv(file, true);
+    await parseStoredCv("cv-1", true);
+    await readCv(file, true, ProfileAnalysisType.Mentor);
+    await uploadProfileAnalysis({
+      file,
+      ocrMode: ProfileOcrMode.Auto,
+      profileType: ProfileAnalysisType.Startup,
+      consentAccepted: true,
+    });
+
+    const versions = vi
+      .mocked(httpClient.post)
+      .mock.calls.map(([url]) =>
+        new URLSearchParams(url.split("?")[1]).get("consentTextVersion"),
+      );
+    // The startup import shows its own consent text, so it names its own version.
+    expect(versions).toEqual([
+      CV_CONSENT_TEXT_VERSION,
+      CV_CONSENT_TEXT_VERSION,
+      CV_CONSENT_TEXT_VERSION,
+      STARTUP_IMPORT_CONSENT_TEXT_VERSION,
+    ]);
+    for (const version of [
+      CV_CONSENT_TEXT_VERSION,
+      STARTUP_IMPORT_CONSENT_TEXT_VERSION,
+    ]) {
+      expect(version).toMatch(/^[A-Za-z0-9._-]{1,64}$/);
     }
   });
 

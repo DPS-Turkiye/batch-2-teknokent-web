@@ -260,6 +260,16 @@ export const DOCUMENT_UPLOAD_ACCEPT = ".pdf,.docx,.xlsx,.pptx";
 /** Mirrors the backend's DocumentKind limit for documents (images stay at 5 MB). */
 export const DOCUMENT_MAX_BYTES = 25 * 1024 * 1024;
 
+/**
+ * The version of the CV-reading consent text (`cvConsent.label`) the person was
+ * shown. The backend stores it with each consent, so change it whenever that
+ * text changes.
+ */
+export const CV_CONSENT_TEXT_VERSION = "cv-parsing-2026-11-13";
+
+/** The same, for the startup import's own consent text (`profileTools` `consent`). */
+export const STARTUP_IMPORT_CONSENT_TEXT_VERSION = "startup-import-2026-11-13";
+
 export const SUPPORT_EMAIL = "info@menton.com.tr";
 
 /**
