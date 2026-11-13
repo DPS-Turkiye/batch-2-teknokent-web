@@ -1,38 +1,12 @@
-import { clientText } from "@/i18n/client-texts";
-import type { ProposedPhase } from "@/interfaces/coordinator-program";
-import {
-  emptyPhase,
-  MAX_PHASES,
-  type PhaseDraft,
-} from "@/lib/coordinator-program-detail";
+import type { PhaseDraft } from "@/lib/coordinator-program-detail";
 import { parseDay } from "@/lib/coordinator-programs";
 import { formatDayMonth } from "@/lib/utils";
 
-/** Where the wizard's phases come from: read from the syllabus, or typed in. */
-export enum PhaseSource {
-  File = "FILE",
-  Manual = "MANUAL",
-}
-
-/** A phase row in the wizard; `fromFile` keeps the "Dosyadan" chip after edits. */
-export type WizardPhase = PhaseDraft & { fromFile: boolean };
-
-export const SYLLABUS_MAX_BYTES = 10 * 1024 * 1024;
+/** The backend's limit for a weekly program PDF. */
+export const PROGRAM_FILE_MAX_BYTES = 10 * 1024 * 1024;
 const OUTPUT_SEPARATOR = " · ";
 const MAX_OUTPUT_LENGTH = 200;
 const DAY_MS = 24 * 60 * 60 * 1000;
-
-export function blankWizardPhase(): WizardPhase {
-  return { ...emptyPhase(), fromFile: false };
-}
-
-export function proposedPhases(proposals: ProposedPhase[]): WizardPhase[] {
-  return proposals.slice(0, MAX_PHASES).map((proposal) => ({
-    ...emptyPhase(),
-    ...proposal,
-    fromFile: true,
-  }));
-}
 
 export function missingDate(phase: PhaseDraft) {
   return !phase.startDate || !phase.endDate;
@@ -69,26 +43,6 @@ export function reorderPhases<T>(phases: T[], from: number, to: number) {
   if (moved === undefined) return phases;
   next.splice(to, 0, moved);
   return next;
-}
-
-/** The first reason the phases cannot be confirmed yet, or null. */
-export function curriculumError(phases: WizardPhase[]) {
-  if (phases.length > MAX_PHASES) {
-    return clientText("programSettings.tooManyPhases", { max: MAX_PHASES });
-  }
-  for (const [index, phase] of phases.entries()) {
-    const name = phase.name.trim();
-    if (!name) {
-      return clientText("programLaunch.phaseNameRequired", { n: index + 1 });
-    }
-    if (phase.fromFile && missingDate(phase)) {
-      return clientText("programLaunch.phaseDateMissing", { name });
-    }
-    if (phase.startDate && phase.endDate && phase.endDate < phase.startDate) {
-      return clientText("programSettings.phaseDates", { name });
-    }
-  }
-  return null;
 }
 
 function daysBetween(start: string, end: string) {
@@ -159,15 +113,16 @@ export function dayShift(from: string, to: string) {
   return Math.round((Date.parse(to) - Date.parse(from)) / DAY_MS);
 }
 
-export enum SyllabusFileProblem {
+export enum ProgramFileProblem {
   NotPdf = "NOT_PDF",
   TooLarge = "TOO_LARGE",
 }
 
-export function syllabusFileProblem(file: File) {
+/** Why a chosen weekly program file can't be uploaded, or null. */
+export function programFileProblem(file: File) {
   const pdf =
     file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
-  if (!pdf) return SyllabusFileProblem.NotPdf;
-  if (file.size > SYLLABUS_MAX_BYTES) return SyllabusFileProblem.TooLarge;
+  if (!pdf) return ProgramFileProblem.NotPdf;
+  if (file.size > PROGRAM_FILE_MAX_BYTES) return ProgramFileProblem.TooLarge;
   return null;
 }

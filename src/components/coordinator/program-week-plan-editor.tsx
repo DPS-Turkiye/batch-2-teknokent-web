@@ -1,7 +1,7 @@
 "use client";
 
 // TEST UI: placeholder until the design team's screen; replace when it arrives.
-import { Plus, Sparkles, Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 
 import type { useProgramWeekPlan } from "@/hooks/use-program-week-plan";
@@ -59,13 +59,6 @@ export function ProgramWeekPlanEditor({
           {t("add")}
         </button>
       </div>
-
-      {plan.proposed ? (
-        <p className="flex items-center gap-2 rounded-[14px] bg-[#fff4ec] px-4 py-3 text-[12.5px] text-[#a65a15]">
-          <Sparkles aria-hidden className="size-4 shrink-0" />
-          {t("proposedNote")}
-        </p>
-      ) : null}
 
       {plan.isLoading ? (
         <p role="status" className="text-[13px] text-[#858c96]">

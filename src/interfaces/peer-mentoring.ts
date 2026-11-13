@@ -1,4 +1,5 @@
 import type { PublicBadge } from "@/interfaces/badges";
+import type { MentorAvailabilityRule } from "@/interfaces/mentor";
 import type { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 
 /** The board's eight peer-mentoring categories; the coordinator decides which are active. */
@@ -14,6 +15,41 @@ export enum PeerTopicCategory {
 }
 
 export const PEER_TOPIC_CATEGORIES = Object.values(PeerTopicCategory);
+
+/** How far a peer mentor goes in one of their categories (the wizard's Temel / Orta / İleri). */
+export enum PeerTopicLevel {
+  Basic = "BASIC",
+  Intermediate = "INTERMEDIATE",
+  Advanced = "ADVANCED",
+}
+
+export const PEER_TOPIC_LEVELS = Object.values(PeerTopicLevel);
+
+/** An optional level for some of the mentor's categories. */
+export type PeerTopicLevels = Partial<
+  Record<PeerTopicCategory, PeerTopicLevel>
+>;
+
+/** What an experience card is; the wizard has no field for it yet, so it sends Other. */
+export enum PeerExperienceKind {
+  Internship = "INTERNSHIP",
+  Club = "CLUB",
+  Job = "JOB",
+  Other = "OTHER",
+}
+
+/**
+ * One experience card on a peer mentor's profile; months as "yyyy-MM", no end while it goes on. Older experience rows
+ * come back without a start month; the wizard asks for one before the card can be published again.
+ */
+export type PeerExperienceCard = {
+  kind: PeerExperienceKind;
+  title: string;
+  organization: string | null;
+  startedOn: string | null;
+  endedOn: string | null;
+  summary: string | null;
+};
 
 /** A peer program's active categories (none until its coordinator turns them on). */
 export type ProgramPeerCategories = {
@@ -39,11 +75,40 @@ export type PeerMentorCard = {
   capacityFull: boolean;
   /** Active badges; a card shows the achievements. */
   badges: PublicBadge[];
+  /** A free slot in the coming seven days ("Bu hafta müsait"). */
+  availableThisWeek: boolean;
 };
 
 export type PeerMentorFilter = {
   category: PeerTopicCategory | null;
   query: string;
+  /** A sub-topic id from the interest catalogue; left out, any. */
+  subTopic?: string | null;
+  /** Only mentors with a free slot in the coming seven days. */
+  availableThisWeek?: boolean;
+};
+
+/**
+ * One peer mentor's profile page (`GET /api/peer-mentoring/mentors/{id}`): the card plus what the wizard published
+ * and the weekly hours. 404 for anyone the student's directory doesn't list.
+ */
+export type PeerMentorDetail = PeerMentorCard & {
+  /** Sub-topic ids from the interest catalogue. */
+  subTopics: string[];
+  strongCourses: string[];
+  projects: string[];
+  erasmus: string | null;
+  /** Only ever an http(s) link. */
+  linkedinUrl: string | null;
+  weeklyHours: MentorAvailabilityRule[];
+  levels: PeerTopicLevels;
+  experiences: PeerExperienceCard[];
+};
+
+/** How many of the program's peer mentors offer an active category (`GET /api/peer-mentoring/mentor-counts`). */
+export type PeerCategoryCount = {
+  category: PeerTopicCategory;
+  mentorCount: number;
 };
 
 export type PeerMentoringPerson = {
@@ -64,6 +129,8 @@ export type PeerMentoringRequest = {
   message: string;
   status: MentorshipRequestStatus;
   createdAt: string;
+  /** When the mentor accepted: the mentorship's start; null until then. */
+  acceptedAt: string | null;
 };
 
 /** `POST /api/peer-mentoring/requests`; the message is 20–1000 characters. */
@@ -97,6 +164,9 @@ export type PeerMentorProfile = {
   department: string | null;
   classYear: number | null;
   menteeCapacity: number | null;
+  /** Levels for the categories on show. */
+  levels: PeerTopicLevels;
+  experiences: PeerExperienceCard[];
 };
 
 /** The wizard's answers (`PUT /api/peer-mentoring/profile`); helpWith is 20–2000 characters. */
@@ -108,4 +178,8 @@ export type SavePeerMentorProfileInput = {
   erasmus: string;
   helpWith: string;
   linkedinUrl: string;
+  /** Only for chosen categories; the backend drops any other. */
+  levels: PeerTopicLevels;
+  /** At most ten; an empty list clears the saved ones. */
+  experiences: PeerExperienceCard[];
 };

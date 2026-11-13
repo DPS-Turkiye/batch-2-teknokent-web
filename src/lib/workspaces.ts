@@ -1,4 +1,5 @@
 import { AccountType } from "@/interfaces/account-type";
+import { Edition } from "@/interfaces/edition";
 import { IdentityKind, UserRole, type AppSession } from "@/interfaces/session";
 import { Workspace } from "@/interfaces/workspace";
 import { hasPermission } from "@/lib/permissions";
@@ -12,14 +13,22 @@ type WorkspaceHolder = Pick<
   | "individualMentee"
   | "activeWorkspace"
   | "personalOrganization"
+  | "edition"
 >;
+
+/** The ODTÜ workspaces live only in the ODTÜ deployment. */
+const ODTU_WORKSPACES: ReadonlySet<Workspace> = new Set([
+  Workspace.OdtuStudent,
+  Workspace.OdtuAcademician,
+]);
 
 /** Also the order a first sign-in picks from: staff first, an academician before the student they also are. */
 const ORDER = Object.values(Workspace);
 
 /**
  * The workspaces this account can open. On an ODTÜ account MENTOR is peer mentoring, which lives inside the student
- * workspace; a Girişim workspace appears only for a startup team the person also belongs to.
+ * workspace; a Girişim workspace appears only for a startup team the person also belongs to. The Teknokent
+ * deployment opens no ODTÜ workspace, whatever the account holds.
  */
 export function workspacesOf(session: WorkspaceHolder): Workspace[] {
   const odtu = Boolean(session.institutionKinds?.length);
@@ -50,7 +59,12 @@ export function workspacesOf(session: WorkspaceHolder): Workspace[] {
   ) {
     held.add(Workspace.GirisimMentee);
   }
-  return ORDER.filter((workspace) => held.has(workspace));
+  const edition = session.edition ?? Edition.Teknokent;
+  return ORDER.filter(
+    (workspace) =>
+      held.has(workspace) &&
+      (edition === Edition.Odtu || !ODTU_WORKSPACES.has(workspace)),
+  );
 }
 
 /** The chosen workspace while the account can still open it, else the first one it can. */

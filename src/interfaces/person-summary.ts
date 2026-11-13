@@ -2,6 +2,7 @@ import type {
   MentorEducation,
   MentorExperience,
   MentorLanguage,
+  Weekday,
 } from "@/interfaces/mentor";
 import type { ProgramMentorStatus, ProgramStatus } from "@/interfaces/program";
 import type { UserAccountStatus, UserRole } from "@/interfaces/session";
@@ -28,6 +29,32 @@ export interface PersonSummaryMentor {
   meetingMode: string | null;
   activeMenteeCount: number;
   completedMentorshipCount: number;
+  availability: PersonSummaryAvailability;
+}
+
+/** A weekly window; times come as "10:00:00". */
+export interface PersonSummaryWeeklyWindow {
+  dayOfWeek: Weekday;
+  startTime: string;
+  endTime: string;
+}
+
+/** An upcoming day off, as dates only: the mentor's reason is not sent. */
+export interface PersonSummaryDayOff {
+  startsOn: string;
+  endsOn: string;
+}
+
+export interface PersonSummaryExtraSlot {
+  startsAt: string;
+  durationMinutes: number;
+}
+
+/** The times a mentor opened for meetings; empty lists when nothing is set. */
+export interface PersonSummaryAvailability {
+  weekly: PersonSummaryWeeklyWindow[];
+  daysOff: PersonSummaryDayOff[];
+  extraSlots: PersonSummaryExtraSlot[];
 }
 
 export interface PersonSummaryStartup {

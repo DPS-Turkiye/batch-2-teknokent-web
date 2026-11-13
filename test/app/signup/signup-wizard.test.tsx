@@ -6,6 +6,7 @@ import { SignupWizardView } from "@/components/signup/signup-wizard";
 import type { RegisteredAccount } from "@/interfaces/auth";
 import { ContactPreference } from "@/interfaces/signup";
 import { DocumentKind } from "@/interfaces/startup-document";
+import { ClientApiError } from "@/lib/client/api";
 import { getProgramEligibility, registerFounder } from "@/lib/client/auth";
 import { listDocuments, uploadDocument } from "@/lib/client/documents";
 import { parseCv } from "@/lib/client/profile-analysis";
@@ -122,6 +123,9 @@ describe("Signup wizard", () => {
     const user = userEvent.setup();
     render(<SignupWizardView account={ACCOUNT} />);
 
+    await user.click(
+      screen.getByRole("checkbox", { name: /CV'min okunmasını/ }),
+    );
     await user.upload(
       screen.getByLabelText(/CV dosyası seç/),
       new File(["cv"], "cv.pdf", { type: "application/pdf" }),
@@ -141,6 +145,9 @@ describe("Signup wizard", () => {
     render(<SignupWizardView account={ACCOUNT} />);
 
     await user.type(screen.getByLabelText(/Startup’taki rolün/), "Kurucu");
+    await user.click(
+      screen.getByRole("checkbox", { name: /CV'min okunmasını/ }),
+    );
     await user.upload(
       screen.getByLabelText(/CV dosyası seç/),
       new File(["cv"], "cv.pdf", { type: "application/pdf" }),
@@ -157,12 +164,31 @@ describe("Signup wizard", () => {
     const user = userEvent.setup();
     render(<SignupWizardView account={ACCOUNT} />);
 
+    await user.click(
+      screen.getByRole("checkbox", { name: /CV'min okunmasını/ }),
+    );
     await user.upload(
       screen.getByLabelText(/CV dosyası seç/),
       new File(["cv"], "cv.pdf", { type: "application/pdf" }),
     );
 
     expect(await screen.findByRole("alert")).toHaveTextContent("CV okunamadı");
+  });
+
+  it("keeps a CV without reading it while the consent box is unticked", async () => {
+    const user = userEvent.setup();
+    render(<SignupWizardView account={ACCOUNT} />);
+
+    expect(
+      screen.getByRole("checkbox", { name: /CV'min okunmasını/ }),
+    ).not.toBeChecked();
+    await user.upload(
+      screen.getByLabelText(/CV dosyası seç/),
+      new File(["cv"], "cv.pdf", { type: "application/pdf" }),
+    );
+
+    expect(screen.getByText("cv.pdf")).toBeInTheDocument();
+    expect(parseCv).not.toHaveBeenCalled();
   });
 
   it("shows an already-uploaded CV on a resumed session", async () => {
@@ -264,20 +290,31 @@ describe("Signup wizard", () => {
     expect(screen.queryByLabelText(/Startup adı/)).not.toBeInTheDocument();
   });
 
-  it("signs up into the program without a startup and skips its files", async () => {
+  it("offers no way to sign up without a startup in a startup program", async () => {
     const user = userEvent.setup();
     render(<SignupWizardView account={ACCOUNT} />);
 
     await completePersonalStep(user);
     await user.click(next());
     await chooseProgram(user);
+
     expect(next()).toBeDisabled();
-    await user.click(
-      screen.getByRole("checkbox", {
-        name: /Startup'ı daha sonra oluşturacağım/,
-      }),
-    );
-    expect(screen.queryByLabelText(/Startup adı/)).not.toBeInTheDocument();
+    expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
+    expect(screen.queryByText(/daha sonra oluştur/i)).not.toBeInTheDocument();
+    expect(screen.getByLabelText(/Startup adı/)).toBeInTheDocument();
+  });
+
+  it("signs an İŞKUR student up without a startup and says the peer mentoring area opens after approval", async () => {
+    vi.mocked(getProgramNames).mockResolvedValue([
+      { id: "iskur", name: "İŞKUR", individualMentees: true },
+    ]);
+    const user = userEvent.setup();
+    render(<SignupWizardView account={ACCOUNT} />);
+
+    await completePersonalStep(user);
+    await user.click(next());
+    await user.click(await screen.findByRole("button", { name: "İŞKUR" }));
+    await waitFor(() => expect(next()).toBeEnabled());
     await user.click(next());
 
     expect(
@@ -290,7 +327,7 @@ describe("Signup wizard", () => {
 
     await waitFor(() =>
       expect(registerFounder).toHaveBeenCalledWith(
-        expect.objectContaining({ programId: "prog-1", startupLater: true }),
+        expect.objectContaining({ programId: "iskur" }),
         "id-token",
       ),
     );
@@ -300,8 +337,11 @@ describe("Signup wizard", () => {
     );
     expect(
       await screen.findByRole("heading", {
-        name: "Başvurun koordinatöre gönderildi",
+        name: "Başvurun alındı; koordinatör onayından sonra akran mentörlüğü alanın açılacak.",
       }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Akran mentörlüğü alanın açılır"),
     ).toBeInTheDocument();
   });
 
@@ -375,6 +415,53 @@ describe("Signup wizard", () => {
     expect(
       screen.getByRole("link", { name: "Gönderilen profili görüntüle" }),
     ).toHaveAttribute("href", "/application-status");
+  });
+
+  it("names the fields the backend refused instead of a generic message", async () => {
+    vi.mocked(registerFounder).mockRejectedValueOnce(
+      new ClientApiError("Gönderilen bilgiler geçersiz.", 400, undefined, {
+        phone: "must match",
+        "teamMembers[0].email": "must be a well-formed email address",
+      }),
+    );
+    const user = userEvent.setup();
+    render(<SignupWizardView account={ACCOUNT} />);
+
+    await reachReview(user);
+    await user.click(screen.getByRole("checkbox"));
+    await user.click(
+      screen.getByRole("button", { name: "Koordinatöre gönder" }),
+    );
+
+    expect(
+      await screen.findByText(
+        "Şu alanlar geçersiz: Telefon, Ekip üyeleri. Düzeltip tekrar gönder.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("shows the backend's reason when the address already has an account", async () => {
+    vi.mocked(registerFounder).mockRejectedValueOnce(
+      new ClientApiError(
+        "Bu e-posta adresiyle kayıtlı bir hesap zaten var. Kayıt olmak yerine giriş yap.",
+        400,
+        "EMAIL_ALREADY_REGISTERED",
+      ),
+    );
+    const user = userEvent.setup();
+    render(<SignupWizardView account={ACCOUNT} />);
+
+    await reachReview(user);
+    await user.click(screen.getByRole("checkbox"));
+    await user.click(
+      screen.getByRole("button", { name: "Koordinatöre gönder" }),
+    );
+
+    expect(
+      await screen.findByText(
+        "Bu e-posta adresiyle kayıtlı bir hesap zaten var. Kayıt olmak yerine giriş yap.",
+      ),
+    ).toBeInTheDocument();
   });
 
   it("keeps the wizard open and explains a failed submission", async () => {

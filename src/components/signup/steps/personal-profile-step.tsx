@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 
+import { CvConsent } from "@/components/onboarding/cv-consent";
 import {
   ONBOARDING_TONES,
   OnboardingTone,
@@ -114,6 +115,13 @@ export function PersonalProfileStep({ wizard }: { wizard: SignupWizard }) {
       </OnboardingCard>
 
       <OnboardingCard title={copy("cvTitle")} subtitle={copy("cvSubtitle")}>
+        {cv.canRead ? (
+          <CvConsent
+            tone={TONE}
+            checked={cv.consent}
+            onChange={cv.setConsent}
+          />
+        ) : null}
         <OnboardingFileField
           label={copy("cvPick")}
           file={personal.cv}

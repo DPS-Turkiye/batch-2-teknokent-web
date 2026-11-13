@@ -127,12 +127,22 @@ describe("program tabs by type", () => {
         id: ParticipantTab.Teams,
         href: "/coordinator/programs/p1/teams",
         count: detail.program.teamCount,
+        waiting: null,
       },
       {
         id: ParticipantTab.MentorPool,
         href: "/coordinator/programs/p1/mentors",
         count: detail.program.mentorCount,
+        waiting: null,
       },
+    ]);
+    expect(
+      participantTabs(detail, "p1", { teams: 2, mentors: 3 }).map(
+        (tab) => `${tab.id}:${tab.count}+${tab.waiting}`,
+      ),
+    ).toEqual([
+      `${ParticipantTab.Teams}:${detail.program.teamCount}+2`,
+      `${ParticipantTab.MentorPool}:${detail.program.mentorCount}+3`,
     ]);
     expect(isActiveTab(ProgramTab.Participants, ProgramTab.MentorPool)).toBe(
       true,

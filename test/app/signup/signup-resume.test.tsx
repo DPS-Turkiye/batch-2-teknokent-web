@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SignupFlow } from "@/components/signup/signup-flow";
+import { Edition } from "@/interfaces/edition";
 import { UserRole } from "@/interfaces/session";
 import { ClientApiError } from "@/lib/client/api";
 import { fetchAccountStatus, registerMentor } from "@/lib/client/auth";
@@ -57,11 +58,14 @@ beforeEach(() => {
   vi.mocked(registerMentor).mockResolvedValue(
     backendUser({ role: UserRole.Mentor }),
   );
+  vi.mocked(fetchAccountStatus).mockRejectedValue(
+    new ClientApiError("Registration required", 401),
+  );
 });
 
 describe("SignupFlow resume", () => {
   it("opens on the role page when no role is chosen yet", () => {
-    render(<SignupFlow />);
+    render(<SignupFlow edition={Edition.Teknokent} />);
 
     expect(
       screen.getByRole("heading", { name: ROLE_HEADING }),
@@ -81,7 +85,7 @@ describe("SignupFlow resume", () => {
   });
 
   it("moves to the founder account form and records the role in the URL", async () => {
-    render(<SignupFlow />);
+    render(<SignupFlow edition={Edition.Teknokent} />);
     await userEvent.click(
       screen.getByRole("button", { name: "Girişimci olarak devam et" }),
     );
@@ -94,7 +98,7 @@ describe("SignupFlow resume", () => {
 
   it("opens the mentor account form straight from ?role=mentor", () => {
     searchParams.set("role", "mentor");
-    render(<SignupFlow />);
+    render(<SignupFlow edition={Edition.Teknokent} />);
 
     expect(
       screen.getByRole("heading", { name: "Mentor olarak menton’a katıl" }),
@@ -103,7 +107,7 @@ describe("SignupFlow resume", () => {
 
   it("ignores an unknown role value and shows the role page", () => {
     searchParams.set("role", "admin");
-    render(<SignupFlow />);
+    render(<SignupFlow edition={Edition.Teknokent} />);
 
     expect(
       screen.getByRole("heading", { name: ROLE_HEADING }),
@@ -123,7 +127,7 @@ describe("SignupFlow resume", () => {
       }),
     );
 
-    render(<SignupFlow />);
+    render(<SignupFlow edition={Edition.Teknokent} />);
 
     expect(screen.getByRole("status")).toHaveTextContent(
       "Oturum bilgileri kontrol ediliyor…",
@@ -152,7 +156,7 @@ describe("SignupFlow resume", () => {
       verified: true,
     });
 
-    render(<SignupFlow />);
+    render(<SignupFlow edition={Edition.Teknokent} />);
     await userEvent.click(
       await screen.findByRole("button", { name: "Girişimci olarak devam et" }),
     );
@@ -161,6 +165,93 @@ describe("SignupFlow resume", () => {
       "gulse@dongu.co",
     );
     expect(replace).toHaveBeenCalledWith("/signup?role=founder&resume=1");
+  });
+
+  it("sends a founder whose login already has an account to sign in instead of the wizard", async () => {
+    searchParams.set("resume", "1");
+    searchParams.set("role", "founder");
+    vi.mocked(currentFirebaseAccount).mockResolvedValue({
+      email: "gulse@dongu.co",
+      fullName: "Gülse Yılmaz",
+      verified: true,
+    });
+    vi.mocked(fetchAccountStatus).mockResolvedValue(backendUser());
+
+    render(<SignupFlow edition={Edition.Teknokent} />);
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "Bu e-postayla zaten bir hesabın var",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/gulse@dongu.co adresiyle kayıtlı/),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Giriş yap" })).toHaveAttribute(
+      "href",
+      "/login",
+    );
+    expect(screen.queryByTestId("wizard")).not.toBeInTheDocument();
+  });
+
+  it("sends an ODTÜ-edition founder whose login already has an account to sign in", async () => {
+    searchParams.set("resume", "1");
+    searchParams.set("role", "founder");
+    vi.mocked(currentFirebaseAccount).mockResolvedValue({
+      email: "ogrenci@metu.edu.tr",
+      fullName: "Deniz Öğrenci",
+      verified: true,
+    });
+    vi.mocked(fetchAccountStatus).mockResolvedValue(backendUser());
+
+    render(<SignupFlow edition={Edition.Odtu} />);
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "Bu e-postayla zaten bir hesabın var",
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Giriş yap" })).toHaveAttribute(
+      "href",
+      "/login",
+    );
+    expect(screen.queryByTestId("wizard")).not.toBeInTheDocument();
+  });
+
+  it("opens the wizard for a new ODTÜ-edition founder once the check finds no account", async () => {
+    searchParams.set("resume", "1");
+    searchParams.set("role", "founder");
+    vi.mocked(currentFirebaseAccount).mockResolvedValue({
+      email: "ogrenci@metu.edu.tr",
+      fullName: "Deniz Öğrenci",
+      verified: true,
+    });
+
+    render(<SignupFlow edition={Edition.Odtu} />);
+
+    expect(await screen.findByTestId("wizard")).toHaveTextContent(
+      "ogrenci@metu.edu.tr",
+    );
+    expect(fetchAccountStatus).toHaveBeenCalledWith("id-token");
+  });
+
+  it("still opens the wizard when the account check itself fails", async () => {
+    searchParams.set("resume", "1");
+    searchParams.set("role", "founder");
+    vi.mocked(currentFirebaseAccount).mockResolvedValue({
+      email: "gulse@dongu.co",
+      fullName: "Gülse Yılmaz",
+      verified: true,
+    });
+    vi.mocked(fetchAccountStatus).mockRejectedValue(
+      new ClientApiError("Sunucuya ulaşılamadı.", 503),
+    );
+
+    render(<SignupFlow edition={Edition.Teknokent} />);
+
+    expect(await screen.findByTestId("wizard")).toHaveTextContent(
+      "gulse@dongu.co",
+    );
   });
 
   it("collects missing identity and registers a mentor resumed in another session", async () => {
@@ -176,7 +267,7 @@ describe("SignupFlow resume", () => {
     );
     const user = userEvent.setup();
 
-    render(<SignupFlow />);
+    render(<SignupFlow edition={Edition.Teknokent} />);
 
     expect(
       await screen.findByRole("heading", { name: "Mentor hesabını tamamla" }),
@@ -212,7 +303,7 @@ describe("SignupFlow resume", () => {
     );
     const user = userEvent.setup();
 
-    render(<SignupFlow />);
+    render(<SignupFlow edition={Edition.Teknokent} />);
 
     expect(
       await screen.findByRole("heading", { name: "Mentor hesabını tamamla" }),
@@ -245,7 +336,7 @@ describe("SignupFlow resume", () => {
       role: UserRole.Mentor,
     });
 
-    render(<SignupFlow />);
+    render(<SignupFlow edition={Edition.Teknokent} />);
 
     expect(await screen.findByTestId("mentor-onboarding")).toBeInTheDocument();
     expect(registerMentor).not.toHaveBeenCalled();
@@ -266,7 +357,7 @@ describe("SignupFlow resume", () => {
       role: UserRole.Mentor,
     });
 
-    render(<SignupFlow />);
+    render(<SignupFlow edition={Edition.Teknokent} />);
 
     expect(await screen.findByTestId("mentor-onboarding")).toBeInTheDocument();
     expect(
@@ -282,7 +373,7 @@ describe("SignupFlow resume", () => {
       verified: false,
     });
 
-    render(<SignupFlow />);
+    render(<SignupFlow edition={Edition.Teknokent} />);
 
     expect(
       await screen.findByText("gulse@dongu.co", { exact: false }),
@@ -294,7 +385,7 @@ describe("SignupFlow resume", () => {
     searchParams.set("resume", "1");
     vi.mocked(currentFirebaseAccount).mockResolvedValue(null);
 
-    render(<SignupFlow />);
+    render(<SignupFlow edition={Edition.Teknokent} />);
 
     await waitFor(() =>
       expect(

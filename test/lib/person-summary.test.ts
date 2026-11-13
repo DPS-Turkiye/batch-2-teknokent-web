@@ -1,12 +1,16 @@
 import { describe, expect, it } from "vitest";
 
-import { MentorLanguage } from "@/interfaces/mentor";
+import { MentorLanguage, Weekday } from "@/interfaces/mentor";
 import { PersonProgramRelation } from "@/interfaces/person-summary";
 import { ProgramMentorStatus, ProgramStatus } from "@/interfaces/program";
 import { UserAccountStatus, UserRole } from "@/interfaces/session";
-import { personSummaryModel } from "@/lib/person-summary";
+import { availabilityModel, personSummaryModel } from "@/lib/person-summary";
 import { SummaryFactKind } from "@/types/person-summary";
-import { menteeSummary, mentorSummary } from "@test/fixtures/person-summary";
+import {
+  menteeSummary,
+  mentorAvailability,
+  mentorSummary,
+} from "@test/fixtures/person-summary";
 
 describe("personSummaryModel", () => {
   it("prefers a mentor's own title, about text and specialties", () => {
@@ -215,5 +219,54 @@ describe("personSummaryModel", () => {
     expect(model.programs.map((program) => program.note)).toEqual([
       "mentorPending",
     ]);
+  });
+
+  it("labels a deleted account as deleted", () => {
+    const model = personSummaryModel(
+      mentorSummary({ status: UserAccountStatus.Deleted }),
+    );
+
+    expect(model.status).toEqual({ tone: "red", label: "statuses.DELETED" });
+  });
+});
+
+describe("availabilityModel", () => {
+  it("groups weekly windows by day, Monday first, keeping each day's order", () => {
+    const model = availabilityModel(mentorAvailability());
+
+    expect(model.days).toEqual([
+      {
+        day: Weekday.Monday,
+        ranges: [{ key: "09:00–10:00", value: "09:00–10:00" }],
+      },
+      {
+        day: Weekday.Tuesday,
+        ranges: [
+          { key: "14:00–15:00", value: "14:00–15:00" },
+          { key: "10:00–12:00", value: "10:00–12:00" },
+        ],
+      },
+    ]);
+    expect(model.daysOff).toEqual([
+      {
+        key: "2026-11-20/2026-11-22",
+        startsOn: "2026-11-20",
+        endsOn: "2026-11-22",
+      },
+    ]);
+    expect(model.extraSlots).toEqual([
+      {
+        key: "2026-11-14T09:00:00Z",
+        startsAt: "2026-11-14T09:00:00Z",
+        durationMinutes: 45,
+      },
+    ]);
+    expect(model.isEmpty).toBe(false);
+  });
+
+  it("is empty when the mentor set nothing", () => {
+    expect(
+      availabilityModel({ weekly: [], daysOff: [], extraSlots: [] }),
+    ).toEqual({ days: [], daysOff: [], extraSlots: [], isEmpty: true });
   });
 });

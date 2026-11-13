@@ -5,7 +5,11 @@ import {
 } from "@/interfaces/profile-analysis";
 import { requireSuccess } from "@/lib/client/api";
 import { bearerHeader } from "@/lib/client/bearer";
-import { getPublicBackendUrl } from "@/lib/const";
+import {
+  CV_CONSENT_TEXT_VERSION,
+  getPublicBackendUrl,
+  STARTUP_IMPORT_CONSENT_TEXT_VERSION,
+} from "@/lib/const";
 import { httpClient, UPLOAD_TIMEOUT_MS } from "@/lib/http-client";
 
 async function uploadConfig() {
@@ -24,13 +28,18 @@ export async function uploadProfileAnalysis(input: {
   file: File;
   ocrMode: ProfileOcrMode;
   profileType: ProfileAnalysisType;
+  consentAccepted: boolean;
   appUserId?: string;
 }) {
   const data = new FormData();
   data.set("file", input.file);
   const query = new URLSearchParams({
     profileType: input.profileType,
-    consentAccepted: "true",
+    consentAccepted: String(input.consentAccepted),
+    consentTextVersion:
+      input.profileType === ProfileAnalysisType.Startup
+        ? STARTUP_IMPORT_CONSENT_TEXT_VERSION
+        : CV_CONSENT_TEXT_VERSION,
     ocrMode: input.ocrMode,
   });
   if (input.appUserId) query.set("appUserId", input.appUserId);
@@ -108,24 +117,31 @@ export type ParsedCvRole = {
 
 export type CvSource = File | { documentId: string };
 
-/** A new file is sent along; a stored CV is read where it already is. */
+/**
+ * A new file is sent along; a stored CV is read where it already is.
+ * `consentAccepted` is the person's own answer to the reading consent: the
+ * backend refuses to read a CV without it, so it is never filled in here.
+ */
 export function readCv(
   source: CvSource,
+  consentAccepted: boolean,
   profileType: ProfileAnalysisType = ProfileAnalysisType.Personal,
 ) {
   return source instanceof File
-    ? parseCv(source, profileType)
-    : parseStoredCv(source.documentId, profileType);
+    ? parseCv(source, consentAccepted, profileType)
+    : parseStoredCv(source.documentId, consentAccepted, profileType);
 }
 
 /** Parses a CV the person already uploaded, so it does not travel again. */
 export async function parseStoredCv(
   documentId: string,
+  consentAccepted: boolean,
   profileType: ProfileAnalysisType = ProfileAnalysisType.Personal,
 ) {
   const query = new URLSearchParams({
     profileType,
-    consentAccepted: "true",
+    consentAccepted: String(consentAccepted),
+    consentTextVersion: CV_CONSENT_TEXT_VERSION,
   });
   return requireSuccess(
     await httpClient.post<ParsedCvProfile>(
@@ -138,13 +154,15 @@ export async function parseStoredCv(
 
 export async function parseCv(
   file: File,
+  consentAccepted: boolean,
   profileType: ProfileAnalysisType = ProfileAnalysisType.Personal,
 ) {
   const data = new FormData();
   data.set("file", file);
   const query = new URLSearchParams({
     profileType,
-    consentAccepted: "true",
+    consentAccepted: String(consentAccepted),
+    consentTextVersion: CV_CONSENT_TEXT_VERSION,
   });
   return requireSuccess(
     await httpClient.post<ParsedCvProfile>(

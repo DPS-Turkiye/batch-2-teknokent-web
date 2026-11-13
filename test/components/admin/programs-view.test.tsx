@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
@@ -36,6 +36,12 @@ const overview: AdminOverview = {
       coordinatorId: null,
       coordinatorName: null,
     }),
+    program({
+      id: "program-3",
+      name: "Mentör Havuzu 2027",
+      startupCount: 0,
+      acceptedMentorCount: 7,
+    }),
   ],
   users: [],
   mentorships: [],
@@ -68,8 +74,8 @@ describe("admin Programlar", () => {
   it("labels every row with its program type and a draft as Taslak", () => {
     renderWithQueryClient(<ProgramsView />);
     expect(
-      screen.getByText("Girişim Mentörlüğü", { selector: "span" }),
-    ).toBeInTheDocument();
+      screen.getAllByText("Girişim Mentörlüğü", { selector: "span" }),
+    ).toHaveLength(2);
     expect(
       screen.getByText("Akran Mentörlüğü", { selector: "span" }),
     ).toBeInTheDocument();
@@ -91,5 +97,14 @@ describe("admin Programlar", () => {
     await userEvent.click(screen.getByRole("button", { name: /^Taslak/ }));
     expect(screen.getByText("ODTÜ Akran 2027")).toBeInTheDocument();
     expect(screen.queryByText("BİGG Ankara 2027")).not.toBeInTheDocument();
+  });
+
+  it("counts a program's mentors before any team has joined", () => {
+    renderWithQueryClient(<ProgramsView />);
+    const row = screen
+      .getByText("Mentör Havuzu 2027")
+      .closest("div[class*='border-b']");
+    if (!(row instanceof HTMLElement)) throw new Error("program row missing");
+    expect(within(row).getByText("7")).toBeInTheDocument();
   });
 });

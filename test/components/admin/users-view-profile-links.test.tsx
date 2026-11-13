@@ -50,6 +50,15 @@ const overview: AdminOverview = {
   meetingsLast8Weeks: 0,
 };
 
+// The Mentorlar and Takımlar tabs exist on the Teknokent edition.
+vi.mock("@/hooks/use-edition", async () => {
+  const { Edition } = await import("@/interfaces/edition");
+  return { useEdition: () => Edition.Teknokent };
+});
+// No signed-in admin: the drawer's delete action stays out of these tests.
+vi.mock("@/components/providers/session-provider", () => ({
+  useAppSession: () => null,
+}));
 vi.mock("@/hooks/use-admin-overview", () => ({
   useAdminOverview: () => ({ data: overview, isLoading: false, error: null }),
 }));

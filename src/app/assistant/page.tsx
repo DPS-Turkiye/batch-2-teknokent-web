@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
 import { BotStatusRenderer } from "@/components/assistant/bot-status-renderer";
+import { MeetingBotNoticeLine } from "@/components/assistant/meeting-bot-notice";
 import { MeetingReportView } from "@/components/assistant/meeting-report-view";
 import { AppShell } from "@/components/hoc/app-shell";
 import { useAppSession } from "@/components/providers/session-provider";
@@ -13,6 +14,7 @@ import {
   STATUS_META,
   useMeetingAssistant,
 } from "@/hooks/use-meeting-assistant";
+import { useMeetingBotState } from "@/hooks/use-meeting-bot-state";
 import { formatSlotDateTime } from "@/lib/format";
 import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
@@ -37,6 +39,7 @@ function MeetingAssistantWorkspace() {
     setSelectedId,
     meetingUrl,
     setMeetingUrl,
+    linkNotInCalendar,
     botStatus,
     botError,
     visibleTranscript,
@@ -60,7 +63,8 @@ function MeetingAssistantWorkspace() {
     shareError,
     sendTranscript,
     sendReport,
-  } = useMeetingAssistant(requestedMeetingId);
+  } = useMeetingAssistant(requestedMeetingId, session?.role);
+  const { botNotice, botNoticeTone } = useMeetingBotState(selected);
 
   return (
     <AppShell active={AppArea.Assistant}>
@@ -105,6 +109,10 @@ function MeetingAssistantWorkspace() {
                   <input
                     value={meetingUrl}
                     onChange={(e) => setMeetingUrl(e.target.value)}
+                    aria-invalid={linkNotInCalendar}
+                    aria-describedby={
+                      linkNotInCalendar ? "assistant-link-hint" : undefined
+                    }
                     placeholder={t("linkPlaceholder")}
                     className="min-w-0 flex-1 rounded-[7px] border border-[var(--ma-line2)] bg-[var(--ma-panel)] px-2 py-1.5 text-xs text-[var(--ma-t1)] outline-none placeholder:text-[var(--ma-t3)]"
                   />
@@ -126,6 +134,16 @@ function MeetingAssistantWorkspace() {
                     {botStatus === BotStatus.Sending ? "…" : t("addBot")}
                   </button>
                 </div>
+                {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+                {linkNotInCalendar ? (
+                  <p
+                    id="assistant-link-hint"
+                    role="alert"
+                    className="mt-1.5 text-[11px] leading-snug text-[var(--ma-danger)]"
+                  >
+                    {t("linkNotInCalendar")}
+                  </p>
+                ) : null}
                 <BotStatusRenderer status={botStatus} error={botError} />
               </form>
 
@@ -277,6 +295,10 @@ function MeetingAssistantWorkspace() {
                       </button>
                     </div>
                   </div>
+                  <MeetingBotNoticeLine
+                    notice={botNotice}
+                    tone={botNoticeTone}
+                  />
                   {selected.status === MeetingStatus.Active ||
                   selected.status === MeetingStatus.Joining ||
                   selected.status === MeetingStatus.Scheduled ? (

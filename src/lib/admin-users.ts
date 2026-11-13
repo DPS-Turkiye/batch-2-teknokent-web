@@ -12,15 +12,46 @@ import { ProgramMentorStatus } from "@/interfaces/program";
 import { UserAccountStatus } from "@/interfaces/session";
 import {
   activeMentorshipFor,
+  isAcceptedMentor,
   needsAttention,
   programsForCoordinator,
   programsForMentor,
 } from "@/lib/admin-model";
-import { TeamHealth, UserDrawerSection, UserFilter } from "@/types/admin-users";
+import {
+  TeamHealth,
+  UserDrawerSection,
+  UserFilter,
+  UserTab,
+} from "@/types/admin-users";
 
 export type UsersT = ReturnType<typeof useTranslations<"adminUsers">>;
 
 export const USERS_PAGE_SIZE = 7;
+
+/** Where each Kullanıcılar tab lives. */
+export const USER_TAB_HREFS: Record<UserTab, string> = {
+  [UserTab.Coordinators]: "/admin/users",
+  [UserTab.Mentors]: "/admin/users/mentors",
+  [UserTab.Teams]: "/admin/users/teams",
+  [UserTab.Students]: "/admin/users/students",
+  [UserTab.Academics]: "/admin/users/academics",
+};
+
+/**
+ * Drops the items that link to a Kullanıcılar tab this deployment does not show, so no screen points at a page that
+ * answers 404. Query strings and fragments do not change which tab a link opens.
+ */
+export function withoutClosedTabLinks<Item extends { href: string }>(
+  items: readonly Item[],
+  openTabs: readonly UserTab[],
+): Item[] {
+  const closed = Object.values(UserTab)
+    .filter((tab) => !openTabs.includes(tab))
+    .map((tab) => USER_TAB_HREFS[tab]);
+  return items.filter(
+    (item) => !closed.includes(item.href.split(/[?#]/)[0] ?? item.href),
+  );
+}
 
 export const COORDINATOR_FILTERS = [
   UserFilter.All,
@@ -194,7 +225,9 @@ export function filterMentors(
       return false;
     if (
       program &&
-      !programsForMentor(data, user.id).some((item) => item.name === program)
+      !data.programs.some(
+        (item) => item.name === program && isAcceptedMentor(item, user.id),
+      )
     ) {
       return false;
     }
@@ -229,6 +262,9 @@ export function mentorRow(data: AdminOverview, user: AdminUser) {
   return {
     user,
     programs,
+    acceptedPrograms: programs.filter((program) =>
+      isAcceptedMentor(program, user.id),
+    ),
     mentorships,
     stale: hasStaleMentorship(mentorships),
     pendingInvite: hasPendingInvite(user, programs),

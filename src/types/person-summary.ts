@@ -1,5 +1,5 @@
 import type { OptionGroup } from "@/hooks/use-option-label";
-import type { MentorLanguage } from "@/interfaces/mentor";
+import type { MentorLanguage, Weekday } from "@/interfaces/mentor";
 
 /** How a profile-page fact turns into text: as typed, through an option list, as languages, or as a date. */
 export enum SummaryFactKind {
@@ -49,9 +49,20 @@ export type SummaryProgramNote =
 export type SummaryStatusTone = "green" | "amber" | "red";
 
 export type SummaryStatusLabel =
-  "statuses.APPROVED" | "statuses.PENDING" | "statuses.REJECTED";
+  | "statuses.APPROVED"
+  | "statuses.PENDING"
+  | "statuses.REJECTED"
+  | "statuses.DELETED";
 
 export type KeyedText = { key: string; value: string };
+
+/** A mentor's chosen times, grouped for the "Müsait zamanlar" card; the hook formats dates and day names. */
+export type SummaryAvailability = {
+  days: { day: Weekday; ranges: KeyedText[] }[];
+  daysOff: { key: string; startsOn: string; endsOn: string }[];
+  extraSlots: { key: string; startsAt: string; durationMinutes: number }[];
+  isEmpty: boolean;
+};
 
 /** What the profile page shows, decided from the backend's summary; the hook translates it. */
 export type PersonSummaryModel = {
@@ -69,6 +80,7 @@ export type PersonSummaryModel = {
     offerings: KeyedText[];
     experiences: { key: string; heading: string; detail: string }[];
     educations: KeyedText[];
+    availability: SummaryAvailability;
   } | null;
   /** Shown for mentees even without a startup, so the empty state explains it. */
   showStartup: boolean;
