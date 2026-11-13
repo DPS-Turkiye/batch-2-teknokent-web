@@ -6429,7 +6429,9 @@
         "DECLINED": "Uygun değil",
         "MORE_INFO_REQUESTED": "Ek bilgi istendi",
         "COUNTER_PROPOSED": "Başka saat önerildi",
-        "WITHDRAWN": "Geri çekildi"
+        "WITHDRAWN": "Geri çekildi",
+        "CANCELLED": "İptal edildi",
+        "EXPIRED": "Süresi doldu"
       },
       "with": "{name} ile",
       "asked": "İstenen saatler",

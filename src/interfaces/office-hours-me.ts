@@ -40,6 +40,14 @@ export type OfficeHoursInboxMessage = {
   sentAt: string;
 };
 
+/** Who called a meeting off, why, when, and whether it was close to its start (FR-OH-14). */
+export type OfficeHoursCancellation = {
+  cancelledById: string;
+  reason: string | null;
+  cancelledAt: string;
+  late: boolean;
+};
+
 /** A request in the academician's inbox, from Menton (`courseName` null) or from a Moodle course. */
 export type OfficeHoursInboxRequest = {
   id: string;
@@ -55,6 +63,8 @@ export type OfficeHoursInboxRequest = {
   rejectionReason: string | null;
   requestedAt: string;
   allowedActions: OfficeHoursRequestAction[];
+  /** Set on a cancelled request, once the backend sends cancellations (Göksu's cancel work). */
+  cancellation?: OfficeHoursCancellation | null | undefined;
 };
 
 /** The academician's answer; `message` is the reason, the note with the offered times, or the question. */
@@ -128,6 +138,8 @@ export type OfficeHoursStudentRequest = {
   onlineLink: string | null;
   requestedAt: string;
   allowedActions: OfficeHoursStudentAction[];
+  /** Set on a cancelled request, once the backend sends cancellations (Göksu's cancel work). */
+  cancellation?: OfficeHoursCancellation | null | undefined;
 };
 
 /** Take one of the academician's offered times (`accept` with `time`), or withdraw the request. */
