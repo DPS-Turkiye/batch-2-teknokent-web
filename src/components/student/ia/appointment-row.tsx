@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { AppointmentStatusBadge } from "@/components/student/ia/ui";
 import type { Appointment } from "@/interfaces/appointment";
+import { currentTime } from "@/lib/appointments";
 import { timeLabel } from "@/lib/calendar";
 import { dateTile } from "@/lib/coordinator-program-detail";
 
@@ -18,10 +19,11 @@ export function AppointmentRow({
   const t = useTranslations("iaStudent.common");
   const tTopic = useTranslations("peerTopics");
   const locale = useLocale();
-  const badge = dateTile(appointment.startsAt, locale);
+  const time = currentTime(appointment);
+  const badge = dateTile(time.startsAt, locale);
   const { counterpart } = appointment;
   const details = [
-    `${timeLabel(appointment.startsAt, locale)} – ${timeLabel(appointment.endsAt, locale)}`,
+    `${timeLabel(time.startsAt, locale)} – ${timeLabel(time.endsAt, locale)}`,
     t(`kind.${appointment.kind}`),
     appointment.category ? tTopic(appointment.category) : null,
   ].filter(Boolean);

@@ -401,6 +401,21 @@ describe("nextSessionsByRequest", () => {
     );
     expect(next.size).toBe(0);
   });
+
+  it("keeps a request whose asked-for time passed while the proposed time is still ahead", () => {
+    const moved = {
+      ...session(
+        "r4",
+        "2026-11-08T09:00:00.000Z",
+        AppointmentStatus.AlternativeProposed,
+      ),
+      alternative: {
+        startsAt: "2026-11-13T09:00:00.000Z",
+        endsAt: "2026-11-13T09:30:00.000Z",
+      },
+    };
+    expect(nextSessionsByRequest([moved], now).get("r4")).toBe(moved);
+  });
 });
 
 describe("iskurHomeMode", () => {
