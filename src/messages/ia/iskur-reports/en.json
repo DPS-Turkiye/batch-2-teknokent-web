@@ -13,5 +13,126 @@
     "minutes": "{minutes} min",
     "hoursMinutes": "{hours} h {minutes} min",
     "recordedNote": "Recorded time is for information only; it is not an approved working time."
+  },
+  "meeting": {
+    "back": "Daily report · {day}",
+    "title": "Meeting report",
+    "intro": "Filled in after each meeting, for that mentee. Once sent, it is added to your daily report and weekly summary.",
+    "sections": {
+      "MEETING": {
+        "title": "Meeting details",
+        "hint": "Filled in from the calendar; correct it if needed."
+      },
+      "TOPIC": {
+        "title": "Topic and purpose",
+        "hint": "What the mentee brought to this meeting"
+      },
+      "DETAILS": {
+        "title": "What you discussed",
+        "hint": "What did you talk about, and how did it go?"
+      },
+      "SKILLS": {
+        "title": "Skills you used",
+        "hint": "Which skills did you use as a mentor in this meeting?"
+      },
+      "OUTCOMES": {
+        "title": "Outcomes and next steps",
+        "hint": "The meeting's concrete result and who does what"
+      },
+      "EVALUATION": {
+        "title": "Evaluation",
+        "hint": "Your own observation; the mentee does not see it."
+      }
+    },
+    "sectionMissing": "This section has required fields left empty.",
+    "mentee": "Mentee",
+    "date": "Date",
+    "plannedTime": "Planned time",
+    "meetingType": "Meeting type",
+    "types": {
+      "FIRST": "First meeting",
+      "FOLLOW_UP": "Follow-up meeting"
+    },
+    "format": "Format",
+    "formats": {
+      "IN_PERSON": "In person",
+      "ONLINE": "Online"
+    },
+    "duration": "Actual length",
+    "minutesUnit": "min",
+    "topicsLabel": "Meeting topic (pick as many as fit)",
+    "topics": {
+      "INTERNSHIP_APPLICATION": "Internship application",
+      "CV_PREPARATION": "CV preparation",
+      "INTERVIEW_PREP": "Interview preparation",
+      "COURSE_SELECTION": "Course selection",
+      "DEPARTMENT_EXPERIENCE": "Department experience",
+      "MOTIVATION_TIME_MANAGEMENT": "Motivation / time management",
+      "CAMPUS_LIFE": "Campus life",
+      "OTHER": "Other"
+    },
+    "menteeNeed": "What did the mentee need? Which question or problem did they bring?",
+    "discussion": "What did you talk about? Walk through it step by step.",
+    "approach": "Which method or approach did you use, and why?",
+    "skillsLabel": "Skills you used",
+    "skillExample": "Give an example of how you used one skill",
+    "outcome": "What came out of the meeting?",
+    "actionsLabel": "Action steps",
+    "actionText": "Action step",
+    "actionOwner": "Who does it",
+    "actionDue": "Due date",
+    "actionDone": "Mark as done",
+    "owners": {
+      "MENTEE": "Mentee",
+      "MENTOR": "Me"
+    },
+    "addAction": "Add an action step",
+    "removeAction": "Remove the action step",
+    "noActions": "No action steps yet.",
+    "followUp": "A follow-up meeting is needed",
+    "followUpHint": "Added to the calendar as a suggestion; the mentee confirms.",
+    "followUpAt": "Follow-up time",
+    "productivity": "How productive was the meeting?",
+    "productivityScale": "1 = Not at all · 5 = Very productive",
+    "nextTime": "What would you do differently next time?",
+    "support": "Is there something the coordinator should help with?",
+    "supportNo": "No",
+    "supportYes": "Yes",
+    "supportHint": "If you choose \"Yes\", the coordinator contacts you separately; you don't need to write the details here.",
+    "privacy": "Do not write sensitive details such as the mentee's health, family or finances. The coordinator sees the report.",
+    "meetingNumber": "Meeting",
+    "meetingOrdinal": "Meeting {number}",
+    "previousMeeting": "Previous meeting",
+    "noPrevious": "First meeting",
+    "openActions": "Open actions",
+    "openActionsValue": "{count} steps (from earlier meetings)",
+    "previousReport": "See the previous meeting report",
+    "progress": "Report progress",
+    "tipTitle": "For a good report",
+    "tip": "Fill in the report right after the meeting, the same day at the latest. Be concrete: \"we rewrote the project section of the CV together\" rather than \"I helped\".",
+    "lastSaved": "Last saved {time}",
+    "notSaved": "Not saved yet",
+    "saveDraft": "Save as draft",
+    "send": "Send meeting report",
+    "sentNote": "Sent · {time}. The report is locked; you can still tick off action steps.",
+    "revisionNote": "Coordinator's note: {note}",
+    "saved": "Draft saved.",
+    "saveFailed": "The report could not be saved.",
+    "sent": "Meeting report sent.",
+    "sendFailed": "The report could not be sent.",
+    "missingSections": "Required fields are missing; fill in the marked sections.",
+    "notFound": "This meeting's report could not be found."
+  },
+  "skills": {
+    "ACTIVE_LISTENING": "Active listening",
+    "OPEN_QUESTIONS": "Asking open questions",
+    "GOAL_SETTING": "Goal setting",
+    "RESOURCE_REFERRAL": "Pointing to resources",
+    "FEEDBACK": "Giving feedback",
+    "EXPERIENCE_SHARING": "Sharing experience",
+    "PROBLEM_SOLVING": "Problem solving",
+    "EMPATHY": "Empathy",
+    "MOTIVATION_SUPPORT": "Motivation support",
+    "TIME_PLANNING": "Time planning"
   }
 }

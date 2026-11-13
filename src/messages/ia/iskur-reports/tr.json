@@ -13,5 +13,126 @@
     "minutes": "{minutes} dk",
     "hoursMinutes": "{hours} sa {minutes} dk",
     "recordedNote": "Kayıtlı süre bilgilendirme amaçlıdır; resmi çalışma süresi onayı değildir."
+  },
+  "meeting": {
+    "back": "Günlük Rapor · {day}",
+    "title": "Görüşme Raporu",
+    "intro": "Her görüşmeden sonra, o menteeye özel doldurulur. Gönderdiğinde günlük raporuna ve haftalık özetine otomatik eklenir.",
+    "sections": {
+      "MEETING": {
+        "title": "Görüşme bilgileri",
+        "hint": "Takvimden otomatik geldi; gerekirse düzelt."
+      },
+      "TOPIC": {
+        "title": "Konu ve amaç",
+        "hint": "Menteenin bu görüşmeye getirdiği ihtiyaç"
+      },
+      "DETAILS": {
+        "title": "Görüşme detayları",
+        "hint": "Neler konuştunuz, nasıl ilerlediniz?"
+      },
+      "SKILLS": {
+        "title": "Kullandığın beceriler",
+        "hint": "Bu görüşmede mentör olarak hangi becerileri kullandın?"
+      },
+      "OUTCOMES": {
+        "title": "Çıktılar ve sonraki adımlar",
+        "hint": "Görüşmenin somut sonucu ve kimin ne yapacağı"
+      },
+      "EVALUATION": {
+        "title": "Değerlendirme",
+        "hint": "Kendi gözlemin; mentee görmez."
+      }
+    },
+    "sectionMissing": "Bu bölümde doldurulmamış zorunlu alanlar var.",
+    "mentee": "Mentee",
+    "date": "Tarih",
+    "plannedTime": "Planlanan saat",
+    "meetingType": "Görüşme türü",
+    "types": {
+      "FIRST": "İlk görüşme",
+      "FOLLOW_UP": "Takip görüşmesi"
+    },
+    "format": "Format",
+    "formats": {
+      "IN_PERSON": "Yüz yüze",
+      "ONLINE": "Çevrim içi"
+    },
+    "duration": "Gerçekleşen süre",
+    "minutesUnit": "dk",
+    "topicsLabel": "Görüşme konusu (birden fazla seçebilirsin)",
+    "topics": {
+      "INTERNSHIP_APPLICATION": "Staj başvurusu",
+      "CV_PREPARATION": "CV hazırlama",
+      "INTERVIEW_PREP": "Mülakat hazırlığı",
+      "COURSE_SELECTION": "Ders seçimi",
+      "DEPARTMENT_EXPERIENCE": "Bölüm deneyimi",
+      "MOTIVATION_TIME_MANAGEMENT": "Motivasyon / zaman yönetimi",
+      "CAMPUS_LIFE": "Kampüs yaşamı",
+      "OTHER": "Diğer"
+    },
+    "menteeNeed": "Menteenin ihtiyacı neydi? Görüşmeye hangi soru veya sorunla geldi?",
+    "discussion": "Görüşmede neler konuştunuz? Adım adım anlat.",
+    "approach": "Hangi yöntem veya yaklaşımı kullandın? Neden?",
+    "skillsLabel": "Kullandığın beceriler",
+    "skillExample": "Bir beceriyi nasıl kullandığını örnekle",
+    "outcome": "Görüşmenin çıktısı ne oldu?",
+    "actionsLabel": "Eylem adımları",
+    "actionText": "Eylem adımı",
+    "actionOwner": "Kim yapacak",
+    "actionDue": "Son tarih",
+    "actionDone": "Tamamlandı olarak işaretle",
+    "owners": {
+      "MENTEE": "Mentee",
+      "MENTOR": "Ben"
+    },
+    "addAction": "Eylem adımı ekle",
+    "removeAction": "Eylem adımını kaldır",
+    "noActions": "Eylem adımı eklenmedi.",
+    "followUp": "Takip görüşmesi gerekiyor",
+    "followUpHint": "Takvime öneri olarak eklenir, mentee onaylar.",
+    "followUpAt": "Takip görüşmesi zamanı",
+    "productivity": "Görüşme ne kadar verimli geçti?",
+    "productivityScale": "1 = Hiç verimli değil · 5 = Çok verimli",
+    "nextTime": "Bir dahaki görüşmede neyi farklı yaparsın?",
+    "support": "Koordinatör desteği gereken bir durum var mı?",
+    "supportNo": "Hayır",
+    "supportYes": "Evet",
+    "supportHint": "\"Evet\" seçersen koordinatör seninle ayrıca iletişime geçer; ayrıntıyı rapora yazman gerekmez.",
+    "privacy": "Menteenin sağlık, aile veya maddi durumu gibi hassas bilgilerini yazma. Rapor koordinatör tarafından görüntülenir.",
+    "meetingNumber": "Görüşme",
+    "meetingOrdinal": "{number}. görüşme",
+    "previousMeeting": "Önceki görüşme",
+    "noPrevious": "İlk görüşme",
+    "openActions": "Açık eylem",
+    "openActionsValue": "{count} adım (önceki görüşmeden)",
+    "previousReport": "Önceki görüşme raporunu gör",
+    "progress": "Rapor ilerlemesi",
+    "tipTitle": "İyi bir rapor için",
+    "tip": "Raporu görüşmeden hemen sonra, en geç aynı gün doldur. Somut örnekler ver: \"yardım ettim\" yerine \"CV'nin proje bölümünü birlikte yeniden yazdık\" gibi.",
+    "lastSaved": "Son kaydetme {time}",
+    "notSaved": "Henüz kaydedilmedi",
+    "saveDraft": "Taslak Olarak Kaydet",
+    "send": "Görüşme Raporunu Gönder",
+    "sentNote": "Gönderildi · {time}. Rapor kilitlendi; eylem adımlarını yine de işaretleyebilirsin.",
+    "revisionNote": "Koordinatörün notu: {note}",
+    "saved": "Taslak kaydedildi.",
+    "saveFailed": "Rapor kaydedilemedi.",
+    "sent": "Görüşme raporu gönderildi.",
+    "sendFailed": "Rapor gönderilemedi.",
+    "missingSections": "Zorunlu alanlar eksik; işaretli bölümleri doldur.",
+    "notFound": "Bu görüşmenin raporu bulunamadı."
+  },
+  "skills": {
+    "ACTIVE_LISTENING": "Aktif dinleme",
+    "OPEN_QUESTIONS": "Açık uçlu soru sorma",
+    "GOAL_SETTING": "Hedef belirleme",
+    "RESOURCE_REFERRAL": "Kaynak yönlendirme",
+    "FEEDBACK": "Geri bildirim verme",
+    "EXPERIENCE_SHARING": "Deneyim paylaşımı",
+    "PROBLEM_SOLVING": "Problem çözme",
+    "EMPATHY": "Empati kurma",
+    "MOTIVATION_SUPPORT": "Motivasyon desteği",
+    "TIME_PLANNING": "Zaman planlama"
   }
 }

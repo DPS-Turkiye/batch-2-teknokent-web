@@ -71,3 +71,14 @@ export function fromIsoDay(day: string) {
   const [year, month, date] = day.split("-").map(Number);
   return new Date(year ?? 0, (month ?? 1) - 1, date ?? 1);
 }
+
+/** The day's view in "Faaliyet Raporum" for a moment (the meeting report's way back), in the browser's time zone. */
+export function dailyReportHref(at: string) {
+  const day = isoDay(new Date(at));
+  return `/student/peer-mentoring?tab=report&view=daily&day=${day}`;
+}
+
+/** A meeting's report page (Görüşme Raporu), read-only once it is sent. */
+export function meetingReportHref(meetingId: string) {
+  return `/student/peer-mentoring/reports/meetings/${encodeURIComponent(meetingId)}`;
+}

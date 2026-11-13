@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import { PeerReportStatus } from "@/interfaces/peer-reports";
 import {
+  dailyReportHref,
   fromIsoDay,
   isPeerReportEditable,
+  meetingReportHref,
   peerReportBadge,
   reportWeekDays,
   reportWeekStart,
@@ -102,5 +104,16 @@ describe("splitMinutes", () => {
   it("never shows a negative or fractional time", () => {
     expect(splitMinutes(-5)).toEqual({ hours: 0, minutes: 0 });
     expect(splitMinutes(59.6)).toEqual({ hours: 1, minutes: 0 });
+  });
+});
+
+describe("report links", () => {
+  it("go to the day of a moment and to a meeting's report", () => {
+    expect(dailyReportHref(new Date(2026, 10, 12, 14).toISOString())).toBe(
+      "/student/peer-mentoring?tab=report&view=daily&day=2026-11-12",
+    );
+    expect(meetingReportHref("meeting/1")).toBe(
+      "/student/peer-mentoring/reports/meetings/meeting%2F1",
+    );
   });
 });
