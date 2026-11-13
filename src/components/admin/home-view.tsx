@@ -11,6 +11,7 @@ import {
   QueryNotice,
 } from "@/components/admin/admin-ui";
 import { useAdminOverview } from "@/hooks/use-admin-overview";
+import { useAdminUserTabs } from "@/hooks/use-admin-users";
 import type { AdminOverview, AdminProgram } from "@/interfaces/admin-overview";
 import { ProgramStatus } from "@/interfaces/program";
 import {
@@ -28,6 +29,7 @@ import {
   pendingMentors,
   unmatchedStartups,
 } from "@/lib/admin-model";
+import { USER_TAB_HREFS, withoutClosedTabLinks } from "@/lib/admin-users";
 import { isEnumValue } from "@/lib/enum";
 import { initials } from "@/lib/utils";
 import {
@@ -35,6 +37,7 @@ import {
   HomeProgramScope,
   InterventionTone,
 } from "@/types/admin-home";
+import { UserTab } from "@/types/admin-users";
 
 export function AdminHomeView() {
   const query = useAdminOverview();
@@ -49,51 +52,60 @@ function Home({ data }: { data: AdminOverview }) {
   const waiting = unmatchedStartups(data);
   const mentors = pendingMentors(data);
   const access = pendingMemberships(data);
-  const rows = useMemo(() => interventionRows(data, t), [data, t]);
+  const openTabs = useAdminUserTabs();
+  const rows = useMemo(
+    () => withoutClosedTabLinks(interventionRows(data, t), openTabs),
+    [data, t, openTabs],
+  );
   const [openId, setOpenId] = useState<string | null>(
     initialOpenIntervention(rows),
   );
 
-  const alerts = [
-    {
-      value: waiting.length,
-      title: t("alerts.waitingTitle"),
-      detail: waiting.length
-        ? t("alerts.waitingDetail", {
-            count: waitingProgramCount(waiting),
-          })
-        : t("alerts.waitingNone"),
-      href: "/admin/mentorships/matching",
-      action: t("alerts.review"),
-      border: "border-[#26a4ff]",
-    },
-    {
-      value: mentors.length,
-      title: t("alerts.mentorsTitle"),
-      detail: mentors.length
-        ? t("alerts.mentorsDetail")
-        : t("alerts.mentorsNone"),
-      href: "/admin/users/mentors",
-      action: t("alerts.review"),
-      border: "border-[#f97316]",
-    },
-    {
-      value: access.length,
-      title: t("alerts.accessTitle"),
-      detail: access.length ? t("alerts.accessDetail") : t("alerts.accessNone"),
-      href: "/admin/users/mentors",
-      action: t("alerts.accessAction"),
-      border: "border-[#d9464b]",
-    },
-    {
-      value: 0,
-      title: t("alerts.deadlineTitle"),
-      detail: t("alerts.deadlineNone"),
-      href: "/admin/programs",
-      action: t("alerts.openProgram"),
-      border: "border-[#e9ecef]",
-    },
-  ];
+  const alerts = withoutClosedTabLinks(
+    [
+      {
+        value: waiting.length,
+        title: t("alerts.waitingTitle"),
+        detail: waiting.length
+          ? t("alerts.waitingDetail", {
+              count: waitingProgramCount(waiting),
+            })
+          : t("alerts.waitingNone"),
+        href: "/admin/mentorships/matching",
+        action: t("alerts.review"),
+        border: "border-[#26a4ff]",
+      },
+      {
+        value: mentors.length,
+        title: t("alerts.mentorsTitle"),
+        detail: mentors.length
+          ? t("alerts.mentorsDetail")
+          : t("alerts.mentorsNone"),
+        href: USER_TAB_HREFS[UserTab.Mentors],
+        action: t("alerts.review"),
+        border: "border-[#f97316]",
+      },
+      {
+        value: access.length,
+        title: t("alerts.accessTitle"),
+        detail: access.length
+          ? t("alerts.accessDetail")
+          : t("alerts.accessNone"),
+        href: USER_TAB_HREFS[UserTab.Mentors],
+        action: t("alerts.accessAction"),
+        border: "border-[#d9464b]",
+      },
+      {
+        value: 0,
+        title: t("alerts.deadlineTitle"),
+        detail: t("alerts.deadlineNone"),
+        href: "/admin/programs",
+        action: t("alerts.openProgram"),
+        border: "border-[#e9ecef]",
+      },
+    ],
+    openTabs,
+  );
 
   return (
     <div className="space-y-10">

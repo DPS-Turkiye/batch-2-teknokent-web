@@ -5,9 +5,9 @@ import { DELETE as removeCoordinator } from "@/app/api/coordinator/programs/[id]
 import { POST as addCoordinator } from "@/app/api/coordinator/programs/[id]/coordinators/route";
 import { PUT as phases } from "@/app/api/coordinator/programs/[id]/phases/route";
 import { GET, PUT } from "@/app/api/coordinator/programs/[id]/route";
-import { POST as readSyllabus } from "@/app/api/coordinator/programs/syllabus/phases/route";
 import { UserRole } from "@/interfaces/session";
 import * as api from "@/lib/api/coordinator-programs";
+import { requireAdminSession } from "@/lib/server/require-admin";
 import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 import { answerEachWith, guardRefusal } from "@test/fixtures/route-handlers";
 import { appSession } from "@test/fixtures/session";
@@ -16,17 +16,21 @@ vi.mock("@/lib/api/coordinator-programs", () => ({
   fetchCoordinatorProgram: vi.fn(),
   updateCoordinatorProgram: vi.fn(),
   replaceCoordinatorProgramPhases: vi.fn(),
-  extractSyllabusPhases: vi.fn(),
   setCoordinatorProgramArchived: vi.fn(),
   fetchProgramCoordinators: vi.fn(),
   addProgramCoordinator: vi.fn(),
   removeProgramCoordinator: vi.fn(),
+}));
+vi.mock("@/lib/server/require-admin", () => ({
+  requireAdminSession: vi.fn(),
 }));
 vi.mock("@/lib/server/require-coordinator", () => ({
   requireCoordinatorOrAdminSession: vi.fn(),
 }));
 
 const params = { params: Promise.resolve({ id: "program-1" }) };
+const COORDINATOR_ID = "5d0c1e6a-0f43-4c4b-9a54-6f2d6c1b7e21";
+
 const body = (value: unknown) =>
   new Request("http://localhost", {
     method: "PUT",
@@ -83,29 +87,13 @@ describe("coordinator program detail routes", () => {
     );
   });
 
-  it("reads a syllabus as the signed-in coordinator, passing only the document and dates", async () => {
-    answerEachWith([api.extractSyllabusPhases]);
-
-    await readSyllabus(
-      body({
-        documentId: "doc-1",
-        startDate: "2026-11-03",
-        endDate: "",
-        actorId: "someone-else",
-      }),
-    );
-
-    expect(api.extractSyllabusPhases).toHaveBeenCalledWith("coordinator-1", {
-      documentId: "doc-1",
-      startDate: "2026-11-03",
-      endDate: null,
-    });
-  });
-
   it("forwards phases, archiving and coordinator changes", async () => {
     await phases(
       body({
-        phases: [{ name: "Başvuru", expectedOutput: "Form", extra: "x" }],
+        phases: [
+          { name: "Başvuru", expectedOutput: "Form", extra: "x" },
+          { id: "phase-2", name: "Seçim" },
+        ],
         syllabusDocumentId: "doc-1",
       }),
       params,
@@ -115,10 +103,19 @@ describe("coordinator program detail routes", () => {
       "program-1",
       [
         {
+          id: null,
           name: "Başvuru",
           startDate: null,
           endDate: null,
           expectedOutput: "Form",
+        },
+        // A saved phase keeps its id, so the backend keeps the phase and what is linked to it.
+        {
+          id: "phase-2",
+          name: "Seçim",
+          startDate: null,
+          endDate: null,
+          expectedOutput: null,
         },
       ],
       "doc-1",
@@ -129,20 +126,56 @@ describe("coordinator program detail routes", () => {
       "program-1",
       true,
     );
-    await addCoordinator(body({ userId: "coordinator-2" }), params);
+  });
+
+  it("adds, invites and removes coordinators only as the signed-in admin", async () => {
+    vi.mocked(requireAdminSession).mockResolvedValue({
+      ok: true,
+      session: appSession({ userId: "admin-1", role: UserRole.Admin }),
+    });
+    await addCoordinator(body({ userId: COORDINATOR_ID }), params);
     expect(api.addProgramCoordinator).toHaveBeenCalledWith(
-      "coordinator-1",
+      "admin-1",
       "program-1",
-      "coordinator-2",
+      { userId: COORDINATOR_ID },
+    );
+    await addCoordinator(
+      body({
+        invite: { fullName: "Yeni Kişi", email: "yeni@x.org" },
+        actorId: "someone-else",
+      }),
+      params,
+    );
+    expect(api.addProgramCoordinator).toHaveBeenLastCalledWith(
+      "admin-1",
+      "program-1",
+      { invite: { fullName: "Yeni Kişi", email: "yeni@x.org" } },
     );
     await removeCoordinator(new Request("http://localhost"), {
-      params: Promise.resolve({ id: "program-1", userId: "coordinator-2" }),
+      params: Promise.resolve({ id: "program-1", userId: COORDINATOR_ID }),
     });
     expect(api.removeProgramCoordinator).toHaveBeenCalledWith(
-      "coordinator-1",
+      "admin-1",
       "program-1",
-      "coordinator-2",
+      COORDINATOR_ID,
     );
+  });
+
+  it("refuses a coordinator who tries to add or remove a coordinator", async () => {
+    vi.mocked(requireAdminSession).mockResolvedValue(guardRefusal(403));
+
+    expect(
+      (await addCoordinator(body({ userId: COORDINATOR_ID }), params)).status,
+    ).toBe(403);
+    expect(
+      (
+        await removeCoordinator(new Request("http://localhost"), {
+          params: Promise.resolve({ id: "program-1", userId: COORDINATOR_ID }),
+        })
+      ).status,
+    ).toBe(403);
+    expect(api.addProgramCoordinator).not.toHaveBeenCalled();
+    expect(api.removeProgramCoordinator).not.toHaveBeenCalled();
   });
 
   it("stops at the session check", async () => {
@@ -151,9 +184,5 @@ describe("coordinator program detail routes", () => {
     );
     expect((await archive(body({ archived: true }), params)).status).toBe(403);
     expect(api.setCoordinatorProgramArchived).not.toHaveBeenCalled();
-    expect((await readSyllabus(body({ documentId: "doc-1" }))).status).toBe(
-      403,
-    );
-    expect(api.extractSyllabusPhases).not.toHaveBeenCalled();
   });
 });

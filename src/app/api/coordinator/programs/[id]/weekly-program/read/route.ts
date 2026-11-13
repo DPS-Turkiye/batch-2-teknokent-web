@@ -26,6 +26,8 @@ export async function POST(request: NextRequest, { params }: Context) {
         auth.session.userId,
         id,
         body.data.documentId,
+        // The token only moves the read onto the coordinator's own budget; without one the read goes on the
+        // service credentials. A stale token gets the backend's 401, which asks for a new sign-in.
         readBearerToken(request) ?? undefined,
       ),
     );

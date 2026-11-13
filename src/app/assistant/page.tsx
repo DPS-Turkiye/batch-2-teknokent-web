@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
 import { BotStatusRenderer } from "@/components/assistant/bot-status-renderer";
+import { MeetingBotNoticeLine } from "@/components/assistant/meeting-bot-notice";
 import { MeetingReportView } from "@/components/assistant/meeting-report-view";
 import { AppShell } from "@/components/hoc/app-shell";
 import { useAppSession } from "@/components/providers/session-provider";
@@ -13,6 +14,7 @@ import {
   STATUS_META,
   useMeetingAssistant,
 } from "@/hooks/use-meeting-assistant";
+import { useMeetingBotState } from "@/hooks/use-meeting-bot-state";
 import { formatSlotDateTime } from "@/lib/format";
 import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
@@ -62,6 +64,7 @@ function MeetingAssistantWorkspace() {
     sendTranscript,
     sendReport,
   } = useMeetingAssistant(requestedMeetingId, session?.role);
+  const { botNotice, botNoticeTone } = useMeetingBotState(selected);
 
   return (
     <AppShell active={AppArea.Assistant}>
@@ -292,6 +295,10 @@ function MeetingAssistantWorkspace() {
                       </button>
                     </div>
                   </div>
+                  <MeetingBotNoticeLine
+                    notice={botNotice}
+                    tone={botNoticeTone}
+                  />
                   {selected.status === MeetingStatus.Active ||
                   selected.status === MeetingStatus.Joining ||
                   selected.status === MeetingStatus.Scheduled ? (

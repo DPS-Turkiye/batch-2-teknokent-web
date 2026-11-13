@@ -1,25 +1,23 @@
 import type { ActionItemStatus } from "@/interfaces/action-item";
 import type { UserRole } from "@/interfaces/session";
 
-/** Mirrors the backend's StartupStage; declaration order is the journey. */
-export enum StartupStage {
-  Problem = "PROBLEM",
-  Solution = "SOLUTION",
-  Mvp = "MVP",
-  BusinessModel = "BUSINESS_MODEL",
-  Market = "MARKET",
-  Finance = "FINANCE",
-  Pitch = "PITCH",
-}
-
 export enum StartupStageState {
   Completed = "COMPLETED",
   Current = "CURRENT",
   Upcoming = "UPCOMING",
 }
 
-export interface StartupStageProgress {
-  stage: StartupStage;
+/**
+ * One Süreç card: a phase of the team's program. Its state comes from its dates; a phase without dates is
+ * upcoming.
+ */
+export interface ProcessPhase {
+  id: string;
+  name: string;
+  position: number;
+  startDate: string | null;
+  endDate: string | null;
+  expectedOutput: string | null;
   state: StartupStageState;
 }
 
@@ -28,7 +26,8 @@ export interface StartupRound {
   id: string;
   title: string;
   name: string;
-  stage: StartupStage;
+  /** The program phase the round falls in, or null. */
+  phaseId: string | null;
   startsOn: string;
   endsOn: string;
 }
@@ -37,7 +36,8 @@ export interface StartupRound {
 export interface ProcessAssignment {
   id: string;
   roundId: string | null;
-  stage: StartupStage;
+  /** The program phase the Ödev belongs to, or null ("Fazsız görevler"). */
+  phaseId: string | null;
   title: string;
   description: string | null;
   status: ActionItemStatus;
@@ -51,8 +51,10 @@ export interface ProcessAssignment {
 
 export interface StartupProcess {
   organizationId: string;
-  currentStage: StartupStage | null;
-  stages: StartupStageProgress[];
+  /** The phase today falls in, or null. */
+  currentPhaseId: string | null;
+  /** The phases of the team's program, in order; empty without a program or phases. */
+  phases: ProcessPhase[];
   currentRound: StartupRound | null;
   rounds: StartupRound[];
   assignments: ProcessAssignment[];

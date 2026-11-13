@@ -3,12 +3,13 @@
 import { useTranslations } from "next-intl";
 
 import { useSession } from "@/components/providers/session-provider";
-import { roleWorkspace } from "@/lib/role-workspace";
+import { workspaceForSession } from "@/lib/role-workspace";
 
 export function usePublicSessionDestination() {
   const t = useTranslations();
   const { isLoading, session } = useSession();
-  const { homeHref } = roleWorkspace(session?.role);
+  // The account's workspace decides where "continue" leads: an ODTÜ student is a MENTEE whose home is /student.
+  const { homeHref } = workspaceForSession(session);
   const firstName = session?.fullName.trim().split(/\s+/)[0];
   const login = {
     href: session ? homeHref : "/login",

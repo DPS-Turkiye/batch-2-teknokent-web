@@ -31,11 +31,20 @@ import { useToast } from "@/stores/toast-store";
  * account (an e-mail sign-up), which is a state to show, not an error.
  */
 export function useStudentInstitution() {
+  const t = useTranslations("iaStudent.profile.institution");
+  const tLevel = useTranslations("studyLevel");
   const query = useInstitutionRecord();
   const missing =
     query.error instanceof ClientApiError && query.error.status === 404;
+  const record = query.data ?? null;
+  const classParts = [
+    record?.classYear ? t("classYearValue", { year: record.classYear }) : null,
+    record?.programLevel ? tLevel(record.programLevel) : null,
+  ].filter((part) => part !== null);
   return {
-    record: query.data ?? null,
+    record,
+    /** "3. sınıf · Lisans", or null when ODTÜ sent neither. */
+    classLine: classParts.length > 0 ? classParts.join(" · ") : null,
     isLoading: query.isLoading,
     missing,
     error: missing ? null : query.error,
@@ -85,6 +94,10 @@ export function useStudentInterests() {
     categories: catalogue,
     /** The chosen categories with their sub-topics, for whatever is on screen. */
     chosen: chosenCategories(catalogue, shown?.topics ?? []),
+    /** The saved sub-topics, in the order of their categories. */
+    savedSubtopics: chosenCategories(catalogue, saved?.topics ?? [])
+      .flatMap((item) => item.subtopics)
+      .filter((sub) => saved?.subtopics.includes(sub.id) ?? false),
     isLoading: profile.isLoading || categories.isLoading,
     loadError: profile.error ?? categories.error,
     isFetching: profile.isFetching || categories.isFetching,

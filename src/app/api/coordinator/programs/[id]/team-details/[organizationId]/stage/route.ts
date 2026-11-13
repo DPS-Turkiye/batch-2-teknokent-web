@@ -1,26 +1,18 @@
-import { z } from "zod";
-
-import { StartupStage } from "@/interfaces/startup-process";
 import { fetchProgramTeamDetail } from "@/lib/api/coordinator-programs";
-import {
-  fetchStartupProcess,
-  updateProcessStage,
-} from "@/lib/api/startup-process";
+import { fetchStartupProcess } from "@/lib/api/startup-process";
 import {
   apiErrorResponse,
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
-import { readJsonBody } from "@/lib/server/request-body";
 import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 
 type Params = { params: Promise<{ id: string; organizationId: string }> };
 
-const stageBodySchema = z.object({ stage: z.enum(StartupStage) });
-
 /**
- * The backend lets any coordinator, the founder or a mentor change a stage; here only a coordinator
- * (or admin) whose program the team is in may, so the team lookup runs first.
+ * A team's Süreç as its program's coordinator sees it in the Takımlar drawer. Only a coordinator (or admin) whose
+ * program the team is in may read it, so the team lookup runs first. The phase follows the program's dates, so
+ * there is nothing to change here.
  */
 async function requireProgramTeam({ params }: Params) {
   const auth = await requireCoordinatorOrAdminSession();
@@ -47,28 +39,6 @@ export async function GET(_request: Request, context: Params) {
   } catch (error) {
     return apiErrorResponse(error, {
       message: await apiText("teamStageLoadFailed"),
-    });
-  }
-}
-
-export async function PUT(request: Request, context: Params) {
-  try {
-    const access = await requireProgramTeam(context);
-    if (!access.ok) return access.response;
-    const parsed = await readJsonBody(request, stageBodySchema, {
-      invalidMessage: "stageInvalid",
-    });
-    if (!parsed.ok) return parsed.response;
-    return backendResponse(
-      await updateProcessStage(
-        access.organizationId,
-        access.actorId,
-        parsed.data.stage,
-      ),
-    );
-  } catch (error) {
-    return apiErrorResponse(error, {
-      message: await apiText("stageUpdateFailed"),
     });
   }
 }

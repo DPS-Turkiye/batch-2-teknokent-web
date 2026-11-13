@@ -75,3 +75,24 @@ export async function readJsonBody<Schema extends z.ZodType>(
   }
   return { ok: true, data: parsed.data };
 }
+
+/**
+ * Checks a route's query parameters against `schema`, the same way `readJsonBody` checks a body: a left-out
+ * parameter reaches the schema as `undefined`, and anything invalid answers 400 before the backend is called.
+ */
+export async function readSearchParams<Schema extends z.ZodType>(
+  params: URLSearchParams,
+  schema: Schema,
+): Promise<JsonBody<z.output<Schema>>> {
+  const parsed = schema.safeParse(Object.fromEntries(params));
+  if (!parsed.success) {
+    return {
+      ok: false,
+      response: await invalidRequest(
+        "invalidRequestFields",
+        invalidFields(parsed.error),
+      ),
+    };
+  }
+  return { ok: true, data: parsed.data };
+}

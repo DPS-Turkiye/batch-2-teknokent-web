@@ -1,1 +1,283 @@
-{}
+{
+  "common": {
+    "whyRecommended": "Why recommended?",
+    "kind": {
+      "PEER_MENTORING": "Peer Mentoring",
+      "OFFICE_HOURS": "Office Hours"
+    }
+  },
+  "home": {
+    "greeting": "{greeting}, {name}",
+    "seeAll": "See all",
+    "next": {
+      "label": "Next appointment",
+      "view": "View appointment"
+    },
+    "quick": {
+      "label": "Quick actions",
+      "officeHours": {
+        "title": "Request an appointment",
+        "body": "Office Hours"
+      },
+      "peerMentor": {
+        "title": "Find a mentor",
+        "body": "Peer Mentoring"
+      },
+      "appointments": {
+        "title": "My appointments",
+        "body": "{upcoming} upcoming · {requests} requests"
+      },
+      "profile": {
+        "title": "Update your profile",
+        "body": "Your interests and goal"
+      }
+    },
+    "upcoming": {
+      "title": "My upcoming appointments",
+      "empty": "You have no upcoming appointments."
+    },
+    "mentors": {
+      "title": "Mentors recommended for you",
+      "hint": "Based on the topics you chose",
+      "all": "Peer Mentoring",
+      "role": "Peer Mentor",
+      "profile": "View profile",
+      "request": "Send a mentoring request"
+    },
+    "advisor": {
+      "label": "Your academic advisor",
+      "source": "From the institutional record",
+      "request": "Request an appointment"
+    },
+    "requests": {
+      "title": "My pending requests",
+      "all": "All ({count})",
+      "empty": "You have no requests awaiting an answer.",
+      "reply": "Reply",
+      "waiting": "Awaiting reply"
+    }
+  },
+  "appointments": {
+    "title": "My appointments",
+    "subtitle": "Your Office Hours and peer mentoring appointments in one place.",
+    "viewLabel": "View",
+    "views": {
+      "list": "List",
+      "day": "Day",
+      "week": "Week",
+      "month": "Month"
+    },
+    "tabLabel": "Appointment list",
+    "tabs": {
+      "upcoming": "Upcoming",
+      "requests": "Requests",
+      "past": "Past"
+    },
+    "tabEmpty": {
+      "upcoming": "You have no confirmed upcoming appointments.",
+      "requests": "You have no requests awaiting an answer.",
+      "past": "You have no past appointments."
+    },
+    "seeAll": "All",
+    "sent": {
+      "title": "Your appointment request was sent",
+      "body": "We'll notify you when {name} replies."
+    },
+    "alternative": {
+      "requested": "You asked for",
+      "proposed": "Proposed"
+    },
+    "rejectReason": "Reason: {reason}",
+    "legend": {
+      "title": "What do the statuses mean?",
+      "PENDING": "The academician or mentor hasn't answered yet. The appointment isn't set.",
+      "ALTERNATIVE_PROPOSED": "The appointment isn't confirmed until you accept the new time.",
+      "CONFIRMED": "The appointment is set and shows in both calendars."
+    },
+    "calendar": {
+      "today": "Today",
+      "previous": "Previous",
+      "next": "Next",
+      "day": "{date}, {count, plural, =0 {no appointments} one {# appointment} other {# appointments}}",
+      "time": "Time",
+      "proposedTime": "Proposed time",
+      "nothingInView": "You have no appointments in this range.",
+      "emptyDay": "You have no appointments on this day."
+    },
+    "colors": {
+      "title": "Colours",
+      "OFFICE_HOURS": {
+        "title": "Office Hours",
+        "body": "Appointment with an academician"
+      },
+      "PEER_MENTORING": {
+        "title": "Peer Mentoring",
+        "body": "Session with a peer mentor"
+      },
+      "dashed": {
+        "title": "Dashed frame",
+        "body": "Not confirmed yet: awaiting approval or an alternative time proposed"
+      }
+    },
+    "loading": "Loading appointments…",
+    "error": "Appointments could not be loaded.",
+    "retry": "Try again",
+    "empty": "No appointments yet",
+    "emptyBody": "Ask a peer mentor or Office Hours for an appointment; it will show up here.",
+    "findMentor": "Find a mentor"
+  },
+  "officeHours": {
+    "list": {
+      "title": "Office Hours",
+      "search": "Search academicians (name)",
+      "faculty": "Faculty",
+      "department": "Department",
+      "availableOnly": "With free times",
+      "count": "{count} academicians",
+      "empty": "No academician matches your search.",
+      "nearest": "Nearest free time: {day} {time}",
+      "noSlots": "No free times right now",
+      "seeSlots": "See free times",
+      "profile": "View profile",
+      "footnote": "No department limits: you can ask any ODTÜ academician for an appointment. Booking another academician doesn't change your advisor."
+    },
+    "advisor": {
+      "label": "Your academic advisor",
+      "source": "From the institutional record",
+      "note": "Appointments with your advisor are also set only once the academician approves.",
+      "nearest": "Nearest free times",
+      "noSlots": "Your advisor has no free times right now.",
+      "profile": "See free times",
+      "request": "Request an appointment"
+    },
+    "profile": {
+      "title": "Academician profile",
+      "back": "Office Hours",
+      "notFound": "This academician could not be found.",
+      "officeHours": "Office Hours",
+      "request": "Request an appointment",
+      "nearest": "Nearest free time: {day} {time}",
+      "noSlots": "No free times right now",
+      "about": "About",
+      "topics": "What can you talk about?",
+      "courses": "Courses this term",
+      "info": {
+        "title": "Office Hours details",
+        "place": "Place",
+        "duration": "Length",
+        "minutes": "{count} minutes",
+        "response": "Response time"
+      },
+      "thisWeek": "Free times this week",
+      "seeAll": "See all",
+      "noSlotsThisWeek": "No free times this week.",
+      "past": "Your earlier appointments",
+      "footnote": "Every appointment is set only once the academician approves. Booking this academician doesn't change your academic advisor."
+    },
+    "booking": {
+      "title": "Pick a time",
+      "back": "Office Hours",
+      "notFound": "This academician could not be found.",
+      "info": "Office Hours details",
+      "duration": "Length",
+      "minutes": "{count} minutes",
+      "place": "Place",
+      "thisWeek": "This week",
+      "freeCount": "{count, plural, =0 {no free times} one {# free time} other {# free times}}",
+      "topics": "What can you talk about?",
+      "fullProfile": "View profile",
+      "slotsTitle": "Free times",
+      "slotsHint": "Pick a day and a time. Your request is set once the academician approves.",
+      "previousWeek": "Previous week",
+      "nextWeek": "Next week",
+      "days": "Days",
+      "times": "Times",
+      "slotCount": "{count, plural, one {# time} other {# times}}",
+      "noneThatDay": "No free times",
+      "noneThisWeek": "No free times this week; try the next one.",
+      "fadedHint": "Faded times are taken by another student or already past.",
+      "selected": "Selected time",
+      "nothingSelected": "No time picked yet",
+      "continue": "Continue"
+    },
+    "request": {
+      "title": "Request an appointment",
+      "close": "Close",
+      "academician": "Academician",
+      "date": "Date",
+      "time": "Time",
+      "subject": "Meeting title",
+      "subjectPlaceholder": "E.g. CV and master's options",
+      "subjectHint": "The coordinator only sees the title, the date and who takes part.",
+      "subjectRequired": "Write a title for the meeting.",
+      "description": "Description",
+      "descriptionHint": "Only the academician sees this and decides on your request from it. {count} / {max}",
+      "descriptionRequired": "Briefly say what you want to talk about.",
+      "required": "(required)",
+      "approvalTitle": "Approval needed",
+      "approvalBody": "Your request shows as \"Awaiting approval\" until the academician answers.",
+      "cancel": "Cancel",
+      "submit": "Send request",
+      "sent": "Your appointment request was sent.",
+      "failed": "The request could not be sent. Try again."
+    },
+    "answer": {
+      "accept": "Accept the proposed time",
+      "decline": "Decline",
+      "accepted": "You accepted the proposed time; your appointment is confirmed.",
+      "declined": "You declined the proposed time; your request was withdrawn.",
+      "failed": "Your answer could not be sent. Try again."
+    }
+  },
+  "profile": {
+    "title": "My profile",
+    "subtitle": "Mentor suggestions are based on your interests and goal.",
+    "interests": {
+      "title": "My interests and goals",
+      "edit": "Edit",
+      "loading": "Loading your interests…",
+      "loadError": "Your interests could not be loaded.",
+      "retry": "Try again",
+      "topics": "Topics you want support with",
+      "goal": "Your goal",
+      "noGoal": "You haven't written a goal yet.",
+      "empty": "You haven't picked any interests yet. Press Edit to pick some.",
+      "save": "Save",
+      "saving": "Saving…",
+      "cancel": "Cancel",
+      "saveError": "Could not save. Try again."
+    },
+    "institution": {
+      "title": "Institutional details",
+      "source": "From ODTÜ · read-only",
+      "locked": "Not editable",
+      "loading": "Loading institutional details…",
+      "missingTitle": "No institutional record",
+      "missingBody": "Your account didn't match an ODTÜ record; it shows here once you sign in with ODTÜ.",
+      "loadError": "Institutional details could not be loaded.",
+      "retry": "Try again",
+      "fullName": "Full name",
+      "email": "Institutional e-mail",
+      "department": "Department",
+      "classYear": "Year",
+      "classYearValue": "Year {year}",
+      "unknown": "Unknown"
+    },
+    "photo": {
+      "title": "Profile photo",
+      "optional": "Optional",
+      "upload": "Upload photo",
+      "uploading": "Uploading…",
+      "formats": "JPG, PNG or WEBP · up to 5 MB",
+      "note": "Only your mentors and the academicians you ask for an appointment see your photo. Without one, your initials show."
+    },
+    "advisor": {
+      "label": "My academic advisor",
+      "note": "The advisor relationship comes from the institutional record; it can't be changed in menton."
+    },
+    "visibility": {
+      "title": "Where do your details show?",
+      "body": "A mentor you send a request to sees your interests and goal. Your institutional details are shared only as your name and department."
+    }
+  }
+}

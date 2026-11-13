@@ -5,6 +5,7 @@ import {
   getAssistantShareApiUrl,
   getAssistantShareReportUploadApiUrl,
   getAssistantShareTranscriptUploadApiUrl,
+  getMeetingBotApiUrl,
   getMeetingDocumentDestination,
   getMeetingNoteApiUrl,
   getMeetingNoteDocumentApiUrl,
@@ -14,7 +15,6 @@ import {
   getMeetingTodoApiUrl,
   getMeetingTodosApiUrl,
   getRealtimeUrl,
-  getStopBotApiUrl,
   getTranscriptApiUrl,
 } from "@/lib/const";
 
@@ -61,7 +61,7 @@ describe("meeting API URLs", () => {
   });
 
   it("puts the platform and the provider's meeting id in the bot routes' query", () => {
-    expect(getStopBotApiUrl("google_meet", "abc def")).toBe(
+    expect(getMeetingBotApiUrl("google_meet", "abc def")).toBe(
       "/api/botapi?platform=google_meet&nativeMeetingId=abc+def",
     );
     expect(getTranscriptApiUrl("zoom", "1&2")).toBe(

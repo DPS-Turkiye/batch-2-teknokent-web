@@ -6,6 +6,7 @@ import {
   AppointmentStatus,
   type Appointment,
   type AppointmentSide,
+  type AppointmentTime,
 } from "@/interfaces/appointment";
 
 type AppointmentTone = ComponentProps<typeof StatusChip>["tone"];
@@ -39,22 +40,37 @@ const OPEN_STATUSES = new Set([
   AppointmentStatus.Confirmed,
 ]);
 
-export function isUpcoming(appointment: Appointment, now: Date) {
+/**
+ * The time an appointment stands at now: the proposed one while another time is on the table, else its own. Takes
+ * any shape with a status and an alternative, so partial rows (`isUpcoming`'s Pick) work too.
+ */
+export function currentTime<
+  T extends Pick<Appointment, "status" | "alternative">,
+>(appointment: T): T | AppointmentTime {
+  return appointment.status === AppointmentStatus.AlternativeProposed &&
+    appointment.alternative
+    ? appointment.alternative
+    : appointment;
+}
+
+export function isUpcoming(
+  appointment: Pick<Appointment, "status" | "endsAt" | "alternative">,
+  now: Date,
+) {
   return (
     OPEN_STATUSES.has(appointment.status) &&
-    Date.parse(appointment.endsAt) > now.getTime()
+    Date.parse(currentTime(appointment).endsAt) > now.getTime()
   );
 }
 
 /** Upcoming soonest first; everything else (held, cancelled, refused) newest first. */
 export function splitAppointments(appointments: Appointment[], now: Date) {
   const byStart = appointments.toSorted(
-    (a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt),
+    (a, b) =>
+      Date.parse(currentTime(a).startsAt) - Date.parse(currentTime(b).startsAt),
   );
   return {
     upcoming: byStart.filter((item) => isUpcoming(item, now)),
     past: byStart.filter((item) => !isUpcoming(item, now)).reverse(),
   };
 }
-
-export const HOME_UPCOMING_LIMIT = 3;

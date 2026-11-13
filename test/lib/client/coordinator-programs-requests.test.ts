@@ -18,7 +18,6 @@ import {
   createMatch,
   decideProgramApproval,
   decideProgramMentor,
-  extractSyllabusPhases,
   getCoordinatorProgram,
   getCoordinatorPrograms,
   getMatching,
@@ -26,12 +25,12 @@ import {
   getMentorPool,
   getMentorReview,
   getProgramApprovals,
-  getProgramCoordinatorCandidates,
   getProgramCoordinators,
   getProgramEligibleEmails,
   getProgramTeamDetail,
   getProgramTeams,
   getProgramWithoutTeam,
+  inviteProgramCoordinator,
   inviteProgramMentor,
   launchCoordinatorProgram,
   removeProgramCoordinator,
@@ -93,8 +92,8 @@ const NEW_PROGRAM: CreateProgramInput = {
   startDate: null,
   endDate: null,
   coordinatorIds: ["coord-1"],
+  newCoordinators: [],
 };
-const SYLLABUS = { documentId: "doc-1", startDate: null, endDate: null };
 
 const calls: ClientCall[] = [
   {
@@ -136,12 +135,6 @@ const calls: ClientCall[] = [
     args: [`${P}/phases`, { phases: [PHASE], syllabusDocumentId: "doc-1" }],
   },
   {
-    title: "extractSyllabusPhases asks the shared syllabus endpoint",
-    call: () => extractSyllabusPhases(SYLLABUS),
-    method: "post",
-    args: ["/api/coordinator/programs/syllabus/phases", SYLLABUS],
-  },
-  {
     title: "launchCoordinatorProgram posts an empty body to launch",
     call: () => launchCoordinatorProgram(PROGRAM),
     method: "post",
@@ -160,16 +153,23 @@ const calls: ClientCall[] = [
     args: [`${P}/coordinators`],
   },
   {
-    title: "getProgramCoordinatorCandidates lists who may be added",
-    call: () => getProgramCoordinatorCandidates(PROGRAM),
-    method: "get",
-    args: [`${P}/coordinators/candidates`],
-  },
-  {
     title: "addProgramCoordinator posts the user to add",
     call: () => addProgramCoordinator(PROGRAM, "user-1"),
     method: "post",
     args: [`${P}/coordinators`, { userId: "user-1" }],
+  },
+  {
+    title: "inviteProgramCoordinator posts the e-mail to invite",
+    call: () =>
+      inviteProgramCoordinator(PROGRAM, {
+        fullName: "Yeni Kişi",
+        email: "yeni@x.org",
+      }),
+    method: "post",
+    args: [
+      `${P}/coordinators`,
+      { invite: { fullName: "Yeni Kişi", email: "yeni@x.org" } },
+    ],
   },
   {
     title: "removeProgramCoordinator deletes the encoded user",

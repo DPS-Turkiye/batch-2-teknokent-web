@@ -13,7 +13,7 @@ import {
 } from "@/interfaces/organization";
 import { UserAccountStatus } from "@/interfaces/session";
 import { DocumentKind } from "@/interfaces/startup-document";
-import { StartupStage, StartupStageState } from "@/interfaces/startup-process";
+import { StartupStageState } from "@/interfaces/startup-process";
 import { getMeetings } from "@/lib/client/meetings";
 import { getMentorRequests } from "@/lib/client/mentor-requests";
 import { getStartupProfile } from "@/lib/client/organization";
@@ -23,6 +23,7 @@ import { getStartupDocuments } from "@/lib/client/startup-documents";
 import { getStartupProcess } from "@/lib/client/startup-process";
 import { organizationProgram } from "@test/fixtures/organization-programs";
 import { documentFixture } from "@test/fixtures/startup-files";
+import { processPhase, startupProcess } from "@test/fixtures/startup-process";
 import { createTestQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/organization", () => ({
@@ -115,14 +116,14 @@ describe("useStartupOverview", () => {
       ],
       activeProgramId: "p-1",
     });
-    vi.mocked(getStartupProcess).mockResolvedValue({
-      organizationId: "org-1",
-      currentStage: StartupStage.Mvp,
-      stages: [{ stage: StartupStage.Mvp, state: StartupStageState.Current }],
-      currentRound: null,
-      rounds: [],
-      assignments: [],
-    });
+    vi.mocked(getStartupProcess).mockResolvedValue(
+      startupProcess({
+        currentPhaseId: "mvp",
+        phases: [
+          processPhase("mvp", "MVP", { state: StartupStageState.Current }),
+        ],
+      }),
+    );
     vi.mocked(getMentorRequests).mockResolvedValue([
       {
         id: "r-1",
