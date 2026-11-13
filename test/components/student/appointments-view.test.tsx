@@ -3,137 +3,232 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { StudentAppointmentsView } from "@/components/student/appointments-view";
+import {
+  AppointmentKind,
+  AppointmentSide,
+  AppointmentStatus,
+} from "@/interfaces/appointment";
 import { getStudentAppointments } from "@/lib/client/student-appointments";
-import { expectLength } from "@test/fixtures/list-assertions";
 import {
   APPOINTMENTS_NOW,
+  peerAppointment,
   STUDENT_APPOINTMENTS,
 } from "@test/fixtures/student-appointments";
-import { InLocale, renderWithQueryClient } from "@test/test-utils";
+import { renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/student-appointments", () => ({
   getStudentAppointments: vi.fn(),
 }));
+
+const alternative = peerAppointment({
+  id: "alt",
+  requestId: null,
+  kind: AppointmentKind.OfficeHours,
+  category: null,
+  status: AppointmentStatus.AlternativeProposed,
+  topic: "CV ve yüksek lisans seçenekleri",
+  counterpart: {
+    userId: "academician-1",
+    fullName: "Ahmet Kaya",
+    title: "Prof. Dr.",
+    department: null,
+  },
+  startsAt: "2026-11-12T11:00:00.000Z",
+  endsAt: "2026-11-12T11:30:00.000Z",
+  alternative: {
+    startsAt: "2026-11-13T07:30:00.000Z",
+    endsAt: "2026-11-13T08:00:00.000Z",
+  },
+});
 
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ["Date"] });
   vi.setSystemTime(APPOINTMENTS_NOW);
   vi.mocked(getStudentAppointments)
     .mockReset()
-    .mockResolvedValue(structuredClone(STUDENT_APPOINTMENTS));
+    .mockResolvedValue(structuredClone([...STUDENT_APPOINTMENTS, alternative]));
 });
 
 afterEach(() => {
   vi.useRealTimers();
 });
 
-function section(name: string) {
-  return screen.getByRole("list", { name });
+async function panel() {
+  return screen.findByRole("tabpanel");
 }
 
 describe("StudentAppointmentsView", () => {
-  it("shows upcoming sessions soonest first, then the past, with side, status and the counterpart", async () => {
-    renderWithQueryClient(<StudentAppointmentsView />);
+  it("lists the confirmed sessions ahead and marks the first for the tour", async () => {
+    const { container } = renderWithQueryClient(<StudentAppointmentsView />);
 
-    const upcoming = await screen.findByRole("list", { name: "Yaklaşan" });
-    const rows = within(upcoming).getAllByRole("listitem");
-    expectLength(rows, 2);
-    expect(within(rows[0]).getByText("Uluslararası Fırsatlar")).toBeVisible();
-    expect(within(rows[0]).getByText("Mentor olarak")).toBeVisible();
-    expect(within(rows[0]).getByText(/Mert Yılmaz · Fizik/)).toBeVisible();
-    expect(within(rows[1]).getByText("Mentee olarak")).toBeVisible();
-    expect(within(rows[1]).getByText("Onaylandı")).toBeVisible();
+    const list = within(await panel()).getAllByRole("article");
+    expect(list).toHaveLength(2);
     expect(
-      within(rows[1]).getByText("Staj başvurusu için CV'me bakar mısın?"),
+      within(list[0] ?? document.body).getByText("Mert Yılmaz"),
     ).toBeVisible();
-
-    const past = within(section("Geçmiş")).getAllByRole("listitem");
-    expectLength(past, 2);
-    expect(within(past[0]).getByText("İptal Edildi")).toBeVisible();
-  });
-
-  it("offers a join link only on a confirmed online session still ahead", async () => {
-    renderWithQueryClient(<StudentAppointmentsView />);
-
-    const join = await screen.findByRole("link", { name: "Görüşmeye katıl" });
-    expect(join).toHaveAttribute(
-      "href",
-      "https://meet.google.com/abc-defg-hij",
+    expect(
+      container.querySelector('[data-tour="appointments-first-row"]'),
+    ).toBe(list[0]);
+    expect(screen.getByRole("tab", { name: /Yaklaşan/ })).toHaveAttribute(
+      "aria-selected",
+      "true",
     );
-    expect(join).toHaveAttribute("rel", "noopener noreferrer");
-    expect(within(section("Geçmiş")).queryByRole("link")).toBeNull();
   });
 
-  it("filters by the statuses the student has and comes back to all", async () => {
-    const user = userEvent.setup();
+  it("shows the requested and the proposed time of a request", async () => {
     renderWithQueryClient(<StudentAppointmentsView />);
-    const filter = await screen.findByRole("group", {
-      name: "Duruma göre süz",
+    await userEvent.click(await screen.findByRole("tab", { name: /Talepler/ }));
+
+    const card = within(await panel()).getByRole("article");
+    expect(within(card).getByText("Prof. Dr. Ahmet Kaya")).toBeVisible();
+    expect(within(card).getByText("Talep ettiğin")).toBeVisible();
+    expect(within(card).getByText("Önerilen")).toBeVisible();
+    expect(within(card).getByText("Alternatif Önerildi")).toBeVisible();
+  });
+
+  it("adds a kind's answer buttons through renderActions", async () => {
+    renderWithQueryClient(
+      <StudentAppointmentsView
+        renderActions={(item) =>
+          item.kind === AppointmentKind.OfficeHours ? (
+            <button type="button">Önerilen Saati Kabul Et</button>
+          ) : null
+        }
+      />,
+    );
+    await userEvent.click(await screen.findByRole("tab", { name: /Talepler/ }));
+    expect(
+      within(await panel()).getByRole("button", {
+        name: "Önerilen Saati Kabul Et",
+      }),
+    ).toBeVisible();
+  });
+
+  it("confirms a request just sent and opens Talepler", async () => {
+    const { container } = renderWithQueryClient(
+      <StudentAppointmentsView sentTo="Prof. Dr. Ahmet Kaya" />,
+    );
+    expect(screen.getByText("Randevu talebin gönderildi")).toBeVisible();
+    expect(
+      screen.getByText(
+        "Prof. Dr. Ahmet Kaya yanıtladığında sana bildirim göndereceğiz.",
+      ),
+    ).toBeVisible();
+    expect(
+      container.querySelector('[data-tour="appointment-request-sent"]'),
+    ).not.toBeNull();
+    expect(
+      await screen.findByRole("tab", { name: /Talepler/ }),
+    ).toHaveAttribute("aria-selected", "true");
+  });
+
+  it("narrows everything with the filter and renders the toolbar", async () => {
+    renderWithQueryClient(
+      <StudentAppointmentsView
+        filter={(item) => item.side === AppointmentSide.Mentee}
+        toolbar={<p>Rol filtresi</p>}
+      />,
+    );
+    expect(screen.getByText("Rol filtresi")).toBeVisible();
+    expect(within(await panel()).getAllByRole("article")).toHaveLength(1);
+  });
+
+  it("moves between the tabs with the arrow keys", async () => {
+    renderWithQueryClient(<StudentAppointmentsView />);
+    const upcoming = await screen.findByRole("tab", { name: /Yaklaşan/ });
+    expect(upcoming).toHaveAttribute("tabindex", "0");
+    upcoming.focus();
+    await userEvent.keyboard("{ArrowRight}");
+    const requests = screen.getByRole("tab", { name: /Talepler/ });
+    expect(requests).toHaveAttribute("aria-selected", "true");
+    expect(requests).toHaveFocus();
+    await userEvent.keyboard("{End}");
+    expect(screen.getByRole("tab", { name: /Geçmiş/ })).toHaveFocus();
+    await userEvent.keyboard("{ArrowRight}");
+    expect(upcoming).toHaveFocus();
+    await userEvent.keyboard("{ArrowLeft}{Home}");
+    expect(upcoming).toHaveAttribute("aria-selected", "true");
+  });
+
+  it("explains the statuses beside the list", async () => {
+    renderWithQueryClient(<StudentAppointmentsView />);
+    await panel();
+    const legend = screen.getByRole("region", {
+      name: "Durumlar ne anlama geliyor?",
     });
     expect(
-      within(filter)
-        .getAllByRole("button")
-        .map((button) => button.textContent),
-    ).toEqual(["Tümü", "Onaylandı", "İptal Edildi"]);
-
-    await user.click(
-      within(filter).getByRole("button", { name: "İptal Edildi" }),
-    );
-    expect(screen.getByText("Yaklaşan randevun yok.")).toBeVisible();
-    expect(within(section("Geçmiş")).getAllByRole("listitem")).toHaveLength(1);
-
-    await user.click(within(filter).getByRole("button", { name: "Tümü" }));
-    expect(within(section("Yaklaşan")).getAllByRole("listitem")).toHaveLength(
-      2,
-    );
+      within(legend).getByText(
+        "Yeni saati sen kabul edene kadar randevu onaylanmaz.",
+      ),
+    ).toBeVisible();
   });
 
-  it("points a student with no appointments to the peer mentors, without a false empty state while loading", async () => {
-    vi.mocked(getStudentAppointments).mockReturnValueOnce(
-      new Promise(() => {}),
-    );
-    const { unmount } = renderWithQueryClient(<StudentAppointmentsView />);
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "Randevular yükleniyor",
-    );
-    expect(screen.queryByText("Henüz randevun yok.")).toBeNull();
-    unmount();
+  it("switches to the week and shows the picked session's detail", async () => {
+    renderWithQueryClient(<StudentAppointmentsView />);
+    await panel();
+    await userEvent.click(screen.getByRole("button", { name: "Hafta" }));
 
+    expect(
+      screen.getByRole("heading", { name: "9 – 15 Kasım 2026" }),
+    ).toBeVisible();
+    const detail = screen.getByRole("region", {
+      name: "CV ve yüksek lisans seçenekleri",
+    });
+    expect(within(detail).getByText("Önerilen saat")).toBeVisible();
+
+    await userEvent.click(screen.getByRole("button", { name: /M\. Yılmaz/ }));
+    expect(
+      screen.getByRole("region", { name: "Uluslararası Fırsatlar" }),
+    ).toBeVisible();
+    expect(screen.getByRole("region", { name: "Renkler" })).toBeVisible();
+  });
+
+  it("pages the calendar and goes back to today", async () => {
+    renderWithQueryClient(<StudentAppointmentsView />);
+    await panel();
+    await userEvent.click(screen.getByRole("button", { name: "Gün" }));
+    expect(
+      screen.getByRole("heading", { name: "9 Kasım 2026 Pazartesi" }),
+    ).toBeVisible();
+
+    await userEvent.click(screen.getByRole("button", { name: "Sonraki" }));
+    expect(
+      screen.getByRole("heading", { name: "10 Kasım 2026 Salı" }),
+    ).toBeVisible();
+    await userEvent.click(screen.getByRole("button", { name: "Bugün" }));
+    expect(
+      screen.getByRole("heading", { name: "9 Kasım 2026 Pazartesi" }),
+    ).toBeVisible();
+  });
+
+  it("lists a picked day of the month", async () => {
+    renderWithQueryClient(<StudentAppointmentsView />);
+    await panel();
+    await userEvent.click(screen.getByRole("button", { name: "Ay" }));
+    await userEvent.click(
+      screen.getByRole("button", { name: "12 Kas, 2 randevu" }),
+    );
+    const day = screen.getByRole("region", { name: "12 Kas" });
+    expect(within(day).getByText(/Zeynep Demir/)).toBeVisible();
+    expect(within(day).getByText(/Ahmet Kaya/)).toBeVisible();
+  });
+
+  it("offers a way to find a mentor when there are no appointments", async () => {
     vi.mocked(getStudentAppointments).mockResolvedValue([]);
     renderWithQueryClient(<StudentAppointmentsView />);
-    expect(await screen.findByText("Henüz randevun yok.")).toBeVisible();
-    expect(
-      screen.getByRole("link", { name: "Akran mentoru bul" }),
-    ).toHaveAttribute("href", "/student/peer-mentoring");
-    expect(screen.queryByRole("group")).toBeNull();
+    expect(await screen.findByText("Henüz randevun yok")).toBeVisible();
+    expect(screen.getByRole("link", { name: "Mentor bul" })).toHaveAttribute(
+      "href",
+      "/student/peer-mentoring",
+    );
   });
 
-  it("recovers from a failed load through retry", async () => {
-    vi.mocked(getStudentAppointments).mockRejectedValueOnce(new Error("down"));
-    const user = userEvent.setup();
+  it("offers a retry when the list cannot load", async () => {
+    vi.mocked(getStudentAppointments).mockRejectedValue(new Error("down"));
     renderWithQueryClient(<StudentAppointmentsView />);
-
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Randevular yüklenemedi.",
-    );
-    await user.click(screen.getByRole("button", { name: "Tekrar dene" }));
-    expect(await screen.findByRole("list", { name: "Yaklaşan" })).toBeVisible();
-  });
-
-  it("reads in English", async () => {
-    renderWithQueryClient(
-      <InLocale locale="en">
-        <StudentAppointmentsView />
-      </InLocale>,
-    );
-
-    expect(await screen.findByRole("list", { name: "Upcoming" })).toBeVisible();
-    expect(
-      screen.getByRole("heading", { name: "My appointments" }),
-    ).toBeVisible();
-    expect(screen.getByText("As mentor")).toBeVisible();
-    expect(
-      screen.getByRole("link", { name: "Join the session" }),
-    ).toBeVisible();
+    expect(await screen.findByText("Randevular yüklenemedi.")).toBeVisible();
+    vi.mocked(getStudentAppointments).mockResolvedValue([]);
+    await userEvent.click(screen.getByRole("button", { name: "Tekrar dene" }));
+    expect(await screen.findByText("Henüz randevun yok")).toBeVisible();
   });
 });
