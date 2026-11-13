@@ -2,6 +2,7 @@ import type { AxiosRequestConfig } from "axios";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  fetchAdviseeProfile,
   fetchInstitutionAdvisees,
   fetchInstitutionRecord,
 } from "@/lib/api/institution";
@@ -33,6 +34,15 @@ const cases: RequestCase[] = [
     {
       method: "GET",
       url: "/api/institution/me/advisees",
+      params: { actorId: "user-1" },
+    },
+  ],
+  [
+    "reads one advisee's interests and goal as the actor",
+    () => fetchAdviseeProfile("user-1", "student-1"),
+    {
+      method: "GET",
+      url: "/api/institution/me/advisees/student-1/profile",
       params: { actorId: "user-1" },
     },
   ],
