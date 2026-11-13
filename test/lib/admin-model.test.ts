@@ -7,14 +7,18 @@ import type {
   AdminStartup,
 } from "@/interfaces/admin-overview";
 import { MentorshipStatus } from "@/interfaces/coordinator-mentorship";
-import { ProgramMentorStatus, ProgramStatus } from "@/interfaces/program";
+import {
+  ProgramMentorStatus,
+  ProgramStatus,
+  ProgramType,
+} from "@/interfaces/program";
 import {
   activeMentorshipFor,
   assignableProgramsForMentor,
-  assignableProgramsForStartup,
   coordinatorUsersHref,
   countsInProgram,
   mentorshipInPrograms,
+  moveTargetsForStartup,
   programOfMentorship,
   unmatchedStartups,
 } from "@/lib/admin-model";
@@ -103,14 +107,20 @@ describe("admin-model programs the admin can still assign to", () => {
     ).toEqual(["program-1", "program-2"]);
   });
 
-  it("offers open programs a startup is not in", () => {
-    const fresh = { ...withMentors, startups: [] };
+  it("offers every other open startup program as a team's move target", () => {
+    const peer: AdminProgram = {
+      ...programOf(lumenIn("program-4", "Akran Programı")),
+      type: ProgramType.PeerMentoring,
+    };
+    const all = { ...data, programs: [stars, withMentors, closed, peer] };
+
     expect(
-      assignableProgramsForStartup(
-        { ...data, programs: [stars, fresh, closed] },
-        "org-1",
-      ).map((item) => item.id),
+      moveTargetsForStartup(all, lumenInStars).map((item) => item.id),
     ).toEqual(["program-2"]);
+    // A team listed in both programs can still be moved into the other one.
+    expect(
+      moveTargetsForStartup(all, lumenInGrowth).map((item) => item.id),
+    ).toEqual(["program-1"]);
   });
 });
 

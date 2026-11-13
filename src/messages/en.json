@@ -4901,6 +4901,36 @@
       "failed": "Couldn't delete the user.",
       "signInAgain": "You need to sign in again for this action."
     },
+    "moveProgram": {
+      "action": "Change program",
+      "target": "Program to move to",
+      "chooseTarget": "Choose the new program",
+      "noTarget": "There is no other open program the team can move to.",
+      "dialogTitle": "Change the team's program?",
+      "dialogBody": "{team} will move from the {from} program to the {to} program.",
+      "movedHeading": "Moves to the new program",
+      "movedItems": {
+        "team": "Startup information, members and their profiles; the team does not re-enter anything",
+        "approval": "The team's approval and its member invite code",
+        "pendingChanges": "Member leave and removal requests waiting for a coordinator"
+      },
+      "keptHeading": "Stays in the old program",
+      "keptItems": {
+        "activity": "Mentorships, meetings and answered requests; running mentorships and booked meetings continue under the old program's name",
+        "records": "Attendance records, reports, requested documents and coordinator messages"
+      },
+      "closedHeading": "Will be closed",
+      "closedItems": {
+        "openRequests": "Mentorship requests sent to the old program's mentors that are still waiting for an answer; their mentors are told"
+      },
+      "notice": "The coordinators of both programs and the team's members are notified.",
+      "confirm": "Change program",
+      "moving": "Moving…",
+      "cancel": "Cancel",
+      "moved": "{team} was moved to the {program} program.",
+      "movedClosingRequests": "{team} was moved to the {program} program; {count} requests waiting for an answer were closed.",
+      "failed": "The team's program could not be changed."
+    },
     "revokeSignIns": {
       "button": "End all sign-ins",
       "confirm": "{name} will be signed out on every device and has to sign in again. Continue?",
@@ -6043,6 +6073,7 @@
     "mentorInviteFailed": "Could not invite the mentor.",
     "decisionSaveFailed": "Could not save the decision.",
     "programAssignFailed": "Could not add to the program.",
+    "programMoveFailed": "The team's program could not be changed.",
     "eventAddFailed": "Could not add the event.",
     "phasesSaveFailed": "Could not save the phases.",
     "inviteRenewFailed": "Could not renew the invitation.",

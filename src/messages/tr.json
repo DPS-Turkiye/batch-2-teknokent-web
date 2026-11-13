@@ -4903,6 +4903,36 @@
       "failed": "Kullanıcı silinemedi.",
       "signInAgain": "Bu işlem için yeniden giriş yapman gerekiyor."
     },
+    "moveProgram": {
+      "action": "Programı değiştir",
+      "target": "Taşınacak program",
+      "chooseTarget": "Yeni programı seç",
+      "noTarget": "Takımın taşınabileceği başka açık program yok.",
+      "dialogTitle": "Takımın programı değiştirilsin mi?",
+      "dialogBody": "{team} takımı {from} programından {to} programına taşınacak.",
+      "movedHeading": "Yeni programa taşınacaklar",
+      "movedItems": {
+        "team": "Startup bilgileri, üyeler ve profilleri; takımın hiçbir bilgiyi yeniden girmesi gerekmez",
+        "approval": "Takımın onayı ve üye davet kodu",
+        "pendingChanges": "Koordinatör onayı bekleyen üye ayrılma ve çıkarma talepleri"
+      },
+      "keptHeading": "Eski programda kalacaklar",
+      "keptItems": {
+        "activity": "Mentorluklar, görüşmeler ve yanıtlanmış talepler; süren mentorluklar ve planlı görüşmeler eski programın adıyla devam eder",
+        "records": "Katılım kayıtları, raporlar, istenen belgeler ve koordinatör yazışmaları"
+      },
+      "closedHeading": "Kapatılacaklar",
+      "closedItems": {
+        "openRequests": "Eski programın mentorlarına gönderilmiş, yanıt bekleyen mentorluk talepleri; mentorlarına bildirilir"
+      },
+      "notice": "İki programın koordinatörlerine ve takımın üyelerine bildirim gider.",
+      "confirm": "Programı değiştir",
+      "moving": "Taşınıyor…",
+      "cancel": "Vazgeç",
+      "moved": "{team} takımı {program} programına taşındı.",
+      "movedClosingRequests": "{team} takımı {program} programına taşındı; yanıt bekleyen {count} talep kapatıldı.",
+      "failed": "Takımın programı değiştirilemedi."
+    },
     "revokeSignIns": {
       "button": "Tüm oturumlarını kapat",
       "confirm": "{name} tüm cihazlarda çıkış yapacak ve yeniden giriş yapması gerekecek. Emin misin?",
@@ -6045,6 +6075,7 @@
     "mentorInviteFailed": "Mentor davet edilemedi.",
     "decisionSaveFailed": "Karar kaydedilemedi.",
     "programAssignFailed": "Programa eklenemedi.",
+    "programMoveFailed": "Takımın programı değiştirilemedi.",
     "eventAddFailed": "Etkinlik eklenemedi.",
     "phasesSaveFailed": "Fazlar kaydedilemedi.",
     "inviteRenewFailed": "Davet yenilenemedi.",

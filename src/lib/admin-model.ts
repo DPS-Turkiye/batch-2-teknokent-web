@@ -6,7 +6,11 @@ import type {
   AdminUser,
 } from "@/interfaces/admin-overview";
 import { MentorshipStatus } from "@/interfaces/coordinator-mentorship";
-import { ProgramMentorStatus, ProgramStatus } from "@/interfaces/program";
+import {
+  ProgramMentorStatus,
+  ProgramStatus,
+  ProgramType,
+} from "@/interfaces/program";
 import { UserAccountStatus, UserRole } from "@/interfaces/session";
 
 /** A permission can come on top of the primary role (an academic who also mentors), so `roles` decides when present. */
@@ -143,15 +147,16 @@ export function assignableProgramsForMentor(
   );
 }
 
-/** Open programs the startup is not in yet. */
-export function assignableProgramsForStartup(
+/** Open startup programs a team can be moved to: every one except the program it is listed under. */
+export function moveTargetsForStartup(
   data: AdminOverview,
-  organizationId: string,
+  startup: Pick<AdminStartup, "programId">,
 ) {
   return data.programs.filter(
     (program) =>
       program.status === ProgramStatus.Active &&
-      !program.startups.some((startup) => startup.id === organizationId),
+      program.type === ProgramType.StartupMentoring &&
+      program.id !== startup.programId,
   );
 }
 

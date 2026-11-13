@@ -10,9 +10,10 @@ import {
   type AdminUser,
 } from "@/interfaces/admin-overview";
 import { MentorshipStatus } from "@/interfaces/coordinator-mentorship";
-import { ProgramMentorStatus } from "@/interfaces/program";
+import { ProgramMentorStatus, ProgramStatus } from "@/interfaces/program";
 import { UserAccountStatus, UserRole } from "@/interfaces/session";
 import { setCoordinatorAccess } from "@/lib/client/admin-coordinators";
+import { moveStartupToProgram } from "@/lib/client/admin-program-members";
 import { decidePendingAccount } from "@/lib/client/admin-users";
 import { UserTab } from "@/types/admin-users";
 import {
@@ -47,6 +48,10 @@ vi.mock("@/hooks/use-admin-overview", () => ({
 vi.mock("@/lib/client/admin-users", () => ({
   decidePendingAccount: vi.fn(),
   getPendingAccounts: vi.fn(),
+}));
+vi.mock("@/lib/client/admin-program-members", () => ({
+  assignToProgram: vi.fn(),
+  moveStartupToProgram: vi.fn(),
 }));
 vi.mock("@/lib/client/admin-coordinators", () => ({
   addCoordinator: vi.fn(),
@@ -601,5 +606,63 @@ describe("UsersView teams", () => {
     await user.selectOptions(screen.getByLabelText("Program"), "Boş");
 
     expect(screen.getByText("Bu filtrede takım yok.")).toBeInTheDocument();
+  });
+
+  it("moves a team to another open program from its drawer, instead of adding it to a second one", async () => {
+    const user = userEvent.setup();
+    vi.mocked(moveStartupToProgram).mockResolvedValue({
+      id: "move-1",
+      organizationId: "org-1",
+      fromProgramId: "stars",
+      fromProgramName: "ODTÜ Stars",
+      toProgramId: "growth",
+      toProgramName: "Growth Circuit",
+      movedAt: "2026-11-11T12:00:00+03:00",
+      withdrawnRequests: 0,
+    });
+    show(
+      UserTab.Teams,
+      overview({
+        programs: [
+          program,
+          adminProgram({ id: "growth", name: "Growth Circuit" }),
+          adminProgram({
+            id: "ended",
+            name: "Biten Program",
+            status: ProgramStatus.Completed,
+          }),
+        ],
+      }),
+    );
+
+    await user.click(rowOf("Lumen").getByRole("button", { name: "Detay" }));
+
+    expect(
+      screen.queryByRole("button", { name: "Programa ata" }),
+    ).not.toBeInTheDocument();
+    const target = screen.getByRole("combobox", { name: "Taşınacak program" });
+    expect(
+      within(target)
+        .getAllByRole("option")
+        .map((option) => option.textContent),
+    ).toEqual(["Yeni programı seç", "Growth Circuit"]);
+
+    await user.selectOptions(target, "growth");
+    await user.click(screen.getByRole("button", { name: "Programı değiştir" }));
+    await user.click(
+      within(
+        screen.getByRole("dialog", {
+          name: "Takımın programı değiştirilsin mi?",
+        }),
+      ).getByRole("button", { name: "Programı değiştir" }),
+    );
+
+    await waitFor(() =>
+      expect(moveStartupToProgram).toHaveBeenCalledWith(
+        "growth",
+        "org-1",
+        "stars",
+      ),
+    );
   });
 });
