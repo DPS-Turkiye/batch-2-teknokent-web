@@ -5,6 +5,10 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import {
+  PEER_REPORTS_QUERY_KEY,
+  peerMeetingReportQueryKey,
+} from "@/hooks/peer-report-queries";
 import type {
   PeerMeetingReport,
   PeerMeetingTopic,
@@ -32,13 +36,6 @@ import type {
   MeetingReportActionRow,
   MeetingReportForm,
 } from "@/types/peer-meeting-report";
-
-/** Every peer-report query starts with this, so one send can refresh the day and week views too. */
-export const PEER_REPORTS_QUERY_KEY = ["peer-reports"] as const;
-
-export function peerMeetingReportQueryKey(meetingId: string) {
-  return [...PEER_REPORTS_QUERY_KEY, "meeting", meetingId] as const;
-}
 
 /**
  * "Görüşme Raporu" (Figma 220:2): the report of one held meeting, its form state, saving a draft, sending it, and
