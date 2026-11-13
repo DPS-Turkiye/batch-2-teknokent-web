@@ -1,16 +1,37 @@
+import { Edition } from "@/interfaces/edition";
 import { UserAccountStatus, UserRole } from "@/interfaces/session";
+import { offersUserDeletion } from "@/lib/edition-screens";
+import { hasPermission } from "@/lib/permissions";
+
+/** The account an admin may be offered to delete, as both the profile page and the users drawer know it. */
+export type DeletablePerson = {
+  id: string;
+  fullName: string;
+  email: string;
+  role: UserRole;
+  status: UserAccountStatus | undefined;
+};
+
+type DeletionViewer = {
+  userId: string;
+  role: UserRole;
+  permissions?: readonly UserRole[] | undefined;
+  edition?: Edition | undefined;
+};
 
 /**
- * Whether the admin looking at an account is offered its deletion. The backend refuses the same cases; this only
- * keeps a button that can never work off the screen.
+ * Whether the viewer is offered deleting an account. The backend refuses the same cases; this only keeps a button
+ * that can never work off the screen. A session without an edition reads as Teknokent, as in `useEdition`.
  */
 export function canOfferDeletion(
-  person: { id: string; role: UserRole; status: UserAccountStatus },
-  viewerId: string | null,
+  person: Pick<DeletablePerson, "id" | "role" | "status">,
+  viewer: DeletionViewer | null,
 ) {
   return (
-    viewerId !== null &&
-    person.id !== viewerId &&
+    viewer !== null &&
+    hasPermission(viewer, UserRole.Admin) &&
+    offersUserDeletion(viewer.edition ?? Edition.Teknokent) &&
+    person.id !== viewer.userId &&
     person.role !== UserRole.Admin &&
     person.status !== UserAccountStatus.Deleted
   );
