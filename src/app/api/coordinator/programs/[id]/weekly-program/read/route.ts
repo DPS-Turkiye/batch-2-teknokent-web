@@ -6,7 +6,6 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
-import { readBearerToken } from "@/lib/server/bearer-token";
 import { weeklyProgramReadSchema } from "@/lib/server/program-week-schemas";
 import { readJsonBody } from "@/lib/server/request-body";
 import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
@@ -22,12 +21,7 @@ export async function POST(request: NextRequest, { params }: Context) {
     const body = await readJsonBody(request, weeklyProgramReadSchema);
     if (!body.ok) return body.response;
     return backendResponse(
-      await readWeeklyProgram(
-        auth.session.userId,
-        id,
-        body.data.documentId,
-        readBearerToken(request) ?? undefined,
-      ),
+      await readWeeklyProgram(auth.session.userId, id, body.data.documentId),
     );
   } catch (error) {
     return apiErrorResponse(error, {
