@@ -1,5 +1,3 @@
-"use client";
-
 import { useTranslations } from "next-intl";
 
 import { StatusBadge, StatusTone } from "@/components/ia/status-badge";

@@ -7,10 +7,8 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
-import {
-  peerDailyReportSchema,
-  readIsoDayParam,
-} from "@/lib/server/peer-report-schemas";
+import { readIsoDayParam } from "@/lib/server/path-params";
+import { peerDailyReportSchema } from "@/lib/server/peer-report-schemas";
 import { readJsonBody } from "@/lib/server/request-body";
 import { SessionRequiredError } from "@/lib/server/session-error";
 import { getSessionUser } from "@/lib/session";

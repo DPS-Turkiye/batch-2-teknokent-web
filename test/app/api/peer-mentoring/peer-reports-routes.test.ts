@@ -25,6 +25,7 @@ import {
 } from "@/app/api/peer-mentoring/reports/weeks/[weekStart]/route";
 import { POST as submitWeeklyRoute } from "@/app/api/peer-mentoring/reports/weeks/[weekStart]/submit/route";
 import {
+  PeerActionOwner,
   PeerActivityType,
   PeerMeetingTopic,
   PeerMentorSkill,
@@ -135,6 +136,8 @@ describe("peer report proxy routes", () => {
       meetingReportRoute(get("/x"), meetingParams("../days")),
       submitMeetingReportRoute(get("/x"), meetingParams("x")),
       dayRoute(get("/x"), dayParams("12.11.2026")),
+      dayRoute(get("/x"), dayParams("2026-02-30")),
+      saveDayRoute(jsonRequest({}, "PUT"), dayParams("2026-13-45")),
       submitDayRoute(get("/x"), dayParams("..")),
       deleteActivityRoute(get("/x"), activityParams("1")),
       weeklyRoute(get("/x"), weekParams("next")),
@@ -191,7 +194,9 @@ const bodyCases: BodyCase[] = [
       skills: [PeerMentorSkill.ActiveListening],
       discussion: "Hedef listesi",
       productivity: 4,
-      actions: [{ text: "CV", owner: "MENTEE", dueDate: "2026-11-15" }],
+      actions: [
+        { text: "CV", owner: PeerActionOwner.Mentee, dueDate: "2026-11-15" },
+      ],
     }),
     backend: api.savePeerMeetingReport,
     expected: [
@@ -207,7 +212,7 @@ const bodyCases: BodyCase[] = [
           {
             id: null,
             text: "CV",
-            owner: "MENTEE",
+            owner: PeerActionOwner.Mentee,
             dueDate: "2026-11-15",
             done: false,
           },
@@ -224,6 +229,17 @@ const bodyCases: BodyCase[] = [
       },
       "too long a text": { discussion: "x".repeat(4001) },
       "a follow-up time without an offset": { followUpAt: "2026-11-19T11:00" },
+      "an action due on an impossible day": {
+        actions: [{ text: "CV", owner: "MENTEE", dueDate: "2026-02-30" }],
+      },
+      "nine topics": { topics: Array(9).fill("OTHER") },
+      "eleven skills": { skills: Array(11).fill("EMPATHY") },
+      "twenty-one actions": {
+        actions: Array(21).fill({ text: "CV", owner: "MENTEE" }),
+      },
+      "a support answer that isn't yes or no": {
+        coordinatorSupportNeeded: "maybe",
+      },
     },
   },
   {

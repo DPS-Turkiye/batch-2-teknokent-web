@@ -1,4 +1,3 @@
-import type { NextResponse } from "next/server";
 import "server-only";
 import { z } from "zod";
 
@@ -10,8 +9,6 @@ import {
   PeerMeetingType,
   PeerMentorSkill,
 } from "@/interfaces/peer-reports";
-import { invalidRequest } from "@/lib/server/request-body";
-import { ISO_DAY_PATTERN } from "@/lib/utils";
 
 /** Free text up to the backend's limit; left out means empty. */
 const optionalText = (max: number) =>
@@ -87,12 +84,3 @@ export const peerReportRangeQuerySchema = z.object({
 });
 
 export const peerReportWeekQuerySchema = z.object({ week: z.iso.date() });
-
-export type PathDay =
-  { ok: true; day: string } | { ok: false; response: NextResponse };
-
-/** A yyyy-mm-dd day from the URL; anything else answers 400 before the backend is called. */
-export async function readIsoDayParam(value: string): Promise<PathDay> {
-  if (ISO_DAY_PATTERN.test(value)) return { ok: true, day: value };
-  return { ok: false, response: await invalidRequest("dateInvalid") };
-}

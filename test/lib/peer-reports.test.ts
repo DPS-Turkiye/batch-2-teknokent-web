@@ -25,6 +25,10 @@ describe("peerReportBadge", () => {
       PeerReportBadge.RevisionRequested,
     );
     expect(peerReportBadge(null)).toBeNull();
+    expect(peerReportBadge(PeerReportStatus.Draft, 0)).toBe(
+      PeerReportBadge.Draft,
+    );
+    expect(peerReportBadge(null, 0)).toBeNull();
   });
 
   it("says Eksik Bilgi while an open day still lacks a meeting report", () => {

@@ -4,7 +4,7 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
-import { readIsoDayParam } from "@/lib/server/peer-report-schemas";
+import { readIsoDayParam } from "@/lib/server/path-params";
 import { SessionRequiredError } from "@/lib/server/session-error";
 import { getSessionUser } from "@/lib/session";
 

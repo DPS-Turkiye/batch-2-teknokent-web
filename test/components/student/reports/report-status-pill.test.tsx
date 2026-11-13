@@ -6,26 +6,28 @@ import { PeerReportBadge } from "@/types/peer-reports";
 
 describe("ReportStatusPill", () => {
   it.each([
-    [PeerReportBadge.Draft, "Taslak"],
-    [PeerReportBadge.MissingInfo, "Eksik Bilgi"],
-    [PeerReportBadge.InReview, "İncelemede"],
-    [PeerReportBadge.RevisionRequested, "Revizyon Gerekli"],
-    [PeerReportBadge.Approved, "Onaylandı"],
-    [PeerReportBadge.Completed, "Tamamlandı"],
-    [PeerReportBadge.AwaitingOutput, "Çıktı Bekliyor"],
-  ])("labels %s as %s", (badge, label) => {
+    [PeerReportBadge.Draft, "Taslak", "bg-status-neutral-bg"],
+    [PeerReportBadge.MissingInfo, "Eksik Bilgi", "bg-status-warning-bg"],
+    [PeerReportBadge.InReview, "İncelemede", "bg-status-info-bg"],
+    [
+      PeerReportBadge.RevisionRequested,
+      "Revizyon Gerekli",
+      "bg-status-error-bg",
+    ],
+    [PeerReportBadge.Approved, "Onaylandı", "bg-status-success-bg"],
+    [PeerReportBadge.Completed, "Tamamlandı", "bg-status-success-bg"],
+    [PeerReportBadge.AwaitingOutput, "Çıktı Bekliyor", "bg-status-warning-bg"],
+  ])("shows %s as %s in the 209:24 tone", (badge, label, tone) => {
     render(<ReportStatusPill badge={badge} />);
-    expect(screen.getByText(label)).toBeInTheDocument();
+    const pill = screen.getByText(label);
+    expect(pill).toHaveClass(tone);
+    expect(pill).toHaveTextContent(new RegExp(`^${label}$`));
   });
 
-  it("colours a revision request as an error and an approval as success", () => {
-    const { rerender } = render(
-      <ReportStatusPill badge={PeerReportBadge.RevisionRequested} />,
+  it("hides its dot from screen readers, so the label alone is read", () => {
+    const { container } = render(
+      <ReportStatusPill badge={PeerReportBadge.Draft} />,
     );
-    expect(screen.getByText("Revizyon Gerekli")).toHaveClass(
-      "bg-status-error-bg",
-    );
-    rerender(<ReportStatusPill badge={PeerReportBadge.Approved} />);
-    expect(screen.getByText("Onaylandı")).toHaveClass("bg-status-success-bg");
+    expect(container.querySelector('[aria-hidden="true"]')).not.toBeNull();
   });
 });

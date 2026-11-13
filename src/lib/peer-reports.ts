@@ -27,7 +27,7 @@ export function peerReportBadge(
   return status === null ? null : BADGE_OF_STATUS[status];
 }
 
-/** Whether a report still takes changes from its mentor. */
+/** Whether a report still takes changes from its mentor; prefer a response's own `editable` where it has one. */
 export function isPeerReportEditable(status: PeerReportStatus | null) {
   return (
     status === null ||
@@ -36,7 +36,10 @@ export function isPeerReportEditable(status: PeerReportStatus | null) {
   );
 }
 
-/** The Monday ("yyyy-mm-dd") of the week a moment falls in, in the browser's time zone. */
+/**
+ * The Monday ("yyyy-mm-dd") of the week a moment falls in, in the runtime's time zone. Call it in the browser: on
+ * the server (UTC) a Turkish Monday before 03:00 would still be last week.
+ */
 export function reportWeekStart(now: Date) {
   return isoDay(startOfWeek(now));
 }
