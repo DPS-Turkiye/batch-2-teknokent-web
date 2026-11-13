@@ -14,6 +14,7 @@ import {
   ACADEMICIAN_APPOINTMENTS_SAMPLE,
   ACADEMICIAN_AVAILABILITY_SAMPLE,
   ACADEMICIAN_REQUESTS_SAMPLE,
+  asCounterpart,
   OFFICE_HOURS_PROFILE_SAMPLE,
 } from "@/lib/client/fixtures/academician-office-hours";
 
@@ -73,7 +74,7 @@ export function answerSampleRequest(id: string, answer: OfficeHoursAnswer) {
         side: sample.side,
         status: AppointmentStatus.Confirmed,
         topic: request.topic,
-        counterpart: request.student,
+        counterpart: asCounterpart(request.student),
         place: state.profile.defaultPlace,
         onlineUrl: state.profile.onlineLink,
         alternative: null,

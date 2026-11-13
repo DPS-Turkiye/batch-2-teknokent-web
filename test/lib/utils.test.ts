@@ -8,6 +8,7 @@ import {
   formatFileSize,
   formatLongDate,
   formatShortDate,
+  formatTime,
   httpUrlOrNull,
   isAdminArea,
   isUuid,
@@ -127,6 +128,12 @@ describe("splitFullName", () => {
   it("takes a single word as the first name", () => {
     expect(splitFullName("Ayşe")).toEqual({ firstName: "Ayşe", lastName: "" });
     expect(splitFullName("")).toEqual({ firstName: "", lastName: "" });
+  });
+});
+
+describe("formatTime", () => {
+  it("gives the short time of an instant", () => {
+    expect(formatTime("2026-11-12T11:05:00Z", "tr")).toMatch(/^\d{2}:\d{2}$/);
   });
 });
 

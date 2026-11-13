@@ -160,7 +160,7 @@ function PendingRequests({ home }: { home: AcademicianHome }) {
         </h2>
         {home.pendingCount > 0 ? (
           <Link
-            href={home.links.requests}
+            href={home.links.allRequests}
             className="inline-flex items-center gap-1 type-label text-brand-odtu-strong"
           >
             {t("seeAll", { count: home.pendingCount })}
@@ -216,7 +216,7 @@ function PendingRequestCard({
       <AppointmentStatusBadge status={AppointmentStatus.Pending} />
       <div className="flex flex-wrap gap-2">
         {card.canDecline ? (
-          <Button variant={ButtonVariant.Ghost} href={home.links.requests}>
+          <Button variant={ButtonVariant.Ghost} href={card.href}>
             {t("decline")}
           </Button>
         ) : null}
@@ -231,7 +231,7 @@ function PendingRequestCard({
           </Button>
         ) : null}
         {card.acceptTime === null ? (
-          <Button href={home.links.requests}>{t("accept")}</Button>
+          <Button href={card.href}>{t("accept")}</Button>
         ) : (
           <Button
             disabled={busy}
@@ -263,19 +263,24 @@ function TodayCard({ home }: { home: AcademicianHome }) {
       {home.today.length > 0 ? (
         <ul className="divide-y divide-border-subtle">
           {home.today.map((item) => (
-            <li key={item.id} className="flex items-center gap-4 py-3">
-              <span className="w-12 shrink-0 type-label text-text-primary">
-                {item.time}
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate type-label text-text-primary">
-                  {item.studentName}
+            <li key={item.id}>
+              <Link
+                href={item.href}
+                className="flex items-center gap-4 rounded-xl py-3 hover:bg-background-subtle focus-visible:outline-2 focus-visible:outline-border-selected"
+              >
+                <span className="w-12 shrink-0 type-label text-text-primary">
+                  {item.time}
                 </span>
-                <span className="block truncate type-caption text-text-muted">
-                  {item.topic}
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate type-label text-text-primary">
+                    {item.studentName}
+                  </span>
+                  <span className="block truncate type-caption text-text-muted">
+                    {item.topic}
+                  </span>
                 </span>
-              </span>
-              <AppointmentStatusBadge status={AppointmentStatus.Confirmed} />
+                <AppointmentStatusBadge status={AppointmentStatus.Confirmed} />
+              </Link>
             </li>
           ))}
         </ul>

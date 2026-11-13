@@ -13,7 +13,10 @@ import { PROFILE_COMPLETION_CATEGORIES } from "@/lib/client/fixtures/student-pro
 import { fetchInstitutionRecord } from "@/lib/client/institution";
 import { updateAvailabilitySettings } from "@/lib/client/mentor-profile";
 import {
+  deletePeerMentorDraft,
+  getPeerMentorDraft,
   getPeerMentorProfile,
+  savePeerMentorDraft,
   savePeerMentorProfile,
 } from "@/lib/client/peer-mentoring";
 import { renderWithQueryClient } from "@test/test-utils";
@@ -56,6 +59,9 @@ vi.mock("@/lib/client/student-profile-completion", () => ({
 vi.mock("@/lib/client/peer-mentoring", () => ({
   getPeerMentorProfile: vi.fn(),
   savePeerMentorProfile: vi.fn(),
+  getPeerMentorDraft: vi.fn(),
+  savePeerMentorDraft: vi.fn(),
+  deletePeerMentorDraft: vi.fn(async () => undefined),
   getReceivedPeerRequests: vi.fn(),
   getPeerMentors: vi.fn(),
   getPeerMentoringRequests: vi.fn(),
@@ -76,6 +82,11 @@ vi.mock("@/lib/client/mentor-profile", async (importOriginal) => ({
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(getPeerMentorProfile).mockResolvedValue(null);
+  vi.mocked(getPeerMentorDraft).mockResolvedValue(null);
+  vi.mocked(savePeerMentorDraft).mockImplementation(async (draft) => ({
+    draft,
+    updatedAt: "2026-11-12T11:05:00Z",
+  }));
   vi.mocked(savePeerMentorProfile).mockImplementation(async (input) => ({
     ...input,
     erasmus: input.erasmus || null,
@@ -117,10 +128,9 @@ describe("PeerMentorProfileWizard", () => {
     expect(
       screen.getByText("Mentorluk kategorileri").closest("li"),
     ).toHaveAttribute("aria-current", "step");
-    // Saving a draft waits on the backend, so it is shown but off.
     expect(
       screen.getByRole("button", { name: "Taslak olarak kaydet" }),
-    ).toBeDisabled();
+    ).toBeEnabled();
     await screen.findByRole("checkbox", { name: "Kariyer ve Staj" });
     await next();
     expect(screen.getByRole("alert")).toHaveTextContent(
@@ -345,6 +355,163 @@ describe("PeerMentorProfileWizard", () => {
 
     expect(screen.queryByText(/Yaz stajyeri/)).toBeNull();
     expect(screen.getByText("Kulüp eş başkanı — IEEE ODTÜ")).toBeVisible();
+  });
+
+  it("saves the answers so far as a draft with the step to reopen on, and says when", async () => {
+    const user = userEvent.setup();
+    renderWithQueryClient(<PeerMentorProfileWizard />);
+    await user.click(
+      await screen.findByRole("checkbox", { name: "Kariyer ve Staj" }),
+    );
+    await user.click(screen.getByRole("button", { name: "Devam Et" }));
+    await user.click(
+      screen.getByRole("checkbox", { name: "Örnek: CV hazırlama" }),
+    );
+
+    await user.click(
+      screen.getByRole("button", { name: "Taslak olarak kaydet" }),
+    );
+
+    await waitFor(() =>
+      expect(vi.mocked(savePeerMentorDraft).mock.calls[0]?.[0]).toEqual({
+        step: "subtopics",
+        categories: [PeerTopicCategory.CareerInternship],
+        subTopics: ["fixture-cv"],
+        strongCourses: [],
+        projects: [],
+        erasmus: "",
+        helpWith: "",
+        linkedinUrl: "",
+        levels: {},
+        experiences: [],
+      }),
+    );
+    expect(
+      await screen.findByText(/^Taslak kaydedildi · \d{2}:\d{2}$/),
+    ).toBeVisible();
+    expect(savePeerMentorProfile).not.toHaveBeenCalled();
+  });
+
+  it("shows a draft load failure before allowing edits", async () => {
+    vi.mocked(getPeerMentorDraft).mockRejectedValue(
+      new Error("Draft unavailable"),
+    );
+    renderWithQueryClient(<PeerMentorProfileWizard />);
+    expect(await screen.findByText("Draft unavailable")).toBeVisible();
+    expect(
+      screen.queryByRole("button", { name: "Taslak olarak kaydet" }),
+    ).toBeNull();
+  });
+
+  it("keeps navigation disabled until a draft save finishes", async () => {
+    vi.mocked(savePeerMentorDraft).mockImplementation(
+      () => new Promise(() => {}),
+    );
+    const user = userEvent.setup();
+    renderWithQueryClient(<PeerMentorProfileWizard />);
+    await user.click(
+      await screen.findByRole("checkbox", { name: "Kariyer ve Staj" }),
+    );
+    await user.click(
+      screen.getByRole("button", { name: "Taslak olarak kaydet" }),
+    );
+    expect(screen.getByRole("button", { name: "Devam Et" })).toBeDisabled();
+  });
+
+  it("reopens a saved draft on its step with its answers, and can delete it", async () => {
+    const user = userEvent.setup();
+    vi.mocked(getPeerMentorDraft).mockResolvedValue({
+      draft: {
+        step: "experience",
+        categories: [PeerTopicCategory.CareerInternship],
+        subTopics: ["fixture-cv"],
+        strongCourses: ["IE 251"],
+        projects: null,
+        erasmus: null,
+        helpWith: "Yarım kalan",
+        linkedinUrl: null,
+        levels: { [PeerTopicCategory.CareerInternship]: PeerTopicLevel.Basic },
+        experiences: [
+          {
+            kind: PeerExperienceKind.Internship,
+            title: "Yaz stajyeri",
+            organization: "ABC Lojistik",
+            startedOn: "2025-07",
+            endedOn: null,
+            summary: null,
+          },
+          // A card without a title is not brought back as a card.
+          {
+            kind: null,
+            title: null,
+            organization: "Yarım",
+            startedOn: null,
+            endedOn: null,
+            summary: null,
+          },
+          // An older card without a start month comes back, asking for one.
+          {
+            kind: null,
+            title: "Asistan",
+            organization: null,
+            startedOn: null,
+            endedOn: null,
+            summary: null,
+          },
+        ],
+      },
+      updatedAt: "2026-11-12T08:05:00Z",
+    });
+    renderWithQueryClient(<PeerMentorProfileWizard />);
+
+    expect(
+      await screen.findByText("Yaz stajyeri — ABC Lojistik"),
+    ).toBeVisible();
+    expect(screen.queryByText(/Yarım/)).toBeNull();
+    expect(screen.getByText("Asistan")).toBeVisible();
+    expect(
+      screen.getByText("Başlangıç ayı eksik: eklemek için düzenle."),
+    ).toBeVisible();
+    expect(screen.getByLabelText(/Güçlü olduğun dersler/)).toHaveValue(
+      "IE 251",
+    );
+    expect(screen.getByText(/^Taslak kaydedildi · /)).toBeVisible();
+
+    await user.click(screen.getByRole("button", { name: "Taslağı sil" }));
+
+    await waitFor(() => expect(deletePeerMentorDraft).toHaveBeenCalled());
+    expect(
+      await screen.findByRole("checkbox", { name: "Kariyer ve Staj" }),
+    ).not.toBeChecked();
+    expect(screen.queryByText(/^Taslak kaydedildi/)).toBeNull();
+  });
+
+  it("brings a new mentor's draft saved on the preview back to the hours, which a draft does not keep", async () => {
+    vi.mocked(getPeerMentorDraft).mockResolvedValue({
+      draft: {
+        step: "preview",
+        categories: [PeerTopicCategory.CareerInternship],
+        subTopics: null,
+        strongCourses: null,
+        projects: null,
+        erasmus: null,
+        helpWith: "Staj başvurusu ve CV konusunda yardımcı olurum.",
+        linkedinUrl: null,
+        levels: null,
+        experiences: null,
+      },
+      updatedAt: "2026-11-12T08:05:00Z",
+    });
+    renderWithQueryClient(<PeerMentorProfileWizard />);
+
+    await waitFor(() =>
+      expect(
+        screen.getByText("Müsaitlik ve kapasite").closest("li"),
+      ).toHaveAttribute("aria-current", "step"),
+    );
+    expect(screen.getByText("Önizle").closest("li")).not.toHaveAttribute(
+      "aria-current",
+    );
   });
 
   it("asks for a start month on an older card before moving on, since the backend needs one to publish", async () => {

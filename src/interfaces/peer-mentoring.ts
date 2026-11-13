@@ -183,3 +183,30 @@ export type SavePeerMentorProfileInput = {
   /** At most ten; an empty list clears the saved ones. */
   experiences: PeerExperienceCard[];
 };
+
+/** An experience card being filled in, as a draft keeps it: any field may still be empty. */
+export type PeerExperienceCardDraft = {
+  [Field in keyof PeerExperienceCard]: PeerExperienceCard[Field] | null;
+};
+
+/**
+ * The peer-mentor wizard part-way through (`/api/peer-mentoring/profile/draft`): the publish answers with none of
+ * their minimums, plus the step to reopen on. One per student; publishing removes it.
+ */
+export type PeerMentorProfileDraft = {
+  step: string | null;
+  categories: PeerTopicCategory[] | null;
+  subTopics: string[] | null;
+  strongCourses: string[] | null;
+  projects: string[] | null;
+  erasmus: string | null;
+  helpWith: string | null;
+  linkedinUrl: string | null;
+  levels: PeerTopicLevels | null;
+  experiences: PeerExperienceCardDraft[] | null;
+};
+
+export type SavedPeerMentorProfileDraft = {
+  draft: PeerMentorProfileDraft;
+  updatedAt: string;
+};

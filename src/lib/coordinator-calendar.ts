@@ -12,6 +12,7 @@ import {
   MeetingProposalStatus,
   type MeetingProposal,
 } from "@/interfaces/meeting-proposal";
+import { placeInLanes, type Placed } from "@/lib/calendar";
 import { formatDateRange } from "@/lib/format";
 import { formatDayMonth } from "@/lib/utils";
 
@@ -150,36 +151,21 @@ export function itemsOnDay(items: CoordinatorCalendarItem[], day: Date) {
   return items.filter((item) => sameDay(new Date(item.startsAt), day));
 }
 
-export type PlacedItem = {
-  item: CoordinatorCalendarItem;
-  /** Hours from the grid's first row, clamped into the grid. */
-  top: number;
-  height: number;
-  /** Items overlapping an earlier one shift right so both stay visible. */
-  lane: number;
-};
+export type PlacedItem = Placed<CoordinatorCalendarItem>;
 
 export function placeDayItems(items: CoordinatorCalendarItem[]): PlacedItem[] {
-  const sorted = [...items].sort((a, b) =>
-    a.startsAt.localeCompare(b.startsAt),
+  return placeInLanes(
+    items,
+    (item) => {
+      const start = new Date(item.startsAt);
+      const end = itemEnd(item);
+      return {
+        start,
+        hours: end ? (end.getTime() - start.getTime()) / 3_600_000 : 1,
+      };
+    },
+    { startHour: GRID_START_HOUR, hours: GRID_HOURS },
   );
-  const placed: PlacedItem[] = [];
-  for (const item of sorted) {
-    const start = new Date(item.startsAt);
-    const startHours = start.getHours() + start.getMinutes() / 60;
-    const end = itemEnd(item);
-    const hours = end ? (end.getTime() - start.getTime()) / 3_600_000 : 1;
-    const top = Math.min(
-      Math.max(startHours - GRID_START_HOUR, 0),
-      GRID_HOURS - 0.75,
-    );
-    const height = Math.max(Math.min(hours, GRID_HOURS - top), 0.75);
-    const lane = placed.filter(
-      (other) => other.top + other.height > top,
-    ).length;
-    placed.push({ item, top, height, lane });
-  }
-  return placed;
 }
 
 /** "Nova Robotics (11:00) ve Vega (11:30) görüşmeleri üst üste bindi." */

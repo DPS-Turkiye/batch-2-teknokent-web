@@ -7,7 +7,9 @@ import type {
   PeerMentorDetail,
   PeerMentoringRequest,
   PeerMentorProfile,
+  PeerMentorProfileDraft,
   PeerTopicCategory,
+  SavedPeerMentorProfileDraft,
   SavePeerMentorProfileInput,
 } from "@/interfaces/peer-mentoring";
 import type { UserRole } from "@/interfaces/session";
@@ -96,5 +98,32 @@ export function savePeerMentorProfile(
     method: HttpMethod.Put,
     url: "/api/peer-mentoring/profile",
     data: { ...input, actorId },
+  });
+}
+
+export function fetchPeerMentorDraft(actorId: string) {
+  return backendRequest<SavedPeerMentorProfileDraft>({
+    method: HttpMethod.Get,
+    url: "/api/peer-mentoring/profile/draft",
+    params: { actorId },
+  });
+}
+
+export function savePeerMentorDraft(
+  actorId: string,
+  draft: PeerMentorProfileDraft,
+) {
+  return backendRequest<SavedPeerMentorProfileDraft>({
+    method: HttpMethod.Put,
+    url: "/api/peer-mentoring/profile/draft",
+    data: { actorId, draft },
+  });
+}
+
+export function deletePeerMentorDraft(actorId: string) {
+  return backendRequest<undefined>({
+    method: HttpMethod.Delete,
+    url: "/api/peer-mentoring/profile/draft",
+    params: { actorId },
   });
 }
