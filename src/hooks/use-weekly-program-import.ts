@@ -101,7 +101,11 @@ export function useWeeklyProgramImport(
       setReview(reviewOf(documentId, proposal));
     },
     onError: (failure) => {
-      refused(failure);
+      // A switched-off feature is not a missing permission: say the file is not read here, not "ask for approval".
+      if (refused(failure)) {
+        showToast({ message: t("manualHint"), tone: ToastTone.Error });
+        return;
+      }
       fail(t("readFailed"))(failure);
     },
   });

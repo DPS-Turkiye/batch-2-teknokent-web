@@ -66,6 +66,7 @@ function render(
 
 beforeEach(() => {
   vi.clearAllMocks();
+  refused.mockReset();
   vi.mocked(useAiFeatures).mockReturnValue(aiFeatures());
   vi.mocked(readWeeklyProgram).mockResolvedValue(weeklyProgramProposal());
 });
@@ -137,6 +138,39 @@ describe("useWeeklyProgramImport", () => {
     );
     act(() => result.current.reread());
     await waitFor(() => expect(refused).toHaveBeenCalledWith(refusal));
+  });
+
+  it("says the file is not read on this system, not the generic permission text, when the switch is off", async () => {
+    refused.mockReturnValueOnce(true);
+    vi.mocked(readWeeklyProgram).mockRejectedValue(
+      new ClientApiError(
+        "Bu işlem için yetkin yok.",
+        403,
+        BackendErrorCode.AiFeatureDisabled,
+      ),
+    );
+    const { result } = render(
+      coordinatorProgramDetail({
+        syllabus: {
+          id: "doc-weekly",
+          filename: "weekly.pdf",
+          sizeBytes: 1,
+          uploadedAt: "2026-06-01T09:00:00Z",
+          kind: DocumentKind.WeeklyProgram,
+        },
+      }),
+    );
+
+    act(() => result.current.reread());
+
+    await waitFor(() =>
+      expect(showToast).toHaveBeenCalledWith({
+        message:
+          "Bu sistemde haftalık program dosyası otomatik okunmuyor; fazları burada, haftaları Haftalık plan’da elle ekle.",
+        tone: ToastTone.Error,
+      }),
+    );
+    expect(showToast).toHaveBeenCalledTimes(1);
   });
 
   it("refuses a file that is not a PDF before uploading it", () => {
