@@ -546,6 +546,27 @@ describe("nextSessionsByRequest", () => {
     };
     expect(nextSessionsByRequest([moved], now).get("r4")).toBe(moved);
   });
+
+  it("ranks a meeting with another time proposed by that time, not the asked-for one", () => {
+    const moved = {
+      ...session(
+        "r5",
+        "2026-11-10T09:00:00.000Z",
+        AppointmentStatus.AlternativeProposed,
+      ),
+      alternative: {
+        startsAt: "2026-11-14T09:00:00.000Z",
+        endsAt: "2026-11-14T09:30:00.000Z",
+      },
+    };
+    const confirmed = session("r5", "2026-11-12T09:00:00.000Z");
+    expect(nextSessionsByRequest([moved, confirmed], now).get("r5")).toBe(
+      confirmed,
+    );
+    expect(nextSessionsByRequest([confirmed, moved], now).get("r5")).toBe(
+      confirmed,
+    );
+  });
 });
 
 describe("iskurHomeMode", () => {
