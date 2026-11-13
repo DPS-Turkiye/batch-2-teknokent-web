@@ -125,5 +125,56 @@
     "empty": "Henüz randevun yok",
     "emptyBody": "Bir akran mentordan ya da Office Hours'tan randevu iste; burada görünür.",
     "findMentor": "Mentor bul"
+  },
+  "profile": {
+    "title": "Profilim",
+    "subtitle": "Mentor önerileri ilgi alanlarına ve hedefine göre hazırlanır.",
+    "interests": {
+      "title": "İlgi alanlarım ve hedeflerim",
+      "edit": "Düzenle",
+      "loading": "İlgi alanların yükleniyor…",
+      "loadError": "İlgi alanların yüklenemedi.",
+      "retry": "Tekrar dene",
+      "topics": "Destek almak istediğin konular",
+      "goal": "Hedefin",
+      "noGoal": "Henüz bir hedef yazmadın.",
+      "empty": "Henüz ilgi alanı seçmedin. Düzenle'ye basıp seçebilirsin.",
+      "save": "Kaydet",
+      "saving": "Kaydediliyor…",
+      "cancel": "Vazgeç",
+      "saveError": "Kaydedilemedi. Tekrar dene."
+    },
+    "institution": {
+      "title": "Kurumsal bilgiler",
+      "source": "ODTÜ'den gelir · salt okunur",
+      "locked": "Düzenlenemez",
+      "loading": "Kurumsal bilgiler yükleniyor…",
+      "missingTitle": "Kurumsal kayıt bulunamadı",
+      "missingBody": "Hesabın bir ODTÜ kaydıyla eşleşmedi; ODTÜ ile giriş yaptığında burada görünür.",
+      "loadError": "Kurumsal bilgiler yüklenemedi.",
+      "retry": "Tekrar dene",
+      "fullName": "Ad Soyad",
+      "email": "Kurumsal e-posta",
+      "department": "Bölüm",
+      "classYear": "Sınıf",
+      "classYearValue": "{year}. sınıf",
+      "unknown": "Bilinmiyor"
+    },
+    "photo": {
+      "title": "Profil fotoğrafı",
+      "optional": "Opsiyonel",
+      "upload": "Fotoğraf Yükle",
+      "uploading": "Yükleniyor…",
+      "formats": "JPG, PNG veya WEBP · en fazla 5 MB",
+      "note": "Fotoğrafını yalnızca mentorların ve randevu talep ettiğin akademisyenler görür. Yüklemezsen baş harflerin görünür."
+    },
+    "advisor": {
+      "label": "Akademik danışmanım",
+      "note": "Danışmanlık ilişkisi kurumsal kayıttan gelir; menton'da değiştirilemez."
+    },
+    "visibility": {
+      "title": "Bilgilerin nerede görünür?",
+      "body": "Mentorluk talebi gönderdiğin mentor ilgi alanlarını ve hedefini görür. Kurumsal bilgilerin yalnızca adın ve bölümünle sınırlı paylaşılır."
+    }
   }
 }

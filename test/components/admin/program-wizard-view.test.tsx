@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ProgramWizardView } from "@/components/admin/program-wizard-view";
 import { CoordinatorCandidateStatus } from "@/interfaces/admin-coordinator";
+import { Edition } from "@/interfaces/edition";
 import { ProgramType } from "@/interfaces/program";
 import {
   getCoordinatorCandidate,
@@ -33,6 +34,12 @@ const elif = {
   email: "elif@odtu.test",
 };
 
+const editionState = vi.hoisted(() => ({ current: "ODTU" }));
+
+vi.mock("@/hooks/use-edition", () => ({
+  useEdition: () => editionState.current,
+}));
+
 async function reachSummary(clicker: ReturnType<typeof pickerUser>) {
   await clicker.click(screen.getByRole("radio", { name: /Office Hours/ }));
   await clicker.click(screen.getByRole("button", { name: /Devam/ }));
@@ -50,6 +57,71 @@ describe("admin Yeni Program Oluştur", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(searchCoordinators).mockResolvedValue([elif]);
+    editionState.current = Edition.Odtu;
+  });
+
+  it("offers ODTÜ only peer mentoring and Office Hours", () => {
+    renderWithQueryClient(<ProgramWizardView />);
+
+    expect(
+      screen.getAllByRole("radio").map((radio) => radio.getAttribute("value")),
+    ).toEqual([ProgramType.PeerMentoring, ProgramType.OfficeHours]);
+    expect(
+      screen.getByRole("radio", { name: /Office Hours/ }),
+    ).not.toBeChecked();
+    expect(screen.queryByText("Girişim Mentörlüğü")).not.toBeInTheDocument();
+  });
+
+  it("starts Teknokent on its only type, so the admin can go straight on", async () => {
+    editionState.current = Edition.Teknokent;
+    const clicker = pickerUser();
+    renderWithQueryClient(<ProgramWizardView />);
+
+    expect(
+      screen.getByRole("radio", { name: /Girişim Mentörlüğü/ }),
+    ).toBeChecked();
+    expect(screen.getAllByRole("radio")).toHaveLength(1);
+    await clicker.click(screen.getByRole("button", { name: /Devam/ }));
+
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Program adı")).toBeInTheDocument();
+    expect(screen.getByRole("listitem", { current: "step" })).toHaveTextContent(
+      "Program bilgileri",
+    );
+  });
+
+  it("saves a Teknokent draft on its only type with a coordinator picked by email", async () => {
+    editionState.current = Edition.Teknokent;
+    const detail = coordinatorProgramDetail();
+    vi.mocked(createCoordinatorProgram).mockResolvedValue({
+      ...detail,
+      program: { ...detail.program, id: "new-tk" },
+    });
+    const clicker = pickerUser();
+    renderWithQueryClient(<ProgramWizardView />);
+
+    await clicker.click(screen.getByRole("button", { name: /Devam/ }));
+    await clicker.type(screen.getByLabelText("Program adı"), "Teknokent 2027");
+    await clicker.click(screen.getByRole("button", { name: /Devam/ }));
+    await clicker.type(screen.getByLabelText("Koordinatör e-postası"), "eli");
+    await settleSearch();
+    await clicker.click(
+      await screen.findByRole("button", { name: "Elif Demir ekle" }),
+    );
+    await clicker.click(screen.getByRole("button", { name: /Devam/ }));
+    await clicker.click(
+      screen.getByRole("button", { name: "Taslak olarak kaydet" }),
+    );
+
+    expect(createCoordinatorProgram).toHaveBeenCalledWith({
+      type: ProgramType.StartupMentoring,
+      name: "Teknokent 2027",
+      description: null,
+      startDate: null,
+      endDate: null,
+      coordinatorIds: ["coordinator-1"],
+      newCoordinators: [],
+    });
   });
 
   it("walks type, details, coordinators and summary, then saves a draft", async () => {

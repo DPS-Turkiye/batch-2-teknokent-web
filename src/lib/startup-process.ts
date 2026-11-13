@@ -2,9 +2,10 @@ import { ActionItemStatus } from "@/interfaces/action-item";
 import { UserRole } from "@/interfaces/session";
 import {
   StartupStageState,
+  type ProcessAssignment,
+  type ProcessPhase,
   type StartupProcess,
   type StartupRound,
-  type StartupStage,
 } from "@/interfaces/startup-process";
 import { calendarDay, formatDayMonth } from "@/lib/utils";
 
@@ -57,52 +58,42 @@ export function assignmentSourceKind(role: UserRole | null) {
   return "startup" as const;
 }
 
-export type CompletedStageRow = {
-  stage: StartupStage;
-  startsOn: string | null;
-  endsOn: string | null;
+export type CompletedPhaseRow = {
+  phase: ProcessPhase;
   completedAssignments: number;
 };
 
-/** The stages already behind the startup, with the rounds and Ödevler they took. */
-export function completedStages(process: StartupProcess): CompletedStageRow[] {
-  return process.stages
-    .filter((progress) => progress.state === StartupStageState.Completed)
-    .map(({ stage }) => {
-      const rounds = process.rounds.filter((round) => round.stage === stage);
-      const starts = rounds.map((round) => round.startsOn).sort();
-      const ends = rounds.map((round) => round.endsOn).sort();
-      return {
-        stage,
-        startsOn: starts[0] ?? null,
-        endsOn: ends.at(-1) ?? null,
-        completedAssignments: process.assignments.filter(
-          (assignment) =>
-            assignment.stage === stage &&
-            assignment.status === ActionItemStatus.Completed,
-        ).length,
-      };
-    });
+/** The program phases already behind the team, with how many Ödevler it finished in each. */
+export function completedPhases(process: StartupProcess): CompletedPhaseRow[] {
+  return process.phases
+    .filter((phase) => phase.state === StartupStageState.Completed)
+    .map((phase) => ({
+      phase,
+      completedAssignments: process.assignments.filter(
+        (assignment) =>
+          assignment.phaseId === phase.id &&
+          assignment.status === ActionItemStatus.Completed,
+      ).length,
+    }));
 }
 
 /** The card's button, as a `startupProcess.action` key. */
-export type StageAction = "current" | "completed" | "continue" | "start";
+export type PhaseAction = "current" | "completed" | "continue" | "start";
 
-export type StageCard = {
-  stage: StartupStage;
-  state: StartupStageState;
+export type PhaseCard = {
+  phase: ProcessPhase;
   done: number;
   total: number;
   percent: number;
-  action: StageAction;
+  action: PhaseAction;
 };
 
-/** One Süreç card per stage: how many of its Ödevler are done, cancelled ones left out. */
-export function stageCards(process: StartupProcess): StageCard[] {
-  return process.stages.map(({ stage, state }) => {
+/** One Süreç card per program phase: how many of its Ödevler are done, cancelled ones left out. */
+export function phaseCards(process: StartupProcess): PhaseCard[] {
+  return process.phases.map((phase) => {
     const own = process.assignments.filter(
       (assignment) =>
-        assignment.stage === stage &&
+        assignment.phaseId === phase.id &&
         assignment.status !== ActionItemStatus.Cancelled,
     );
     const done = own.filter(
@@ -111,31 +102,45 @@ export function stageCards(process: StartupProcess): StageCard[] {
     const percent =
       own.length > 0
         ? Math.round((done / own.length) * 100)
-        : state === StartupStageState.Completed
+        : phase.state === StartupStageState.Completed
           ? 100
           : 0;
-    const action: StageAction =
-      state === StartupStageState.Current
+    const action: PhaseAction =
+      phase.state === StartupStageState.Current
         ? "current"
-        : state === StartupStageState.Completed
+        : phase.state === StartupStageState.Completed
           ? "completed"
           : done > 0
             ? "continue"
             : "start";
-    return { stage, state, done, total: own.length, percent, action };
+    return { phase, done, total: own.length, percent, action };
   });
 }
 
-/** The round a stage card opens: the focus round for its stage, else that stage's latest round. */
-export function roundForStage(
+/** The round a phase card opens: the focus round when it is in that phase, else the phase's latest round. */
+export function roundForPhase(
   process: StartupProcess,
-  stage: StartupStage,
+  phaseId: string,
 ): StartupRound | null {
-  if (process.currentRound?.stage === stage) return process.currentRound;
+  if (process.currentRound?.phaseId === phaseId) return process.currentRound;
   return (
     process.rounds
-      .filter((round) => round.stage === stage)
+      .filter((round) => round.phaseId === phaseId)
       .sort((left, right) => right.startsOn.localeCompare(left.startsOn))[0] ??
     null
+  );
+}
+
+/** Ödevler no phase covers: they are listed under "Fazsız görevler". */
+export function unphasedAssignments(
+  assignments: readonly ProcessAssignment[],
+): ProcessAssignment[] {
+  return assignments.filter((assignment) => assignment.phaseId === null);
+}
+
+/** The phase today falls in, or null. */
+export function currentPhase(process: StartupProcess): ProcessPhase | null {
+  return (
+    process.phases.find((phase) => phase.id === process.currentPhaseId) ?? null
   );
 }

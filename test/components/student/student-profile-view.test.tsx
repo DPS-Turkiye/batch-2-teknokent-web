@@ -19,24 +19,32 @@ import {
 } from "@/lib/client/student-profile-completion";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
-vi.mock("@/lib/client/badges", () => ({
-  getMyAchievements: vi.fn(async () => []),
-  getMyBadges: vi.fn(async () => [
-    {
-      id: "award-1",
-      code: "PEER_MENTOR",
-      kind: "GATE",
-      programId: "program-1",
-      programName: "İŞKUR Akran Mentörlüğü",
-      status: "ACTIVE",
-      source: "COORDINATOR",
-      awardedAt: "2026-11-08T10:00:00Z",
-      expiresAt: null,
-      revokedAt: null,
-      reason: null,
-    },
-  ]),
-  getUserBadges: vi.fn(async () => []),
+vi.mock("@/lib/client/badges", async () => {
+  const { BadgeCode, BadgeKind, BadgeSource, BadgeStatus } =
+    await import("@/interfaces/badges");
+  return {
+    getMyAchievements: vi.fn(async () => []),
+    getMyBadges: vi.fn(async () => [
+      {
+        id: "award-1",
+        code: BadgeCode.PeerMentor,
+        kind: BadgeKind.Gate,
+        programId: "program-1",
+        programName: "İŞKUR Akran Mentörlüğü",
+        status: BadgeStatus.Active,
+        source: BadgeSource.Coordinator,
+        awardedAt: "2026-11-08T10:00:00Z",
+        expiresAt: null,
+        revokedAt: null,
+        reason: null,
+      },
+    ]),
+    getUserBadges: vi.fn(async () => []),
+  };
+});
+const upload = vi.fn();
+vi.mock("@/hooks/use-profile-photo", () => ({
+  useProfilePhoto: () => ({ photoUrl: null, isUploading: false, upload }),
 }));
 vi.mock("@/lib/client/institution", () => ({
   fetchInstitutionRecord: vi.fn(),
@@ -47,7 +55,6 @@ vi.mock("@/lib/client/student-profile-completion", () => ({
   getProfileCompletionCategories: vi.fn(),
   saveStudentProfileCompletion: vi.fn(),
 }));
-
 const RECORD: InstitutionRecord = {
   kinds: [IdentityKind.Student],
   fullName: "Ayşe Yılmaz",
@@ -89,39 +96,35 @@ function region(name: string) {
   return screen.getByRole("region", { name });
 }
 
-describe("StudentProfileView › Kurumsal Bilgiler", () => {
+describe("StudentProfileView › Kurumsal bilgiler", () => {
   it("shows the ODTÜ record read-only", async () => {
     renderWithQueryClient(<StudentProfileView />);
-    const institution = region("Kurumsal Bilgiler");
+    const institution = region("Kurumsal bilgiler");
 
     expect(
       await within(institution).findByText("Bilgisayar Mühendisliği"),
     ).toBeVisible();
-    expect(within(institution).getByText("3. sınıf")).toBeVisible();
-    expect(within(institution).getByText("Lisans")).toBeVisible();
     expect(
-      within(institution).getByText("Dr. Öğr. Üyesi Ahmet Öztürk"),
+      within(institution).getByText("ayse.yilmaz@odtu-dev.invalid"),
     ).toBeVisible();
-    expect(within(institution).getByText("Katılımcı değil")).toBeVisible();
-    expect(within(institution).getByText(/Son güncelleme:/)).toBeVisible();
+    expect(within(institution).getByText("3. sınıf · Lisans")).toBeVisible();
+    expect(within(institution).getByText("Düzenlenemez")).toBeVisible();
     expect(within(institution).queryByRole("textbox")).toBeNull();
     expect(within(institution).queryByRole("button")).toBeNull();
   });
 
-  it("fills unknown fields with a dash and says when nothing was synced", async () => {
+  it("says Bilinmiyor for a field ODTÜ did not send", async () => {
     vi.mocked(fetchInstitutionRecord).mockResolvedValue({
       ...RECORD,
-      faculty: null,
-      advisor: null,
-      syncedAt: null,
-      iskurParticipant: true,
+      email: null,
+      classYear: null,
+      programLevel: null,
     });
     renderWithQueryClient(<StudentProfileView />);
-    const institution = region("Kurumsal Bilgiler");
-
-    expect(await within(institution).findByText("Katılımcı")).toBeVisible();
-    expect(within(institution).getAllByText("—")).toHaveLength(2);
-    expect(within(institution).getByText(/Henüz güncellenmedi/)).toBeVisible();
+    const institution = region("Kurumsal bilgiler");
+    expect(await within(institution).findAllByText("Bilinmiyor")).toHaveLength(
+      2,
+    );
   });
 
   it("treats a 404 as an account without ODTÜ details, not as an error", async () => {
@@ -132,14 +135,12 @@ describe("StudentProfileView › Kurumsal Bilgiler", () => {
 
     expect(
       await screen.findByText(
-        "Bu hesap için ODTÜ'den gelen bilgi yok",
+        "Kurumsal kayıt bulunamadı",
         {},
-        {
-          timeout: 4000,
-        },
+        { timeout: 4000 },
       ),
     ).toBeVisible();
-    expect(within(region("Kurumsal Bilgiler")).queryByRole("alert")).toBeNull();
+    expect(within(region("Kurumsal bilgiler")).queryByRole("alert")).toBeNull();
   });
 
   it("offers a retry when the record fails to load", async () => {
@@ -148,7 +149,7 @@ describe("StudentProfileView › Kurumsal Bilgiler", () => {
     );
     const user = userEvent.setup();
     renderWithQueryClient(<StudentProfileView />);
-    const institution = region("Kurumsal Bilgiler");
+    const institution = region("Kurumsal bilgiler");
 
     expect(
       await within(institution).findByText(
@@ -167,23 +168,44 @@ describe("StudentProfileView › Kurumsal Bilgiler", () => {
   });
 });
 
-describe("StudentProfileView › İlgi alanların", () => {
+describe("StudentProfileView › side cards", () => {
+  it("shows the advisor from the record", async () => {
+    renderWithQueryClient(<StudentProfileView />);
+    const advisor = await screen.findByRole("region", {
+      name: "Dr. Öğr. Üyesi Ahmet Öztürk",
+    });
+    expect(within(advisor).getByText("Akademik danışmanım")).toBeVisible();
+  });
+
+  it("uploads a profile photo", async () => {
+    const user = userEvent.setup();
+    renderWithQueryClient(<StudentProfileView />);
+    const photo = region("Profil fotoğrafı");
+    const file = new File(["x"], "me.png", { type: "image/png" });
+    await user.upload(within(photo).getByLabelText("Fotoğraf Yükle"), file);
+    expect(upload).toHaveBeenCalledWith(file);
+  });
+
+  it("explains where the details show", () => {
+    renderWithQueryClient(<StudentProfileView />);
+    expect(screen.getByText("Bilgilerin nerede görünür?")).toBeVisible();
+  });
+});
+
+describe("StudentProfileView › İlgi alanlarım", () => {
   it("shows the saved interests and goal", async () => {
     renderWithQueryClient(<StudentProfileView />);
-    const interests = region("İlgi alanların ve hedefin");
+    const interests = region("İlgi alanlarım ve hedeflerim");
 
     expect(await within(interests).findByText("Kariyer ve Staj")).toBeVisible();
     expect(within(interests).getByText("Örnek: CV hazırlama")).toBeVisible();
     expect(within(interests).getByText("Yaz stajı bulmak")).toBeVisible();
-    expect(
-      within(interests).getByText(/Alt konular şimdilik örnek/),
-    ).toBeVisible();
   });
 
   it("edits topics and goal in place, drops sub-topics of a removed topic, and saves", async () => {
     const user = userEvent.setup();
     renderWithQueryClient(<StudentProfileView />);
-    const interests = region("İlgi alanların ve hedefin");
+    const interests = region("İlgi alanlarım ve hedeflerim");
     await within(interests).findByText("Kariyer ve Staj");
 
     await user.click(
@@ -233,7 +255,7 @@ describe("StudentProfileView › İlgi alanların", () => {
   it("drops the edits on Vazgeç and keeps them after a failed save", async () => {
     const user = userEvent.setup();
     renderWithQueryClient(<StudentProfileView />);
-    const interests = region("İlgi alanların ve hedefin");
+    const interests = region("İlgi alanlarım ve hedeflerim");
     await within(interests).findByText("Kariyer ve Staj");
 
     await user.click(
@@ -250,9 +272,7 @@ describe("StudentProfileView › İlgi alanların", () => {
     await user.type(within(interests).getByRole("textbox"), " ve iş");
     await user.click(within(interests).getByRole("button", { name: "Kaydet" }));
     expect(
-      await within(interests).findByText(
-        "İlgi alanların kaydedilemedi. Tekrar deneyebilirsin.",
-      ),
+      await within(interests).findByText("Kaydedilemedi. Tekrar dene."),
     ).toBeVisible();
     expect(within(interests).getByRole("textbox")).toHaveValue(
       "Yaz stajı bulmak ve iş",
@@ -265,7 +285,9 @@ describe("StudentProfileView › İlgi alanların", () => {
     );
     renderWithQueryClient(<StudentProfileView />);
     expect(
-      await screen.findByText("Henüz ilgi alanı veya hedef eklemedin."),
+      await screen.findByText(
+        "Henüz ilgi alanı seçmedin. Düzenle'ye basıp seçebilirsin.",
+      ),
     ).toBeVisible();
   });
 });
@@ -287,8 +309,7 @@ describe("StudentProfileView › Rozetlerim", () => {
     expect(
       await screen.findByRole("heading", { name: "Institutional details" }),
     ).toBeVisible();
-    expect(await screen.findByText("Year 3")).toBeVisible();
-    expect(screen.getByText("Bachelor's")).toBeVisible();
+    expect(await screen.findByText("Year 3 · Bachelor's")).toBeVisible();
     expect(screen.getByRole("heading", { name: "My badges" })).toBeVisible();
   });
 });

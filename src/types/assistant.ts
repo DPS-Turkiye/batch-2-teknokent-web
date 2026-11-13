@@ -45,6 +45,24 @@ export type MeetingStatusMeta = {
   bg: MeetingStatusBg;
 };
 
+/** What the assistant tells the user about the meeting's recording bot; each value is a message key. */
+export enum MeetingBotNotice {
+  Joining = "joining",
+  WaitingForAdmission = "waitingForAdmission",
+  WaitingTooLong = "waitingTooLong",
+  Recording = "recording",
+  CouldNotJoin = "couldNotJoin",
+  NotAdmittedInTime = "notAdmittedInTime",
+  Rejected = "rejected",
+  Left = "left",
+}
+
+export enum MeetingBotNoticeTone {
+  Info = "info",
+  Success = "success",
+  Danger = "danger",
+}
+
 export enum MeetingPlatform {
   GoogleMeet = "Google Meet",
   Zoom = "Zoom",

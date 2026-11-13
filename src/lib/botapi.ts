@@ -24,6 +24,24 @@ export async function createMeetingBot(
   };
 }
 
+export async function fetchMeetingBotStateBackend(
+  platform: string,
+  nativeMeetingId: string,
+  idToken: string,
+): Promise<{ data: unknown; status: number }> {
+  const response = await backendRequest(
+    {
+      method: HttpMethod.Get,
+      url: `/api/assistant/bots/${encodeURIComponent(platform)}/${encodeURIComponent(nativeMeetingId)}`,
+    },
+    { idToken },
+  );
+  return {
+    data: response.data,
+    status: response.status,
+  };
+}
+
 export async function stopMeetingBotBackend(
   platform: string,
   nativeMeetingId: string,

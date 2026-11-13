@@ -162,3 +162,8 @@ export function mentorInviteLink(code: string, origin: string) {
 export function rowKey(row: MentorPoolRow) {
   return row.mentorId ?? row.inviteId ?? row.email;
 }
+
+/** Pool rows not yet in the program's mentor count: unanswered invitations and mentors asking to join. */
+export function waitingPoolCount(rows: readonly MentorPoolRow[]) {
+  return rows.filter((row) => !ACTIVE_STATUSES.has(row.status)).length;
+}

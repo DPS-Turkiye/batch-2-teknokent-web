@@ -56,3 +56,13 @@ export function isPathOpenIn(edition: Edition, pathname: string) {
       OWN_PATH_PREFIXES[other].every((prefix) => !isUnder(path, prefix)),
     );
 }
+
+/**
+ * The edition a session belongs to. A cookie from before editions (or no session) reads as Teknokent, the default
+ * `workspacesOf` uses too.
+ */
+export function editionOf(
+  session: { edition?: Edition | undefined } | null | undefined,
+): Edition {
+  return session?.edition ?? Edition.Teknokent;
+}

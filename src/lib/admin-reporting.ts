@@ -10,7 +10,7 @@ import type {
 import { MentorshipStatus } from "@/interfaces/coordinator-mentorship";
 import { MeetingStatus } from "@/interfaces/meeting";
 import { ProgramStatus } from "@/interfaces/program";
-import { countsInProgram, needsAttention } from "@/lib/admin-model";
+import { belongsToProgram, needsAttention } from "@/lib/admin-model";
 import { addDays, isoDay, startOfWeek } from "@/lib/coordinator-calendar";
 import { formatDateRange } from "@/lib/format";
 import {
@@ -106,13 +106,11 @@ export function pairsIn(
   program: AdminProgram,
   now = new Date(),
 ): ReportPair[] {
-  const ids = new Set(program.startups.map((startup) => startup.id));
   return data.mentorships
     .filter(
       (item) =>
         item.status === MentorshipStatus.Active &&
-        ids.has(item.organizationId) &&
-        countsInProgram(item, program.id),
+        belongsToProgram(item, program),
     )
     .map((item) => ({
       ...item,

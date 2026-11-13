@@ -5,13 +5,11 @@ import type {
   CoordinatorRef,
   CreateProgramEventInput,
   CreateProgramInput,
-  ExtractSyllabusPhasesInput,
   ProgramEligibleEmail,
   ProgramEvent,
   ProgramPhaseInput,
   ProgramTeam,
   ProgramTeamDetail,
-  SyllabusPhases,
   TeamInviteInput,
   UpdateProgramDetailsInput,
 } from "@/interfaces/coordinator-program";
@@ -76,15 +74,6 @@ export async function replaceCoordinatorProgramPhases(
     await httpClient.put<CoordinatorProgramDetail>(
       `${programUrl(programId)}/phases`,
       { phases, syllabusDocumentId },
-    ),
-  );
-}
-
-export async function extractSyllabusPhases(input: ExtractSyllabusPhasesInput) {
-  return requireSuccess(
-    await httpClient.post<SyllabusPhases>(
-      "/api/coordinator/programs/syllabus/phases",
-      input,
     ),
   );
 }

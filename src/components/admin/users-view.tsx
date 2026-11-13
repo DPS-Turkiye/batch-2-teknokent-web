@@ -15,11 +15,15 @@ import {
   ApproveCoordinatorDialog,
   CoordinatorApplicationDialog,
 } from "@/components/admin/coordinator-approval";
+import { DeleteUserButton } from "@/components/admin/delete-user-section";
+import { MoveTeamProgram } from "@/components/admin/move-team-program";
+import { RemoveMentorFromProgram } from "@/components/admin/remove-mentor-from-program";
 import { RevokeSignInsButton } from "@/components/admin/revoke-sign-ins-button";
 import { TeamHistory } from "@/components/common/team-history";
 import { ProfileLink } from "@/components/people/profile-link";
 import { useAdminOverview } from "@/hooks/use-admin-overview";
 import {
+  useAdminUserTabs,
   useCoordinatorsTable,
   useMentorsTable,
   useTeamsTable,
@@ -37,9 +41,10 @@ import { MentorshipStatus } from "@/interfaces/coordinator-mentorship";
 import { UserAccountStatus } from "@/interfaces/session";
 import {
   activeMentorshipFor,
-  assignableProgramsForStartup,
+  canRemoveMentorFromProgram,
   coordinatorsOf,
   mentorsOf,
+  moveTargetsForStartup,
   programsForCoordinator,
   startupsOf,
 } from "@/lib/admin-model";
@@ -56,6 +61,7 @@ import {
   TEAM_FILTERS,
   TEAM_SECTIONS,
   teamHealth,
+  USER_TAB_HREFS,
   type FilterCounts,
 } from "@/lib/admin-users";
 import { initials } from "@/lib/utils";
@@ -67,6 +73,13 @@ import {
   type UserFilter,
 } from "@/types/admin-users";
 
+type TabLink = {
+  href: string;
+  label: string;
+  count: number | null;
+  dot?: string;
+};
+
 type AccountDecision = UserAccountStatus.Approved | UserAccountStatus.Rejected;
 
 export function UsersView({ tab }: { tab: UserTab }) {
@@ -74,44 +87,41 @@ export function UsersView({ tab }: { tab: UserTab }) {
   const query = useAdminOverview();
   const focusUserId = useSearchParams().get("user");
   const [inviteOpen, setInviteOpen] = useState(false);
+  const offeredTabs = useAdminUserTabs();
   if (!query.data) {
     return <QueryNotice isLoading={query.isLoading} error={query.error} />;
   }
   const data = query.data;
-  const tabs = [
-    {
-      id: UserTab.Coordinators,
-      href: "/admin/users",
+  const tabLinks: Record<UserTab, TabLink> = {
+    [UserTab.Coordinators]: {
+      href: USER_TAB_HREFS[UserTab.Coordinators],
       label: t("tabs.coordinators"),
       count: coordinatorsOf(data).length,
     },
-    {
-      id: UserTab.Mentors,
-      href: "/admin/users/mentors",
+    [UserTab.Mentors]: {
+      href: USER_TAB_HREFS[UserTab.Mentors],
       label: t("tabs.mentors"),
       count: mentorsOf(data).length,
       dot: "#26a4ff",
     },
-    {
-      id: UserTab.Teams,
-      href: "/admin/users/teams",
+    [UserTab.Teams]: {
+      href: USER_TAB_HREFS[UserTab.Teams],
       label: t("tabs.teams"),
       count: startupsOf(data).length,
       dot: "#ff6a3d",
     },
-    {
-      id: UserTab.Students,
-      href: "/admin/users/students",
+    [UserTab.Students]: {
+      href: USER_TAB_HREFS[UserTab.Students],
       label: t("tabs.students"),
       count: null,
     },
-    {
-      id: UserTab.Academics,
-      href: "/admin/users/academics",
+    [UserTab.Academics]: {
+      href: USER_TAB_HREFS[UserTab.Academics],
       label: t("tabs.academics"),
       count: null,
     },
-  ];
+  };
+  const tabs = offeredTabs.map((id) => ({ id, ...tabLinks[id] }));
 
   return (
     <div className="space-y-6">
@@ -387,7 +397,7 @@ function MentorsTable({
           <EmptyNote>{t("noMentors")}</EmptyNote>
         ) : (
           table.visible.map(
-            ({ user, programs, mentorships, stale, pendingInvite }) => (
+            ({ user, acceptedPrograms, mentorships, stale, pendingInvite }) => (
               <div
                 key={user.id}
                 className={`${mentorCols} border-b border-[#f0f2f4] px-5 py-3.5 last:border-0`}
@@ -425,7 +435,10 @@ function MentorsTable({
                     ))
                   )}
                 </span>
-                <ProgramChips programs={programs} empty={t("unassigned")} />
+                <ProgramChips
+                  programs={acceptedPrograms}
+                  empty={t("unassigned")}
+                />
                 <LoadBar count={mentorships.length} warning={stale} />
                 <span className="flex items-center justify-end gap-1">
                   {user.status === UserAccountStatus.Pending ? (
@@ -747,8 +760,9 @@ function CoordinatorDrawer({
             </p>
           ) : null}
         </div>
-        <div className="border-t border-[#e9ecef] px-6 py-4">
+        <div className="flex flex-wrap items-start gap-2 border-t border-[#e9ecef] px-6 py-4">
           <RevokeSignInsButton user={user} />
+          <DeleteUserButton user={user} onDeleted={onClose} />
         </div>
       </aside>
     </div>
@@ -895,14 +909,19 @@ function MentorDrawer({
                 {programs.map((item) => (
                   <li
                     key={item.id}
-                    className="rounded-[20px] border border-[#e9ecef] px-4 py-3"
+                    className="flex items-center justify-between gap-3 rounded-[20px] border border-[#e9ecef] px-4 py-3"
                   >
-                    <p className="font-medium">{item.name}</p>
-                    <p className="text-[12.5px] text-[#858c96]">
-                      {isInvitePending(item, user.id)
-                        ? t("invitePending")
-                        : t("accepted")}
-                    </p>
+                    <div className="min-w-0">
+                      <p className="font-medium">{item.name}</p>
+                      <p className="text-[12.5px] text-[#858c96]">
+                        {isInvitePending(item, user.id)
+                          ? t("invitePending")
+                          : t("accepted")}
+                      </p>
+                    </div>
+                    {canRemoveMentorFromProgram(item, user.id) ? (
+                      <RemoveMentorFromProgram mentor={user} program={item} />
+                    ) : null}
                   </li>
                 ))}
               </ul>
@@ -940,8 +959,9 @@ function MentorDrawer({
             </p>
           ) : null}
         </div>
-        <div className="border-t border-[#e9ecef] px-6 py-4">
+        <div className="flex flex-wrap items-start gap-2 border-t border-[#e9ecef] px-6 py-4">
           <RevokeSignInsButton user={user} />
+          <DeleteUserButton user={user} onDeleted={onClose} />
         </div>
       </aside>
     </div>
@@ -1056,10 +1076,10 @@ function TeamDrawer({
                 <span className="text-[#858c96]">{t("programField")}</span>
                 {startup.programName}
               </p>
-              <AssignToProgram
-                kind={ProgramMemberKind.Startups}
-                targetId={startup.id}
-                programs={assignableProgramsForStartup(data, startup.id)}
+              <MoveTeamProgram
+                team={startup}
+                programs={moveTargetsForStartup(data, startup)}
+                onMoved={requestClose}
               />
               <p>
                 <span className="text-[#858c96]">{t("sectorField")}</span>

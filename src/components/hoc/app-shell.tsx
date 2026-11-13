@@ -37,9 +37,11 @@ import {
   useSession,
 } from "@/components/providers/session-provider";
 import { StartupGate } from "@/components/startup/startup-gate";
+import { useEdition } from "@/hooks/use-edition";
 import { useIndividualProgram } from "@/hooks/use-individual-program";
 import { useProfilePhoto } from "@/hooks/use-profile-photo";
 import { UserRole } from "@/interfaces/session";
+import { openNavItems } from "@/lib/edition-nav";
 import { roleWorkspace } from "@/lib/role-workspace";
 import { STUDENT_PROJECT_HREF } from "@/lib/startup-tabs";
 import { initials } from "@/lib/utils";
@@ -209,6 +211,7 @@ export function AppShell({
     null,
   );
   const session = useAppSession();
+  const edition = useEdition();
   const { logout } = useSession();
   const photo = useProfilePhoto();
   const student = useIndividualProgram();
@@ -218,14 +221,17 @@ export function AppShell({
   // A page opts out by passing menteeHome={false}; omitting it gives every
   // mentee the revised frame, so a new page cannot forget to ask for it.
   const menteeFrame = menteeHome ?? session?.role === UserRole.Mentee;
-  const navigation = buildNavigation(
-    isMentor ? UserRole.Mentor : session?.role,
-    menteeFrame,
-    student.isLoading
-      ? MenteeWorkspace.Unknown
-      : student.individual
-        ? MenteeWorkspace.StudentProject
-        : MenteeWorkspace.Startup,
+  const navigation = openNavItems(
+    edition,
+    buildNavigation(
+      isMentor ? UserRole.Mentor : session?.role,
+      menteeFrame,
+      student.isLoading
+        ? MenteeWorkspace.Unknown
+        : student.individual
+          ? MenteeWorkspace.StudentProject
+          : MenteeWorkspace.Startup,
+    ),
   );
   const usesRevisedNav = isMentor || menteeFrame;
   const displayName = session?.fullName ?? t("fallbackName");

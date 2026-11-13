@@ -382,6 +382,27 @@ describe("useMentorOnboarding — reading the CV", () => {
     expect(result.current.parseNote).toBe("");
   });
 
+  it("starts with the CV consent unticked, and then only stores the CV and opens the form", async () => {
+    const { result } = renderHook(() => useMentorOnboarding());
+    expect(result.current.canReadCv).toBe(true);
+    expect(result.current.cvConsent).toBe(false);
+
+    act(
+      () =>
+        void result.current.uploadCv({
+          name: cvFile.name,
+          size: 5,
+          file: cvFile,
+        }),
+    );
+
+    await waitFor(() => expect(result.current.phase).toBe(IntroPhase.Review));
+    expect(uploadDocument).toHaveBeenCalledWith(cvFile, "cv", "id-token");
+    expect(parseStoredCv).not.toHaveBeenCalled();
+    expect(result.current.draft.cvStoredName).toBe(cvFile.name);
+    expect(result.current.parseNote).toBe("");
+  });
+
   it("uploads the CV, reads it as a mentor's and fills only the empty fields", async () => {
     vi.mocked(parseStoredCv).mockResolvedValue({
       full_name: "Nihan Öztürk",
@@ -402,6 +423,7 @@ describe("useMentorOnboarding — reading the CV", () => {
       useMentorOnboarding({ fullName: "Nihan Öztürk" }),
     );
 
+    act(() => result.current.setCvConsent(true));
     act(
       () =>
         void result.current.uploadCv({
@@ -414,7 +436,7 @@ describe("useMentorOnboarding — reading the CV", () => {
 
     await waitFor(() => expect(result.current.phase).toBe(IntroPhase.Review));
     expect(uploadDocument).toHaveBeenCalledWith(cvFile, "cv", "id-token");
-    expect(parseStoredCv).toHaveBeenCalledWith("cv-1", "mentor");
+    expect(parseStoredCv).toHaveBeenCalledWith("cv-1", true, "mentor");
     expect(result.current.draft.profile).toMatchObject({
       title: "Head of Design",
       company: "Looply",
@@ -437,6 +459,7 @@ describe("useMentorOnboarding — reading the CV", () => {
     });
     const { result } = renderHook(() => useMentorOnboarding());
 
+    act(() => result.current.setCvConsent(true));
     act(
       () =>
         void result.current.uploadCv({
@@ -460,6 +483,7 @@ describe("useMentorOnboarding — reading the CV", () => {
     vi.mocked(parseStoredCv).mockRejectedValue(new Error("okunamadı"));
     const { result } = renderHook(() => useMentorOnboarding());
 
+    act(() => result.current.setCvConsent(true));
     act(
       () =>
         void result.current.uploadCv({
@@ -483,6 +507,7 @@ describe("useMentorOnboarding — reading the CV", () => {
     vi.mocked(parseStoredCv).mockRejectedValue(refusal);
     const { result } = renderHook(() => useMentorOnboarding());
 
+    act(() => result.current.setCvConsent(true));
     act(
       () =>
         void result.current.uploadCv({

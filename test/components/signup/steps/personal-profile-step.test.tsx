@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PersonalProfileStep } from "@/components/signup/steps/personal-profile-step";
@@ -18,6 +19,8 @@ function mockCv(overrides: Partial<SignupCv> = {}) {
   vi.mocked(useSignupCv).mockReturnValue({
     choose: vi.fn<SignupCv["choose"]>(),
     canRead: true,
+    consent: false,
+    setConsent: vi.fn<SignupCv["setConsent"]>(),
     isReading: false,
     error: null,
     ...overrides,
@@ -57,6 +60,19 @@ describe("PersonalProfileStep CV card", () => {
     renderStep();
 
     expect(screen.getByText(MANUAL)).toBeInTheDocument();
+    expect(screen.queryByRole("checkbox")).toBeNull();
+  });
+
+  it("asks for the reading consent with an unticked box and hands a tick to the hook", async () => {
+    const setConsent = vi.fn<SignupCv["setConsent"]>();
+    mockCv({ setConsent });
+    renderStep();
+
+    const box = screen.getByRole("checkbox", { name: /CV'min okunmasını/ });
+    expect(box).not.toBeChecked();
+    await userEvent.click(box);
+
+    expect(setConsent).toHaveBeenCalledWith(true);
   });
 
   it("shows why a CV could not be read", () => {
