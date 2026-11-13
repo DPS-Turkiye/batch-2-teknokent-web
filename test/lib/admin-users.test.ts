@@ -11,6 +11,12 @@ import { MentorshipStatus } from "@/interfaces/coordinator-mentorship";
 import { ProgramMentorStatus } from "@/interfaces/program";
 import { UserAccountStatus, UserRole } from "@/interfaces/session";
 import {
+  coordinatorsOf,
+  hasRole,
+  mentorsOf,
+  programsForCoordinator,
+} from "@/lib/admin-model";
+import {
   coordinatorCounts,
   filterCoordinators,
   filterMentors,
@@ -258,7 +264,8 @@ describe("admin users mentors", () => {
     expect(ids({ filter: UserFilter.Inactive })).toEqual([]);
     expect(ids({ filter: UserFilter.Invited })).toEqual(["m1"]);
     expect(ids({ program: "Boş" })).toEqual([]);
-    expect(ids({ program: "Stars" })).toEqual(["m1", "m2", "m3"]);
+    // Only accepted members, so the list matches the program's mentor count; invitees are under "Davet gönderildi".
+    expect(ids({ program: "Stars" })).toEqual(["m2"]);
     expect(ids({ search: "FINANCE" })).toEqual(["m1"]);
     expect(ids({ search: "ÇAL" })).toEqual(["m3"]);
   });
@@ -282,6 +289,7 @@ describe("admin users mentors", () => {
     expect(mentorRow(data, invited)).toEqual({
       user: invited,
       programs: [program],
+      acceptedPrograms: [],
       mentorships: [data.mentorships[3]],
       stale: false,
       pendingInvite: true,
@@ -472,5 +480,94 @@ describe("withoutClosedTabLinks", () => {
     expect(withoutClosedTabLinks(links, [])).toEqual([
       { href: "/admin/programs" },
     ]);
+  });
+});
+
+describe("admin users agree with the program counts", () => {
+  const membership = (mentorId: string, status: ProgramMentorStatus) => ({
+    mentorId,
+    fullName: mentorId,
+    email: `${mentorId}@tekno.co`,
+    status,
+  });
+  const program = adminProgram({
+    name: "Stars",
+    coordinatorId: "c1",
+    coordinatorIds: ["c1", "c2"],
+    coordinatorName: "Elif, Burcu",
+    acceptedMentorCount: 2,
+    pendingMentorCount: 1,
+    mentors: [
+      membership("m1", ProgramMentorStatus.Accepted),
+      membership("a1", ProgramMentorStatus.Accepted),
+      membership("m2", ProgramMentorStatus.Pending),
+      membership("m3", ProgramMentorStatus.Rejected),
+    ],
+  });
+  const data = overview({
+    programs: [program],
+    users: [
+      adminUser({ id: "c1" }),
+      adminUser({ id: "c2" }),
+      adminUser({ id: "m1", role: UserRole.Mentor }),
+      adminUser({ id: "m2", role: UserRole.Mentor }),
+      adminUser({ id: "m3", role: UserRole.Mentor }),
+      adminUser({
+        id: "a1",
+        role: UserRole.Academician,
+        roles: [UserRole.Academician, UserRole.Mentor],
+      }),
+    ],
+  });
+  const ids = (users: readonly AdminUser[]) => users.map((user) => user.id);
+
+  it("lists a coordinator added in the program's settings under that program", () => {
+    expect(programsForCoordinator(data, "c2")).toEqual([program]);
+    expect(
+      ids(
+        filterCoordinators(data, coordinatorsOf(data), {
+          ...all,
+          program: "Stars",
+        }),
+      ),
+    ).toEqual(["c1", "c2"]);
+  });
+
+  it("falls back to the first coordinator when the backend sends no ids", () => {
+    const { coordinatorIds: _sentByNewerBackends, ...older } = program;
+    const old = overview({ programs: [older] });
+    expect(programsForCoordinator(old, "c1")).toHaveLength(1);
+    expect(programsForCoordinator(old, "c2")).toHaveLength(0);
+  });
+
+  it("lists exactly the program's accepted mentors under its filter", () => {
+    const listed = ids(
+      filterMentors(data, mentorsOf(data), { ...all, program: "Stars" }),
+    );
+    expect(listed).toEqual(["m1", "a1"]);
+    expect(listed).toHaveLength(program.acceptedMentorCount);
+  });
+
+  it("does not show a program that turned the mentor down", () => {
+    const rejected = mentorRow(data, adminUser({ id: "m3" }));
+    expect(rejected.programs).toEqual([]);
+    expect(rejected.acceptedPrograms).toEqual([]);
+    const invitee = mentorRow(data, adminUser({ id: "m2" }));
+    expect(invitee.programs.map((item) => item.name)).toEqual(["Stars"]);
+    // The table's chips agree with the program filter: an open invitation shows as "Davet gönderildi" instead.
+    expect(invitee.acceptedPrograms).toEqual([]);
+    expect(
+      mentorRow(data, adminUser({ id: "m1" })).acceptedPrograms.map(
+        (item) => item.name,
+      ),
+    ).toEqual(["Stars"]);
+  });
+
+  it("counts a second-role mentor with the mentors, and only the primary role without roles", () => {
+    const academic = data.users.find((user) => user.id === "a1");
+    expect(academic && hasRole(academic, UserRole.Mentor)).toBe(true);
+    expect(
+      hasRole(adminUser({ role: UserRole.Academician }), UserRole.Mentor),
+    ).toBe(false);
   });
 });
