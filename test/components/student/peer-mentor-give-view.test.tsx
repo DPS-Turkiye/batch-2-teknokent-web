@@ -127,6 +127,10 @@ function received(
     message: "Staj başvurusu için CV'me bakar mısın?",
     status,
     createdAt: "2026-11-08T17:52:00Z",
+    acceptedAt:
+      status === MentorshipRequestStatus.Accepted
+        ? "2026-11-09T09:00:00Z"
+        : null,
   };
 }
 

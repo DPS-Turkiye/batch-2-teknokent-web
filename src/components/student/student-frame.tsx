@@ -1,6 +1,5 @@
 "use client";
 
-// TEST UI: placeholder until the design team's screen; replace when it arrives.
 import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
@@ -9,11 +8,7 @@ import { Workspace } from "@/interfaces/workspace";
 
 export const STUDENT_HOME = "/student";
 
-/**
- * Items are `disabled` until their screen lands; each screen's PR switches its own item on. Office
- * Hours is `soon`: it runs from Moodle for now, so its page says so with a "Yakında" chip. Links
- * elsewhere in the workspace follow the same switches through `studentRouteReady` / `studentRouteSoon`.
- */
+/** The ODTÜ student's workspace menu (Figma "Nav / Öğrenci"); the frame itself comes from the IA kit. */
 export const STUDENT_NAV: RoleNavItem[] = [
   {
     href: STUDENT_HOME,
@@ -32,7 +27,6 @@ export const STUDENT_NAV: RoleNavItem[] = [
     label: "officeHours",
     icon: "/mentor-dashboard/revised/clock.svg",
     match: (path) => path.startsWith("/student/office-hours"),
-    soon: true,
   },
   {
     href: "/student/appointments",
@@ -47,17 +41,6 @@ export const STUDENT_NAV: RoleNavItem[] = [
     match: (path) => path.startsWith("/student/profile"),
   },
 ];
-
-/** Whether the workspace screen at `href` (or its section) has landed yet. */
-export function studentRouteReady(href: string) {
-  const item = STUDENT_NAV.find((nav) => nav.match(href));
-  return Boolean(item && !item.disabled);
-}
-
-/** Whether the screen at `href` is open but only says what is coming ("Yakında"). */
-export function studentRouteSoon(href: string) {
-  return Boolean(STUDENT_NAV.find((nav) => nav.match(href))?.soon);
-}
 
 export function StudentFrame({ children }: { children: ReactNode }) {
   const t = useTranslations("roleFrame.workspace");

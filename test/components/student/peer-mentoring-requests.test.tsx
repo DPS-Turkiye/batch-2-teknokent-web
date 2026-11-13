@@ -44,6 +44,10 @@ function request(
     message: "Staj başvurusu için CV'me bakar mısın?",
     status,
     createdAt: "2026-11-05T10:00:00.000Z",
+    acceptedAt:
+      status === MentorshipRequestStatus.Accepted
+        ? "2026-11-03T12:00:00+03:00"
+        : null,
   };
 }
 
@@ -117,6 +121,15 @@ describe("Mentorluk Al › Mentorluklarım", () => {
       within(booked).getByRole("link", { name: "Randevuya git" }),
     ).toHaveAttribute("href", "/student/appointments");
     expect(within(booked).queryByRole("button")).toBeNull();
+  });
+
+  it("says since when each mentorship has run, with the month's own Turkish suffix", async () => {
+    renderMine();
+
+    const mentorship = await activeMentorship("Zeynep Demir");
+    expect(
+      within(mentorship).getByText("Kariyer ve Staj · 3 Kasım'dan beri"),
+    ).toBeVisible();
   });
 
   it("never shows a cancelled or past meeting as the next one, and offers to plan one instead", async () => {

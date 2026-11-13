@@ -11,6 +11,7 @@ import { Card } from "@/components/ia/card";
 import { InlineAlert } from "@/components/ia/inline-alert";
 import { PageHeader } from "@/components/ia/page-header";
 import { StatusTone } from "@/components/ia/status-badge";
+import { ProductTourReplayButton } from "@/components/product-tour/product-tour-replay-button";
 import { InitialsAvatar } from "@/components/student/ia/ui";
 import {
   GoalField,
@@ -23,6 +24,7 @@ import {
   useStudentInterests,
 } from "@/hooks/use-student-profile";
 import type { InstitutionRecord } from "@/interfaces/institution";
+import { Workspace } from "@/interfaces/workspace";
 import { PROFILE_PHOTO_TYPES } from "@/lib/personal-profile";
 import { initials } from "@/lib/utils";
 
@@ -61,7 +63,9 @@ export function StudentProfileView() {
               </p>
             </div>
           </div>
-          {/* TODO(product tour, PR1 of the tour thread): mount <ProductTourReplayButton /> here once it lands. */}
+          <div>
+            <ProductTourReplayButton workspace={Workspace.OdtuStudent} />
+          </div>
         </aside>
       </div>
     </div>
@@ -112,7 +116,6 @@ function InterestsCard() {
           </Button>
         </InlineAlert>
       ) : draft ? (
-        // TEST UI: placeholder until the design team's screen; replace when it arrives.
         <form
           className="mt-5 flex flex-col gap-5"
           onSubmit={(event) => {
