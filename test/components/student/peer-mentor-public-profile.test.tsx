@@ -4,7 +4,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PeerMentorPublicProfile } from "@/components/student/peer-mentor-public-profile";
 import { BadgeCode, BadgeKind } from "@/interfaces/badges";
+import { PeerEvidenceType } from "@/interfaces/peer-mentor-documents";
+import { getPeerMentorDocuments } from "@/lib/client/peer-mentor-documents";
 import { getPeerMentor } from "@/lib/client/peer-mentoring";
+import {
+  peerFileFixture,
+  peerLinkFixture,
+} from "@test/fixtures/peer-mentor-documents";
 import {
   addPeerMentoringRequestFixture,
   peerMentorDetailFixture,
@@ -28,6 +34,12 @@ vi.mock("@/lib/client/peer-mentoring", () => ({
   createPeerMentoringRequest: vi.fn(async (input) =>
     structuredClone(addPeerMentoringRequestFixture(input)),
   ),
+}));
+vi.mock("@/lib/client/peer-mentor-documents", async (importOriginal) => ({
+  ...(await importOriginal<
+    typeof import("@/lib/client/peer-mentor-documents")
+  >()),
+  getPeerMentorDocuments: vi.fn(async () => []),
 }));
 vi.mock("@/lib/client/student-profile-completion", async (importOriginal) => ({
   ...(await importOriginal<
@@ -136,7 +148,7 @@ describe("PeerMentorPublicProfile", () => {
       "href",
       "https://www.linkedin.com/in/deniz-kaya",
     );
-    expect(linkedin).toHaveAttribute("rel", "noopener noreferrer");
+    expect(linkedin).toHaveAttribute("rel", "noopener noreferrer nofollow");
 
     const hours = screen.getByRole("region", { name: "Müsaitlik" });
     const days = within(hours).getAllByRole("term");
@@ -215,5 +227,38 @@ describe("PeerMentorPublicProfile", () => {
         "Bu akran mentoru bulunamadı ya da artık listelenmiyor.",
       ),
     ).toBeVisible();
+  });
+
+  it("shows the files and portfolio links the mentor shares on their profile", async () => {
+    vi.mocked(getPeerMentorDocuments).mockResolvedValueOnce([
+      peerFileFixture({
+        id: "8a0e2f4c-0000-4000-8000-000000000003",
+        evidenceType: PeerEvidenceType.Cv,
+        originalFilename: "CV_DenizKaya.pdf",
+      }),
+      peerLinkFixture(),
+    ]);
+    renderWithQueryClient(
+      <PeerMentorPublicProfile mentorId="fixture-peer-1" />,
+    );
+
+    const shared = await screen.findByRole("region", {
+      name: "Paylaşılan belgeler",
+    });
+    expect(within(shared).getByText("CV_DenizKaya.pdf")).toBeVisible();
+    expect(within(shared).getByText("CV")).toBeVisible();
+    expect(
+      within(shared).getByRole("link", {
+        name: "CV_DenizKaya.pdf dosyasını görüntüle",
+      }),
+    ).toHaveAttribute(
+      "href",
+      "/api/peer-mentoring/documents/8a0e2f4c-0000-4000-8000-000000000003/content",
+    );
+    const links = screen.getByRole("region", { name: "Bağlantılar" });
+    expect(
+      within(links).getByRole("link", { name: /Portfolyo/ }),
+    ).toHaveAttribute("href", "https://github.com/mertdemir");
+    expect(getPeerMentorDocuments).toHaveBeenCalledWith("fixture-peer-1");
   });
 });

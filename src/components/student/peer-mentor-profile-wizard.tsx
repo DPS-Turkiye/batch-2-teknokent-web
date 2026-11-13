@@ -15,9 +15,11 @@ import { StepPills } from "@/components/ia/step-pills";
 import {
   CATEGORY_ART,
   InitialsAvatar,
+  ISKUR_FIELD_CLASS,
   Tag,
   TagTone,
 } from "@/components/student/iskur-ui";
+import { PeerMentorDocumentsStep } from "@/components/student/peer-mentor-documents-step";
 import {
   PEER_MENTOR_WIZARD_STEPS,
   PeerMentorWizardStep,
@@ -36,14 +38,10 @@ const STEP_KEY = {
   [PeerMentorWizardStep.Preview]: "preview",
 } as const;
 
-const DOCUMENT_KINDS = ["transcript", "cv", "certificate", "other"] as const;
 const HELP_TIPS = ["concrete", "who", "how", "noContact"] as const;
 const LEVELS = ["basic", "intermediate", "advanced"] as const;
 
 type Wizard = ReturnType<typeof usePeerMentorWizard>;
-
-const fieldClass =
-  "w-full rounded-input border border-border-control bg-background-surface px-4 py-3 type-body text-text-primary placeholder:text-text-placeholder focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-border-selected";
 
 /**
  * The peer-mentor profile wizard: categories → sub-topics → experience → how you can help → documents and links →
@@ -360,7 +358,7 @@ function ExperienceStep({ wizard }: { wizard: Wizard }) {
         <label className="block space-y-2">
           <span className="type-label text-text-primary">{t("erasmus")}</span>
           <input
-            className={fieldClass}
+            className={ISKUR_FIELD_CLASS}
             value={wizard.draft.erasmus}
             maxLength={wizard.erasmusMax}
             onChange={(event) => wizard.setField("erasmus", event.target.value)}
@@ -408,7 +406,7 @@ function HelpWithStep({ wizard }: { wizard: Wizard }) {
           </span>
         </span>
         <textarea
-          className={`${fieldClass} min-h-32`}
+          className={`${ISKUR_FIELD_CLASS} min-h-32`}
           value={wizard.draft.helpWith}
           maxLength={wizard.helpWithMax}
           aria-required="true"
@@ -432,48 +430,12 @@ function HelpWithStep({ wizard }: { wizard: Wizard }) {
 }
 
 function DocumentsStep({ wizard }: { wizard: Wizard }) {
-  const t = useTranslations("iaIskur.wizard.documents");
   return (
-    <div className="space-y-4">
-      <Card className="space-y-4">
-        <h2 className="flex items-center gap-3 type-title-card text-text-primary">
-          <span className="grid size-9 place-items-center rounded-xl bg-background-muted">
-            <Link2 aria-hidden className="size-4" />
-          </span>
-          {t("linksTitle")}
-        </h2>
-        <label className="block space-y-2">
-          <span className="type-label text-text-primary">{t("linkedin")}</span>
-          <input
-            className={fieldClass}
-            inputMode="url"
-            value={wizard.draft.linkedinUrl}
-            placeholder={t("linkedinPlaceholder")}
-            onChange={(event) =>
-              wizard.setField("linkedinUrl", event.target.value)
-            }
-          />
-        </label>
-      </Card>
-      {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
-      {/* Documents per category with "verification only / show on profile" need backend support (open with Arya). */}
-      <Card className="space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="type-title-card text-text-primary">
-            {t("soonTitle")}
-          </h2>
-          <SoonBadge />
-        </div>
-        <p className="type-body-sm text-text-secondary">{t("soonBody")}</p>
-        <ul className="flex flex-wrap gap-2">
-          {DOCUMENT_KINDS.map((kind) => (
-            <li key={kind}>
-              <Tag>{t(`kinds.${kind}`)}</Tag>
-            </li>
-          ))}
-        </ul>
-      </Card>
-    </div>
+    <PeerMentorDocumentsStep
+      topics={wizard.draft.topics}
+      linkedinUrl={wizard.draft.linkedinUrl}
+      onLinkedinChange={(value) => wizard.setField("linkedinUrl", value)}
+    />
   );
 }
 
@@ -601,7 +563,7 @@ function TextArea({
       <span className="block type-label text-text-primary">{label}</span>
       <span className="block type-caption text-text-muted">{hint}</span>
       <textarea
-        className={`${fieldClass} min-h-28`}
+        className={`${ISKUR_FIELD_CLASS} min-h-28`}
         value={value}
         maxLength={maxLength}
         onChange={(event) => onChange(event.target.value)}

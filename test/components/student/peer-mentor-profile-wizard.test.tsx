@@ -57,6 +57,12 @@ vi.mock("@/lib/client/peer-mentoring", () => ({
   getPeerMentoringRequests: vi.fn(),
   createPeerMentoringRequest: vi.fn(),
 }));
+vi.mock("@/lib/client/peer-mentor-documents", async (importOriginal) => ({
+  ...(await importOriginal<
+    typeof import("@/lib/client/peer-mentor-documents")
+  >()),
+  getOwnPeerMentorDocuments: vi.fn(async () => []),
+}));
 vi.mock("@/lib/client/mentor-profile", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/client/mentor-profile")>()),
   getAvailabilitySettings: vi.fn(),
@@ -142,6 +148,10 @@ describe("PeerMentorProfileWizard", () => {
     );
     await next();
 
+    expect(
+      await screen.findByText("0 / 1 zorunlu belge yüklendi"),
+    ).toBeVisible();
+    expect(screen.getByText("Kariyer ve Staj için CV")).toBeVisible();
     await user.type(
       screen.getByLabelText("LinkedIn"),
       "linkedin.com/in/zeynep",
