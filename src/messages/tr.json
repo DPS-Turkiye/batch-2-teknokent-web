@@ -4919,14 +4919,15 @@
       "keptHeading": "Eski programda kalacaklar",
       "keptItems": {
         "activity": "Mentorluklar, görüşmeler ve yanıtlanmış talepler; süren mentorluklar ve planlı görüşmeler eski programın adıyla devam eder",
-        "records": "Katılım kayıtları, raporlar, istenen belgeler ve koordinatör yazışmaları"
+        "records": "Katılım kayıtları, raporlar, takımın yüklediği belgeler ve koordinatör yazışmaları"
       },
       "closedHeading": "Kapatılacaklar",
       "closedItems": {
-        "openRequests": "Eski programın mentorlarına gönderilmiş, yanıt bekleyen mentorluk talepleri; mentorlarına bildirilir"
+        "openRequests": "Eski programın mentorlarına gönderilmiş, yanıt bekleyen mentorluk talepleri; mentorlarına bildirilir",
+        "openDocuments": "Eski programın istediği, takımın henüz yüklemediği belgeler"
       },
       "notice": "İki programın koordinatörlerine ve takımın üyelerine bildirim gider.",
-      "confirm": "Programı değiştir",
+      "confirm": "Takımı taşı",
       "moving": "Taşınıyor…",
       "cancel": "Vazgeç",
       "moved": "{team} takımı {program} programına taşındı.",

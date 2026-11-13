@@ -4917,14 +4917,15 @@
       "keptHeading": "Stays in the old program",
       "keptItems": {
         "activity": "Mentorships, meetings and answered requests; running mentorships and booked meetings continue under the old program's name",
-        "records": "Attendance records, reports, requested documents and coordinator messages"
+        "records": "Attendance records, reports, the documents the team uploaded and coordinator messages"
       },
       "closedHeading": "Will be closed",
       "closedItems": {
-        "openRequests": "Mentorship requests sent to the old program's mentors that are still waiting for an answer; their mentors are told"
+        "openRequests": "Mentorship requests sent to the old program's mentors that are still waiting for an answer; their mentors are told",
+        "openDocuments": "Documents the old program asked for that the team has not uploaded yet"
       },
       "notice": "The coordinators of both programs and the team's members are notified.",
-      "confirm": "Change program",
+      "confirm": "Move the team",
       "moving": "Moving…",
       "cancel": "Cancel",
       "moved": "{team} was moved to the {program} program.",

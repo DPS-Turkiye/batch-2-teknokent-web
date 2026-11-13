@@ -654,7 +654,7 @@ describe("UsersView teams", () => {
         screen.getByRole("dialog", {
           name: "Takımın programı değiştirilsin mi?",
         }),
-      ).getByRole("button", { name: "Programı değiştir" }),
+      ).getByRole("button", { name: "Takımı taşı" }),
     );
 
     await waitFor(() =>

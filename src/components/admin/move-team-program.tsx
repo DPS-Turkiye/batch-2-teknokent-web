@@ -14,7 +14,7 @@ import type { AdminProgram } from "@/interfaces/admin-overview";
 
 const MOVED_ITEMS = ["team", "approval", "pendingChanges"] as const;
 const KEPT_ITEMS = ["activity", "records"] as const;
-const CLOSED_ITEMS = ["openRequests"] as const;
+const CLOSED_ITEMS = ["openRequests", "openDocuments"] as const;
 
 const LIST_HEADING = "mt-4 text-[13px] font-medium text-[#22262b]";
 const LIST =
@@ -39,7 +39,6 @@ export function MoveTeamProgram({
   return (
     <>
       <form
-        aria-label={t("action")}
         className="flex flex-wrap items-center gap-2"
         onSubmit={(event) => {
           event.preventDefault();
@@ -134,8 +133,10 @@ function MoveTeamProgramDialog({
         </p>
 
         <div className="mt-5 flex justify-end gap-2">
+          {/* Focus starts on the way out: the move closes requests and notifies people. */}
           <button
             type="button"
+            autoFocus
             onClick={move.cancel}
             disabled={move.pending}
             className="rounded-full border border-[#e9ecef] px-5 py-[11px] text-[13.5px] font-medium text-[#22262b]"

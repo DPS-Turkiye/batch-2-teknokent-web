@@ -59,10 +59,22 @@ function setup() {
   const queryClient = createTestQueryClient();
   const invalidate = vi.spyOn(queryClient, "invalidateQueries");
   const onMoved = vi.fn<() => void>();
-  const hook = renderHook(() => useMoveTeamProgram(team, [target], onMoved), {
-    wrapper: wrapperFor(queryClient),
-  });
+  const hook = renderHook(
+    ({ targets }) => useMoveTeamProgram(team, targets, onMoved),
+    { wrapper: wrapperFor(queryClient), initialProps: { targets: [target] } },
+  );
   return { ...hook, invalidate, onMoved };
+}
+
+/** A move whose answer the test sends when it wants to. */
+function pendingMove() {
+  let finish: (value: ProgramTeamMove) => void = () => undefined;
+  vi.mocked(moveStartupToProgram).mockReturnValue(
+    new Promise<ProgramTeamMove>((resolve) => {
+      finish = resolve;
+    }),
+  );
+  return { finish: (value: ProgramTeamMove) => finish(value) };
 }
 
 /** Picks the target and opens the confirmation. */
@@ -123,6 +135,42 @@ describe("useMoveTeamProgram", () => {
       queryKey: ADMIN_OVERVIEW_QUERY_KEY,
     });
     expect(result.current.confirmation).toBeNull();
+    expect(result.current.targetId).toBe("");
+  });
+
+  it("keeps the dialog as the admin read it when the list of programs changes behind it", () => {
+    const { result, rerender } = setup();
+
+    askToMove(result);
+    rerender({ targets: [] });
+
+    expect(result.current.confirmation).toEqual(target);
+    expect(result.current.canAsk).toBe(false);
+  });
+
+  it("still reports the move and refreshes the overview when the drawer closed before the answer", async () => {
+    const move = pendingMove();
+    const { result, unmount, invalidate, onMoved } = setup();
+
+    askToMove(result);
+    act(() => result.current.confirm());
+    await waitFor(() => expect(moveStartupToProgram).toHaveBeenCalled());
+    unmount();
+    await act(async () => {
+      move.finish(moved());
+      await Promise.resolve();
+    });
+
+    await waitFor(() =>
+      expect(showToast).toHaveBeenCalledWith({
+        message: "Lumen takımı Kuluçka 2026 programına taşındı.",
+        tone: ToastTone.Success,
+      }),
+    );
+    expect(invalidate).toHaveBeenCalledWith({
+      queryKey: ADMIN_OVERVIEW_QUERY_KEY,
+    });
+    expect(onMoved).not.toHaveBeenCalled();
   });
 
   it("says how many waiting requests the move closed", async () => {
@@ -159,16 +207,13 @@ describe("useMoveTeamProgram", () => {
     );
     expect(onMoved).not.toHaveBeenCalled();
     expect(invalidate).not.toHaveBeenCalled();
-    expect(result.current.confirmation).toBeNull();
+    await waitFor(() => expect(result.current.confirmation).toBeNull());
+    // The choice stays, so the admin can try again once the reason is dealt with.
+    expect(result.current.targetId).toBe("program-2");
   });
 
   it("sends one move and keeps the dialog while it is on its way", async () => {
-    let finish: (value: ProgramTeamMove) => void = () => undefined;
-    vi.mocked(moveStartupToProgram).mockReturnValue(
-      new Promise<ProgramTeamMove>((resolve) => {
-        finish = resolve;
-      }),
-    );
+    const move = pendingMove();
     const { result, onMoved } = setup();
 
     askToMove(result);
@@ -181,7 +226,7 @@ describe("useMoveTeamProgram", () => {
     expect(result.current.confirmation).toEqual(target);
     expect(result.current.canAsk).toBe(false);
 
-    act(() => finish(moved()));
+    act(() => move.finish(moved()));
     await waitFor(() => expect(onMoved).toHaveBeenCalledTimes(1));
   });
 });

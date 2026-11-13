@@ -107,6 +107,9 @@ describe("MoveTeamProgram", () => {
       within(dialog).getByText(/yanıt bekleyen mentorluk talepleri/),
     ).toBeInTheDocument();
     expect(
+      within(dialog).getByText(/takımın henüz yüklemediği belgeler/),
+    ).toBeInTheDocument();
+    expect(
       within(dialog).getByText(
         "İki programın koordinatörlerine ve takımın üyelerine bildirim gider.",
       ),
@@ -114,12 +117,31 @@ describe("MoveTeamProgram", () => {
     expect(moveStartupToProgram).not.toHaveBeenCalled();
   });
 
+  it("opens with the focus on Vazgeç, not on the button that moves", async () => {
+    const { user } = show();
+
+    const dialog = await askToMove(user);
+
+    expect(
+      within(dialog).getByRole("button", { name: "Vazgeç" }),
+    ).toHaveFocus();
+  });
+
+  it("stays open when the admin clicks inside it", async () => {
+    const { user } = show();
+
+    const dialog = await askToMove(user);
+    await user.click(within(dialog).getByText("Kapatılacaklar"));
+
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+  });
+
   it("moves the team once the admin confirms", async () => {
     const { user, onMoved } = show();
 
     const dialog = await askToMove(user);
     await user.click(
-      within(dialog).getByRole("button", { name: "Programı değiştir" }),
+      within(dialog).getByRole("button", { name: "Takımı taşı" }),
     );
 
     expect(
@@ -145,6 +167,11 @@ describe("MoveTeamProgram", () => {
       async (user: ReturnType<typeof userEvent.setup>) =>
         user.keyboard("{Escape}"),
     ],
+    [
+      "a click outside it",
+      async (user: ReturnType<typeof userEvent.setup>, dialog: HTMLElement) =>
+        user.click(dialog),
+    ],
   ])("closes without moving on %s", async (_how, leave) => {
     const { user, onMoved } = show();
 
@@ -168,12 +195,13 @@ describe("MoveTeamProgram", () => {
 
     const dialog = await askToMove(user);
     await user.click(
-      within(dialog).getByRole("button", { name: "Programı değiştir" }),
+      within(dialog).getByRole("button", { name: "Takımı taşı" }),
     );
 
     expect(
       await screen.findByText("ali@gmail.com adresi bu programa katılamaz."),
     ).toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(onMoved).not.toHaveBeenCalled();
   });
 });
