@@ -2275,6 +2275,9 @@
     "reading": "CV okunuyor, alanların dolduruluyor…",
     "manual": "Bu sistemde CV otomatik okunmuyor; dosyan yalnızca kaydedilir. Profil bilgilerini kendin gir."
   },
+  "cvConsent": {
+    "label": "CV'min okunmasını onaylıyorum: e-posta, telefon ve TC kimlik numaram önce sistemimizde maskelenir; adım, okulum, işyerlerim gibi diğer bilgiler maskelenmez. Ardından metin, profil alanlarımı doldurmak için yurt dışındaki (ABD) bir yapay zekâ hizmetiyle ayrıştırılır. Onay vermezsem CV'm yalnızca saklanır, alanları kendim doldururum."
+  },
   "editableChips": {
     "add": "Ekle…",
     "addLabel": "{label} ekle",

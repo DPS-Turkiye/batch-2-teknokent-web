@@ -24,13 +24,14 @@ export async function uploadProfileAnalysis(input: {
   file: File;
   ocrMode: ProfileOcrMode;
   profileType: ProfileAnalysisType;
+  consentAccepted: boolean;
   appUserId?: string;
 }) {
   const data = new FormData();
   data.set("file", input.file);
   const query = new URLSearchParams({
     profileType: input.profileType,
-    consentAccepted: "true",
+    consentAccepted: String(input.consentAccepted),
     ocrMode: input.ocrMode,
   });
   if (input.appUserId) query.set("appUserId", input.appUserId);
@@ -108,24 +109,30 @@ export type ParsedCvRole = {
 
 export type CvSource = File | { documentId: string };
 
-/** A new file is sent along; a stored CV is read where it already is. */
+/**
+ * A new file is sent along; a stored CV is read where it already is.
+ * `consentAccepted` is the person's own answer to the reading consent: the
+ * backend refuses to read a CV without it, so it is never filled in here.
+ */
 export function readCv(
   source: CvSource,
+  consentAccepted: boolean,
   profileType: ProfileAnalysisType = ProfileAnalysisType.Personal,
 ) {
   return source instanceof File
-    ? parseCv(source, profileType)
-    : parseStoredCv(source.documentId, profileType);
+    ? parseCv(source, consentAccepted, profileType)
+    : parseStoredCv(source.documentId, consentAccepted, profileType);
 }
 
 /** Parses a CV the person already uploaded, so it does not travel again. */
 export async function parseStoredCv(
   documentId: string,
+  consentAccepted: boolean,
   profileType: ProfileAnalysisType = ProfileAnalysisType.Personal,
 ) {
   const query = new URLSearchParams({
     profileType,
-    consentAccepted: "true",
+    consentAccepted: String(consentAccepted),
   });
   return requireSuccess(
     await httpClient.post<ParsedCvProfile>(
@@ -138,13 +145,14 @@ export async function parseStoredCv(
 
 export async function parseCv(
   file: File,
+  consentAccepted: boolean,
   profileType: ProfileAnalysisType = ProfileAnalysisType.Personal,
 ) {
   const data = new FormData();
   data.set("file", file);
   const query = new URLSearchParams({
     profileType,
-    consentAccepted: "true",
+    consentAccepted: String(consentAccepted),
   });
   return requireSuccess(
     await httpClient.post<ParsedCvProfile>(

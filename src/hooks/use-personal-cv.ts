@@ -19,7 +19,8 @@ export function usePersonalCv(
   setField: SetField,
 ) {
   const cv = useCvFile({
-    read: async (source) => toCvParseResult(await readCv(source)),
+    read: async (source, consentAccepted) =>
+      toCvParseResult(await readCv(source, consentAccepted)),
     onRead: (parsed) => {
       if (!draft) return;
       const next = applyCvParse(

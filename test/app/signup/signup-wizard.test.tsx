@@ -123,6 +123,9 @@ describe("Signup wizard", () => {
     const user = userEvent.setup();
     render(<SignupWizardView account={ACCOUNT} />);
 
+    await user.click(
+      screen.getByRole("checkbox", { name: /CV'min okunmasını/ }),
+    );
     await user.upload(
       screen.getByLabelText(/CV dosyası seç/),
       new File(["cv"], "cv.pdf", { type: "application/pdf" }),
@@ -142,6 +145,9 @@ describe("Signup wizard", () => {
     render(<SignupWizardView account={ACCOUNT} />);
 
     await user.type(screen.getByLabelText(/Startup’taki rolün/), "Kurucu");
+    await user.click(
+      screen.getByRole("checkbox", { name: /CV'min okunmasını/ }),
+    );
     await user.upload(
       screen.getByLabelText(/CV dosyası seç/),
       new File(["cv"], "cv.pdf", { type: "application/pdf" }),
@@ -158,12 +164,31 @@ describe("Signup wizard", () => {
     const user = userEvent.setup();
     render(<SignupWizardView account={ACCOUNT} />);
 
+    await user.click(
+      screen.getByRole("checkbox", { name: /CV'min okunmasını/ }),
+    );
     await user.upload(
       screen.getByLabelText(/CV dosyası seç/),
       new File(["cv"], "cv.pdf", { type: "application/pdf" }),
     );
 
     expect(await screen.findByRole("alert")).toHaveTextContent("CV okunamadı");
+  });
+
+  it("keeps a CV without reading it while the consent box is unticked", async () => {
+    const user = userEvent.setup();
+    render(<SignupWizardView account={ACCOUNT} />);
+
+    expect(
+      screen.getByRole("checkbox", { name: /CV'min okunmasını/ }),
+    ).not.toBeChecked();
+    await user.upload(
+      screen.getByLabelText(/CV dosyası seç/),
+      new File(["cv"], "cv.pdf", { type: "application/pdf" }),
+    );
+
+    expect(screen.getByText("cv.pdf")).toBeInTheDocument();
+    expect(parseCv).not.toHaveBeenCalled();
   });
 
   it("shows an already-uploaded CV on a resumed session", async () => {

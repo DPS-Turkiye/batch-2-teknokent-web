@@ -134,6 +134,8 @@ export function useMentorOnboarding(
   const [isSaving, setIsSaving] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [parseNote, setParseNote] = useState("");
+  // The CV reading consent: unticked until the person ticks it, and never saved with the draft.
+  const [cvConsent, setCvConsent] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [draftSavedAt, setDraftSavedAt] = useState<number | null>(null);
   const [editingExperience, setEditingExperience] = useState<number | null>(
@@ -263,13 +265,17 @@ export function useMentorOnboarding(
         );
         setCvUploaded(true);
         setDraft((current) => ({ ...current, cvStoredName: file.name }));
-        if (!canReadCv) {
+        if (!canReadCv || !cvConsent) {
           setPhase(IntroPhase.Review);
           return;
         }
         try {
           const cv = toMentorCvResult(
-            await parseStoredCv(stored.id, ProfileAnalysisType.Mentor),
+            await parseStoredCv(
+              stored.id,
+              cvConsent,
+              ProfileAnalysisType.Mentor,
+            ),
           );
           setDraft((current) => {
             const names =
@@ -294,7 +300,7 @@ export function useMentorOnboarding(
         setPhase(IntroPhase.Upload);
       }
     },
-    [t, canReadCv, refused],
+    [t, canReadCv, cvConsent, refused],
   );
 
   const enterManually = useCallback(() => setPhase(IntroPhase.Review), []);
@@ -611,6 +617,9 @@ export function useMentorOnboarding(
     uploadError,
     parseNote,
     canReadCv,
+    cvConsent,
+    setCvConsent,
+    readsCv: canReadCv && cvConsent,
     saveError,
     draftSavedAt,
     droppedFiles,
