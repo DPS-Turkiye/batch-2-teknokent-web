@@ -40,7 +40,10 @@ function invalidFields(error: z.ZodError) {
   return [...new Set(fields)];
 }
 
-async function invalidRequest(message: ApiTextKey, fields: string[] = []) {
+export async function invalidRequest(
+  message: ApiTextKey,
+  fields: string[] = [],
+) {
   return NextResponse.json(
     { code: "INVALID_REQUEST", message: await apiText(message), fields },
     { status: 400 },

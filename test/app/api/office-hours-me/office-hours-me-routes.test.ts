@@ -62,6 +62,8 @@ function request(url: string, method = "GET", body?: unknown) {
 
 const ACADEMICIAN = "6f1d2c3b-4a5e-4f60-8a7b-9c0d1e2f3a4b";
 
+const REQUEST = "0b9e2f4a-1c3d-4e5f-8a6b-7c8d9e0f1a2b";
+
 const withId = (id: string) => ({ params: Promise.resolve({ id }) });
 
 const backendHours = {
@@ -128,13 +130,13 @@ const handlers: [string, () => Promise<Response>][] = [
     () =>
       postDecision(
         request("/x", "POST", { action: OfficeHoursRequestAction.Decline }),
-        withId("r-1"),
+        withId(REQUEST),
       ),
   ],
   ["GET meetings", () => getMeetings()],
   ["GET academicians", () => getAcademicians()],
-  ["GET academician", () => getAcademician(request("/x"), withId("a-1"))],
-  ["GET slots", () => getSlots(request("/x"), withId("a-1"))],
+  ["GET academician", () => getAcademician(request("/x"), withId(ACADEMICIAN))],
+  ["GET slots", () => getSlots(request("/x"), withId(ACADEMICIAN))],
   [
     "POST request",
     () =>
@@ -150,7 +152,10 @@ const handlers: [string, () => Promise<Response>][] = [
   [
     "POST alternative",
     () =>
-      postAlternative(request("/x", "POST", { accept: false }), withId("r-1")),
+      postAlternative(
+        request("/x", "POST", { accept: false }),
+        withId(REQUEST),
+      ),
   ],
 ];
 
@@ -230,11 +235,11 @@ describe("office hours (Menton account) proxy routes", () => {
         times: ["2026-11-25T10:00:00+03:00"],
         message: "Bu saat daha iyi",
       }),
-      withId("r-1"),
+      withId(REQUEST),
     );
     expect(officeHours.answerOfficeHoursRequest).toHaveBeenCalledWith(
       "user-1",
-      "r-1",
+      REQUEST,
       {
         action: OfficeHoursRequestAction.ProposeTimes,
         times: ["2026-11-25T10:00:00+03:00"],
@@ -276,7 +281,7 @@ describe("office hours (Menton account) proxy routes", () => {
             "POST",
             withForgedActor({ action: OfficeHoursRequestAction.Decline }),
           ),
-          withId("r-1"),
+          withId(REQUEST),
         ),
       () => officeHours.answerOfficeHoursRequest,
     ],
@@ -290,7 +295,7 @@ describe("office hours (Menton account) proxy routes", () => {
       () =>
         postAlternative(
           request("/x", "POST", withForgedActor({ accept: false })),
-          withId("r-1"),
+          withId(REQUEST),
         ),
       () => officeHours.answerOfficeHoursAlternative,
     ],
@@ -321,7 +326,10 @@ describe("office hours (Menton account) proxy routes", () => {
     [
       "an unknown answer",
       () =>
-        postDecision(request("/x", "POST", { action: "DELETE" }), withId("r")),
+        postDecision(
+          request("/x", "POST", { action: "DELETE" }),
+          withId(REQUEST),
+        ),
     ],
     [
       "more than three offered times",
@@ -331,7 +339,7 @@ describe("office hours (Menton account) proxy routes", () => {
             action: OfficeHoursRequestAction.ProposeTimes,
             times: [1, 2, 3, 4].map((day) => `2026-11-2${day}T10:00:00+03:00`),
           }),
-          withId("r"),
+          withId(REQUEST),
         ),
     ],
     [
@@ -359,7 +367,10 @@ describe("office hours (Menton account) proxy routes", () => {
     [
       "an answer to other times that is not yes or no",
       () =>
-        postAlternative(request("/x", "POST", { accept: "yes" }), withId("r")),
+        postAlternative(
+          request("/x", "POST", { accept: "yes" }),
+          withId(REQUEST),
+        ),
     ],
     [
       "a profile without the listed switch",
@@ -438,5 +449,48 @@ describe("office hours (Menton account) proxy routes", () => {
 
     expect(response.status).toBe(502);
     expect(JSON.stringify(await response.json())).not.toContain("socket");
+  });
+
+  it.each([
+    ["an academician", () => getAcademician(request("/x"), withId("a-1"))],
+    ["their slots", () => getSlots(request("/x"), withId("../me"))],
+    [
+      "an answer",
+      () =>
+        postDecision(
+          request("/x", "POST", { action: OfficeHoursRequestAction.Decline }),
+          withId("request/1"),
+        ),
+    ],
+    [
+      "an answer to other times",
+      () =>
+        postAlternative(request("/x", "POST", { accept: false }), withId("..")),
+    ],
+  ])("refuses %s under an id that is not one", async (_name, call) => {
+    expect((await call()).status).toBe(400);
+    for (const value of Object.values(officeHours)) {
+      expect(value).not.toHaveBeenCalled();
+    }
+  });
+
+  it("passes one-off hours through, and leaves them out when the editor sends none", async () => {
+    const oneOff = {
+      startsAt: "2026-11-24T14:00:00+03:00",
+      endsAt: "2026-11-24T16:00:00+03:00",
+      place: "A-204",
+    };
+    await putAvailability(
+      request("/x", "PUT", { ...editorHours, oneOffs: [oneOff] }),
+    );
+    expect(officeHours.saveMyOfficeHoursAvailability).toHaveBeenLastCalledWith(
+      "user-1",
+      expect.objectContaining({ oneOffs: [oneOff] }),
+    );
+
+    await putAvailability(request("/x", "PUT", editorHours));
+    expect(
+      vi.mocked(officeHours.saveMyOfficeHoursAvailability).mock.lastCall?.[1],
+    ).not.toHaveProperty("oneOffs");
   });
 });

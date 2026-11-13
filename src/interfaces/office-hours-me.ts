@@ -22,9 +22,13 @@ export enum OfficeHoursStudentAction {
   Reply = "REPLY",
 }
 
-/** The student behind a request, as only the academician it was sent to sees them. */
+/**
+ * The student behind a request, as only the academician it was sent to sees them: `id` is always their
+ * office-hours id; `accountId` their Menton account, or null for a student who came in only through Moodle.
+ */
 export type OfficeHoursRequestStudent = {
-  userId: string;
+  id: string;
+  accountId: string | null;
   fullName: string;
   department: string | null;
   classYear: number | null;
@@ -81,7 +85,10 @@ export type OfficeHoursProfile = {
   contactEmail: string | null;
 };
 
-/** A listed academician as a student browses them; `accountId` tells the student's advisor apart. */
+/**
+ * A listed academician as a student browses them; `accountId` tells the student's advisor apart. Where to meet and
+ * the online link come only on the student's own request, once it is a meeting.
+ */
 export type OfficeHoursListedAcademician = {
   id: string;
   accountId: string;
@@ -89,8 +96,6 @@ export type OfficeHoursListedAcademician = {
   academicTitle: string | null;
   department: string | null;
   faculty: string | null;
-  place: string | null;
-  onlineLink: string | null;
   contactEmail: string | null;
   meetingMinutes: number;
 };
