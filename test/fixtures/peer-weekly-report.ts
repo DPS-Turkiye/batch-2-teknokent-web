@@ -80,7 +80,10 @@ const WEEK_DAYS = [
   "2026-11-13",
 ];
 
-/** A draft weekly report for 9 Kasım 2026: sendable from Friday 13 Kasım 18:00, due Monday 16 Kasım 23:59 (TR). */
+/**
+ * A draft weekly report for 9 Kasım 2026: sendable from Friday 13 Kasım 18:00, due by the end of Monday 16 Kasım. The
+ * backend sends the deadline as the next midnight (Tuesday 00:00 TR), as it does on main.
+ */
 export function weeklyReport(
   overrides: Partial<PeerWeeklyReport> = {},
 ): PeerWeeklyReport {
@@ -90,7 +93,7 @@ export function weeklyReport(
     status: PeerReportStatus.Draft,
     editable: true,
     opensAt: "2026-11-13T15:00:00Z",
-    deadline: "2026-11-16T20:59:00Z",
+    deadline: "2026-11-16T21:00:00Z",
     summary: weeklySummary(),
     days: WEEK_DAYS.map((date) => reportDay({ date })),
     dailyRequired: 5,

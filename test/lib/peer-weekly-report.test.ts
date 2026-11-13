@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { PeerMentorSkill, PeerReportStatus } from "@/interfaces/peer-reports";
 import {
   formatReportDay,
+  formatReportDeadline,
   formatReportTime,
   isWeeklyLate,
   latestOutcomeMeetingId,
@@ -285,10 +286,17 @@ describe("formatting", () => {
     });
   });
 
-  it("shows the deadline as day, month and time in Turkey", () => {
-    expect(formatReportTime("2026-11-16T20:59:00Z", "tr")).toBe(
+  it("shows a time as day, month and time in Turkey", () => {
+    expect(formatReportTime("2026-11-13T15:00:00Z", "tr")).toBe(
+      "13 Kasım, 18:00",
+    );
+  });
+
+  it("shows a midnight deadline as the last minute of the day before", () => {
+    expect(formatReportDeadline("2026-11-16T21:00:00Z", "tr")).toBe(
       "16 Kasım, 23:59",
     );
+    expect(formatReportDeadline("x", "tr")).toBe("");
   });
 });
 
@@ -406,7 +414,8 @@ describe("edge cases", () => {
     expect(
       weeklySubmitBlock(report, FILLED, new Date(report.opensAt)),
     ).toBeNull();
-    expect(isWeeklyLate(report, new Date(report.deadline))).toBe(false);
+    expect(isWeeklyLate(report, new Date("2026-11-16T20:59:59Z"))).toBe(false);
+    expect(isWeeklyLate(report, new Date(report.deadline))).toBe(true);
   });
 
   it("names the first blocker: closed before missing reports, reports before answers", () => {

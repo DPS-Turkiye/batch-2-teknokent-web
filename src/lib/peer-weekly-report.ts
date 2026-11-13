@@ -120,9 +120,12 @@ export function weeklySubmitBlock(
   }
 }
 
-/** Past the deadline and still not sent; an unreadable deadline never makes a week late. */
+/**
+ * Still not sent once the deadline has come. The backend's deadline is the midnight that ends Monday, so 00:00 is late;
+ * an unreadable deadline never makes a week late.
+ */
 export function isWeeklyLate(report: PeerWeeklyReport, now: Date) {
-  return report.editable && now.getTime() > Date.parse(report.deadline);
+  return report.editable && now.getTime() >= Date.parse(report.deadline);
 }
 
 /** A skill this client doesn't know yet goes after the known ones. */
@@ -283,4 +286,13 @@ export function reportToday(now: Date) {
     day: "2-digit",
     timeZone: REPORT_TIME_ZONE,
   }).format(now);
+}
+
+const ONE_MINUTE_MS = 60_000;
+
+/** The backend's deadline is the midnight after Monday; mentors read it as "16 Kasım, 23:59". Empty if unreadable. */
+export function formatReportDeadline(deadline: string, locale: string) {
+  const at = Date.parse(deadline);
+  if (Number.isNaN(at)) return "";
+  return formatReportTime(new Date(at - ONE_MINUTE_MS).toISOString(), locale);
 }

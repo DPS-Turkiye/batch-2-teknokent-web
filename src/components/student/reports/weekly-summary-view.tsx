@@ -23,6 +23,7 @@ import {
 import { useWeeklyReport } from "@/hooks/use-weekly-report";
 import type { PeerWeeklyReport } from "@/interfaces/peer-reports";
 import {
+  formatReportDeadline,
   formatReportTime,
   latestOutcomeMeetingId,
   missingMeetingReports,
@@ -558,7 +559,7 @@ function StatusCard({
           {t("deadline")}
         </span>
         <span className="type-label text-text-primary">
-          {formatReportTime(report.deadline, locale)}
+          {formatReportDeadline(report.deadline, locale)}
         </span>
       </p>
       <hr className="border-border-subtle" />
