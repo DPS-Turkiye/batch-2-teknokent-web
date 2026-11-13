@@ -5,6 +5,11 @@ import { GET as getMentorCounts } from "@/app/api/peer-mentoring/mentor-counts/r
 import { GET as getMentor } from "@/app/api/peer-mentoring/mentors/[mentorId]/route";
 import { GET as getMentors } from "@/app/api/peer-mentoring/mentors/route";
 import {
+  DELETE as deleteDraft,
+  GET as getDraft,
+  PUT as putDraft,
+} from "@/app/api/peer-mentoring/profile/draft/route";
+import {
   GET as getRequests,
   POST as postRequest,
 } from "@/app/api/peer-mentoring/requests/route";
@@ -16,16 +21,22 @@ import {
 import { UserRole } from "@/interfaces/session";
 import {
   createPeerMentoringRequest,
+  deletePeerMentorDraft,
   fetchPeerMentor,
   fetchPeerMentorCounts,
+  fetchPeerMentorDraft,
   fetchPeerMentoringRequests,
   fetchPeerMentors,
+  savePeerMentorDraft,
 } from "@/lib/api/peer-mentoring";
 import { getSessionUser } from "@/lib/session";
 import { peerMentorDetailFixture } from "@test/fixtures/peer-mentoring";
 import { backendRefusal, backendResponse } from "@test/fixtures/route-handlers";
 
 vi.mock("@/lib/api/peer-mentoring", () => ({
+  deletePeerMentorDraft: vi.fn(),
+  fetchPeerMentorDraft: vi.fn(),
+  savePeerMentorDraft: vi.fn(),
   fetchPeerMentor: vi.fn(),
   fetchPeerMentorCounts: vi.fn(),
   fetchPeerMentors: vi.fn(),
@@ -67,6 +78,13 @@ beforeEach(() => {
   vi.mocked(fetchPeerMentors).mockResolvedValue(backendResponse([]));
   vi.mocked(fetchPeerMentor).mockResolvedValue(backendResponse(mentorDetail));
   vi.mocked(fetchPeerMentorCounts).mockResolvedValue(backendResponse([]));
+  vi.mocked(fetchPeerMentorDraft).mockResolvedValue(backendRefusal(404));
+  vi.mocked(savePeerMentorDraft).mockImplementation(async (_actor, draft) =>
+    backendResponse({ draft, updatedAt: "2026-11-12T11:05:00Z" }),
+  );
+  vi.mocked(deletePeerMentorDraft).mockResolvedValue(
+    backendResponse(undefined, 204),
+  );
   vi.mocked(fetchPeerMentoringRequests).mockResolvedValue(backendResponse([]));
   vi.mocked(createPeerMentoringRequest).mockResolvedValue(
     backendResponse(sentRequest, 201),
@@ -188,6 +206,70 @@ describe("peer-mentoring proxy routes", () => {
     vi.mocked(getSessionUser).mockResolvedValue(null);
     expect((await getMentorCounts()).status).toBe(401);
     expect(fetchPeerMentorCounts).toHaveBeenCalledTimes(1);
+  });
+
+  it("keep the draft for the signed-in student only, whatever actor the body names", async () => {
+    const draft = {
+      step: "topics",
+      categories: [PeerTopicCategory.CareerInternship],
+      subTopics: null,
+      strongCourses: null,
+      projects: null,
+      erasmus: null,
+      helpWith: "Sta",
+      linkedinUrl: null,
+      levels: null,
+      experiences: null,
+    };
+
+    expect((await getDraft()).status).toBe(404);
+    expect(fetchPeerMentorDraft).toHaveBeenCalledWith("student-1");
+
+    const saved = await putDraft(
+      request("/api/peer-mentoring/profile/draft", {
+        method: "PUT",
+        body: JSON.stringify({ actorId: "someone-else", draft }),
+      }),
+    );
+    expect(saved.status).toBe(200);
+    expect(savePeerMentorDraft).toHaveBeenCalledWith("student-1", draft);
+
+    expect((await deleteDraft()).status).toBe(204);
+    expect(deletePeerMentorDraft).toHaveBeenCalledWith("student-1");
+  });
+
+  it("refuse a draft over the publish limits or without its body", async () => {
+    for (const body of [
+      {},
+      { draft: { helpWith: "a".repeat(2001) } },
+      {
+        draft: {
+          step: null,
+          categories: null,
+          subTopics: null,
+          strongCourses: null,
+          projects: null,
+          erasmus: null,
+          helpWith: null,
+          linkedinUrl: null,
+          levels: null,
+          experiences: [{ title: "b".repeat(201) }],
+        },
+      },
+    ]) {
+      const response = await putDraft(
+        request("/api/peer-mentoring/profile/draft", {
+          method: "PUT",
+          body: JSON.stringify(body),
+        }),
+      );
+      expect(response.status).toBe(400);
+    }
+    expect(savePeerMentorDraft).not.toHaveBeenCalled();
+
+    vi.mocked(getSessionUser).mockResolvedValue(null);
+    expect((await getDraft()).status).toBe(401);
+    expect((await deleteDraft()).status).toBe(401);
   });
 
   it("list the student's own requests unless the mentor side is asked for", async () => {
