@@ -40,6 +40,11 @@ export type OfficeHoursMessage = {
   sentAt: string;
 };
 
+/** The student behind a request, with the class year the academician sees next to the name ("4. sınıf"). */
+export type OfficeHoursStudent = AppointmentCounterpart & {
+  classYear: number | null;
+};
+
 /** The most times an academician may offer instead in one answer. */
 export const MAX_PROPOSED_TIMES = 3;
 
@@ -47,7 +52,7 @@ export type OfficeHoursRequest = {
   id: string;
   /** Pending while it waits for the academician, AlternativeProposed while it waits for the student. */
   status: AppointmentStatus;
-  student: AppointmentCounterpart;
+  student: OfficeHoursStudent;
   topic: string;
   /** The student's note or expected outcome. */
   note: string | null;

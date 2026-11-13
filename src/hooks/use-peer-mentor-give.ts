@@ -34,9 +34,11 @@ import type {
 } from "@/interfaces/mentor";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import {
+  PeerExperienceKind,
   PeerMentorGateState,
   type PeerExperienceCard,
   type PeerMentorProfile,
+  type PeerMentorProfileDraft,
   type PeerTopicCategory,
   type PeerTopicLevel,
   type PeerTopicLevels,
@@ -51,8 +53,11 @@ import {
 } from "@/lib/client/mentor-profile";
 import { decideMentorRequest } from "@/lib/client/mentor-requests";
 import {
+  deletePeerMentorDraft,
+  getPeerMentorDraft,
   getPeerMentorProfile,
   getReceivedPeerRequests,
+  savePeerMentorDraft,
   savePeerMentorProfile,
 } from "@/lib/client/peer-mentoring";
 import { getPeerMentorCategories } from "@/lib/client/student-profile-completion";
@@ -87,6 +92,7 @@ export const PEER_MENTOR_PROFILE_QUERY_KEY = [
   "peer-mentoring",
   "profile",
 ] as const;
+export const PEER_MENTOR_DRAFT_QUERY_KEY = ["peer-mentoring", "draft"] as const;
 export const RECEIVED_PEER_REQUESTS_QUERY_KEY = [
   "peer-mentoring",
   "received",
@@ -352,6 +358,87 @@ export function toPeerMentorProfileInput(
   };
 }
 
+/** The step names a saved draft reopens on; a number would shift if a step were added. */
+const STEP_NAME: Record<PeerMentorWizardStep, string> = {
+  [PeerMentorWizardStep.Categories]: "categories",
+  [PeerMentorWizardStep.Subtopics]: "subtopics",
+  [PeerMentorWizardStep.Experience]: "experience",
+  [PeerMentorWizardStep.HelpWith]: "helpWith",
+  [PeerMentorWizardStep.Links]: "links",
+  [PeerMentorWizardStep.Availability]: "availability",
+  [PeerMentorWizardStep.Preview]: "preview",
+};
+
+function stepNamed(name: string | null): PeerMentorWizardStep | null {
+  return (
+    PEER_MENTOR_WIZARD_STEPS.find((step) => STEP_NAME[step] === name) ?? null
+  );
+}
+
+/**
+ * The step a saved draft reopens on. A draft holds no weekly hours, so a new peer mentor whose draft was saved past
+ * the hours step comes back to it rather than publishing with none; a published mentor keeps their saved hours.
+ */
+function resumedStep(name: string | null, hasSavedHours: boolean) {
+  const step = stepNamed(name);
+  if (step === null || hasSavedHours) return step;
+  return step > PeerMentorWizardStep.Availability
+    ? PeerMentorWizardStep.Availability
+    : step;
+}
+
+/** What "Taslak olarak kaydet" sends: the answers so far and the step to reopen on. */
+export function toProfileDraft(
+  draft: WizardDraft,
+  step: PeerMentorWizardStep,
+): PeerMentorProfileDraft {
+  return {
+    step: STEP_NAME[step],
+    categories: draft.topics,
+    subTopics: draft.subtopics,
+    strongCourses: lines(draft.strongCourses),
+    projects: lines(draft.projects),
+    erasmus: draft.erasmus,
+    helpWith: draft.helpWith,
+    linkedinUrl: draft.linkedinUrl,
+    levels: levelsFor(draft.levels, draft.topics),
+    experiences: withoutKeys(draft.experiences),
+  };
+}
+
+/**
+ * A saved draft back in the wizard; a card without a title is left out, and one without a start month comes back
+ * to be completed, as an older published card does.
+ */
+function fromProfileDraft(saved: PeerMentorProfileDraft): WizardDraft {
+  return {
+    topics: saved.categories ?? [],
+    subtopics: saved.subTopics ?? [],
+    strongCourses: (saved.strongCourses ?? []).join("\n"),
+    projects: (saved.projects ?? []).join("\n"),
+    erasmus: saved.erasmus ?? "",
+    helpWith: saved.helpWith ?? "",
+    linkedinUrl: saved.linkedinUrl ?? "",
+    levels: saved.levels ?? {},
+    experiences: withKeys(
+      (saved.experiences ?? []).flatMap((card) =>
+        card.title
+          ? [
+              {
+                kind: card.kind ?? PeerExperienceKind.Other,
+                title: card.title,
+                organization: card.organization,
+                startedOn: card.startedOn ?? null,
+                endedOn: card.endedOn,
+                summary: card.summary,
+              },
+            ]
+          : [],
+      ),
+    ),
+  };
+}
+
 function toSettings(
   payload: UpdateMentorAvailabilitySettingsPayload,
 ): MentorAvailabilitySettings {
@@ -385,15 +472,30 @@ export function usePeerMentorWizard() {
     queryFn: getAvailabilitySettings,
     enabled: existing != null,
   });
-  const [step, setStep] = useState(PeerMentorWizardStep.Categories);
+  const savedDraft = useQuery({
+    queryKey: PEER_MENTOR_DRAFT_QUERY_KEY,
+    queryFn: getPeerMentorDraft,
+  });
+  const resumed = savedDraft.data ?? null;
+  // A saved draft reopens on its own step until the student moves.
+  const [chosenStep, setStep] = useState<PeerMentorWizardStep | null>(null);
+  const step =
+    chosenStep ??
+    resumedStep(resumed?.draft.step ?? null, existing != null) ??
+    PeerMentorWizardStep.Categories;
   const [edits, setEdits] = useState<WizardDraft | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [availabilityDraft, setAvailabilityDraft] =
     useState<UpdateMentorAvailabilitySettingsPayload | null>(null);
-  // Built once per loaded profile, so the cards keep their row keys until the first edit takes over.
+  // Built once per loaded draft or profile, so the cards keep their row keys until the first edit takes over.
   const loaded = useMemo(
-    () => (existing ? toDraft(existing) : EMPTY_DRAFT),
-    [existing],
+    () =>
+      resumed
+        ? fromProfileDraft(resumed.draft)
+        : existing
+          ? toDraft(existing)
+          : EMPTY_DRAFT,
+    [resumed, existing],
   );
   const draft = edits ?? loaded;
   const categories = catalogue.data ?? [];
@@ -476,6 +578,8 @@ export function usePeerMentorWizard() {
     },
     onSuccess: (saved) => {
       queryClient.setQueryData(PEER_MENTOR_PROFILE_QUERY_KEY, saved);
+      // Publishing removes the draft on the backend.
+      queryClient.setQueryData(PEER_MENTOR_DRAFT_QUERY_KEY, null);
       for (const queryKey of [
         MENTOR_AVAILABILITY_SETTINGS_QUERY_KEY,
         MENTOR_AVAILABILITY_QUERY_KEY,
@@ -494,13 +598,47 @@ export function usePeerMentorWizard() {
       setError(errorMessage(publishError, t("publishFailed"))),
   });
 
+  /** One step forward or back, never past the first or the last. */
+  const moveStep = (by: 1 | -1) => {
+    const at = PEER_MENTOR_WIZARD_STEPS.indexOf(step);
+    const last = PEER_MENTOR_WIZARD_STEPS.length - 1;
+    setStep(
+      PEER_MENTOR_WIZARD_STEPS[Math.min(last, Math.max(0, at + by))] ?? step,
+    );
+  };
+
+  const saveDraft = useMutation({
+    mutationFn: (current: PeerMentorProfileDraft) =>
+      savePeerMentorDraft(current),
+    onSuccess: (saved) => {
+      queryClient.setQueryData(PEER_MENTOR_DRAFT_QUERY_KEY, saved);
+      showToast({ message: t("draftSaved"), tone: ToastTone.Success });
+    },
+    onError: (saveError) =>
+      setError(errorMessage(saveError, t("draftSaveFailed"))),
+  });
+
+  const discardDraft = useMutation({
+    mutationFn: deletePeerMentorDraft,
+    onSuccess: () => {
+      queryClient.setQueryData(PEER_MENTOR_DRAFT_QUERY_KEY, null);
+      setEdits(null);
+      setAvailabilityDraft(null);
+      experienceCards.cancel();
+      setStep(PeerMentorWizardStep.Categories);
+    },
+    onError: (discardError) =>
+      setError(errorMessage(discardError, t("draftSaveFailed"))),
+  });
+
   return {
     step,
     draft,
     existing,
     error,
-    isLoading: profile.isLoading || catalogue.isLoading,
-    loadError: profile.error ?? catalogue.error,
+    isLoading: profile.isLoading || catalogue.isLoading || savedDraft.isLoading,
+    // Without the saved draft, a save could overwrite it with an empty one.
+    loadError: profile.error ?? catalogue.error ?? savedDraft.error,
     categories,
     categoryOptions: categories.map((item) => ({
       id: item.id,
@@ -553,15 +691,27 @@ export function usePeerMentorWizard() {
         void availability.save();
         return;
       }
-      setStep((current) => Math.min(PeerMentorWizardStep.Preview, current + 1));
+      moveStep(1);
     },
     back: () => {
       setError(null);
-      setStep((current) =>
-        Math.max(PeerMentorWizardStep.Categories, current - 1),
-      );
+      moveStep(-1);
     },
     publish: () => publish.mutate(),
     isPublishing: publish.isPending,
+    saveDraft: () => {
+      // The open card isn't part of the draft yet; saving now would drop it without a word.
+      if (experienceCards.form !== null) {
+        setError(t("errors.experienceOpen"));
+        return;
+      }
+      setError(null);
+      saveDraft.mutate(toProfileDraft(draft, step));
+    },
+    isSavingDraft: saveDraft.isPending,
+    /** When the draft was last saved; null without one. */
+    draftSavedAt: resumed?.updatedAt ?? null,
+    discardDraft: () => discardDraft.mutate(),
+    isDiscardingDraft: discardDraft.isPending,
   };
 }

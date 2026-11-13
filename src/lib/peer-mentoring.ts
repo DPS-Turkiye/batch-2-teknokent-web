@@ -17,7 +17,7 @@ import {
   type PeerTopicLevels,
 } from "@/interfaces/peer-mentoring";
 import type { ProfileCompletionCategory } from "@/interfaces/student-profile-completion";
-import { isUpcoming } from "@/lib/appointments";
+import { currentTime, isUpcoming } from "@/lib/appointments";
 import { toTimeInput } from "@/lib/mentor-availability";
 import {
   ExperienceCardProblem,
@@ -428,7 +428,8 @@ export function experienceProblemField(
 
 /**
  * Each peer request's next meeting: the earliest one still to come (not refused, called off or over). A cancelled or
- * past meeting is never "Sıradaki görüşme".
+ * past meeting is never "Sıradaki görüşme". A meeting with another time proposed counts at that time, as Randevularım
+ * sorts it.
  */
 export function nextSessionsByRequest<
   T extends Pick<
@@ -440,7 +441,11 @@ export function nextSessionsByRequest<
   for (const item of appointments) {
     if (!item.requestId || !isUpcoming(item, now)) continue;
     const current = next.get(item.requestId);
-    if (!current || Date.parse(item.startsAt) < Date.parse(current.startsAt)) {
+    if (
+      !current ||
+      Date.parse(currentTime(item).startsAt) <
+        Date.parse(currentTime(current).startsAt)
+    ) {
       next.set(item.requestId, item);
     }
   }

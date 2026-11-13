@@ -13,6 +13,7 @@ import {
   turkeyDay,
   turkeyTime,
   turkeyTimeRange,
+  turkeyWallClock,
   waitsForAcademician,
   weekdayOfDay,
 } from "@/lib/academician-office-hours";
@@ -140,5 +141,14 @@ describe("acceptableTime", () => {
 describe("turkeyTime", () => {
   it("shows a moment in Turkey time", () => {
     expect(turkeyTime("2026-11-10T07:00:00Z", "tr")).toBe("10:00");
+  });
+});
+
+describe("turkeyWallClock", () => {
+  it("reads Turkey's wall clock in the local fields", () => {
+    const wall = turkeyWallClock("2026-11-10T21:30:00Z");
+    expect([wall.getDate(), wall.getHours(), wall.getMinutes()]).toEqual([
+      11, 0, 30,
+    ]);
   });
 });

@@ -122,14 +122,18 @@ describe("AcademicianHomeView", () => {
     expect(within(deniz).getByText("Onay Bekliyor")).toBeVisible();
     expect(screen.getByRole("link", { name: /Tümü \(2\)/ })).toHaveAttribute(
       "href",
-      "/academician/requests",
+      "/academician/appointments?filter=requests",
     );
-    // Ece offered three times, so choosing one happens on the requests page.
+    // Ece offered three times, so choosing one happens in the request's drawer.
     const ece = await requestCard("Ece Aksoy");
     expect(within(ece).queryByText("Danışanın")).not.toBeInTheDocument();
     expect(within(ece).getByRole("link", { name: "Kabul Et" })).toHaveAttribute(
       "href",
-      "/academician/requests",
+      "/academician/appointments?request=sample-request-2",
+    );
+    expect(within(ece).getByRole("link", { name: "Reddet" })).toHaveAttribute(
+      "href",
+      "/academician/appointments?request=sample-request-2",
     );
     expect(
       within(ece).getByRole("link", { name: "Alternatif Saat Öner" }),
@@ -163,6 +167,10 @@ describe("AcademicianHomeView", () => {
     expect(today).toHaveTextContent("1 randevu");
     expect(today).toHaveTextContent(
       "15:30Zeynep ArslanBitirme projesi danışmanlığıOnaylandı",
+    );
+    expect(within(today).getByRole("link")).toHaveAttribute(
+      "href",
+      "/academician/appointments?appointment=sample-appointment-1",
     );
     const availability = screen.getByRole("region", { name: "Müsaitliğim" });
     expect(availability).toHaveTextContent("Salı14:00 – 16:00");

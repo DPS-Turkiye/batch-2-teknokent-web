@@ -301,7 +301,6 @@
     "publish": "Publish profile",
     "publishing": "Publishing…",
     "saveDraft": "Save as draft",
-    "draftSoon": "Saving a draft is coming soon.",
     "published": "Your mentor profile is live.",
     "publishFailed": "Your profile couldn't be published.",
     "errors": {
@@ -310,7 +309,12 @@
       "link": "The link must start with http:// or https://.",
       "experienceOpen": "Save or cancel the open experience first.",
       "experienceStart": "Edit the experiences that have no start month."
-    }
+    },
+    "draftSaved": "Draft saved.",
+    "draftSaveFailed": "The draft couldn't be saved.",
+    "draftSavedAt": "Draft saved · {time}",
+    "savingDraft": "Saving…",
+    "discardDraft": "Delete draft"
   },
   "take": {
     "title": "Peer mentoring",

@@ -301,7 +301,6 @@
     "publish": "Profili Yayınla",
     "publishing": "Yayınlanıyor…",
     "saveDraft": "Taslak olarak kaydet",
-    "draftSoon": "Taslak kaydetme yakında.",
     "published": "Mentor profilin yayında.",
     "publishFailed": "Profilin yayınlanamadı.",
     "errors": {
@@ -310,7 +309,12 @@
       "link": "Bağlantı http:// veya https:// ile başlamalı.",
       "experienceOpen": "Açık deneyimi önce kaydet ya da vazgeç.",
       "experienceStart": "Başlangıç ayı eksik deneyimleri düzenle."
-    }
+    },
+    "draftSaved": "Taslak kaydedildi.",
+    "draftSaveFailed": "Taslak kaydedilemedi.",
+    "draftSavedAt": "Taslak kaydedildi · {time}",
+    "savingDraft": "Kaydediliyor…",
+    "discardDraft": "Taslağı sil"
   },
   "take": {
     "title": "Akran Mentörlüğü",

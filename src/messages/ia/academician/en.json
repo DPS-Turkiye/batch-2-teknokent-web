@@ -16,7 +16,10 @@
     },
     "oneOff": "{date} · one-off",
     "unavailable": "{days} · Unavailable",
-    "unavailableBecause": "{days} · Unavailable ({reason})"
+    "unavailableBecause": "{days} · Unavailable ({reason})",
+    "everyWeekday": "Every {weekday}",
+    "classYear": "Year {year}",
+    "close": "Close"
   },
   "answer": {
     "done": {
@@ -76,5 +79,107 @@
       "unavailableTitle": "A specific day · All day",
       "unavailableHint": "Unavailable (exception)"
     }
+  },
+  "appointments": {
+    "title": "My appointments",
+    "subtitle": "Confirmed appointments, requests waiting for you and your availability in one calendar.",
+    "editAvailability": "Edit availability",
+    "filtersLabel": "Show on the calendar",
+    "filters": {
+      "all": "All",
+      "appointments": "Appointments",
+      "requests": "Requests · {count}",
+      "availability": "Availability"
+    },
+    "viewsLabel": "Calendar view",
+    "views": {
+      "day": "Day",
+      "week": "Week",
+      "month": "Month"
+    },
+    "today": "Today",
+    "previous": "Previous",
+    "next": "Next",
+    "legendLabel": "What the colours mean",
+    "legend": {
+      "recurring": "Recurring",
+      "oneOff": "One-off",
+      "confirmed": "Confirmed appointment",
+      "pendingRequest": "Awaiting approval (faded)",
+      "awaitingStudent": "Waiting for the student",
+      "unavailable": "Unavailable"
+    },
+    "entry": {
+      "confirmed": "Confirmed",
+      "pendingRequest": "Awaiting approval",
+      "awaitingStudent": "Proposal · student's reply",
+      "recurring": "Available",
+      "oneOff": "Available",
+      "unavailable": "Unavailable"
+    },
+    "entryDetail": {
+      "recurring": "Every {weekday} · recurring",
+      "oneOff": "One-off availability"
+    },
+    "available": "Available {hours}",
+    "blockLabel": "{name}, {hours}, {status}",
+    "more": "+{count} more",
+    "openDay": "Open {day}",
+    "rail": {
+      "pendingTitle": "Requests waiting for you",
+      "all": "All",
+      "hint": "Requests have a dashed border on the calendar. Click one to see the details.",
+      "pendingEmpty": "No requests are waiting for you.",
+      "awaitingTitle": "Waiting for the student",
+      "proposed": "Time you proposed: {when}",
+      "asked": "Waiting for an answer to your question",
+      "proposedBadge": "Other time proposed",
+      "askedBadge": "Question asked",
+      "availabilityTitle": "My availability",
+      "availabilityEmpty": "No open hours yet."
+    }
+  },
+  "requestDrawer": {
+    "title": "Appointment request",
+    "date": "Date",
+    "time": "Time",
+    "course": "Course",
+    "pickTime": "Which time do you accept?",
+    "note": "Note · only you see this",
+    "messages": "Messages",
+    "fit": {
+      "fits": "This time is within your {weekday} hours; no clash.",
+      "outside": "This time is outside your {weekday} hours.",
+      "clash": "You have a confirmed appointment at this time.",
+      "dayOff": "You marked this day as unavailable.",
+      "past": "This time has passed."
+    },
+    "decline": "Decline",
+    "propose": "Propose another time",
+    "accept": "Accept",
+    "declineTitle": "Decline the request",
+    "declineReason": "Note to the student (optional)",
+    "confirmDecline": "Decline request",
+    "back": "Cancel",
+    "gone": "This request no longer waits for you; the list was refreshed."
+  },
+  "appointmentDrawer": {
+    "title": "Appointment",
+    "date": "Date",
+    "time": "Time",
+    "place": "Place",
+    "online": "Online link",
+    "course": "Course",
+    "cancel": "Cancel appointment",
+    "cancelTitle": "Cancel the appointment",
+    "reason": "Reason for the student",
+    "reasonOptional": "Reason for the student (optional)",
+    "reasonRequired": "It starts in less than 24 hours, so please give the student a reason.",
+    "confirmCancel": "Cancel it",
+    "back": "Keep it",
+    "cannotCancel": "This appointment can't be cancelled here.",
+    "cancelled": "Appointment cancelled.",
+    "failed": "Couldn't cancel the appointment; the list was refreshed.",
+    "gone": "This appointment is no longer on your calendar."
   }
 }

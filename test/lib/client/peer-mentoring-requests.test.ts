@@ -4,13 +4,16 @@ import { PeerTopicCategory } from "@/interfaces/peer-mentoring";
 import { UserRole } from "@/interfaces/session";
 import {
   createPeerMentoringRequest,
+  deletePeerMentorDraft,
   getPeerCategories,
   getPeerMentor,
   getPeerMentorCounts,
+  getPeerMentorDraft,
   getPeerMentoringRequests,
   getPeerMentorProfile,
   getPeerMentors,
   getReceivedPeerRequests,
+  savePeerMentorDraft,
   savePeerMentorProfile,
 } from "@/lib/client/peer-mentoring";
 import { httpClient } from "@/lib/http-client";
@@ -45,6 +48,19 @@ const profile = {
   linkedinUrl: "",
   levels: {},
   experiences: [],
+};
+
+const draftBody = {
+  step: "topics",
+  categories: [PeerTopicCategory.CareerInternship],
+  subTopics: null,
+  strongCourses: null,
+  projects: null,
+  erasmus: null,
+  helpWith: null,
+  linkedinUrl: null,
+  levels: null,
+  experiences: null,
 };
 
 const calls: ClientCall[] = [
@@ -110,6 +126,19 @@ const calls: ClientCall[] = [
     call: () => getPeerMentorCounts(),
     method: "get",
     args: ["/api/peer-mentoring/mentor-counts"],
+  },
+  {
+    title: "savePeerMentorDraft puts the draft under its own key",
+    call: () => savePeerMentorDraft(draftBody),
+    method: "put",
+    args: ["/api/peer-mentoring/profile/draft", { draft: draftBody }],
+  },
+  {
+    title: "deletePeerMentorDraft deletes the draft",
+    call: () => deletePeerMentorDraft(),
+    method: "delete",
+    args: ["/api/peer-mentoring/profile/draft"],
+    returnsNothing: true,
   },
   {
     title: "getPeerCategories reads a student's categories with no side param",
@@ -182,6 +211,13 @@ describe("peer mentoring client", () => {
       createMentorResponse({ message: "Hata" }, 500),
     );
     await expect(getPeerMentor("someone")).rejects.toThrow();
+  });
+
+  it("getPeerMentorDraft answers null when there is no draft", async () => {
+    vi.mocked(httpClient.get).mockResolvedValueOnce(
+      createMentorResponse({ message: "Taslak yok." }, 404),
+    );
+    await expect(getPeerMentorDraft()).resolves.toBeNull();
   });
 
   it("getPeerMentorProfile answers null before the wizard has published a profile", async () => {

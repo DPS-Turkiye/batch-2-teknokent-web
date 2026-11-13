@@ -35,6 +35,7 @@ export function academicianRequest(
       fullName: "Berk Özkan",
       title: null,
       department: "Endüstri Mühendisliği",
+      classYear: 4,
     },
     topic: "Yüksek lisans başvurusu",
     note: null,

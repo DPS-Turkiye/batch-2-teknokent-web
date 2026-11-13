@@ -86,6 +86,23 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 /** Office Hours times are Turkey times: every academician screen shows them as such, wherever the browser is. */
 export const TURKEY_TIME_ZONE = "Europe/Istanbul";
 
+/**
+ * A moment as a Date whose local fields read Turkey's wall clock. The calendar grid does its day and hour math on
+ * local fields, so feeding it these keeps every block in Turkey time; in a browser in Turkey nothing changes.
+ */
+export function turkeyWallClock(at: Date | string) {
+  const time = typeof at === "string" ? Date.parse(at) : at.getTime();
+  const turkey = new Date(time + TURKEY_OFFSET_MS);
+  return new Date(
+    turkey.getUTCFullYear(),
+    turkey.getUTCMonth(),
+    turkey.getUTCDate(),
+    turkey.getUTCHours(),
+    turkey.getUTCMinutes(),
+    turkey.getUTCSeconds(),
+  );
+}
+
 /** "10:00" of a moment in Turkey time. */
 export function turkeyTime(value: string | Date, locale: string) {
   return new Intl.DateTimeFormat(locale, {
