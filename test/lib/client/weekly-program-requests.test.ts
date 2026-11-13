@@ -20,6 +20,12 @@ vi.mock("@/lib/http-client", () => ({
   },
 }));
 
+vi.mock("@/lib/client/bearer", () => ({
+  optionalBearerHeader: vi
+    .fn()
+    .mockResolvedValue({ Authorization: "Bearer token-1" }),
+}));
+
 const input = {
   documentId: "doc-1",
   weeks: [],
@@ -45,7 +51,7 @@ const calls: ClientCall[] = [
     args: [
       "/api/coordinator/programs/prog%2F1/weekly-program/read",
       { documentId: "doc-1" },
-      { timeout: 120_000 },
+      { headers: { Authorization: "Bearer token-1" }, timeout: 120_000 },
     ],
   },
   {
