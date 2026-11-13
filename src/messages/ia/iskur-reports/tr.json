@@ -13,5 +13,118 @@
     "minutes": "{minutes} dk",
     "hoursMinutes": "{hours} sa {minutes} dk",
     "recordedNote": "Kayıtlı süre bilgilendirme amaçlıdır; resmi çalışma süresi onayı değildir."
+  },
+  "weekly": {
+    "days": {
+      "label": "Haftanın günleri",
+      "today": "Bugün"
+    },
+    "summary": {
+      "title": "Haftanın özeti",
+      "auto": "Günlük raporlardan otomatik",
+      "meetings": "Görüşmeler",
+      "meetingsSplit": "{first} ilk · {followUp} takip",
+      "mentees": "Görüşülen mentee",
+      "noMentees": "Bu hafta görüşme yok",
+      "reports": "Görüşme raporları",
+      "reportsValue": "{sent} / {total}",
+      "reportsAllSent": "hepsi gönderildi",
+      "reportsMissing": "{count} rapor eksik",
+      "activities": "Diğer faaliyetler",
+      "noActivities": "Faaliyet eklenmedi",
+      "recorded": "Kaydedilen Faaliyet Süresi · {duration}",
+      "recordedNote": "Görüşme ve faaliyet kayıtlarından hesaplanır. Onaylanmış resmi çalışma süresi değildir; İŞKUR puantajının yerine geçmez."
+    },
+    "activityType": {
+      "RESOURCE_PREP": "kaynak",
+      "MESSAGE_FOLLOW_UP": "mesaj",
+      "EVENT": "etkinlik",
+      "OTHER": "diğer"
+    },
+    "skills": {
+      "title": "Bu hafta kullandığın beceriler",
+      "subtitle": "Görüşme raporlarındaki seçimlerinden hesaplandı ({count} görüşme)",
+      "meetings": "{count} görüşme",
+      "empty": "Bu haftanın görüşme raporlarında beceri seçilmedi."
+    },
+    "outcomes": {
+      "title": "Görüşme çıktıları",
+      "subtitle": "Mentee bazında, görüşme raporlarından",
+      "meetings": "· {count} görüşme",
+      "open": "Raporları gör",
+      "openFor": "{name} için raporları gör",
+      "noOutcome": "Bu hafta çıktı yazılmadı.",
+      "actions": "{done} / {total} eylem tamamlandı",
+      "allActions": "Tüm eylemler tamamlandı",
+      "empty": "Bu hafta görüşme yapılmadı."
+    },
+    "evaluation": {
+      "title": "Haftalık değerlendirme",
+      "subtitle": "Günlük raporlarını tekrar yazma; haftanın genel resmini çiz.",
+      "needsObserved": "1. Bu hafta hangi öğrenci ihtiyaçlarını gözlemledin?",
+      "growth": "2. Bu hafta mentör olarak nasıl geliştin?",
+      "nextWeekPlan": "3. Gelecek hafta ne yapmayı planlıyorsun?"
+    },
+    "sideDays": {
+      "title": "Günlük raporlar",
+      "open": "{day}, {status}: günlük raporunu aç"
+    },
+    "status": {
+      "title": "Haftalık özet",
+      "deadline": "Teslim",
+      "late": "Teslim süresi geçti; yine de gönderebilirsin.",
+      "inReview": "Koordinatör incelerken düzenleyemezsin. 7 gün içinde yanıt gelmezse otomatik onaylanır.",
+      "approved": "Haftalık özetin onaylandı; altındaki raporlar da onaylandı.",
+      "revision": "Koordinatör düzeltme istedi: {note}",
+      "revisionNoNote": "Koordinatör düzeltme istedi.",
+      "opensAt": "Gönderilebilir",
+      "edit": "Raporu Düzenle"
+    },
+    "check": {
+      "dailyReports": "{done} / {total} günlük rapor gönderildi",
+      "meetingReports": "{done} / {total} görüşme raporu",
+      "evaluation": "Haftalık değerlendirme · {done} / {total}",
+      "done": "Tamam",
+      "open": "Eksik",
+      "informational": "Gönderimi engellemez"
+    },
+    "block": {
+      "notOpen": "Haftalık özet {opensAt} itibarıyla gönderilebilir.",
+      "meetingReports": "Önce bu haftanın tüm görüşme raporlarını gönder.",
+      "evaluation": "Haftalık değerlendirmenin üç sorusunu da yanıtla."
+    },
+    "footer": {
+      "note": "Önizleme ve PDF, koordinatörün göreceği hâliyle hazırlanır",
+      "preview": "Önizle",
+      "save": "Taslak Olarak Kaydet",
+      "saving": "Kaydediliyor…",
+      "submit": "Haftalık Özeti Koordinatöre Gönder",
+      "submitting": "Gönderiliyor…"
+    },
+    "saved": "Taslak kaydedildi.",
+    "saveFailed": "Taslak kaydedilemedi.",
+    "submitted": "Haftalık özet koordinatöre gönderildi.",
+    "submitFailed": "Haftalık özet gönderilemedi.",
+    "preview": {
+      "title": "Haftalık Faaliyet Özeti",
+      "week": "{start} – {end}",
+      "close": "Kapat",
+      "print": "PDF olarak indir / Yazdır",
+      "printHint": "Yazdırma penceresinde hedef olarak “PDF olarak kaydet”i seç.",
+      "answers": "Haftalık değerlendirme",
+      "noAnswer": "Yanıtlanmadı"
+    },
+    "skill": {
+      "ACTIVE_LISTENING": "Aktif dinleme",
+      "OPEN_QUESTIONS": "Açık uçlu soru sorma",
+      "GOAL_SETTING": "Hedef belirleme",
+      "RESOURCE_REFERRAL": "Kaynak yönlendirme",
+      "FEEDBACK": "Geri bildirim verme",
+      "EXPERIENCE_SHARING": "Deneyim paylaşımı",
+      "PROBLEM_SOLVING": "Problem çözme",
+      "EMPATHY": "Empati kurma",
+      "MOTIVATION_SUPPORT": "Motivasyon desteği",
+      "TIME_PLANNING": "Zaman planlama"
+    }
   }
 }
