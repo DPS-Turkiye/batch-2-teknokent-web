@@ -186,6 +186,20 @@ export function isAcceptedMentor(program: AdminProgram, userId: string) {
   );
 }
 
+/**
+ * Whether the admin can take the mentor out of the program: only a mentor it accepted, and only in a
+ * startup-mentoring program. An open invitation is taken back from the program's mentor pool instead.
+ */
+export function canRemoveMentorFromProgram(
+  program: AdminProgram,
+  userId: string,
+) {
+  return (
+    program.type === ProgramType.StartupMentoring &&
+    isAcceptedMentor(program, userId)
+  );
+}
+
 /** The admin user list opened on the program's coordinator, or the whole list when it has none. */
 export function coordinatorUsersHref(
   program: Pick<AdminProgram, "coordinatorId"> | null | undefined,

@@ -17,6 +17,7 @@ import {
 } from "@/components/admin/coordinator-approval";
 import { DeleteUserButton } from "@/components/admin/delete-user-section";
 import { MoveTeamProgram } from "@/components/admin/move-team-program";
+import { RemoveMentorFromProgram } from "@/components/admin/remove-mentor-from-program";
 import { RevokeSignInsButton } from "@/components/admin/revoke-sign-ins-button";
 import { TeamHistory } from "@/components/common/team-history";
 import { ProfileLink } from "@/components/people/profile-link";
@@ -40,6 +41,7 @@ import { MentorshipStatus } from "@/interfaces/coordinator-mentorship";
 import { UserAccountStatus } from "@/interfaces/session";
 import {
   activeMentorshipFor,
+  canRemoveMentorFromProgram,
   coordinatorsOf,
   mentorsOf,
   moveTargetsForStartup,
@@ -907,14 +909,19 @@ function MentorDrawer({
                 {programs.map((item) => (
                   <li
                     key={item.id}
-                    className="rounded-[20px] border border-[#e9ecef] px-4 py-3"
+                    className="flex items-center justify-between gap-3 rounded-[20px] border border-[#e9ecef] px-4 py-3"
                   >
-                    <p className="font-medium">{item.name}</p>
-                    <p className="text-[12.5px] text-[#858c96]">
-                      {isInvitePending(item, user.id)
-                        ? t("invitePending")
-                        : t("accepted")}
-                    </p>
+                    <div className="min-w-0">
+                      <p className="font-medium">{item.name}</p>
+                      <p className="text-[12.5px] text-[#858c96]">
+                        {isInvitePending(item, user.id)
+                          ? t("invitePending")
+                          : t("accepted")}
+                      </p>
+                    </div>
+                    {canRemoveMentorFromProgram(item, user.id) ? (
+                      <RemoveMentorFromProgram mentor={user} program={item} />
+                    ) : null}
                   </li>
                 ))}
               </ul>

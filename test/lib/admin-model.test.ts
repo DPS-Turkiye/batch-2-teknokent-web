@@ -15,6 +15,7 @@ import {
 import {
   activeMentorshipFor,
   assignableProgramsForMentor,
+  canRemoveMentorFromProgram,
   coordinatorUsersHref,
   countsInProgram,
   mentorshipInPrograms,
@@ -200,5 +201,57 @@ describe("admin-model coordinator link", () => {
     );
     expect(coordinatorUsersHref({ coordinatorId: null })).toBe("/admin/users");
     expect(coordinatorUsersHref(undefined)).toBe("/admin/users");
+  });
+});
+
+describe("admin-model removing a mentor from a program", () => {
+  function programWith(
+    status: ProgramMentorStatus,
+    type = ProgramType.StartupMentoring,
+  ): AdminProgram {
+    return adminProgram({
+      type,
+      mentors: [
+        { mentorId: "mentor-1", fullName: "Leyla", email: "l@x.co", status },
+      ],
+    });
+  }
+
+  it("offers it for a mentor the program accepted, whatever the program's state", () => {
+    const running = programWith(ProgramMentorStatus.Accepted);
+    const ended = { ...running, status: ProgramStatus.Completed };
+
+    expect(canRemoveMentorFromProgram(running, "mentor-1")).toBe(true);
+    expect(canRemoveMentorFromProgram(ended, "mentor-1")).toBe(true);
+  });
+
+  it("leaves an open invitation, a refusal and someone else's membership alone", () => {
+    expect(
+      canRemoveMentorFromProgram(
+        programWith(ProgramMentorStatus.Pending),
+        "mentor-1",
+      ),
+    ).toBe(false);
+    expect(
+      canRemoveMentorFromProgram(
+        programWith(ProgramMentorStatus.Rejected),
+        "mentor-1",
+      ),
+    ).toBe(false);
+    expect(
+      canRemoveMentorFromProgram(
+        programWith(ProgramMentorStatus.Accepted),
+        "mentor-2",
+      ),
+    ).toBe(false);
+  });
+
+  it("does not offer it in a program that is not startup mentoring", () => {
+    expect(
+      canRemoveMentorFromProgram(
+        programWith(ProgramMentorStatus.Accepted, ProgramType.PeerMentoring),
+        "mentor-1",
+      ),
+    ).toBe(false);
   });
 });
