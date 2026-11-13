@@ -13,15 +13,17 @@ import { menteeSummary } from "@test/fixtures/person-summary";
 import { renderWithQueryClient } from "@test/test-utils";
 
 const navigation = vi.hoisted(() => ({ replace: vi.fn() }));
-const viewer = vi.hoisted((): { userId: string | null } => ({
-  userId: "admin-1",
-}));
+const viewer = vi.hoisted(
+  (): { session: { userId: string; role: UserRole } | null } => ({
+    session: null,
+  }),
+);
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace: navigation.replace }),
 }));
 vi.mock("@/components/providers/session-provider", () => ({
-  useAppSession: () => (viewer.userId ? { userId: viewer.userId } : null),
+  useAppSession: () => viewer.session,
 }));
 vi.mock("@/lib/client/admin-users", () => ({ deleteUserAccount: vi.fn() }));
 vi.mock("@/lib/client/person-summary", () => ({ getPersonSummary: vi.fn() }));
@@ -44,7 +46,7 @@ async function openDialog() {
 describe("DeleteUserSection", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    viewer.userId = "admin-1";
+    viewer.session = { userId: "admin-1", role: UserRole.Admin };
     vi.mocked(currentIdToken).mockResolvedValue("id-token");
   });
 

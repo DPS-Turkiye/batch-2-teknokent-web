@@ -3,9 +3,18 @@
 
 import { useTranslations } from "next-intl";
 import { useId } from "react";
+import { createPortal } from "react-dom";
 
 import { AdminOverlay, Panel } from "@/components/admin/admin-ui";
-import { useDeleteUser } from "@/hooks/use-delete-user";
+import {
+  useDeleteUser,
+  useUserDeletion,
+  type UserDeletion,
+} from "@/hooks/use-delete-user";
+import type { DeletablePerson } from "@/lib/user-deletion";
+
+const DESTRUCTIVE_BUTTON =
+  "rounded-full border border-[#f3c4b5] px-4 py-2 text-[13px] font-medium text-[#c2410c] hover:bg-[#fff1ec]";
 
 const DELETED_ITEMS = ["account", "profile", "documents"] as const;
 const KEPT_ITEMS = ["history", "teams"] as const;
@@ -30,7 +39,7 @@ export function DeleteUserSection({ userId }: { userId: string }) {
         <button
           type="button"
           onClick={deletion.ask}
-          className="rounded-full border border-[#f3c4b5] px-4 py-2 text-[13px] font-medium text-[#c2410c] hover:bg-[#fff1ec]"
+          className={DESTRUCTIVE_BUTTON}
         >
           {t("button")}
         </button>
@@ -42,18 +51,47 @@ export function DeleteUserSection({ userId }: { userId: string }) {
   );
 }
 
+/** The same action in the admin's users drawer, next to "Tüm oturumlarını kapat"; absent where it cannot work. */
+export function DeleteUserButton({
+  user,
+  onDeleted,
+}: {
+  user: DeletablePerson;
+  onDeleted: () => void;
+}) {
+  const t = useTranslations("adminUsers.deleteUser");
+  const deletion = useUserDeletion(user, onDeleted);
+  if (!deletion.person) return null;
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={deletion.ask}
+        className={DESTRUCTIVE_BUTTON}
+      >
+        {t("button")}
+      </button>
+      {deletion.confirming ? (
+        <DeleteUserDialog person={deletion.person} deletion={deletion} />
+      ) : null}
+    </>
+  );
+}
+
 function DeleteUserDialog({
   person,
   deletion,
 }: {
   person: { fullName: string; email: string };
-  deletion: ReturnType<typeof useDeleteUser>;
+  deletion: UserDeletion;
 }) {
   const t = useTranslations("adminUsers.deleteUser");
   const inputId = useId();
   const hintId = useId();
 
-  return (
+  // Portalled: the users drawer keeps a transform from its slide-in, which would trap a fixed overlay inside it.
+  return createPortal(
     <AdminOverlay label={t("dialogTitle")} onClose={deletion.cancel}>
       <form
         className="w-full max-w-md rounded-[28px] bg-white p-6 shadow-[0_16px_48px_rgba(33,38,43,0.14)]"
@@ -125,6 +163,7 @@ function DeleteUserDialog({
           </button>
         </div>
       </form>
-    </AdminOverlay>
+    </AdminOverlay>,
+    document.body,
   );
 }

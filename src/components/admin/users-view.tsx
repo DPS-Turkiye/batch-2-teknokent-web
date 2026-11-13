@@ -15,6 +15,7 @@ import {
   ApproveCoordinatorDialog,
   CoordinatorApplicationDialog,
 } from "@/components/admin/coordinator-approval";
+import { DeleteUserButton } from "@/components/admin/delete-user-section";
 import { RevokeSignInsButton } from "@/components/admin/revoke-sign-ins-button";
 import { TeamHistory } from "@/components/common/team-history";
 import { ProfileLink } from "@/components/people/profile-link";
@@ -756,8 +757,9 @@ function CoordinatorDrawer({
             </p>
           ) : null}
         </div>
-        <div className="border-t border-[#e9ecef] px-6 py-4">
+        <div className="flex flex-wrap items-start gap-2 border-t border-[#e9ecef] px-6 py-4">
           <RevokeSignInsButton user={user} />
+          <DeleteUserButton user={user} onDeleted={onClose} />
         </div>
       </aside>
     </div>
@@ -949,8 +951,9 @@ function MentorDrawer({
             </p>
           ) : null}
         </div>
-        <div className="border-t border-[#e9ecef] px-6 py-4">
+        <div className="flex flex-wrap items-start gap-2 border-t border-[#e9ecef] px-6 py-4">
           <RevokeSignInsButton user={user} />
+          <DeleteUserButton user={user} onDeleted={onClose} />
         </div>
       </aside>
     </div>
