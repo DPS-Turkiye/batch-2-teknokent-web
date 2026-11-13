@@ -1,5 +1,6 @@
+import { File as NodeFile } from "node:buffer";
 import { NextRequest } from "next/server";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GET as getContent } from "@/app/api/peer-mentoring/documents/[documentId]/content/route";
 import { GET as getMentorDocuments } from "@/app/api/peer-mentoring/mentors/[mentorId]/documents/route";
@@ -56,26 +57,69 @@ function params<T extends string>(key: T, value: string) {
   return { params: Promise.resolve({ [key]: value } as Record<T, string>) };
 }
 
+/** A file part of the form, kept as bytes so no browser File from jsdom reaches the route's undici parser. */
+type FilePart = { filename: string; type: string; bytes: Uint8Array };
+
+const BOUNDARY = "peer-evidence-test-boundary";
+
+/** The multipart body written out by hand, so the request does not depend on jsdom's FormData or File. */
+function multipartBody(fields: Record<string, string | FilePart>) {
+  const encoder = new TextEncoder();
+  const chunks: Uint8Array[] = [];
+  for (const [name, value] of Object.entries(fields)) {
+    if (typeof value === "string") {
+      chunks.push(
+        encoder.encode(
+          `--${BOUNDARY}\r\nContent-Disposition: form-data; name="${name}"\r\n\r\n${value}\r\n`,
+        ),
+      );
+    } else {
+      chunks.push(
+        encoder.encode(
+          `--${BOUNDARY}\r\nContent-Disposition: form-data; name="${name}"; filename="${value.filename}"\r\nContent-Type: ${value.type}\r\n\r\n`,
+        ),
+        value.bytes,
+        encoder.encode("\r\n"),
+      );
+    }
+  }
+  chunks.push(encoder.encode(`--${BOUNDARY}--\r\n`));
+  const body = new Uint8Array(
+    chunks.reduce((sum, chunk) => sum + chunk.length, 0),
+  );
+  let offset = 0;
+  for (const chunk of chunks) {
+    body.set(chunk, offset);
+    offset += chunk.length;
+  }
+  return body;
+}
+
 function uploadRequest(
-  fields: Record<string, string | File>,
+  fields: Record<string, string | FilePart>,
   token: string | null = "id-token",
 ) {
-  const form = new FormData();
-  for (const [key, value] of Object.entries(fields)) form.set(key, value);
+  const headers: Record<string, string> = {
+    "Content-Type": `multipart/form-data; boundary=${BOUNDARY}`,
+  };
+  if (token) headers.Authorization = `Bearer ${token}`;
   return new NextRequest(
     "http://localhost/api/peer-mentoring/profile/documents",
-    {
-      method: "POST",
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-      body: form,
-    },
+    { method: "POST", headers, body: multipartBody(fields) },
   );
 }
 
-const pdf = new File(["%PDF-1.4"], "cv.pdf", { type: "application/pdf" });
+function filePart(filename: string, bytes: Uint8Array): FilePart {
+  return { filename, type: "application/pdf", bytes };
+}
+
+const pdf = filePart("cv.pdf", new TextEncoder().encode("%PDF-1.4"));
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // The route parses multipart with Node's undici, which builds each file part with the global File and then
+  // refuses it unless it is Node's own: jsdom replaces that global, so on Node 24 every upload answered 502.
+  vi.stubGlobal("File", NodeFile);
   vi.mocked(getSessionUser).mockResolvedValue({
     userId: "mentor-1",
     email: "mert@odtu-dev.invalid",
@@ -84,6 +128,8 @@ beforeEach(() => {
     role: UserRole.Mentee,
   });
 });
+
+afterEach(() => vi.unstubAllGlobals());
 
 describe("peer mentor document routes", () => {
   it("need a session", async () => {
@@ -191,16 +237,14 @@ describe("peer mentor document routes", () => {
   });
 
   it("refuse an empty or oversized file, a portfolio sent as a file, and a body too large for one file", async () => {
-    const huge = new File([new Uint8Array(10 * 1024 * 1024 + 1)], "big.pdf", {
-      type: "application/pdf",
-    });
+    const huge = filePart("big.pdf", new Uint8Array(10 * 1024 * 1024 + 1));
     const fields = {
       evidenceType: PeerEvidenceType.Cv,
       visibility: PeerDocumentVisibility.Profile,
     };
 
     for (const sent of [
-      { ...fields, file: new File([], "empty.pdf") },
+      { ...fields, file: filePart("empty.pdf", new Uint8Array(0)) },
       { ...fields, file: huge },
       { ...fields, file: pdf, evidenceType: PeerEvidenceType.Portfolio },
     ]) {
