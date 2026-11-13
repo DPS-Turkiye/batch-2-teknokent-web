@@ -6549,7 +6549,9 @@
         "DECLINED": "Not available",
         "MORE_INFO_REQUESTED": "More info requested",
         "COUNTER_PROPOSED": "Other times offered",
-        "WITHDRAWN": "Withdrawn"
+        "WITHDRAWN": "Withdrawn",
+        "CANCELLED": "Cancelled",
+        "EXPIRED": "Expired"
       },
       "with": "With {name}",
       "asked": "Requested times",

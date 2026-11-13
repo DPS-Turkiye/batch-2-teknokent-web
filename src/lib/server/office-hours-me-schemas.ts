@@ -39,6 +39,18 @@ export const officeHoursAvailabilitySchema = z.object({
       }),
     )
     .max(30),
+  // One-off hours (FR-OH-19); left out of a save, the saved ones stay.
+  oneOffs: z
+    .array(
+      z.object({
+        id: z.uuid().optional(),
+        startsAt: isoTimeSchema,
+        endsAt: isoTimeSchema,
+        place: optionalText(200),
+      }),
+    )
+    .max(50)
+    .optional(),
   menteeCapacity: z.number().int().min(1).max(50).nullable(),
   defaultMeetingDurationMinutes: z.number().int().min(15).max(480),
   meetingBufferMinutes: z.number().int().min(0).max(240),
@@ -69,6 +81,11 @@ export const officeHoursRequestSchema = z.object({
   title: z.string().trim().min(1).max(200),
   description: z.string().max(2000).nullable().default(null),
 });
+
+/** Office-hours ids in a path are UUIDs; anything else is refused before the backend is called. */
+export function isOfficeHoursId(id: string) {
+  return z.uuid().safeParse(id).success;
+}
 
 export const officeHoursAlternativeSchema = z.object({
   accept: z.boolean(),

@@ -27,6 +27,15 @@ type AvailabilityPayload = Omit<
     BackendOfficeHoursAvailability["exceptions"][number],
     "id"
   >[];
+  /** Left out, the saved one-off hours stay. */
+  oneOffs?:
+    | {
+        id?: string | undefined;
+        startsAt: string;
+        endsAt: string;
+        place: string | null;
+      }[]
+    | undefined;
 };
 
 export function fetchMyOfficeHoursAvailability(actorId: string) {

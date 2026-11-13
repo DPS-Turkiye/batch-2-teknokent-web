@@ -4,6 +4,8 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import { isOfficeHoursId } from "@/lib/server/office-hours-me-schemas";
+import { invalidRequest } from "@/lib/server/request-body";
 import { SessionRequiredError } from "@/lib/server/session-error";
 import { getSessionUser } from "@/lib/session";
 
@@ -15,6 +17,9 @@ export async function GET(
     const session = await getSessionUser();
     if (!session) throw new SessionRequiredError();
     const { id } = await params;
+    if (!isOfficeHoursId(id)) {
+      return await invalidRequest("invalidRequestFields", ["id"]);
+    }
     return backendResponse(await fetchListedAcademician(session.userId, id));
   } catch (error) {
     return apiErrorResponse(error, {

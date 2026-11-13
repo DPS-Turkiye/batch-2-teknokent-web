@@ -22,9 +22,13 @@ export enum OfficeHoursStudentAction {
   Reply = "REPLY",
 }
 
-/** The student behind a request, as only the academician it was sent to sees them. */
+/**
+ * The student behind a request, as only the academician it was sent to sees them: `id` is always their
+ * office-hours id; `accountId` their Menton account, or null for a student who came in only through Moodle.
+ */
 export type OfficeHoursRequestStudent = {
-  userId: string;
+  id: string;
+  accountId: string | null;
   fullName: string;
   department: string | null;
   classYear: number | null;
@@ -34,6 +38,14 @@ export type OfficeHoursInboxMessage = {
   author: OfficeHoursRole;
   body: string;
   sentAt: string;
+};
+
+/** Who called a meeting off, why, when, and whether it was close to its start (FR-OH-14). */
+export type OfficeHoursCancellation = {
+  cancelledById: string;
+  reason: string | null;
+  cancelledAt: string;
+  late: boolean;
 };
 
 /** A request in the academician's inbox, from Menton (`courseName` null) or from a Moodle course. */
@@ -51,6 +63,8 @@ export type OfficeHoursInboxRequest = {
   rejectionReason: string | null;
   requestedAt: string;
   allowedActions: OfficeHoursRequestAction[];
+  /** Set on a cancelled request, once the backend sends cancellations (Göksu's cancel work). */
+  cancellation?: OfficeHoursCancellation | null | undefined;
 };
 
 /** The academician's answer; `message` is the reason, the note with the offered times, or the question. */
@@ -81,7 +95,10 @@ export type OfficeHoursProfile = {
   contactEmail: string | null;
 };
 
-/** A listed academician as a student browses them; `accountId` tells the student's advisor apart. */
+/**
+ * A listed academician as a student browses them; `accountId` tells the student's advisor apart. Where to meet and
+ * the online link come only on the student's own request, once it is a meeting.
+ */
 export type OfficeHoursListedAcademician = {
   id: string;
   accountId: string;
@@ -89,8 +106,6 @@ export type OfficeHoursListedAcademician = {
   academicTitle: string | null;
   department: string | null;
   faculty: string | null;
-  place: string | null;
-  onlineLink: string | null;
   contactEmail: string | null;
   meetingMinutes: number;
 };
@@ -123,6 +138,8 @@ export type OfficeHoursStudentRequest = {
   onlineLink: string | null;
   requestedAt: string;
   allowedActions: OfficeHoursStudentAction[];
+  /** Set on a cancelled request, once the backend sends cancellations (Göksu's cancel work). */
+  cancellation?: OfficeHoursCancellation | null | undefined;
 };
 
 /** Take one of the academician's offered times (`accept` with `time`), or withdraw the request. */
