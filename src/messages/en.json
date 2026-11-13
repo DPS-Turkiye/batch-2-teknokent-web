@@ -4114,6 +4114,7 @@
     "launched": "{name} was launched.",
     "launchFailed": "The program could not be launched.",
     "launchNeedsCoordinator": "Assign a coordinator before launching.",
+    "waitingSuffix": "· +{count} waiting",
     "participantTabs": {
       "TEAMS": "Teams",
       "MENTOR_POOL": "Mentor pool",
