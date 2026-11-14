@@ -51,10 +51,11 @@ export function useReportWeek() {
     today,
     weekLabel: reportWeekLabel(search.week, locale),
     week,
+    // In the weekly view no single day is chosen.
     cards: reportDayCards(
       search.week,
       week.data?.days ?? [],
-      search.day,
+      search.view === PeerReportView.Daily ? search.day : "",
       today,
     ),
     dailySent: week.data?.dailySent ?? 0,

@@ -29,11 +29,15 @@ import {
   dailyReportInput,
   dailyReportReady,
   emptyActivityForm,
+  meetingRowBadge,
 } from "@/lib/peer-daily-report";
 import { toggled } from "@/lib/peer-meeting-report";
+import { peerReportBadge } from "@/lib/peer-reports";
 import { errorMessage } from "@/lib/utils";
 import { useToast } from "@/stores/toast-store";
 import type { ActivityForm, DailyReportForm } from "@/types/peer-daily-report";
+import { MeetingReportFooterNote } from "@/types/peer-meeting-report";
+import { PeerReportBadge } from "@/types/peer-reports";
 
 type Edits = { version: string; form: DailyReportForm };
 
@@ -137,11 +141,45 @@ export function useDailyReport(day: string) {
     ).values(),
   ];
 
+  const meetingRows = (report?.meetings ?? []).map((meeting) => {
+    const badge = meetingRowBadge(meeting);
+    return { meeting, badge, sent: badge === PeerReportBadge.Completed };
+  });
+  const footerNote = report?.submittedAt
+    ? MeetingReportFooterNote.Sent
+    : report?.updatedAt
+      ? MeetingReportFooterNote.LastSaved
+      : MeetingReportFooterNote.NotSaved;
+
   return {
     query,
     report,
     form,
     editable,
+    /** The day's pill; "Eksik Bilgi" only while the day can still change. */
+    dayBadge: report
+      ? peerReportBadge(
+          report.status,
+          editable ? report.missingMeetingReports : 0,
+        )
+      : null,
+    meetingRows,
+    showRevisionNote: editable && (report?.revisionNote ?? null) !== null,
+    /** Past 23:59 and still not sent: it can be sent, marked late. */
+    lateToSend:
+      report !== undefined && report.late && report.submittedAt === null,
+    footerNote,
+    footerAt:
+      footerNote === MeetingReportFooterNote.Sent
+        ? (report?.submittedAt ?? null)
+        : (report?.updatedAt ?? null),
+    sentLate:
+      report !== undefined && report.late && report.submittedAt !== null,
+    evaluationDone: form
+      ? answeredDailyParts(form) === DAILY_EVALUATION_PARTS
+      : false,
+    anyWork:
+      (report?.meetings.length ?? 0) + (report?.activities.length ?? 0) > 0,
     busy: save.isPending || submit.isPending,
     answered: form ? answeredDailyParts(form) : 0,
     evaluationParts: DAILY_EVALUATION_PARTS,
