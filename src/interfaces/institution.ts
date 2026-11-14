@@ -1,3 +1,4 @@
+import type { PeerTopicCategory } from "@/interfaces/peer-mentoring";
 import type { IdentityKind } from "@/interfaces/session";
 
 export enum StudyLevel {
@@ -32,4 +33,16 @@ export type InstitutionPersonSummary = {
   departmentName: string | null;
   classYear: number | null;
   programLevel: StudyLevel | null;
+};
+
+/**
+ * An advisee's interests and goal as their academic advisor sees them: the topics the student's own Profilim shows
+ * and their goal ("" until they write one). Only the advisor on ODTÜ's record can read it.
+ */
+export type AdviseeProfile = {
+  interests: {
+    topics: PeerTopicCategory[];
+    subtopics: string[];
+  };
+  goal: string;
 };
