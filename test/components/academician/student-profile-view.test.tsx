@@ -4,12 +4,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { StudentProfileView } from "@/components/academician/student-profile-view";
 import { StudyLevel } from "@/interfaces/institution";
+import { PeerTopicCategory } from "@/interfaces/peer-mentoring";
 import { resetAcademicianSample } from "@/lib/client/fixtures/academician-office-hours-store";
-import { fetchInstitutionAdvisees } from "@/lib/client/institution";
+import {
+  fetchAdviseeProfile,
+  fetchInstitutionAdvisees,
+} from "@/lib/client/institution";
 import { StudentProfileOrigin } from "@/types/academician-office-hours";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/institution", () => ({
+  fetchAdviseeProfile: vi.fn(),
   fetchInstitutionAdvisees: vi.fn(),
   fetchInstitutionRecord: vi.fn(),
 }));
@@ -37,6 +42,15 @@ beforeEach(() => {
         programLevel: StudyLevel.Bachelor,
       },
     ]);
+  vi.mocked(fetchAdviseeProfile)
+    .mockReset()
+    .mockResolvedValue({
+      interests: {
+        topics: [PeerTopicCategory.CareerInternship],
+        subtopics: ["fixture-cv"],
+      },
+      goal: "Yaz stajı bulmak",
+    });
 });
 
 afterEach(() => {
@@ -62,8 +76,14 @@ describe("StudentProfileView", () => {
     expect(screen.getByText("Akademik danışman").nextSibling).toHaveTextContent(
       "Sen",
     );
-    // Interests, goal and e-mail wait for an endpoint that only an advisor may read.
-    expect(screen.queryByText(/İlgi alanları/)).toBeNull();
+    // Only their advisor reads the interests and goal; the e-mail stays out until a screen needs it.
+    const interests = await screen.findByRole("region", {
+      name: "İlgi alanları ve hedefi",
+    });
+    expect(await within(interests).findByText("Kariyer ve Staj")).toBeVisible();
+    expect(within(interests).getByText("Örnek: CV hazırlama")).toBeVisible();
+    expect(within(interests).getByText("Yaz stajı bulmak")).toBeVisible();
+    expect(fetchAdviseeProfile).toHaveBeenCalledWith("sample-student-deniz");
     expect(screen.queryByText(/E-posta/)).toBeNull();
 
     const pending = screen.getByRole("region", {
@@ -112,6 +132,45 @@ describe("StudentProfileView", () => {
     expect(screen.queryByText("Danışanın")).toBeNull();
     expect(screen.queryByText("Akademik danışman")).toBeNull();
     expect(screen.getByText("Tamamlandı")).toBeVisible();
+    expect(screen.queryByText("İlgi alanları ve hedefi")).toBeNull();
+    expect(fetchAdviseeProfile).not.toHaveBeenCalled();
+  });
+
+  it("says when an advisee hasn't filled in their interests and goal", async () => {
+    vi.mocked(fetchAdviseeProfile).mockResolvedValue({
+      interests: { topics: [], subtopics: [] },
+      goal: "",
+    });
+    renderWithQueryClient(
+      <StudentProfileView
+        userId="sample-student-deniz"
+        from={StudentProfileOrigin.Advisees}
+      />,
+    );
+
+    expect(
+      await screen.findByText(
+        "Öğrenci henüz ilgi alanlarını ve hedefini doldurmadı.",
+      ),
+    ).toBeVisible();
+  });
+
+  it("shows no interests card when the backend says they aren't the academician's advisee", async () => {
+    vi.mocked(fetchAdviseeProfile).mockResolvedValue(null);
+    renderWithQueryClient(
+      <StudentProfileView
+        userId="sample-student-deniz"
+        from={StudentProfileOrigin.Advisees}
+      />,
+    );
+
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "Deniz Kaya" }),
+    ).toBeVisible();
+    expect(fetchAdviseeProfile).toHaveBeenCalled();
+    await vi.waitFor(() =>
+      expect(screen.queryByText("İlgi alanları ve hedefi")).toBeNull(),
+    );
   });
 
   it("says so for a student the academician has nothing on", async () => {
