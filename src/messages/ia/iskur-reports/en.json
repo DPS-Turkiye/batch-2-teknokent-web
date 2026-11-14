@@ -15,7 +15,7 @@
     "recordedNote": "Recorded time is for information only; it is not an approved working time."
   },
   "meeting": {
-    "back": "Daily report · {day}",
+    "back": "← Daily report · {day}",
     "title": "Meeting report",
     "intro": "Filled in after each meeting, for that mentee. Once sent, it is added to your daily report and weekly summary.",
     "sections": {
@@ -78,16 +78,16 @@
     "skillExample": "Give an example of how you used one skill",
     "outcome": "What came out of the meeting?",
     "actionsLabel": "Action steps",
-    "actionText": "Action step",
-    "actionOwner": "Who does it",
-    "actionDue": "Due date",
-    "actionDone": "Mark as done",
+    "actionText": "Action step {number}",
+    "actionOwner": "Who does step {number}",
+    "actionDue": "Due date of step {number}",
+    "actionDone": "Mark step {number} as done",
     "owners": {
       "MENTEE": "Mentee",
       "MENTOR": "Me"
     },
-    "addAction": "Add an action step",
-    "removeAction": "Remove the action step",
+    "addAction": "+ Add an action step",
+    "removeAction": "Remove action step {number}",
     "noActions": "No action steps yet.",
     "followUp": "A follow-up meeting is needed",
     "followUpHint": "Added to the calendar as a suggestion; the mentee confirms.",
@@ -120,8 +120,8 @@
     "saveFailed": "The report could not be saved.",
     "sent": "Meeting report sent.",
     "sendFailed": "The report could not be sent.",
-    "missingSections": "Required fields are missing; fill in the marked sections.",
-    "notFound": "This meeting's report could not be found."
+    "notFound": "This meeting's report could not be found.",
+    "missingSummary": "The report was not sent. Sections with required fields left empty: {sections}"
   },
   "skills": {
     "ACTIVE_LISTENING": "Active listening",

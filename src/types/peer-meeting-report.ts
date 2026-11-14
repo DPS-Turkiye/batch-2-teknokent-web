@@ -53,3 +53,10 @@ export enum SupportChoice {
   No = "no",
   Yes = "yes",
 }
+
+/** What the form's footer says about saving. */
+export enum MeetingReportFooterNote {
+  NotSaved = "notSaved",
+  LastSaved = "lastSaved",
+  Sent = "sent",
+}

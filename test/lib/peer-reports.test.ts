@@ -7,6 +7,7 @@ import {
   isPeerReportEditable,
   meetingReportHref,
   peerReportBadge,
+  reportDayOf,
   reportWeekDays,
   reportWeekStart,
   shiftReportWeek,
@@ -109,11 +110,19 @@ describe("splitMinutes", () => {
 
 describe("report links", () => {
   it("go to the day of a moment and to a meeting's report", () => {
-    expect(dailyReportHref(new Date(2026, 10, 12, 14).toISOString())).toBe(
+    expect(dailyReportHref("2026-11-12T11:00:00Z")).toBe(
       "/student/peer-mentoring?tab=report&view=daily&day=2026-11-12",
     );
     expect(meetingReportHref("meeting/1")).toBe(
       "/student/peer-mentoring/reports/meetings/meeting%2F1",
     );
+  });
+});
+
+describe("reportDayOf", () => {
+  it("counts days in Istanbul, wherever the browser is", () => {
+    // 22:30 UTC is already the next day in Istanbul (UTC+3), and still the same day in UTC-5.
+    expect(reportDayOf("2026-11-12T22:30:00Z")).toBe("2026-11-13");
+    expect(reportDayOf("2026-11-12T20:59:00Z")).toBe("2026-11-12");
   });
 });

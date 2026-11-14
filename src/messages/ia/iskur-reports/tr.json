@@ -15,7 +15,7 @@
     "recordedNote": "Kayıtlı süre bilgilendirme amaçlıdır; resmi çalışma süresi onayı değildir."
   },
   "meeting": {
-    "back": "Günlük Rapor · {day}",
+    "back": "← Günlük Rapor · {day}",
     "title": "Görüşme Raporu",
     "intro": "Her görüşmeden sonra, o menteeye özel doldurulur. Gönderdiğinde günlük raporuna ve haftalık özetine otomatik eklenir.",
     "sections": {
@@ -78,16 +78,16 @@
     "skillExample": "Bir beceriyi nasıl kullandığını örnekle",
     "outcome": "Görüşmenin çıktısı ne oldu?",
     "actionsLabel": "Eylem adımları",
-    "actionText": "Eylem adımı",
-    "actionOwner": "Kim yapacak",
-    "actionDue": "Son tarih",
-    "actionDone": "Tamamlandı olarak işaretle",
+    "actionText": "{number}. eylem adımı",
+    "actionOwner": "{number}. adımı kim yapacak",
+    "actionDue": "{number}. adımın son tarihi",
+    "actionDone": "{number}. adımı tamamlandı olarak işaretle",
     "owners": {
       "MENTEE": "Mentee",
       "MENTOR": "Ben"
     },
-    "addAction": "Eylem adımı ekle",
-    "removeAction": "Eylem adımını kaldır",
+    "addAction": "+ Eylem adımı ekle",
+    "removeAction": "{number}. eylem adımını kaldır",
     "noActions": "Eylem adımı eklenmedi.",
     "followUp": "Takip görüşmesi gerekiyor",
     "followUpHint": "Takvime öneri olarak eklenir, mentee onaylar.",
@@ -120,8 +120,8 @@
     "saveFailed": "Rapor kaydedilemedi.",
     "sent": "Görüşme raporu gönderildi.",
     "sendFailed": "Rapor gönderilemedi.",
-    "missingSections": "Zorunlu alanlar eksik; işaretli bölümleri doldur.",
-    "notFound": "Bu görüşmenin raporu bulunamadı."
+    "notFound": "Bu görüşmenin raporu bulunamadı.",
+    "missingSummary": "Rapor gönderilemedi. Zorunlu alanları eksik bölümler: {sections}"
   },
   "skills": {
     "ACTIVE_LISTENING": "Aktif dinleme",

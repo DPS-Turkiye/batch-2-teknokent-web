@@ -53,7 +53,7 @@ describe("MeetingReportScreen", () => {
       "aria-checked",
       "true",
     );
-    expect(screen.getByLabelText(/Gerçekleşen süre/)).toHaveValue(30);
+    expect(screen.getByLabelText(/Gerçekleşen süre/)).toHaveValue("30");
     expect(screen.getByText("Henüz kaydedilmedi")).toBeInTheDocument();
     expect(screen.getByText("1. görüşme")).toBeInTheDocument();
   });
@@ -72,6 +72,10 @@ describe("MeetingReportScreen", () => {
     expect(
       screen.getAllByText("Bu bölümde doldurulmamış zorunlu alanlar var."),
     ).toHaveLength(5);
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Zorunlu alanları eksik bölümler: Konu ve amaç, Görüşme detayları, Kullandığın beceriler, Çıktılar ve sonraki adımlar, Değerlendirme",
+    );
+    expect(screen.getByRole("heading", { name: "Konu ve amaç" })).toHaveFocus();
     expect(savePeerMeetingReport).not.toHaveBeenCalled();
     expect(submitPeerMeetingReport).not.toHaveBeenCalled();
   });
@@ -133,17 +137,20 @@ describe("MeetingReportScreen", () => {
     await user.click(
       screen.getByRole("button", { name: "+ Eylem adımı ekle" }),
     );
-    const steps = screen.getAllByRole("textbox", { name: "Eylem adımı" });
-    await user.type(steps[0] ?? document.body, "CV'yi yeniden yaz");
+    await user.type(
+      screen.getByRole("textbox", { name: "1. eylem adımı" }),
+      "CV'yi yeniden yaz",
+    );
     await user.selectOptions(
-      screen.getAllByRole("combobox", { name: "Kim yapacak" })[0] ??
-        document.body,
+      screen.getByRole("combobox", { name: "1. adımı kim yapacak" }),
       PeerActionOwner.Mentor,
     );
     await user.click(
-      screen.getAllByRole("button", { name: "Eylem adımını kaldır" })[1] ??
-        document.body,
+      screen.getByRole("button", { name: "2. eylem adımını kaldır" }),
     );
+    expect(
+      screen.queryByRole("textbox", { name: "2. eylem adımı" }),
+    ).not.toBeInTheDocument();
     await user.click(
       screen.getByRole("button", { name: "Taslak Olarak Kaydet" }),
     );
@@ -204,9 +211,7 @@ describe("MeetingReportScreen", () => {
     );
     expect(savePeerMeetingReport).toHaveBeenCalledTimes(1);
     expect(push).toHaveBeenCalledWith(
-      expect.stringMatching(
-        /^\/student\/peer-mentoring\?tab=report&view=daily&day=2026-11-1\d$/,
-      ),
+      "/student/peer-mentoring?tab=report&view=daily&day=2026-11-12",
     );
   });
 
@@ -235,7 +240,9 @@ describe("MeetingReportScreen", () => {
       "readonly",
     );
     await user.click(
-      screen.getByRole("checkbox", { name: "Tamamlandı olarak işaretle" }),
+      screen.getByRole("checkbox", {
+        name: "1. adımı tamamlandı olarak işaretle",
+      }),
     );
     await waitFor(() =>
       expect(setPeerReportActionDone).toHaveBeenCalledWith(
@@ -281,6 +288,105 @@ describe("MeetingReportScreen", () => {
       "/student/peer-mentoring/reports/meetings/meeting-0",
     );
     expect(screen.getByText("1 adım (önceki görüşmeden)")).toBeInTheDocument();
+  });
+
+  it("moves through a choice with the arrow keys, one tab stop per group", async () => {
+    vi.mocked(getPeerMeetingReport).mockResolvedValue(
+      peerMeetingReportFixture(),
+    );
+    const user = userEvent.setup();
+    renderScreen();
+
+    const first = await screen.findByRole("radio", { name: "İlk görüşme" });
+    const followUp = screen.getByRole("radio", { name: "Takip görüşmesi" });
+    expect(first).toHaveAttribute("tabindex", "0");
+    expect(followUp).toHaveAttribute("tabindex", "-1");
+    first.focus();
+    await user.keyboard("{ArrowRight}");
+
+    expect(followUp).toHaveFocus();
+    expect(followUp).toHaveAttribute("aria-checked", "true");
+    await user.keyboard("{Home}");
+    expect(first).toHaveAttribute("aria-checked", "true");
+  });
+
+  it("keeps a sent report's choices focusable but unchanged", async () => {
+    vi.mocked(getPeerMeetingReport).mockResolvedValue(
+      completePeerMeetingReportFixture({
+        status: PeerReportStatus.InReview,
+        editable: false,
+        submittedAt: "2026-11-12T12:00:00Z",
+      }),
+    );
+    const user = userEvent.setup();
+    renderScreen();
+
+    const four = await screen.findByRole("radio", { name: "4" });
+    expect(four).not.toBeDisabled();
+    await user.click(screen.getByRole("radio", { name: "5" }));
+    expect(four).toHaveAttribute("aria-checked", "true");
+    await user.click(screen.getByRole("checkbox", { name: "Diğer" }));
+    expect(screen.getByRole("checkbox", { name: "Diğer" })).not.toBeChecked();
+  });
+
+  it("keeps the saved copy when sending fails after the save", async () => {
+    vi.mocked(getPeerMeetingReport).mockResolvedValue(
+      completePeerMeetingReportFixture({ updatedAt: null }),
+    );
+    vi.mocked(savePeerMeetingReport).mockResolvedValue(
+      completePeerMeetingReportFixture(),
+    );
+    vi.mocked(submitPeerMeetingReport).mockRejectedValue(
+      new Error("Rapor gönderilemedi."),
+    );
+    const user = userEvent.setup();
+    renderScreen();
+
+    expect(await screen.findByText("Henüz kaydedilmedi")).toBeInTheDocument();
+    await user.click(
+      screen.getByRole("button", { name: "Görüşme Raporunu Gönder" }),
+    );
+
+    expect(await screen.findByText(/Son kaydetme/)).toBeInTheDocument();
+    expect(await screen.findByText("Rapor gönderilemedi.")).toBeInTheDocument();
+    expect(push).not.toHaveBeenCalled();
+  });
+
+  it("keeps what was typed while a save was on its way", async () => {
+    vi.mocked(getPeerMeetingReport).mockResolvedValue(
+      peerMeetingReportFixture(),
+    );
+    let finish: (
+      report: ReturnType<typeof peerMeetingReportFixture>,
+    ) => void = () => undefined;
+    vi.mocked(savePeerMeetingReport).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          finish = resolve;
+        }),
+    );
+    const user = userEvent.setup();
+    renderScreen();
+
+    const discussion = await screen.findByLabelText(
+      /Görüşmede neler konuştunuz/,
+    );
+    await user.type(discussion, "İlk");
+    await user.click(
+      screen.getByRole("button", { name: "Taslak Olarak Kaydet" }),
+    );
+    await user.type(discussion, " ve sonra");
+    finish(
+      peerMeetingReportFixture({
+        id: "report-1",
+        status: PeerReportStatus.Draft,
+        discussion: "İlk",
+        updatedAt: "2026-11-12T11:52:00Z",
+      }),
+    );
+
+    expect(await screen.findByText(/Son kaydetme/)).toBeInTheDocument();
+    expect(discussion).toHaveValue("İlk ve sonra");
   });
 
   it("tells the mentor when the report cannot be loaded", async () => {

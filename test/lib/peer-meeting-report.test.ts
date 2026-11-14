@@ -13,6 +13,9 @@ import {
   meetingSlotLabel,
   missingMeetingReportSections,
   newActionRow,
+  parseDuration,
+  productivityChoice,
+  productivityValue,
   supportChoice,
   supportValue,
   toggled,
@@ -157,5 +160,58 @@ describe("small helpers", () => {
     const at = new Date(2026, 10, 12, 14, 0).toISOString();
     expect(meetingDayLabel(at, "tr")).toBe("12 Kasım 2026, Perşembe");
     expect(meetingSlotLabel(at, 30, "tr")).toBe("14:00 – 14:30");
+  });
+});
+
+describe("parseDuration", () => {
+  it.each([
+    ["35", 35],
+    [" 600 ", 600],
+    ["1", 1],
+  ])("reads %j as %d minutes", (text, minutes) => {
+    expect(parseDuration(text)).toBe(minutes);
+  });
+
+  it.each(["", "0", "-1", "601", "35abc", "35.9", "1e2", "abc", "1000"])(
+    "refuses %j instead of guessing",
+    (text) => {
+      expect(parseDuration(text)).toBeNull();
+    },
+  );
+});
+
+describe("productivity choice", () => {
+  it("maps the scale both ways and refuses anything off it", () => {
+    expect(productivityChoice(4)).toBe("4");
+    expect(productivityChoice(null)).toBeNull();
+    expect(productivityValue("5")).toBe(5);
+    expect(productivityValue("6")).toBeNull();
+  });
+});
+
+describe("one missing answer names its own section", () => {
+  const complete = meetingReportForm(completePeerMeetingReportFixture());
+
+  it.each([
+    [{ menteeNeed: "   " }, MeetingReportSection.Topic],
+    [{ approach: "" }, MeetingReportSection.Details],
+    [{ skillExample: "" }, MeetingReportSection.Skills],
+    [{ productivity: null }, MeetingReportSection.Evaluation],
+    [{ coordinatorSupportNeeded: null }, MeetingReportSection.Evaluation],
+    [{ actualDurationMinutes: "35abc" }, MeetingReportSection.Meeting],
+  ])("%j", (patch, section) => {
+    expect(missingMeetingReportSections({ ...complete, ...patch })).toEqual([
+      section,
+    ]);
+  });
+
+  it("accepts a follow-up with its time", () => {
+    expect(
+      missingMeetingReportSections({
+        ...complete,
+        followUpNeeded: true,
+        followUpAt: "2026-11-19T14:00",
+      }),
+    ).toEqual([]);
   });
 });

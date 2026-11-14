@@ -14,6 +14,7 @@ import {
 import {
   ChipToggleGroup,
   ChoiceGroup,
+  ChoiceLook,
   FieldLabel,
   TextAreaField,
 } from "@/components/student/reports/report-fields";
@@ -27,17 +28,13 @@ import {
   PeerMeetingType,
   type PeerMeetingReport,
 } from "@/interfaces/peer-reports";
-import { isEnumValue } from "@/lib/enum";
 import {
   MEETING_REPORT_ACTION_TEXT_MAX,
-  MEETING_REPORT_DURATION_MAX,
   MEETING_REPORT_TEXT_MAX,
   meetingDayLabel,
   meetingReportShownStatus,
   meetingSlotLabel,
-  PRODUCTIVITY_SCALE,
-  supportChoice,
-  supportValue,
+  PRODUCTIVITY_CHOICES,
 } from "@/lib/peer-meeting-report";
 import {
   dailyReportHref,
@@ -47,9 +44,16 @@ import {
 import { formatDateTime, initials } from "@/lib/utils";
 import {
   MEETING_REPORT_SECTIONS,
+  MeetingReportFooterNote,
   MeetingReportSection,
   SupportChoice,
 } from "@/types/peer-meeting-report";
+
+type View = ReturnType<typeof useMeetingReportForm>;
+
+function sectionHeadingId(section: MeetingReportSection) {
+  return `meeting-section-${section}`;
+}
 
 /** "Görüşme Raporu" (Figma 220:2 / flow 3.2.2): one meeting's report, editable until sent, read-only after. */
 export function MeetingReportScreen({ meetingId }: { meetingId: string }) {
@@ -64,8 +68,12 @@ export function MeetingReportScreen({ meetingId }: { meetingId: string }) {
     );
   }
   const readOnly = !view.editable;
-  const flagged = (section: MeetingReportSection) =>
-    view.showMissing && view.missing.includes(section);
+
+  function send() {
+    const first = view.send();
+    if (first !== null)
+      document.getElementById(sectionHeadingId(first))?.focus();
+  }
 
   return (
     <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-6 px-4 py-8 md:px-10">
@@ -74,16 +82,28 @@ export function MeetingReportScreen({ meetingId }: { meetingId: string }) {
           href={dailyReportHref(report.scheduledAt)}
           className="w-fit type-label text-text-accent"
         >
-          ← {t("back", { day: meetingDayLabel(report.scheduledAt, locale) })}
+          {t("back", { day: meetingDayLabel(report.scheduledAt, locale) })}
         </Link>
         <div className="flex flex-wrap items-center gap-3">
           <h1 className="type-h1 text-text-primary">{t("title")}</h1>
           <ReportPill report={report} />
         </div>
         <p className="type-body text-text-secondary">{t("intro")}</p>
-        {report.revisionNote && view.editable ? (
+        {view.showRevisionNote ? (
           <p className="rounded-card bg-status-error-bg p-4 type-body text-status-error-text">
-            {t("revisionNote", { note: report.revisionNote })}
+            {t("revisionNote", { note: report.revisionNote ?? "" })}
+          </p>
+        ) : null}
+        {view.showMissing && view.missing.length > 0 ? (
+          <p
+            role="alert"
+            className="rounded-card bg-status-error-bg p-4 type-body text-status-error-text"
+          >
+            {t("missingSummary", {
+              sections: view.missing
+                .map((section) => t(`sections.${section}.title`))
+                .join(", "),
+            })}
           </p>
         ) : null}
       </header>
@@ -91,9 +111,9 @@ export function MeetingReportScreen({ meetingId }: { meetingId: string }) {
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="flex flex-col gap-6">
           <ReportSection
+            view={view}
             section={MeetingReportSection.Meeting}
             number={1}
-            flagged={flagged}
           >
             <div className="grid gap-3 md:grid-cols-3">
               <InfoTile label={t("mentee")} value={report.mentee.fullName} />
@@ -112,33 +132,39 @@ export function MeetingReportScreen({ meetingId }: { meetingId: string }) {
             </div>
             <div className="flex flex-wrap gap-6">
               <div className="flex flex-col gap-2">
-                <span className="type-label text-text-primary">
+                <span
+                  id="meeting-type-label"
+                  className="type-label text-text-primary"
+                >
                   {t("meetingType")}
                 </span>
                 <ChoiceGroup
-                  label={t("meetingType")}
+                  labelledBy="meeting-type-label"
                   options={Object.values(PeerMeetingType).map((type) => ({
                     id: type,
                     label: t(`types.${type}`),
                   }))}
                   selected={form.meetingType}
                   onSelect={(meetingType) => view.update({ meetingType })}
-                  disabled={readOnly}
+                  readOnly={readOnly}
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <span className="type-label text-text-primary">
+                <span
+                  id="meeting-format-label"
+                  className="type-label text-text-primary"
+                >
                   {t("format")}
                 </span>
                 <ChoiceGroup
-                  label={t("format")}
+                  labelledBy="meeting-format-label"
                   options={Object.values(PeerMeetingFormat).map((format) => ({
                     id: format,
                     label: t(`formats.${format}`),
                   }))}
                   selected={form.meetingFormat}
                   onSelect={(meetingFormat) => view.update({ meetingFormat })}
-                  disabled={readOnly}
+                  readOnly={readOnly}
                 />
               </div>
               <div className="flex flex-col gap-2">
@@ -148,10 +174,9 @@ export function MeetingReportScreen({ meetingId }: { meetingId: string }) {
                 <div className="flex items-center gap-2">
                   <input
                     id="meeting-duration"
-                    type="number"
                     inputMode="numeric"
-                    min={1}
-                    max={MEETING_REPORT_DURATION_MAX}
+                    maxLength={3}
+                    aria-required="true"
                     className={`${ISKUR_FIELD_CLASS} w-28`}
                     value={form.actualDurationMinutes}
                     readOnly={readOnly}
@@ -168,9 +193,9 @@ export function MeetingReportScreen({ meetingId }: { meetingId: string }) {
           </ReportSection>
 
           <ReportSection
+            view={view}
             section={MeetingReportSection.Topic}
             number={2}
-            flagged={flagged}
           >
             <ChipToggleGroup
               legend={t("topicsLabel")}
@@ -180,7 +205,7 @@ export function MeetingReportScreen({ meetingId }: { meetingId: string }) {
               }))}
               selected={form.topics}
               onToggle={view.toggleTopic}
-              disabled={readOnly}
+              readOnly={readOnly}
             />
             <TextAreaField
               id="meeting-need"
@@ -194,9 +219,9 @@ export function MeetingReportScreen({ meetingId }: { meetingId: string }) {
           </ReportSection>
 
           <ReportSection
+            view={view}
             section={MeetingReportSection.Details}
             number={3}
-            flagged={flagged}
           >
             <TextAreaField
               id="meeting-discussion"
@@ -218,18 +243,14 @@ export function MeetingReportScreen({ meetingId }: { meetingId: string }) {
             />
           </ReportSection>
 
-          <SkillsSection view={view} readOnly={readOnly} flagged={flagged} />
-          <OutcomesSection view={view} readOnly={readOnly} flagged={flagged} />
-          <EvaluationSection
-            view={view}
-            readOnly={readOnly}
-            flagged={flagged}
-          />
+          <SkillsSection view={view} readOnly={readOnly} />
+          <OutcomesSection view={view} readOnly={readOnly} />
+          <EvaluationSection view={view} readOnly={readOnly} />
         </div>
 
         <aside className="flex flex-col gap-4">
           <MenteeCard report={report} />
-          <ProgressCard missing={view.missing} completed={view.completed} />
+          <ProgressCard view={view} />
           <Card compact featured>
             <h2 className="type-title-card text-text-accent">
               {t("tipTitle")}
@@ -241,15 +262,12 @@ export function MeetingReportScreen({ meetingId }: { meetingId: string }) {
 
       <footer className="sticky bottom-4 flex flex-wrap items-center justify-between gap-3 rounded-card border border-border-default bg-background-surface p-4 shadow-raised">
         <p className="type-caption text-text-muted">
-          {readOnly && report.submittedAt
-            ? t("sentNote", {
-                time: formatDateTime(report.submittedAt, locale),
-              })
-            : report.updatedAt
-              ? t("lastSaved", {
-                  time: formatDateTime(report.updatedAt, locale),
-                })
-              : t("notSaved")}
+          {view.footerNote === MeetingReportFooterNote.NotSaved ||
+          !view.footerAt
+            ? t("notSaved")
+            : view.footerNote === MeetingReportFooterNote.Sent
+              ? t("sentNote", { time: formatDateTime(view.footerAt, locale) })
+              : t("lastSaved", { time: formatDateTime(view.footerAt, locale) })}
         </p>
         {readOnly ? null : (
           <div className="flex flex-wrap gap-3">
@@ -260,7 +278,7 @@ export function MeetingReportScreen({ meetingId }: { meetingId: string }) {
             >
               {t("saveDraft")}
             </Button>
-            <Button onClick={view.send} disabled={view.busy}>
+            <Button onClick={send} disabled={view.busy}>
               {t("send")}
             </Button>
           </div>
@@ -270,26 +288,11 @@ export function MeetingReportScreen({ meetingId }: { meetingId: string }) {
   );
 }
 
-type View = ReturnType<typeof useMeetingReportForm>;
-type Flagged = (section: MeetingReportSection) => boolean;
-
-function SkillsSection({
-  view,
-  readOnly,
-  flagged,
-}: {
-  view: View;
-  readOnly: boolean;
-  flagged: Flagged;
-}) {
+function SkillsSection({ view, readOnly }: { view: View; readOnly: boolean }) {
   const t = useTranslations("iaIskurReports");
   if (!view.form) return null;
   return (
-    <ReportSection
-      section={MeetingReportSection.Skills}
-      number={4}
-      flagged={flagged}
-    >
+    <ReportSection view={view} section={MeetingReportSection.Skills} number={4}>
       <ChipToggleGroup
         legend={t("meeting.skillsLabel")}
         options={PEER_MENTOR_SKILLS.map((skill) => ({
@@ -298,7 +301,7 @@ function SkillsSection({
         }))}
         selected={view.form.skills}
         onToggle={view.toggleSkill}
-        disabled={readOnly}
+        readOnly={readOnly}
       />
       <TextAreaField
         id="meeting-skill-example"
@@ -316,20 +319,18 @@ function SkillsSection({
 function OutcomesSection({
   view,
   readOnly,
-  flagged,
 }: {
   view: View;
   readOnly: boolean;
-  flagged: Flagged;
 }) {
   const t = useTranslations("iaIskurReports.meeting");
   const form = view.form;
   if (!form) return null;
   return (
     <ReportSection
+      view={view}
       section={MeetingReportSection.Outcomes}
       number={5}
-      flagged={flagged}
     >
       <TextAreaField
         id="meeting-outcome"
@@ -350,80 +351,82 @@ function OutcomesSection({
               {t("noActions")}
             </li>
           ) : null}
-          {form.actions.map((action) => (
-            <li
-              key={action.key}
-              className="flex flex-wrap items-center gap-3 p-3"
-            >
-              <input
-                type="checkbox"
-                aria-label={t("actionDone")}
-                className="size-4"
-                checked={action.done}
-                disabled={!view.canTickAction(action)}
-                onChange={(event) =>
-                  view.toggleActionDone(action, event.target.checked)
-                }
-              />
-              <input
-                aria-label={t("actionText")}
-                className={`${ISKUR_FIELD_CLASS} min-w-48 flex-1 py-2`}
-                value={action.text}
-                maxLength={MEETING_REPORT_ACTION_TEXT_MAX}
-                readOnly={readOnly}
-                onChange={(event) =>
-                  view.updateAction(action.key, { text: event.target.value })
-                }
-              />
-              <select
-                aria-label={t("actionOwner")}
-                className={`${ISKUR_FIELD_CLASS} w-32 py-2`}
-                value={action.owner}
-                disabled={readOnly}
-                onChange={(event) => {
-                  const owner = event.target.value;
-                  if (isEnumValue(PeerActionOwner, owner)) {
-                    view.updateAction(action.key, { owner });
-                  }
-                }}
+          {form.actions.map((action, index) => {
+            const number = index + 1;
+            return (
+              <li
+                key={action.key}
+                className="flex flex-wrap items-center gap-3 p-3"
               >
-                {Object.values(PeerActionOwner).map((owner) => (
-                  <option key={owner} value={owner}>
-                    {t(`owners.${owner}`)}
-                  </option>
-                ))}
-              </select>
-              <input
-                type="date"
-                aria-label={t("actionDue")}
-                className={`${ISKUR_FIELD_CLASS} w-40 py-2`}
-                value={action.dueDate}
-                readOnly={readOnly}
-                onChange={(event) =>
-                  view.updateAction(action.key, { dueDate: event.target.value })
-                }
-              />
-              {readOnly ? null : (
-                <Button
-                  variant={ButtonVariant.Tertiary}
-                  onClick={() => view.removeAction(action.key)}
-                  aria-label={t("removeAction")}
+                <input
+                  type="checkbox"
+                  aria-label={t("actionDone", { number })}
+                  className="size-4"
+                  checked={action.done}
+                  disabled={!view.canTickAction(action)}
+                  onChange={(event) =>
+                    view.toggleActionDone(action, event.target.checked)
+                  }
+                />
+                <input
+                  aria-label={t("actionText", { number })}
+                  className={`${ISKUR_FIELD_CLASS} min-w-48 flex-1 py-2`}
+                  value={action.text}
+                  maxLength={MEETING_REPORT_ACTION_TEXT_MAX}
+                  readOnly={readOnly}
+                  onChange={(event) =>
+                    view.updateAction(action.key, { text: event.target.value })
+                  }
+                />
+                <select
+                  aria-label={t("actionOwner", { number })}
+                  className={`${ISKUR_FIELD_CLASS} w-32 py-2`}
+                  value={action.owner}
+                  disabled={readOnly}
+                  onChange={(event) =>
+                    view.setActionOwner(action.key, event.target.value)
+                  }
                 >
-                  ×
-                </Button>
-              )}
-            </li>
-          ))}
+                  {Object.values(PeerActionOwner).map((owner) => (
+                    <option key={owner} value={owner}>
+                      {t(`owners.${owner}`)}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  type="date"
+                  aria-label={t("actionDue", { number })}
+                  className={`${ISKUR_FIELD_CLASS} w-40 py-2`}
+                  value={action.dueDate}
+                  readOnly={readOnly}
+                  onChange={(event) =>
+                    view.updateAction(action.key, {
+                      dueDate: event.target.value,
+                    })
+                  }
+                />
+                {readOnly ? null : (
+                  <Button
+                    variant={ButtonVariant.Tertiary}
+                    onClick={() => view.removeAction(action.key)}
+                    aria-label={t("removeAction", { number })}
+                  >
+                    <span aria-hidden="true">×</span>
+                  </Button>
+                )}
+              </li>
+            );
+          })}
         </ul>
-        {readOnly || !view.canAddAction ? null : (
+        {view.canAddAction ? (
           <Button
             variant={ButtonVariant.Tertiary}
             className="w-fit text-text-accent"
             onClick={view.addAction}
           >
-            + {t("addAction")}
+            {t("addAction")}
           </Button>
-        )}
+        ) : null}
       </fieldset>
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-card bg-background-muted p-4">
         <label className="flex items-center gap-3">
@@ -431,21 +434,21 @@ function OutcomesSection({
             type="checkbox"
             role="switch"
             className="size-5"
+            aria-describedby="meeting-follow-up-hint"
             checked={form.followUpNeeded}
             disabled={readOnly}
             onChange={(event) =>
               view.update({ followUpNeeded: event.target.checked })
             }
           />
-          <span className="flex flex-col">
-            <span className="type-label text-text-primary">
-              {t("followUp")}
-            </span>
-            <span className="type-caption text-text-muted">
-              {t("followUpHint")}
-            </span>
-          </span>
+          <span className="type-label text-text-primary">{t("followUp")}</span>
         </label>
+        <span
+          id="meeting-follow-up-hint"
+          className="type-caption text-text-muted"
+        >
+          {t("followUpHint")}
+        </span>
         {form.followUpNeeded ? (
           <input
             type="datetime-local"
@@ -466,20 +469,18 @@ function OutcomesSection({
 function EvaluationSection({
   view,
   readOnly,
-  flagged,
 }: {
   view: View;
   readOnly: boolean;
-  flagged: Flagged;
 }) {
   const t = useTranslations("iaIskurReports.meeting");
   const form = view.form;
   if (!form) return null;
   return (
     <ReportSection
+      view={view}
       section={MeetingReportSection.Evaluation}
       number={6}
-      flagged={flagged}
     >
       <div className="flex flex-col gap-2">
         <span
@@ -488,33 +489,18 @@ function EvaluationSection({
         >
           {t("productivity")}
         </span>
-        <div className="flex flex-wrap items-center gap-2">
-          <div
-            role="radiogroup"
-            aria-labelledby="meeting-productivity"
-            className="flex gap-2"
-          >
-            {PRODUCTIVITY_SCALE.map((score) => {
-              const active = form.productivity === score;
-              return (
-                <button
-                  key={score}
-                  type="button"
-                  role="radio"
-                  aria-checked={active}
-                  disabled={readOnly}
-                  onClick={() => view.update({ productivity: score })}
-                  className={`size-11 rounded-button border type-label ${
-                    active
-                      ? "border-action-primary-bg bg-action-primary-bg text-action-primary-fg"
-                      : "border-border-default bg-background-surface text-text-primary"
-                  }`}
-                >
-                  {score}
-                </button>
-              );
-            })}
-          </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <ChoiceGroup
+            labelledBy="meeting-productivity"
+            look={ChoiceLook.Scale}
+            options={PRODUCTIVITY_CHOICES.map((score) => ({
+              id: score,
+              label: score,
+            }))}
+            selected={view.productivity}
+            onSelect={view.setProductivity}
+            readOnly={readOnly}
+          />
           <span className="type-caption text-text-muted">
             {t("productivityScale")}
           </span>
@@ -530,18 +516,18 @@ function EvaluationSection({
         readOnly={readOnly}
       />
       <div className="flex flex-col gap-2">
-        <span className="type-label text-text-primary">{t("support")}</span>
+        <span id="meeting-support" className="type-label text-text-primary">
+          {t("support")}
+        </span>
         <ChoiceGroup
-          label={t("support")}
+          labelledBy="meeting-support"
           options={[
             { id: SupportChoice.No, label: t("supportNo") },
             { id: SupportChoice.Yes, label: t("supportYes") },
           ]}
-          selected={supportChoice(form.coordinatorSupportNeeded)}
-          onSelect={(choice) =>
-            view.update({ coordinatorSupportNeeded: supportValue(choice) })
-          }
-          disabled={readOnly}
+          selected={view.support}
+          onSelect={view.setSupport}
+          readOnly={readOnly}
         />
         <p className="type-caption text-text-muted">{t("supportHint")}</p>
       </div>
@@ -553,24 +539,24 @@ function EvaluationSection({
 }
 
 function ReportSection({
+  view,
   section,
   number,
-  flagged,
   children,
 }: {
+  view: View;
   section: MeetingReportSection;
   number: number;
-  flagged: Flagged;
   children: ReactNode;
 }) {
   const t = useTranslations("iaIskurReports.meeting");
-  const headingId = `meeting-section-${section}`;
-  const missing = flagged(section);
+  const headingId = sectionHeadingId(section);
+  const flagged = view.isFlagged(section);
   return (
     <section
       aria-labelledby={headingId}
       className={`flex flex-col gap-5 rounded-card border bg-background-surface p-6 ${
-        missing ? "border-status-error-border" : "border-border-default"
+        flagged ? "border-status-error-border" : "border-border-default"
       }`}
     >
       <div className="flex items-start gap-3">
@@ -581,17 +567,18 @@ function ReportSection({
           {number}
         </span>
         <div className="flex flex-col">
-          <h2 id={headingId} className="type-title-card text-text-primary">
+          <h2
+            id={headingId}
+            tabIndex={-1}
+            className="type-title-card text-text-primary focus-visible:outline-2 focus-visible:outline-border-selected"
+          >
             {t(`sections.${section}.title`)}
           </h2>
           <p className="type-caption text-text-muted">
             {t(`sections.${section}.hint`)}
           </p>
-          {missing ? (
-            <p
-              role="alert"
-              className="mt-1 type-caption text-status-error-text"
-            >
+          {flagged ? (
+            <p className="mt-1 type-caption text-status-error-text">
               {t("sectionMissing")}
             </p>
           ) : null}
@@ -618,7 +605,6 @@ function ReportPill({ report }: { report: PeerMeetingReport }) {
 
 function MenteeCard({ report }: { report: PeerMeetingReport }) {
   const t = useTranslations("iaIskurReports.meeting");
-  const tTopics = useTranslations("iaIskurReports.meeting.topics");
   const locale = useLocale();
   const previous = report.context.previousMeeting;
   return (
@@ -645,13 +631,17 @@ function MenteeCard({ report }: { report: PeerMeetingReport }) {
         </div>
         <div className="flex justify-between gap-3">
           <dt className="text-text-secondary">{t("previousMeeting")}</dt>
-          <dd className="text-right text-text-primary">
-            {previous
-              ? [
-                  formatDateTime(previous.scheduledAt, locale),
-                  ...previous.topics.map((topic) => tTopics(topic)),
-                ].join(" · ")
-              : t("noPrevious")}
+          <dd className="flex flex-col items-end text-right text-text-primary">
+            {previous ? (
+              <>
+                <span>{formatDateTime(previous.scheduledAt, locale)}</span>
+                {previous.topics.map((topic) => (
+                  <span key={topic}>{t(`topics.${topic}`)}</span>
+                ))}
+              </>
+            ) : (
+              t("noPrevious")
+            )}
           </dd>
         </div>
         <div className="flex justify-between gap-3">
@@ -673,25 +663,19 @@ function MenteeCard({ report }: { report: PeerMeetingReport }) {
   );
 }
 
-function ProgressCard({
-  missing,
-  completed,
-}: {
-  missing: readonly MeetingReportSection[];
-  completed: number;
-}) {
+function ProgressCard({ view }: { view: View }) {
   const t = useTranslations("iaIskurReports.meeting");
   return (
     <Card compact>
       <div className="flex items-center justify-between">
         <h2 className="type-title-card text-text-primary">{t("progress")}</h2>
         <span className="type-label text-status-success-text">
-          {completed} / {MEETING_REPORT_SECTIONS.length}
+          {view.completed} / {MEETING_REPORT_SECTIONS.length}
         </span>
       </div>
       <ul className="mt-3 flex flex-col gap-2">
         {MEETING_REPORT_SECTIONS.map((section) => {
-          const done = !missing.includes(section);
+          const done = view.isSectionDone(section);
           return (
             <li key={section} className="flex items-center gap-2 type-body-sm">
               <span

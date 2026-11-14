@@ -63,11 +63,10 @@ export function meetingReportForm(
 export function meetingReportInput(
   form: MeetingReportForm,
 ): SavePeerMeetingReportInput {
-  const duration = Number.parseInt(form.actualDurationMinutes, 10);
   return {
     meetingType: form.meetingType,
     meetingFormat: form.meetingFormat,
-    actualDurationMinutes: Number.isFinite(duration) ? duration : null,
+    actualDurationMinutes: parseDuration(form.actualDurationMinutes),
     topics: form.topics,
     menteeNeed: textOrNull(form.menteeNeed),
     discussion: textOrNull(form.discussion),
@@ -103,11 +102,10 @@ export function missingMeetingReportSections(
   form: MeetingReportForm,
 ): MeetingReportSection[] {
   const missing: MeetingReportSection[] = [];
-  const duration = Number.parseInt(form.actualDurationMinutes, 10);
   if (
     form.meetingType === null ||
     form.meetingFormat === null ||
-    !(duration >= 1 && duration <= MEETING_REPORT_DURATION_MAX)
+    parseDuration(form.actualDurationMinutes) === null
   ) {
     missing.push(MeetingReportSection.Meeting);
   }
@@ -131,6 +129,31 @@ export function missingMeetingReportSections(
     missing.push(MeetingReportSection.Evaluation);
   }
   return missing;
+}
+
+/**
+ * The typed duration as whole minutes the backend takes (1–600), or null. Strict on purpose: "35abc", "35.9" or
+ * "1e2" are not quietly turned into another number than the one on screen.
+ */
+export function parseDuration(text: string): number | null {
+  const trimmed = text.trim();
+  if (!/^\d{1,3}$/.test(trimmed)) return null;
+  const minutes = Number(trimmed);
+  return minutes >= 1 && minutes <= MEETING_REPORT_DURATION_MAX
+    ? minutes
+    : null;
+}
+
+/** The 1–5 scale as the choice control's ids. */
+export const PRODUCTIVITY_CHOICES = PRODUCTIVITY_SCALE.map(String);
+
+export function productivityChoice(value: number | null): string | null {
+  return value === null ? null : String(value);
+}
+
+export function productivityValue(choice: string): number | null {
+  const value = Number(choice);
+  return PRODUCTIVITY_SCALE.some((score) => score === value) ? value : null;
 }
 
 /** Adds the value if absent, removes it if present, keeping the original order. */
@@ -169,7 +192,7 @@ export function supportValue(choice: SupportChoice): boolean {
 }
 
 /** "12 Kasım 2026, Perşembe" */
-export function meetingDayLabel(at: string, locale: string) {
+export function meetingDayLabel(at: string, locale: string): string {
   const weekday = new Intl.DateTimeFormat(locale, { weekday: "long" }).format(
     new Date(at),
   );
@@ -177,7 +200,11 @@ export function meetingDayLabel(at: string, locale: string) {
 }
 
 /** "14:00 – 14:30": the planned slot. */
-export function meetingSlotLabel(at: string, minutes: number, locale: string) {
+export function meetingSlotLabel(
+  at: string,
+  minutes: number,
+  locale: string,
+): string {
   const time = new Intl.DateTimeFormat(locale, { timeStyle: "short" });
   const start = new Date(at);
   const end = new Date(start.getTime() + minutes * 60_000);
