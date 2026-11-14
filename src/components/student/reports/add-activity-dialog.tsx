@@ -21,7 +21,7 @@ import type { ActivityForm } from "@/types/peer-daily-report";
 /** "Görüşme dışı faaliyet ekle" (Figma 3.2.3b), opened from the day's activity list. */
 export function AddActivityDialog({
   form,
-  invalid,
+  errors,
   busy,
   mentees,
   onChange,
@@ -29,7 +29,12 @@ export function AddActivityDialog({
   onSubmit,
 }: {
   form: ActivityForm;
-  invalid: boolean;
+  /** The fields that stop the activity, once the mentor tried to add it; null before. */
+  errors: {
+    title: boolean;
+    activityDate: boolean;
+    durationMinutes: boolean;
+  } | null;
   busy: boolean;
   mentees: readonly { id: string; fullName: string }[];
   onChange: (patch: Partial<ActivityForm>) => void;
@@ -98,7 +103,8 @@ export function AddActivityDialog({
             value={form.title}
             maxLength={ACTIVITY_TITLE_MAX}
             aria-required="true"
-            aria-invalid={invalid ? form.title.trim() === "" : undefined}
+            aria-invalid={errors?.title ?? undefined}
+            aria-describedby={errors?.title ? "activity-error" : undefined}
             onChange={(event) => onChange({ title: event.target.value })}
           />
         </div>
@@ -112,6 +118,11 @@ export function AddActivityDialog({
               type="date"
               className={ISKUR_FIELD_CLASS}
               value={form.activityDate}
+              aria-required="true"
+              aria-invalid={errors?.activityDate ?? undefined}
+              aria-describedby={
+                errors?.activityDate ? "activity-error" : undefined
+              }
               onChange={(event) =>
                 onChange({ activityDate: event.target.value })
               }
@@ -128,6 +139,10 @@ export function AddActivityDialog({
               className={ISKUR_FIELD_CLASS}
               value={form.durationMinutes}
               aria-required="true"
+              aria-invalid={errors?.durationMinutes ?? undefined}
+              aria-describedby={
+                errors?.durationMinutes ? "activity-error" : undefined
+              }
               onChange={(event) =>
                 onChange({ durationMinutes: event.target.value })
               }
@@ -163,8 +178,13 @@ export function AddActivityDialog({
             onChange={(event) => onChange({ description: event.target.value })}
           />
         </div>
-        {invalid ? (
-          <p role="alert" className="type-body-sm text-status-error-text">
+        {errors &&
+        (errors.title || errors.activityDate || errors.durationMinutes) ? (
+          <p
+            id="activity-error"
+            role="alert"
+            className="type-body-sm text-status-error-text"
+          >
             {t("invalid")}
           </p>
         ) : null}

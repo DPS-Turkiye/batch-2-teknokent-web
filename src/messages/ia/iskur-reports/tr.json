@@ -239,7 +239,8 @@
     "previousWeek": "Önceki hafta",
     "nextWeek": "Sonraki hafta",
     "days": "Haftanın günleri",
-    "today": "Bugün"
+    "today": "Bugün",
+    "weekFailed": "Hafta yüklenemedi."
   },
   "daily": {
     "activitiesTitle": "Bugünkü faaliyetler",
@@ -291,7 +292,10 @@
     "sendFailed": "Günlük rapor gönderilemedi.",
     "activityAdded": "Faaliyet eklendi.",
     "activityDeleted": "Faaliyet silindi.",
-    "activityFailed": "Faaliyet kaydedilemedi."
+    "activityFailed": "Faaliyet kaydedilemedi.",
+    "separator": " · ",
+    "readyDone": "Tamam",
+    "readyMissing": "Eksik"
   },
   "activity": {
     "title": "Görüşme dışı faaliyet ekle",

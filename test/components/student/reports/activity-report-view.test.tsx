@@ -245,6 +245,14 @@ describe("ActivityReportView", () => {
     expect(within(dialog).getByRole("alert")).toHaveTextContent(
       "Bir başlık ve 1–720 dakika arası bir süre gir.",
     );
+    expect(within(dialog).getByLabelText(/Başlık/)).toHaveAttribute(
+      "aria-invalid",
+      "true",
+    );
+    expect(within(dialog).getByLabelText(/Tarih/)).not.toHaveAttribute(
+      "aria-invalid",
+      "true",
+    );
     expect(addPeerActivity).not.toHaveBeenCalled();
 
     await user.selectOptions(
@@ -270,6 +278,25 @@ describe("ActivityReportView", () => {
     await waitFor(() =>
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
     );
+  });
+
+  it("says when the week cannot be loaded", async () => {
+    vi.mocked(getPeerReportWeek).mockRejectedValue(new Error("down"));
+    renderWithQueryClient(<ActivityReportView />);
+
+    expect(await screen.findByText("Hafta yüklenemedi.")).toBeInTheDocument();
+  });
+
+  it("tells each ready line's state in words, not only by colour", async () => {
+    renderWithQueryClient(<ActivityReportView />);
+
+    expect(
+      (await screen.findByText("Emre Kaya · görüşme raporu eksik"))
+        .parentElement,
+    ).toHaveTextContent("Eksik");
+    expect(
+      screen.getByText("Faaliyetler eklendi").parentElement,
+    ).toHaveTextContent("Tamam");
   });
 
   it("deletes an activity of an open day", async () => {

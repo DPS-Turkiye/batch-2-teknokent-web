@@ -131,14 +131,19 @@ export function emptyActivityForm(day: string): ActivityForm {
   };
 }
 
-/** The activity to send, or null while the title or the minutes (1–720, whole) are not right. */
+/** The activity to send, or null while the title, the day or the minutes (1–720, whole) are not right. */
 export function activityInput(
   form: ActivityForm,
 ): SavePeerActivityInput | null {
   const minutesText = form.durationMinutes.trim();
   const minutes = /^\d{1,3}$/.test(minutesText) ? Number(minutesText) : 0;
   const title = form.title.trim();
-  if (title === "" || minutes < 1 || minutes > ACTIVITY_MINUTES_MAX) {
+  if (
+    title === "" ||
+    minutes < 1 ||
+    minutes > ACTIVITY_MINUTES_MAX ||
+    !isCalendarDay(form.activityDate)
+  ) {
     return null;
   }
   return {
@@ -190,7 +195,8 @@ function mondayOf(day: string) {
   return reportWeekStart(fromIsoDay(day));
 }
 
-function isCalendarDay(value: string | undefined): value is string {
+/** A real "yyyy-mm-dd" calendar day (not "2026-02-30"). */
+export function isCalendarDay(value: string | undefined): value is string {
   if (value === undefined || !ISO_DAY_PATTERN.test(value)) return false;
   const date = fromIsoDay(value);
   const [year, month, dayOfMonth] = value.split("-").map(Number);
@@ -199,4 +205,15 @@ function isCalendarDay(value: string | undefined): value is string {
     date.getMonth() + 1 === month &&
     date.getDate() === dayOfMonth
   );
+}
+
+/** Which of the activity form's fields stop it from being sent, so each can be marked. */
+export function invalidActivityFields(form: ActivityForm) {
+  const minutesText = form.durationMinutes.trim();
+  const minutes = /^\d{1,3}$/.test(minutesText) ? Number(minutesText) : 0;
+  return {
+    title: form.title.trim() === "",
+    activityDate: !isCalendarDay(form.activityDate),
+    durationMinutes: minutes < 1 || minutes > ACTIVITY_MINUTES_MAX,
+  };
 }

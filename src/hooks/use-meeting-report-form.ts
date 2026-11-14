@@ -89,8 +89,9 @@ export function useMeetingReportForm(meetingId: string) {
    */
   function stored(saved: PeerMeetingReport, sent: MeetingReportForm | null) {
     queryClient.setQueryData(key, saved);
+    // A locked report (sent) keeps nothing unsaved: what was typed during the send was not sent.
     setEdits((current) =>
-      current !== null && current.form !== sent
+      saved.editable && current !== null && current.form !== sent
         ? { version: saved.updatedAt ?? "new", form: current.form }
         : null,
     );

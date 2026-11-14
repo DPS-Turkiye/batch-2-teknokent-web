@@ -13,6 +13,7 @@ import {
   dailyReportInput,
   dailyReportReady,
   emptyActivityForm,
+  invalidActivityFields,
   meetingRowBadge,
   parseReportSearch,
   reportDayCards,
@@ -190,6 +191,30 @@ describe("Faaliyet ekle", () => {
       ).toBeNull();
     },
   );
+
+  it.each(["", "2026-02-30", "12.11.2026"])(
+    "refuses the day %j",
+    (activityDate) => {
+      expect(
+        activityInput({
+          ...emptyActivityForm("2026-11-12"),
+          activityDate,
+          title: "Rehber",
+          durationMinutes: "10",
+        }),
+      ).toBeNull();
+    },
+  );
+
+  it("names each field that stops an activity", () => {
+    expect(
+      invalidActivityFields({
+        ...emptyActivityForm(""),
+        title: "Rehber",
+        durationMinutes: "721",
+      }),
+    ).toEqual({ title: false, activityDate: true, durationMinutes: true });
+  });
 
   it("refuses a blank title", () => {
     expect(

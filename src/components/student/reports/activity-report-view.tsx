@@ -55,6 +55,11 @@ export function ActivityReportView() {
         </div>
       </div>
 
+      {report.week.error ? (
+        <p role="alert" className="type-body-sm text-status-error-text">
+          {t("weekFailed")}
+        </p>
+      ) : null}
       <ol aria-label={t("days")} className="grid gap-3 sm:grid-cols-5">
         {report.cards.map((card) => (
           <li key={card.date}>
@@ -83,7 +88,11 @@ export function ActivityReportView() {
       </ol>
 
       {report.view === PeerReportView.Daily ? (
-        <DailyReportView day={report.day} dailySent={report.dailySent} />
+        <DailyReportView
+          key={report.day}
+          day={report.day}
+          dailySent={report.dailySent}
+        />
       ) : (
         <WeeklySummaryView weekStart={report.weekStart} />
       )}

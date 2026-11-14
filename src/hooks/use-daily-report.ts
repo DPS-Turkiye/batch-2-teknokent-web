@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 
 import {
@@ -9,6 +9,7 @@ import {
   refreshOtherReportViews,
 } from "@/hooks/peer-report-queries";
 import { useReceivedPeerRequests } from "@/hooks/use-peer-mentor-give";
+import { useReportDuration } from "@/hooks/use-report-format";
 import type {
   PeerDailyReport,
   PeerMentorSkill,
@@ -24,30 +25,38 @@ import {
 } from "@/lib/client/peer-reports";
 import {
   activityInput,
+  activityTimeLabel,
   answeredDailyParts,
   DAILY_EVALUATION_PARTS,
   dailyReportForm,
   dailyReportInput,
   dailyReportReady,
   emptyActivityForm,
+  invalidActivityFields,
   meetingRowBadge,
 } from "@/lib/peer-daily-report";
 import { toggled } from "@/lib/peer-meeting-report";
-import { peerReportBadge } from "@/lib/peer-reports";
+import { meetingReportHref, peerReportBadge } from "@/lib/peer-reports";
+import {
+  formatReportDeadline,
+  formatReportTime,
+} from "@/lib/peer-weekly-report";
 import { errorMessage } from "@/lib/utils";
 import { useToast } from "@/stores/toast-store";
 import type { ActivityForm, DailyReportForm } from "@/types/peer-daily-report";
-import { MeetingReportFooterNote } from "@/types/peer-meeting-report";
 import { PeerReportBadge } from "@/types/peer-reports";
 
 type Edits = { version: string; form: DailyReportForm };
 
 /**
  * "Günlük Rapor" (Figma 221:73) for one working day: the day's meetings and activities, the five evaluation answers,
- * saving and sending (refused while a meeting report is missing), and "Faaliyet ekle" (3.2.3b).
+ * saving and sending (refused while a meeting report is missing), and "Faaliyet ekle" (3.2.3b). Mount it per day
+ * (`key={day}`): a save's answer then always belongs to the day it was made on.
  */
 export function useDailyReport(day: string) {
-  const t = useTranslations("iaIskurReports.daily");
+  const t = useTranslations("iaIskurReports");
+  const locale = useLocale();
+  const duration = useReportDuration();
   const { showToast } = useToast();
   const queryClient = useQueryClient();
   const key = peerDailyReportQueryKey(day);
@@ -59,7 +68,7 @@ export function useDailyReport(day: string) {
   const version = report ? (report.updatedAt ?? `new:${day}`) : null;
   const [edits, setEdits] = useState<Edits | null>(null);
   const [activityForm, setActivityForm] = useState<ActivityForm | null>(null);
-  const [activityInvalid, setActivityInvalid] = useState(false);
+  const [activityTried, setActivityTried] = useState(false);
   const received = useReceivedPeerRequests();
 
   const form: DailyReportForm | null = report
@@ -76,8 +85,9 @@ export function useDailyReport(day: string) {
 
   function stored(saved: PeerDailyReport, sent: DailyReportForm | null) {
     queryClient.setQueryData(key, saved);
+    // Typing during a save is kept on the new version; a locked (sent) day keeps nothing unsaved.
     setEdits((current) =>
-      current !== null && current.form !== sent
+      saved.editable && current !== null && current.form !== sent
         ? { version: saved.updatedAt ?? `new:${day}`, form: current.form }
         : null,
     );
@@ -95,9 +105,9 @@ export function useDailyReport(day: string) {
       savePeerDailyReport(day, dailyReportInput(draft)),
     onSuccess: (saved, draft) => {
       stored(saved, draft);
-      showToast({ message: t("saved"), tone: ToastTone.Success });
+      showToast({ message: t("daily.saved"), tone: ToastTone.Success });
     },
-    onError: failed(t("saveFailed")),
+    onError: failed(t("daily.saveFailed")),
   });
 
   const submit = useMutation({
@@ -107,31 +117,81 @@ export function useDailyReport(day: string) {
     },
     onSuccess: (sent) => {
       stored(sent, null);
-      showToast({ message: t("sent"), tone: ToastTone.Success });
+      showToast({ message: t("daily.sent"), tone: ToastTone.Success });
     },
-    onError: failed(t("sendFailed")),
+    onError: failed(t("daily.sendFailed")),
   });
+
+  const afterActivityChange = (message: string) => {
+    void queryClient.invalidateQueries({ queryKey: key });
+    refreshOtherReportViews(queryClient, key);
+    showToast({ message, tone: ToastTone.Success });
+  };
 
   const addActivity = useMutation({
     mutationFn: (input: SavePeerActivityInput) => addPeerActivity(input),
     onSuccess: () => {
       setActivityForm(null);
-      void queryClient.invalidateQueries({ queryKey: key });
-      refreshOtherReportViews(queryClient, key);
-      showToast({ message: t("activityAdded"), tone: ToastTone.Success });
+      afterActivityChange(t("daily.activityAdded"));
     },
-    onError: failed(t("activityFailed")),
+    onError: failed(t("daily.activityFailed")),
   });
 
   const removeActivity = useMutation({
     mutationFn: (activityId: string) => deletePeerActivity(activityId),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: key });
-      refreshOtherReportViews(queryClient, key);
-      showToast({ message: t("activityDeleted"), tone: ToastTone.Success });
-    },
-    onError: failed(t("activityFailed")),
+    onSuccess: () => afterActivityChange(t("daily.activityDeleted")),
+    onError: failed(t("daily.activityFailed")),
   });
+
+  const meetingRows = (report?.meetings ?? []).map((meeting) => {
+    const badge = meetingRowBadge(meeting);
+    const sent = badge === PeerReportBadge.Completed;
+    return {
+      id: meeting.meetingId,
+      time: activityTimeLabel(meeting.scheduledAt, locale),
+      title: t("daily.meetingTitle", { name: meeting.menteeName }),
+      meta: [
+        meeting.meetingType ? t(`meeting.types.${meeting.meetingType}`) : null,
+        meeting.meetingFormat
+          ? t(`meeting.formats.${meeting.meetingFormat}`)
+          : null,
+        duration(meeting.durationMinutes),
+      ]
+        .filter((part) => part !== null)
+        .join(t("daily.separator")),
+      badge,
+      sent,
+      statusText: sent ? t("daily.reportSent") : t("daily.reportWaiting"),
+      href: meetingReportHref(meeting.meetingId),
+      actionLabel: sent ? t("daily.openReport") : t("daily.fillReport"),
+      readyLabel: sent
+        ? t("daily.readyMeeting", { name: meeting.menteeName })
+        : t("daily.readyMeetingMissing", { name: meeting.menteeName }),
+    };
+  });
+
+  const activityRows = (report?.activities ?? []).map((activity) => ({
+    id: activity.id,
+    time: activityTimeLabel(activity.createdAt, locale),
+    title: activity.title,
+    meta: t("activity.meta", {
+      type: t(`activity.types.${activity.type}`),
+      duration: duration(activity.durationMinutes),
+    }),
+    deleteLabel: t("daily.deleteActivity", { title: activity.title }),
+  }));
+
+  const answered = form ? answeredDailyParts(form) : 0;
+  const anyWork = meetingRows.length + activityRows.length > 0;
+  const savedText = report?.submittedAt
+    ? t("daily.sentNote", {
+        time: formatReportTime(report.submittedAt, locale),
+      }) + (report.late ? `${t("daily.separator")}${t("daily.sentLate")}` : "")
+    : report?.updatedAt
+      ? t("daily.lastSaved", {
+          time: formatReportTime(report.updatedAt, locale),
+        })
+      : t("daily.notSaved");
 
   const menteeOptions = [
     ...new Map(
@@ -142,21 +202,16 @@ export function useDailyReport(day: string) {
     ).values(),
   ];
 
-  const meetingRows = (report?.meetings ?? []).map((meeting) => {
-    const badge = meetingRowBadge(meeting);
-    return { meeting, badge, sent: badge === PeerReportBadge.Completed };
-  });
-  const footerNote = report?.submittedAt
-    ? MeetingReportFooterNote.Sent
-    : report?.updatedAt
-      ? MeetingReportFooterNote.LastSaved
-      : MeetingReportFooterNote.NotSaved;
-
   return {
     query,
     report,
     form,
     editable,
+    readOnly: !editable,
+    busy: save.isPending || submit.isPending,
+    ready: report && form ? dailyReportReady(report, form) : false,
+    /** "Eksik görüşme raporu varsa gönderim engellenir." */
+    blockedByMeetings: (report?.missingMeetingReports ?? 0) > 0,
     /** The day's pill; "Eksik Bilgi" only while the day can still change. */
     dayBadge: report
       ? peerReportBadge(
@@ -164,31 +219,38 @@ export function useDailyReport(day: string) {
           editable ? report.missingMeetingReports : 0,
         )
       : null,
-    meetingRows,
     showRevisionNote: editable && (report?.revisionNote ?? null) !== null,
-    /** Past 23:59 and still not sent: it can be sent, marked late. */
-    lateToSend:
-      report !== undefined && report.late && report.submittedAt === null,
-    footerNote,
-    footerAt:
-      footerNote === MeetingReportFooterNote.Sent
-        ? (report?.submittedAt ?? null)
-        : (report?.updatedAt ?? null),
-    sentLate:
-      report !== undefined && report.late && report.submittedAt !== null,
-    evaluationDone: form
-      ? answeredDailyParts(form) === DAILY_EVALUATION_PARTS
-      : false,
-    anyWork:
-      (report?.meetings.length ?? 0) + (report?.activities.length ?? 0) > 0,
-    busy: save.isPending || submit.isPending,
-    answered: form ? answeredDailyParts(form) : 0,
-    evaluationParts: DAILY_EVALUATION_PARTS,
-    ready: report && form ? dailyReportReady(report, form) : false,
-    /** "Eksik görüşme raporu varsa gönderim engellenir." */
-    blockedByMeetings: (report?.missingMeetingReports ?? 0) > 0,
-    meetingCount: report?.meetings.length ?? 0,
-    activityCount: report?.activities.length ?? 0,
+    revisionNote: report?.revisionNote ?? "",
+    meetingRows,
+    activityRows,
+    anyWork,
+    meetingCount: meetingRows.length,
+    activityCount: activityRows.length,
+    recorded: duration(report?.recordedMinutes ?? 0),
+    readyLines: [
+      { id: "activities", done: anyWork, label: t("daily.readyActivities") },
+      ...meetingRows.map((row) => ({
+        id: row.id,
+        done: row.sent,
+        label: row.readyLabel,
+      })),
+      {
+        id: "evaluation",
+        done: answered === DAILY_EVALUATION_PARTS,
+        label: t("daily.readyEvaluation", {
+          count: answered,
+          total: DAILY_EVALUATION_PARTS,
+        }),
+      },
+    ],
+    /** Past 23:59 and not sent: it can still go, marked late. */
+    deadlineText:
+      report && report.late && report.submittedAt === null
+        ? t("daily.late")
+        : t("daily.deadline", {
+            time: report ? formatReportDeadline(report.deadline, locale) : "",
+          }),
+    savedText,
     update,
     toggleSkill: (skill: PeerMentorSkill) =>
       form && update({ skills: toggled(form.skills, skill) }),
@@ -207,25 +269,34 @@ export function useDailyReport(day: string) {
     },
 
     activityForm,
-    activityInvalid,
+    /** The activity form's fields that stop it, once the mentor tried to add it. */
+    activityErrors:
+      activityTried && activityForm
+        ? invalidActivityFields(activityForm)
+        : null,
     menteeOptions,
     activityBusy: addActivity.isPending,
+    deletingActivityId: removeActivity.isPending
+      ? removeActivity.variables
+      : null,
     openActivity: () => {
-      setActivityInvalid(false);
+      setActivityTried(false);
       setActivityForm(emptyActivityForm(day));
     },
     closeActivity: () => setActivityForm(null),
     updateActivity: (patch: Partial<ActivityForm>) =>
       setActivityForm((current) => (current ? { ...current, ...patch } : null)),
     submitActivity: () => {
-      if (!activityForm) return;
+      if (!activityForm || addActivity.isPending) return;
       const input = activityInput(activityForm);
       if (input === null) {
-        setActivityInvalid(true);
+        setActivityTried(true);
         return;
       }
       addActivity.mutate(input);
     },
-    deleteActivity: (activityId: string) => removeActivity.mutate(activityId),
+    deleteActivity: (activityId: string) => {
+      if (!removeActivity.isPending) removeActivity.mutate(activityId);
+    },
   };
 }

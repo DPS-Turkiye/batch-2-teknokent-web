@@ -239,7 +239,8 @@
     "previousWeek": "Previous week",
     "nextWeek": "Next week",
     "days": "Days of the week",
-    "today": "Today"
+    "today": "Today",
+    "weekFailed": "The week could not be loaded."
   },
   "daily": {
     "activitiesTitle": "Today's activities",
@@ -291,7 +292,10 @@
     "sendFailed": "The daily report could not be sent.",
     "activityAdded": "Activity added.",
     "activityDeleted": "Activity deleted.",
-    "activityFailed": "The activity could not be saved."
+    "activityFailed": "The activity could not be saved.",
+    "separator": " · ",
+    "readyDone": "Done",
+    "readyMissing": "Missing"
   },
   "activity": {
     "title": "Add an activity outside meetings",
