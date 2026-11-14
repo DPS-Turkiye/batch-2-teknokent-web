@@ -7,18 +7,22 @@ import {
   type SavePeerActivityInput,
   type SavePeerDailyReportInput,
 } from "@/interfaces/peer-reports";
+import { isEnumValue } from "@/lib/enum";
 import {
   fromIsoDay,
   REPORT_TIME_ZONE,
   reportWeekDays,
+  reportWeekStart,
 } from "@/lib/peer-reports";
 import { weeklyDayCards } from "@/lib/peer-weekly-report";
+import { ISO_DAY_PATTERN } from "@/lib/utils";
 import type {
   ActivityForm,
   DailyReportForm,
   ReportDayCard,
+  ReportSearch,
 } from "@/types/peer-daily-report";
-import { PeerReportBadge } from "@/types/peer-reports";
+import { PeerReportBadge, PeerReportView } from "@/types/peer-reports";
 
 export const DAILY_TEXT_MAX = 4000;
 export const ACTIVITY_TITLE_MAX = 200;
@@ -157,4 +161,42 @@ export function activityTimeLabel(createdAt: string, locale: string): string {
 
 function textOrNull(value: string) {
   return value.trim() === "" ? null : value.trim();
+}
+
+/**
+ * The view, week and day from the URL, each checked, with today's week and day standing in for anything missing or
+ * wrong. The day always lies in the week (Monday–Friday); outside it, the week's last day up to today is taken.
+ */
+export function parseReportSearch(
+  search: Record<string, string | undefined>,
+  today: string,
+): ReportSearch {
+  const view = isEnumValue(PeerReportView, search.view)
+    ? search.view
+    : PeerReportView.Daily;
+  const asked = isCalendarDay(search.day) ? search.day : today;
+  const week =
+    isCalendarDay(search.week) && mondayOf(search.week) === search.week
+      ? search.week
+      : mondayOf(asked);
+  const days = reportWeekDays(week);
+  const day = days.includes(asked)
+    ? asked
+    : (days.filter((candidate) => candidate <= today).at(-1) ?? week);
+  return { view, week, day };
+}
+
+function mondayOf(day: string) {
+  return reportWeekStart(fromIsoDay(day));
+}
+
+function isCalendarDay(value: string | undefined): value is string {
+  if (value === undefined || !ISO_DAY_PATTERN.test(value)) return false;
+  const date = fromIsoDay(value);
+  const [year, month, dayOfMonth] = value.split("-").map(Number);
+  return (
+    date.getFullYear() === year &&
+    date.getMonth() + 1 === month &&
+    date.getDate() === dayOfMonth
+  );
 }

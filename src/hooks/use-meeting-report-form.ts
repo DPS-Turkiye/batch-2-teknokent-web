@@ -6,8 +6,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import {
-  PEER_REPORTS_QUERY_KEY,
   peerMeetingReportQueryKey,
+  refreshOtherReportViews,
 } from "@/hooks/peer-report-queries";
 import {
   PeerActionOwner,
@@ -94,13 +94,7 @@ export function useMeetingReportForm(meetingId: string) {
         ? { version: saved.updatedAt ?? "new", form: current.form }
         : null,
     );
-    // The day, week and list views count this report; they refresh from the server. This report's own query
-    // already holds the server's answer, and refetching it could race the mentor's typing.
-    void queryClient.invalidateQueries({
-      queryKey: PEER_REPORTS_QUERY_KEY,
-      predicate: (candidate) =>
-        !candidate.queryKey.every((part, index) => part === key[index]),
-    });
+    refreshOtherReportViews(queryClient, key);
   }
 
   const failed = (fallback: string) => (error: unknown) =>

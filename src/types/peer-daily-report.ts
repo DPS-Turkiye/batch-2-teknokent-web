@@ -2,7 +2,7 @@ import type {
   PeerActivityType,
   PeerMentorSkill,
 } from "@/interfaces/peer-reports";
-import type { PeerReportBadge } from "@/types/peer-reports";
+import type { PeerReportBadge, PeerReportView } from "@/types/peer-reports";
 
 /** "Günlük değerlendirme" as typed. */
 export type DailyReportForm = {
@@ -38,3 +38,10 @@ export enum DailyReadinessItem {
   MeetingReport = "meetingReport",
   Evaluation = "evaluation",
 }
+
+/** Where "Faaliyet Raporum" is, as read from the URL (`view`, `week`, `day`). */
+export type ReportSearch = {
+  view: PeerReportView;
+  week: string;
+  day: string;
+};
