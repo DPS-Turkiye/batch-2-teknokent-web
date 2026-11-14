@@ -35,7 +35,7 @@ import {
   getAcademicianRequests,
 } from "@/lib/client/academician-office-hours";
 import { dayPart } from "@/lib/utils";
-import { AppointmentsFilter } from "@/types/academician-calendar";
+import { AppointmentsFilter, RequestStep } from "@/types/academician-calendar";
 
 export type HomeRequestCard = {
   id: string;
@@ -49,6 +49,8 @@ export type HomeRequestCard = {
   canPropose: boolean;
   /** The request's drawer on Randevularım. */
   href: string;
+  /** Straight to "Alternatif saat öner" for that request. */
+  proposeHref: string;
 };
 
 export type HomeAvailabilityRow = AvailabilityRow;
@@ -125,6 +127,10 @@ export function useAcademicianHome() {
         OfficeHoursRequestAction.ProposeTimes,
       ),
       href: calendarHref({ request: request.id }),
+      proposeHref: calendarHref({
+        request: request.id,
+        step: RequestStep.Propose,
+      }),
     };
   };
 

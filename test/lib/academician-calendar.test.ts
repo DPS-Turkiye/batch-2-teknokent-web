@@ -31,6 +31,7 @@ import {
   AppointmentsFilter,
   CalendarEntryKind,
   RequestFit,
+  RequestStep,
 } from "@/types/academician-calendar";
 import {
   academicianAppointment,
@@ -123,6 +124,7 @@ describe("Randevularım URL state", () => {
       date: "2026-11-17",
       filter: AppointmentsFilter.Requests,
       request: "berk",
+      step: RequestStep.Detail,
       appointment: "ayse",
     });
     expect(
@@ -157,6 +159,18 @@ describe("Randevularım URL state", () => {
       filter: AppointmentsFilter.Requests,
       request: "berk",
     });
+  });
+
+  it("keeps the propose step only next to a request", () => {
+    expect(
+      parseAppointmentsSearch({ request: "berk", step: "propose" }).step,
+    ).toBe(RequestStep.Propose);
+    expect(parseAppointmentsSearch({ step: "propose" }).step).toBe(
+      RequestStep.Detail,
+    );
+    expect(
+      appointmentsHref(BASE, { request: "berk", step: RequestStep.Propose }),
+    ).toBe(`${BASE}?request=berk&step=propose`);
   });
 
   it("anchors on the URL's day or on today", () => {

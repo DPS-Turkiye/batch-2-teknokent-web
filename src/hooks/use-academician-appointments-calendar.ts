@@ -51,6 +51,7 @@ import { formatDateRange } from "@/lib/format";
 import {
   AppointmentsCalendarView,
   CalendarEntryKind,
+  RequestStep,
   type AppointmentsFilter,
 } from "@/types/academician-calendar";
 
@@ -105,7 +106,10 @@ function drawerOpenedHere() {
  * open drawer live in the URL and are read from it, so links from Ana Sayfa land on the right request, Back closes
  * the drawer and a reload keeps the week. Next.js syncs pushState/replaceState with useSearchParams.
  */
-export function useAcademicianAppointmentsCalendar() {
+export function useAcademicianAppointmentsCalendar(
+  /** The page the URL state belongs to: Randevularım, or the availability page that shows the same calendar. */
+  basePath: string = ACADEMICIAN_ROUTES.appointments,
+) {
   const t = useTranslations("iaAcademician.appointments");
   const tWeekday = useTranslations("options.weekday");
   const locale = useLocale();
@@ -133,7 +137,7 @@ export function useAcademicianAppointmentsCalendar() {
     window.history.pushState(
       { [DRAWER_OPENED_HERE]: true },
       "",
-      appointmentsHref(ACADEMICIAN_ROUTES.appointments, next),
+      appointmentsHref(basePath, next),
     );
   };
   const replace = (next: AppointmentsSearch) => {
@@ -141,7 +145,7 @@ export function useAcademicianAppointmentsCalendar() {
     window.history.replaceState(
       window.history.state,
       "",
-      appointmentsHref(ACADEMICIAN_ROUTES.appointments, next),
+      appointmentsHref(basePath, next),
     );
   };
   const update = (change: Partial<AppointmentsSearch>) => {
@@ -189,7 +193,12 @@ export function useAcademicianAppointmentsCalendar() {
   });
 
   const openRequest = (id: string) => {
-    push({ ...search, request: id, appointment: null });
+    push({
+      ...search,
+      request: id,
+      step: RequestStep.Detail,
+      appointment: null,
+    });
   };
   const openAppointment = (id: string) => {
     push({ ...search, appointment: id, request: null });
@@ -391,6 +400,15 @@ export function useAcademicianAppointmentsCalendar() {
         search.appointment !== null &&
         !source.appointments.some((item) => item.id === search.appointment),
       isAdvisee: (userId: string) => advisor.has(userId),
+      step: search.step,
+      // The propose dialog takes the drawer's place in the same history entry, so closing it after sending
+      // leaves the page instead of going back to a request that no longer waits for an answer.
+      openPropose: () => {
+        replace({ ...search, step: RequestStep.Propose });
+      },
+      backToRequest: () => {
+        replace({ ...search, step: RequestStep.Detail });
+      },
       // X does what Back does when the drawer was opened here, so the history doesn't keep a closed drawer;
       // a drawer reached by a link has nothing to go back to on this page, so it is just taken out of the URL.
       closeDrawer: () => {
@@ -398,7 +416,12 @@ export function useAcademicianAppointmentsCalendar() {
           window.history.back();
           return;
         }
-        replace({ ...search, request: null, appointment: null });
+        replace({
+          ...search,
+          request: null,
+          step: RequestStep.Detail,
+          appointment: null,
+        });
       },
       source,
       now,

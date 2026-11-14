@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AcademicianAppointmentsView } from "@/components/academician/appointments-view";
+import { AppointmentStatus } from "@/interfaces/appointment";
 import {
   appointmentsHref,
   type AppointmentsSearch,
@@ -12,7 +13,10 @@ import {
   sampleState,
 } from "@/lib/client/fixtures/academician-office-hours-store";
 import { fetchInstitutionAdvisees } from "@/lib/client/institution";
-import { AppointmentsCalendarView } from "@/types/academician-calendar";
+import {
+  AppointmentsCalendarView,
+  RequestStep,
+} from "@/types/academician-calendar";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("next/navigation", async (importOriginal) => {
@@ -383,6 +387,102 @@ describe("AcademicianAppointmentsView", () => {
     expect(
       within(drawer).queryByRole("button", { name: "Randevuyu iptal et" }),
     ).toBeNull();
+  });
+
+  it("opens the propose dialog from the drawer and goes back to the drawer", async () => {
+    const user = userEvent.setup();
+    renderView({ request: "sample-request-2" });
+
+    const drawer = await screen.findByRole("dialog", {
+      name: "Randevu talebi",
+    });
+    await user.click(
+      within(drawer).getByRole("button", { name: "Alternatif Saat Öner" }),
+    );
+
+    const dialog = screen.getByRole("dialog", { name: "Alternatif saat öner" });
+    expect(window.location.search).toBe(
+      "?request=sample-request-2&step=propose",
+    );
+    expect(dialog).toHaveTextContent("Ece Aksoy · talep edilen:");
+    await user.click(within(dialog).getByRole("button", { name: "Vazgeç" }));
+    expect(
+      screen.getByRole("dialog", { name: "Randevu talebi" }),
+    ).toBeVisible();
+    expect(window.location.search).toBe("?request=sample-request-2");
+  });
+
+  it("leaves the page as it was after proposing from a drawer opened here", async () => {
+    const user = userEvent.setup();
+    renderView();
+    await user.click(
+      await screen.findByRole("button", {
+        name: "Deniz Kaya, 14:00–14:30, Onay Bekliyor",
+      }),
+    );
+    await user.click(
+      within(screen.getByRole("dialog")).getByRole("button", {
+        name: "Alternatif Saat Öner",
+      }),
+    );
+    const dialog = screen.getByRole("dialog", { name: "Alternatif saat öner" });
+    await user.click(within(dialog).getByRole("button", { name: "14:00" }));
+    await user.click(
+      within(dialog).getByRole("button", { name: "Öneriyi Gönder" }),
+    );
+
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
+    expect(window.location.search).toBe("");
+  });
+
+  it("proposes up to three free times across days, with a note", async () => {
+    const user = userEvent.setup();
+    renderView({ request: "sample-request-2", step: RequestStep.Propose });
+
+    const dialog = await screen.findByRole("dialog", {
+      name: "Alternatif saat öner",
+    });
+    // Tuesday is open; Wednesday has no hours; 15:30 is booked with Zeynep.
+    expect(
+      within(dialog).getByRole("button", { name: /Çar\s*11/ }),
+    ).toBeDisabled();
+    expect(
+      within(dialog).getByRole("button", { name: "15:30" }),
+    ).toBeDisabled();
+    const send = within(dialog).getByRole("button", { name: "Öneriyi Gönder" });
+    expect(send).toBeDisabled();
+
+    await user.click(within(dialog).getByRole("button", { name: "14:00" }));
+    await user.click(within(dialog).getByRole("button", { name: "14:30" }));
+    await user.click(within(dialog).getByRole("button", { name: /Per\s*12/ }));
+    await user.click(within(dialog).getByRole("button", { name: "10:00" }));
+    await user.click(within(dialog).getByRole("button", { name: "10:30" }));
+    expect(
+      within(dialog).getByText("En fazla 3 saat önerebilirsin."),
+    ).toBeVisible();
+    expect(within(dialog).getByText("Seçtiğin saatler (3/3)")).toBeVisible();
+    await user.type(
+      within(dialog).getByRole("textbox", {
+        name: "Öğrenciye not (opsiyonel)",
+      }),
+      "Perşembe sabah uygun mu?",
+    );
+    await user.click(send);
+
+    expect(
+      await screen.findByText("Önerdiğin saatler öğrenciye gönderildi."),
+    ).toBeVisible();
+    const request = sampleState().requests.find(
+      (item) => item.id === "sample-request-2",
+    );
+    expect(request?.status).toBe(AppointmentStatus.AlternativeProposed);
+    expect(request?.proposedTimes.map((time) => time.startsAt)).toEqual([
+      "2026-11-10T14:00:00+03:00",
+      "2026-11-10T14:30:00+03:00",
+      "2026-11-12T10:00:00+03:00",
+    ]);
   });
 
   it("reads in English", async () => {

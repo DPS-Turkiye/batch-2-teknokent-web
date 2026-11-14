@@ -37,3 +37,9 @@ export enum RequestFit {
   DayOff = "dayOff",
   Past = "past",
 }
+
+/** Which part of an open request the page shows: its drawer, or the propose dialog. */
+export enum RequestStep {
+  Detail = "detail",
+  Propose = "propose",
+}
