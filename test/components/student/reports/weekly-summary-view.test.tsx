@@ -115,7 +115,7 @@ describe("WeeklySummaryView", () => {
       }),
     ).toHaveAttribute(
       "href",
-      "/student/peer-mentoring?tab=report&view=daily&day=2026-11-12",
+      "/student/peer-mentoring?as=MENTOR&tab=report&view=daily&day=2026-11-12",
     );
     // The report tab shell draws the week's day strip; this view starts with Haftanın özeti.
     expect(screen.queryByText("Bugün")).not.toBeInTheDocument();
