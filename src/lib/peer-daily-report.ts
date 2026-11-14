@@ -9,9 +9,10 @@ import {
 } from "@/interfaces/peer-reports";
 import {
   fromIsoDay,
-  peerReportBadge,
+  REPORT_TIME_ZONE,
   reportWeekDays,
 } from "@/lib/peer-reports";
+import { weeklyDayCards } from "@/lib/peer-weekly-report";
 import type {
   ActivityForm,
   DailyReportForm,
@@ -85,25 +86,21 @@ export function meetingRowBadge(meeting: PeerReportMeeting): PeerReportBadge {
     : PeerReportBadge.AwaitingOutput;
 }
 
-/** The week's five day cards, with the chosen day and today marked. */
+/** The week's five day cards (badges as the weekly view counts them), with the chosen day and today marked. */
 export function reportDayCards(
   weekStart: string,
   days: readonly PeerReportDay[],
   selected: string,
   today: string,
 ): ReportDayCard[] {
-  return reportWeekDays(weekStart).map((date) => {
-    const day = days.find((candidate) => candidate.date === date);
-    return {
-      date,
-      badge: day
-        ? peerReportBadge(day.status, day.missingMeetingReports)
-        : null,
-      isToday: date === today,
-      isSelected: date === selected,
-      isFuture: date > today,
-    };
-  });
+  const known = weeklyDayCards(days);
+  return reportWeekDays(weekStart).map((date) => ({
+    date,
+    badge: known.find((card) => card.date === date)?.badge ?? null,
+    isToday: date === today,
+    isSelected: date === selected,
+    isFuture: date > today,
+  }));
 }
 
 /** "9–13 Kasım 2026" (or "30 Kasım – 4 Aralık 2026" across months). */
@@ -116,19 +113,6 @@ export function reportWeekLabel(weekStart: string, locale: string): string {
     month: "long",
     year: "numeric",
   }).formatRange(fromIsoDay(monday), fromIsoDay(friday));
-}
-
-/** "Per · 12 Kasım" */
-export function reportDayLabel(day: string, locale: string): string {
-  const date = fromIsoDay(day);
-  const weekday = new Intl.DateTimeFormat(locale, { weekday: "short" }).format(
-    date,
-  );
-  const dayMonth = new Intl.DateTimeFormat(locale, {
-    day: "numeric",
-    month: "long",
-  }).format(date);
-  return `${weekday} · ${dayMonth}`;
 }
 
 /** A new activity on the given day ("Kaynak hazırlama" first, as in 3.2.3b). */
@@ -167,7 +151,7 @@ export function activityInput(
 export function activityTimeLabel(createdAt: string, locale: string): string {
   return new Intl.DateTimeFormat(locale, {
     timeStyle: "short",
-    timeZone: "Europe/Istanbul",
+    timeZone: REPORT_TIME_ZONE,
   }).format(new Date(createdAt));
 }
 
