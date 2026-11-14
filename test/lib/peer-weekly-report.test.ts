@@ -12,7 +12,6 @@ import {
   outcomeActionProgress,
   outcomeLines,
   peerDailyReportHref,
-  peerMeetingReportHref,
   toWeeklyInput,
   weeklyAnswers,
   weeklyChecklist,
@@ -261,12 +260,6 @@ describe("outcomes", () => {
         actionsTotal: 0,
       }),
     ).toBeNull();
-  });
-
-  it("links a meeting report page", () => {
-    expect(peerMeetingReportHref("meeting/1")).toBe(
-      "/student/peer-mentoring/reports/meetings/meeting%2F1",
-    );
   });
 
   it("names the mentees by first name", () => {

@@ -51,7 +51,7 @@ export function WeeklyPreviewDialog({
   onPrint: () => void;
 }) {
   const t = useTranslations("iaIskurReports.weekly");
-  const tSkill = useTranslations("iaIskurReports.weekly.skill");
+  const tSkill = useTranslations("iaIskurReports.skills");
   const dayLabel = useReportDayLabel();
   const duration = useReportDuration();
   const { summary } = report;

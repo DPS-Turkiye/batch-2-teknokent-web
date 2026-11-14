@@ -7,7 +7,11 @@ import {
   type PeerWeeklySummary,
   type SavePeerWeeklyReportInput,
 } from "@/interfaces/peer-reports";
-import { fromIsoDay, peerReportBadge } from "@/lib/peer-reports";
+import {
+  fromIsoDay,
+  peerReportBadge,
+  REPORT_TIME_ZONE,
+} from "@/lib/peer-reports";
 import type { PeerReportBadge } from "@/types/peer-reports";
 import {
   WeeklyCheck,
@@ -20,9 +24,6 @@ import {
 } from "@/types/peer-weekly-report";
 
 export const WEEKLY_QUESTIONS = Object.values(WeeklyQuestion);
-
-/** Report times are shown on the program's clock, wherever the browser is. */
-const REPORT_TIME_ZONE = "Europe/Istanbul";
 
 export type WeeklyOutcome = PeerWeeklySummary["outcomes"][number];
 
@@ -206,11 +207,6 @@ export function latestOutcomeMeetingId(outcome: WeeklyOutcome) {
 export function peerDailyReportHref(day: string) {
   const params = new URLSearchParams({ tab: "report", view: "daily", day });
   return `/student/peer-mentoring?${params.toString()}`;
-}
-
-/** The meeting report page (Figma 220:2). */
-export function peerMeetingReportHref(meetingId: string) {
-  return `/student/peer-mentoring/reports/meetings/${encodeURIComponent(meetingId)}`;
 }
 
 /** "Ayşe, Emre, Deniz" under "Görüşülen mentee". */

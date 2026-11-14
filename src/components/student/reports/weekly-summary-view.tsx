@@ -22,6 +22,7 @@ import {
 } from "@/hooks/use-report-format";
 import { useWeeklyReport } from "@/hooks/use-weekly-report";
 import type { PeerWeeklyReport } from "@/interfaces/peer-reports";
+import { meetingReportHref } from "@/lib/peer-reports";
 import {
   formatReportDeadline,
   formatReportTime,
@@ -30,7 +31,6 @@ import {
   outcomeActionProgress,
   outcomeLines,
   peerDailyReportHref,
-  peerMeetingReportHref,
   WEEKLY_QUESTIONS,
   type WeeklyDayCard,
   type WeeklyOutcome,
@@ -258,7 +258,7 @@ function SkillsCard({
   meetings: number;
 }) {
   const t = useTranslations("iaIskurReports.weekly.skills");
-  const tSkill = useTranslations("iaIskurReports.weekly.skill");
+  const tSkill = useTranslations("iaIskurReports.skills");
   return (
     <section
       aria-labelledby="weekly-skills-title"
@@ -350,7 +350,7 @@ function OutcomeRow({ outcome }: { outcome: WeeklyOutcome }) {
           </p>
           {meetingId ? (
             <Link
-              href={peerMeetingReportHref(meetingId)}
+              href={meetingReportHref(meetingId)}
               aria-label={t("openFor", { name: outcome.fullName })}
               className="type-label text-text-link hover:underline"
             >

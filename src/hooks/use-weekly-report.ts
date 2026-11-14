@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
+import { PEER_REPORTS_QUERY_KEY } from "@/hooks/peer-report-queries";
 import { useMinuteClock } from "@/hooks/use-minute-clock";
 import type { PeerWeeklyReport } from "@/interfaces/peer-reports";
 import { ToastTone } from "@/interfaces/toast";
@@ -29,9 +30,6 @@ import {
 import { errorMessage } from "@/lib/utils";
 import { useToast } from "@/stores/toast-store";
 import type { WeeklyAnswers, WeeklyQuestion } from "@/types/peer-weekly-report";
-
-/** Every report screen's queries start with this, so sending one level can refresh the others. */
-export const PEER_REPORTS_QUERY_KEY = ["peer-reports"] as const;
 
 export function peerWeeklyReportQueryKey(weekStart: string) {
   return [...PEER_REPORTS_QUERY_KEY, "weeks", weekStart] as const;

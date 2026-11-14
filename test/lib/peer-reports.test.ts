@@ -2,9 +2,12 @@ import { describe, expect, it } from "vitest";
 
 import { PeerReportStatus } from "@/interfaces/peer-reports";
 import {
+  dailyReportHref,
   fromIsoDay,
   isPeerReportEditable,
+  meetingReportHref,
   peerReportBadge,
+  reportDayOf,
   reportWeekDays,
   reportWeekStart,
   shiftReportWeek,
@@ -102,5 +105,24 @@ describe("splitMinutes", () => {
   it("never shows a negative or fractional time", () => {
     expect(splitMinutes(-5)).toEqual({ hours: 0, minutes: 0 });
     expect(splitMinutes(59.6)).toEqual({ hours: 1, minutes: 0 });
+  });
+});
+
+describe("report links", () => {
+  it("go to the day of a moment and to a meeting's report", () => {
+    expect(dailyReportHref("2026-11-12T11:00:00Z")).toBe(
+      "/student/peer-mentoring?tab=report&view=daily&day=2026-11-12",
+    );
+    expect(meetingReportHref("meeting/1")).toBe(
+      "/student/peer-mentoring/reports/meetings/meeting%2F1",
+    );
+  });
+});
+
+describe("reportDayOf", () => {
+  it("counts days in Istanbul, wherever the browser is", () => {
+    // 22:30 UTC is already the next day in Istanbul (UTC+3), and still the same day in UTC-5.
+    expect(reportDayOf("2026-11-12T22:30:00Z")).toBe("2026-11-13");
+    expect(reportDayOf("2026-11-12T20:59:00Z")).toBe("2026-11-12");
   });
 });

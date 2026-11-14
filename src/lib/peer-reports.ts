@@ -71,3 +71,27 @@ export function fromIsoDay(day: string) {
   const [year, month, date] = day.split("-").map(Number);
   return new Date(year ?? 0, (month ?? 1) - 1, date ?? 1);
 }
+
+/** The program's time zone: report days and deadlines are Istanbul days, wherever the browser is (as on the backend). */
+export const REPORT_TIME_ZONE = "Europe/Istanbul";
+
+/** The report day ("yyyy-mm-dd") a moment falls on, in the program's time zone. */
+export function reportDayOf(at: string) {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: REPORT_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date(at));
+}
+
+/** The day's view in "Faaliyet Raporum" for a moment (the meeting report's way back). */
+export function dailyReportHref(at: string) {
+  const day = reportDayOf(at);
+  return `/student/peer-mentoring?tab=report&view=daily&day=${day}`;
+}
+
+/** A meeting's report page (Görüşme Raporu), read-only once it is sent. */
+export function meetingReportHref(meetingId: string) {
+  return `/student/peer-mentoring/reports/meetings/${encodeURIComponent(meetingId)}`;
+}
