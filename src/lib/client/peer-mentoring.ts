@@ -6,7 +6,9 @@ import type {
   PeerMentorFilter,
   PeerMentoringRequest,
   PeerMentorProfile,
+  PeerMentorProfileDraft,
   PeerTopicCategory,
+  SavedPeerMentorProfileDraft,
   SavePeerMentorProfileInput,
 } from "@/interfaces/peer-mentoring";
 import { UserRole } from "@/interfaces/session";
@@ -126,5 +128,36 @@ export async function savePeerMentorProfile(
       "/api/peer-mentoring/profile",
       input,
     ),
+  );
+}
+
+/** The student's unfinished wizard, or null when there is none. */
+export async function getPeerMentorDraft(): Promise<SavedPeerMentorProfileDraft | null> {
+  try {
+    return requireSuccess(
+      await httpClient.get<SavedPeerMentorProfileDraft>(
+        "/api/peer-mentoring/profile/draft",
+      ),
+    );
+  } catch (error) {
+    if (error instanceof ClientApiError && error.status === 404) return null;
+    throw error;
+  }
+}
+
+export async function savePeerMentorDraft(
+  draft: PeerMentorProfileDraft,
+): Promise<SavedPeerMentorProfileDraft> {
+  return requireSuccess(
+    await httpClient.put<SavedPeerMentorProfileDraft>(
+      "/api/peer-mentoring/profile/draft",
+      { draft },
+    ),
+  );
+}
+
+export async function deletePeerMentorDraft(): Promise<void> {
+  requireSuccess(
+    await httpClient.delete<undefined>("/api/peer-mentoring/profile/draft"),
   );
 }
