@@ -181,5 +181,88 @@
     "cancelled": "Randevu iptal edildi.",
     "failed": "Randevu iptal edilemedi; liste yenilendi.",
     "gone": "Bu randevu artık takviminde yok."
+  },
+  "propose": {
+    "title": "Alternatif saat öner",
+    "requested": "{name} · talep edilen: {when}",
+    "daysLabel": "Gün seç",
+    "dayHeading": "{day} · müsait saatlerin",
+    "picked": "Seçtiğin saatler ({count}/{max})",
+    "remove": "{time} saatini çıkar",
+    "limit": "En fazla {max} saat önerebilirsin.",
+    "note": "Öğrenciye not (opsiyonel)",
+    "infoTitle": "Öğrenci onayı gerekir",
+    "infoBody": "Önerdiğin saat, öğrenci kabul edene kadar onaylanmaz. Durum \"Alternatif Saat Önerildi\" olarak görünür.",
+    "cancel": "Vazgeç",
+    "send": "Öneriyi Gönder"
+  },
+  "availability": {
+    "title": "Müsaitliği düzenle",
+    "subtitle": "Öğrenciler yalnızca burada açık olan saatlerden randevu talep edebilir.",
+    "back": "Randevularım",
+    "add": "Müsaitlik Ekle",
+    "cards": {
+      "recurring": {
+        "title": "Tekrarlanan haftalık müsaitlik",
+        "hint": "Her hafta aynı gün ve saat",
+        "rowHint": "Tekrarlanan haftalık müsaitlik",
+        "empty": "Henüz haftalık saat eklemedin."
+      },
+      "oneOff": {
+        "title": "Tek seferlik müsaitlik",
+        "hint": "Belirli tarih ve saat",
+        "rowHint": "Tek seferlik müsaitlik",
+        "rowHintPlace": "Tek seferlik müsaitlik · {place}",
+        "empty": "Tek seferlik saat yok."
+      },
+      "unavailable": {
+        "title": "Müsait olmadığım günler",
+        "hint": "Tekrarlanan saatleri o gün için kapatır",
+        "rowHint": "Müsait değilim (istisna)",
+        "rowHintReason": "Müsait değilim ({reason})",
+        "empty": "Müsait olmadığın gün yok."
+      }
+    },
+    "addTo": "Ekle",
+    "addToLabel": "{list} listesine ekle",
+    "recurringRow": "Her {weekday} · {hours}",
+    "dateRow": "{date} · {hours}",
+    "allDay": "Tüm gün",
+    "howTitle": "Nasıl hesaplanır?",
+    "howBody": "Öğrencilerin gördüğü saatler: tekrarlanan + tek seferlik − müsait olmadığın günler. İstisna her zaman önceliklidir.",
+    "menu": {
+      "label": "{item} için seçenekler",
+      "edit": "Düzenle",
+      "remove": "Sil",
+      "confirm": "Silinsin mi?",
+      "confirmYes": "Evet, sil",
+      "confirmNo": "Vazgeç"
+    },
+    "dialog": {
+      "addTitle": "Müsaitlik ekle",
+      "editTitle": "Müsaitliği düzenle",
+      "kind": "Ne eklemek istiyorsun?",
+      "weekday": "Gün",
+      "start": "Başlangıç",
+      "end": "Bitiş",
+      "date": "Tarih",
+      "place": "Yer (opsiyonel)",
+      "startsOn": "İlk gün",
+      "endsOn": "Son gün (opsiyonel)",
+      "reason": "Neden (opsiyonel)",
+      "save": "Kaydet",
+      "cancel": "Vazgeç"
+    },
+    "errors": {
+      "needFields": "Tarih ve saatleri doldur.",
+      "endAfterStart": "Bitiş, başlangıçtan sonra olmalı.",
+      "overlap": "Bu saatler mevcut bir kayıtla çakışıyor.",
+      "past": "Geçmiş bir saate müsaitlik eklenemez.",
+      "insideDayOff": "Bu gün müsait değil olarak işaretli; önce o günü kaldır.",
+      "hidesOneOff": "Bu günlerde tek seferlik saatlerin var; önce onları sil."
+    },
+    "saved": "Müsaitlik kaydedildi.",
+    "removed": "Silindi.",
+    "failed": "Kaydedilemedi; tekrar dene."
   }
 }

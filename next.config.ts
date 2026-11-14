@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 
+import { ACADEMICIAN_ROUTES } from "./src/lib/academician-routes";
+import { AppointmentsFilter } from "./src/types/academician-calendar";
+
 // Uploads and CV parsing go from the browser straight to the backend, so its
 // origin has to be reachable. Deployed it is HTTPS and already covered by the
 // blanket source; locally it is plain HTTP on another port, which nothing in
@@ -65,9 +68,29 @@ export const securityHeaders = [
   },
 ] as const;
 
+// Pages whose screens moved elsewhere; an old link or bookmark lands on the new home. Not permanent, so browsers
+// don't cache the hop and a path can be given a page again later.
+export const legacyRedirects = [
+  // Talepler moved into Randevularım, with requests selected.
+  {
+    source: "/academician/requests",
+    destination: `${ACADEMICIAN_ROUTES.appointments}?filter=${AppointmentsFilter.Requests}`,
+    permanent: false,
+  },
+  // Takvim became "Müsaitliği düzenle" under Randevularım.
+  {
+    source: "/academician/calendar",
+    destination: ACADEMICIAN_ROUTES.availability,
+    permanent: false,
+  },
+];
+
 const nextConfig: NextConfig = {
   headers() {
     return [{ source: "/:path*", headers: [...securityHeaders] }];
+  },
+  redirects() {
+    return legacyRedirects;
   },
 };
 
