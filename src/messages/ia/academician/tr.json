@@ -141,6 +141,7 @@
   },
   "requestDrawer": {
     "title": "Randevu talebi",
+    "openProfile": "Öğrenci profilini gör",
     "date": "Tarih",
     "time": "Saat",
     "course": "Ders",
@@ -264,5 +265,59 @@
     "saved": "Müsaitlik kaydedildi.",
     "removed": "Silindi.",
     "failed": "Kaydedilemedi; tekrar dene."
+  },
+  "advisees": {
+    "title": "Danışan Öğrencilerim",
+    "search": "Öğrenci ara",
+    "readOnly": "Kurumsal kayıttan · salt okunur",
+    "meetingsFailed": "Randevu bilgileri yüklenemedi; son ve yaklaşan randevu sütunları şu an eksik.",
+    "count": "{count} öğrenci",
+    "columns": {
+      "student": "Öğrenci",
+      "program": "Bölüm · sınıf",
+      "last": "Son randevu",
+      "next": "Yaklaşan randevu",
+      "actions": "İşlemler"
+    },
+    "appointments": "Randevular",
+    "appointmentsLabel": "{name} ile randevular",
+    "today": "Bugün {time}",
+    "pending": "Onay bekliyor",
+    "none": "—",
+    "notSignedIn": "Menton'a henüz giriş yapmadı",
+    "empty": "ODTÜ kayıtlarında danışmanlığında öğrenci görünmüyor.",
+    "noMatch": "Aramana uyan öğrenci yok.",
+    "footnote": "Bu liste mentorluk eşleşmesi veya randevu değildir. Danışmanlık ilişkileri ODTÜ kayıtlarından gelir ve Menton'da değiştirilemez."
+  },
+  "student": {
+    "back": {
+      "appointments": "Randevularım",
+      "advisees": "Danışan Öğrencilerim"
+    },
+    "classYear": "{year}. sınıf",
+    "record": "Kurumsal bilgiler",
+    "department": "Bölüm",
+    "classYearLabel": "Sınıf",
+    "advisor": "Akademik danışman",
+    "advisorYou": "Sen",
+    "privacy": "Öğrencinin mentorluk bilgileri, belgeleri ve diğer akademisyenlerle randevuları sana görünmez.",
+    "pendingTitle": "Yanıt bekleyen talep",
+    "history": "Seninle randevuları",
+    "historyEmpty": "Seninle henüz randevusu yok.",
+    "historyWhen": "{when} · Office Hours",
+    "badges": {
+      "pending": "Onay Bekliyor",
+      "proposed": "Alternatif Saat Önerildi",
+      "confirmed": "Onaylandı",
+      "completed": "Tamamlandı",
+      "cancelled": "İptal edildi"
+    },
+    "decline": "Reddet",
+    "propose": "Alternatif Saat Öner",
+    "accept": "Kabul Et",
+    "notFound": "Bu öğrenci hakkında gösterilecek bilgi yok.",
+    "openProfile": "Öğrenci profilini gör",
+    "close": "Kapat",
+    "fullProfile": "Tam Profili Gör"
   }
 }

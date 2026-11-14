@@ -42,4 +42,5 @@ export enum RequestFit {
 export enum RequestStep {
   Detail = "detail",
   Propose = "propose",
+  Profile = "profile",
 }

@@ -1,6 +1,12 @@
 "use client";
 
-import { CalendarClock, CalendarDays, Clock, X } from "lucide-react";
+import {
+  CalendarClock,
+  CalendarDays,
+  ChevronRight,
+  Clock,
+  X,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useId, type ReactNode } from "react";
 
@@ -100,6 +106,7 @@ export function RequestDrawer({
   source,
   now,
   onPropose,
+  onOpenProfile,
   onClose,
 }: {
   request: OfficeHoursRequest;
@@ -107,6 +114,7 @@ export function RequestDrawer({
   source: Pick<CalendarSource, "availability" | "appointments">;
   now: Date;
   onPropose: () => void;
+  onOpenProfile: () => void;
   onClose: () => void;
 }) {
   const t = useTranslations("iaAcademician.requestDrawer");
@@ -140,6 +148,14 @@ export function RequestDrawer({
                 .filter((part) => part !== null)
                 .join(" · ")}
             </p>
+            <button
+              type="button"
+              onClick={onOpenProfile}
+              className="mt-1 inline-flex items-center gap-0.5 type-caption text-text-link hover:underline focus-visible:outline-2 focus-visible:outline-border-selected"
+            >
+              {t("openProfile")}
+              <ChevronRight aria-hidden className="size-3.5" />
+            </button>
           </div>
         </div>
         <AppointmentStatusBadge status={request.status} />
