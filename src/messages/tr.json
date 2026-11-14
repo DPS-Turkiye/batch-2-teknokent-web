@@ -5871,6 +5871,7 @@
     "institutionLoginFailed": "Kurum girişi tamamlanamadı. Lütfen yeniden dene.",
     "institutionLoginExpired": "Giriş bağlantısının süresi doldu ya da başka bir tarayıcıda başlatıldı. Lütfen yeniden giriş yap.",
     "institutionRecordLoadFailed": "Kurumsal bilgiler yüklenemedi.",
+    "adviseeProfileLoadFailed": "Öğrencinin ilgi alanları ve hedefi yüklenemedi.",
     "eligibleEmailsLoadFailed": "İzinli liste yüklenemedi.",
     "eligibleEmailsSaveFailed": "İzinli liste güncellenemedi.",
     "platformFeedbackInvalid": "Geri bildirim bilgilerini kontrol edip tekrar dene.",

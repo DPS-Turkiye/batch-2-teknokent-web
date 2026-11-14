@@ -5869,6 +5869,7 @@
     "institutionLoginFailed": "The institution sign-in could not be completed. Please try again.",
     "institutionLoginExpired": "This sign-in expired or was started in another browser. Please sign in again.",
     "institutionRecordLoadFailed": "Could not load your institution details.",
+    "adviseeProfileLoadFailed": "Could not load the student's interests and goal.",
     "eligibleEmailsLoadFailed": "Could not load the list.",
     "eligibleEmailsSaveFailed": "Could not update the list.",
     "platformFeedbackInvalid": "Check the feedback details and try again.",

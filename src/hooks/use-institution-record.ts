@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 import {
+  fetchAdviseeProfile,
   fetchInstitutionAdvisees,
   fetchInstitutionRecord,
 } from "@/lib/client/institution";
@@ -25,5 +26,21 @@ export function useInstitutionAdvisees(enabled = true) {
     queryKey: INSTITUTION_ADVISEES_QUERY_KEY,
     queryFn: fetchInstitutionAdvisees,
     enabled,
+  });
+}
+
+export function adviseeProfileQueryKey(userId: string) {
+  return [...INSTITUTION_ADVISEES_QUERY_KEY, userId, "profile"];
+}
+
+/**
+ * One advisee's interests and goal for their advisor; null for anyone else's student. Waits for an id: a student
+ * who has never signed in to Menton has none.
+ */
+export function useAdviseeProfile(userId: string | null) {
+  return useQuery({
+    queryKey: adviseeProfileQueryKey(userId ?? ""),
+    queryFn: () => fetchAdviseeProfile(userId ?? ""),
+    enabled: userId !== null,
   });
 }
