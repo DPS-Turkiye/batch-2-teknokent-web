@@ -15,10 +15,6 @@
     "recordedNote": "Recorded time is for information only; it is not an approved working time."
   },
   "weekly": {
-    "days": {
-      "label": "Days of the week",
-      "today": "Today"
-    },
     "summary": {
       "title": "Week at a glance",
       "auto": "Automatic from the daily reports",

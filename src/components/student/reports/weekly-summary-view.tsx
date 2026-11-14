@@ -29,6 +29,7 @@ import {
   missingMeetingReports,
   outcomeActionProgress,
   outcomeLines,
+  peerDailyReportHref,
   peerMeetingReportHref,
   WEEKLY_QUESTIONS,
   type WeeklyDayCard,
@@ -57,16 +58,10 @@ const REPORT_CARD_CLASS =
   "rounded-[20px] border border-border-subtle bg-background-surface";
 
 /**
- * Faaliyet Raporum › Haftalık Özet (Figma 221:521), below the Günlük/Haftalık switch and the week picker, which the
- * report tab owns and passes in as `weekStart` (a Monday, "yyyy-mm-dd"). `onOpenDay` opens a day's daily report.
+ * Faaliyet Raporum › Haftalık Özet (Figma 221:521), from "Haftanın özeti" down. The report tab's shell draws the
+ * Günlük/Haftalık switch, the week picker and the day strip, and passes in `weekStart` (a Monday, "yyyy-mm-dd").
  */
-export function WeeklySummaryView({
-  weekStart,
-  onOpenDay,
-}: {
-  weekStart: string;
-  onOpenDay?: ((day: string) => void) | undefined;
-}) {
+export function WeeklySummaryView({ weekStart }: { weekStart: string }) {
   const weekly = useWeeklyReport(weekStart);
   const { report } = weekly;
 
@@ -80,7 +75,6 @@ export function WeeklySummaryView({
   }
   return (
     <div className="space-y-6">
-      <DayStrip days={weekly.days} />
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
         <div className="flex min-w-0 flex-1 flex-col gap-5">
           <SummaryCard report={report} menteeNames={weekly.menteeNames} />
@@ -96,7 +90,7 @@ export function WeeklySummaryView({
           />
         </div>
         <aside className="flex w-full flex-col gap-5 lg:w-[360px] lg:shrink-0">
-          <SideDays days={weekly.days} onOpenDay={onOpenDay} />
+          <SideDays days={weekly.days} />
           <StatusCard
             report={report}
             badge={weekly.badge}
@@ -127,34 +121,6 @@ export function WeeklySummaryView({
         />
       ) : null}
     </div>
-  );
-}
-
-function DayStrip({ days }: { days: WeeklyDayCard[] }) {
-  const t = useTranslations("iaIskurReports.weekly.days");
-  const dayLabel = useReportDayLabel();
-  return (
-    <ul
-      aria-label={t("label")}
-      className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5"
-    >
-      {days.map((day) => (
-        <li
-          key={day.date}
-          className="flex flex-col items-start gap-2 rounded-2xl border border-border-subtle bg-background-surface p-4"
-        >
-          <p className="flex flex-wrap items-baseline gap-1.5">
-            <span className="type-label text-text-primary">
-              {dayLabel(day.date)}
-            </span>
-            {day.isToday ? (
-              <span className="type-caption text-text-muted">{t("today")}</span>
-            ) : null}
-          </p>
-          <ReportDayPill badge={day.badge} />
-        </li>
-      ))}
-    </ul>
   );
 }
 
@@ -461,13 +427,7 @@ function EvaluationCard({
   );
 }
 
-function SideDays({
-  days,
-  onOpenDay,
-}: {
-  days: WeeklyDayCard[];
-  onOpenDay: ((day: string) => void) | undefined;
-}) {
+function SideDays({ days }: { days: WeeklyDayCard[] }) {
   const t = useTranslations("iaIskurReports.weekly.sideDays");
   const tStatus = useTranslations("iaIskurReports.status");
   const dayLabel = useReportDayLabel();
@@ -482,37 +442,25 @@ function SideDays({
       <ul className="flex flex-col">
         {days.map((day) => {
           const label = dayLabel(day.date);
-          const content = (
-            <>
-              <span className="flex-1 text-left type-label text-text-primary">
-                {label}
-              </span>
-              <ReportDayPill badge={day.badge} />
-            </>
-          );
           return (
             <li key={day.date}>
-              {onOpenDay ? (
-                <button
-                  type="button"
-                  aria-label={t("open", {
-                    day: label,
-                    status: tStatus(day.badge ?? "notStarted"),
-                  })}
-                  onClick={() => onOpenDay(day.date)}
-                  className="flex w-full items-center gap-2.5 rounded-lg py-1.5 hover:bg-background-subtle focus-visible:outline-2 focus-visible:outline-border-selected"
-                >
-                  {content}
-                  <ChevronRight
-                    aria-hidden
-                    className="size-4 stroke-[1.5] text-text-muted"
-                  />
-                </button>
-              ) : (
-                <div className="flex items-center gap-2.5 py-1.5">
-                  {content}
-                </div>
-              )}
+              <Link
+                href={peerDailyReportHref(day.date)}
+                aria-label={t("open", {
+                  day: label,
+                  status: tStatus(day.badge ?? "notStarted"),
+                })}
+                className="flex w-full items-center gap-2.5 rounded-lg py-1.5 hover:bg-background-subtle focus-visible:outline-2 focus-visible:outline-border-selected"
+              >
+                <span className="flex-1 type-label text-text-primary">
+                  {label}
+                </span>
+                <ReportDayPill badge={day.badge} />
+                <ChevronRight
+                  aria-hidden
+                  className="size-4 stroke-[1.5] text-text-muted"
+                />
+              </Link>
             </li>
           );
         })}

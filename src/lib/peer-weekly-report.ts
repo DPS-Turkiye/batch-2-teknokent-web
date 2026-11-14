@@ -199,6 +199,15 @@ export function latestOutcomeMeetingId(outcome: WeeklyOutcome) {
   return byMeetingTime(outcome).at(-1)?.meetingId ?? null;
 }
 
+/**
+ * A day in the report tab's daily view (Figma 221:73). The reports tab shell owns these params; switch to its own
+ * builder once it lands.
+ */
+export function peerDailyReportHref(day: string) {
+  const params = new URLSearchParams({ tab: "report", view: "daily", day });
+  return `/student/peer-mentoring?${params.toString()}`;
+}
+
 /** The meeting report page (Figma 220:2). */
 export function peerMeetingReportHref(meetingId: string) {
   return `/student/peer-mentoring/reports/meetings/${encodeURIComponent(meetingId)}`;
@@ -245,18 +254,15 @@ export type WeeklyDayCard = {
   date: string;
   /** Null for a day nobody started ("Henüz başlamadı"). */
   badge: PeerReportBadge | null;
-  isToday: boolean;
 };
 
-/** The week's day cards and side rows: each day's pill, and which one is today (a "yyyy-mm-dd" in local time). */
+/** The side card's day rows, each with its pill. */
 export function weeklyDayCards(
   days: readonly PeerReportDay[],
-  today: string,
 ): WeeklyDayCard[] {
   return days.map((day) => ({
     date: day.date,
     badge: peerReportBadge(day.status, day.missingMeetingReports),
-    isToday: day.date === today,
   }));
 }
 
@@ -276,16 +282,6 @@ export function weeklyStatusNote(
     case null:
       return isWeeklyLate(report, now) ? WeeklyStatusNote.Late : null;
   }
-}
-
-/** Today on the program's clock ("yyyy-mm-dd"), so "Bugün" marks the same card wherever the browser is. */
-export function reportToday(now: Date) {
-  return new Intl.DateTimeFormat("en-CA", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    timeZone: REPORT_TIME_ZONE,
-  }).format(now);
 }
 
 const ONE_MINUTE_MS = 60_000;

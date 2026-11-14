@@ -15,10 +15,6 @@
     "recordedNote": "Kayıtlı süre bilgilendirme amaçlıdır; resmi çalışma süresi onayı değildir."
   },
   "weekly": {
-    "days": {
-      "label": "Haftanın günleri",
-      "today": "Bugün"
-    },
     "summary": {
       "title": "Haftanın özeti",
       "auto": "Günlük raporlardan otomatik",

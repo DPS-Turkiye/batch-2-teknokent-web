@@ -25,10 +25,8 @@ vi.mock("@/lib/client/peer-reports", async (importOriginal) => ({
 
 const WEEK = "2026-11-09";
 
-async function renderView(onOpenDay?: (day: string) => void) {
-  renderWithQueryClient(
-    <WeeklySummaryView weekStart={WEEK} onOpenDay={onOpenDay} />,
-  );
+async function renderView() {
+  renderWithQueryClient(<WeeklySummaryView weekStart={WEEK} />);
   return screen.findByRole("heading", { name: "Haftanın özeti" });
 }
 
@@ -94,7 +92,7 @@ describe("WeeklySummaryView", () => {
     );
   });
 
-  it("marks today and each day's status, and opens a day from the side card", async () => {
+  it("lists each day's status in the side card and links its daily report", async () => {
     vi.mocked(getPeerWeeklyReport).mockResolvedValue(
       weeklyReport({
         days: [
@@ -108,20 +106,19 @@ describe("WeeklySummaryView", () => {
         ],
       }),
     );
-    const onOpenDay = vi.fn<(day: string) => void>();
-    await renderView(onOpenDay);
-
-    const strip = screen.getByRole("list", { name: "Haftanın günleri" });
-    expect(within(strip).getByText("Bugün")).toBeInTheDocument();
-    expect(within(strip).getByText("Eksik Bilgi")).toBeInTheDocument();
+    await renderView();
 
     const side = screen.getByRole("region", { name: "Günlük raporlar" });
-    await userEvent.click(
-      within(side).getByRole("button", {
+    expect(
+      within(side).getByRole("link", {
         name: "Per · 12 Kasım, Eksik Bilgi: günlük raporunu aç",
       }),
+    ).toHaveAttribute(
+      "href",
+      "/student/peer-mentoring?tab=report&view=daily&day=2026-11-12",
     );
-    expect(onOpenDay).toHaveBeenCalledWith("2026-11-12");
+    // The report tab shell draws the week's day strip; this view starts with Haftanın özeti.
+    expect(screen.queryByText("Bugün")).not.toBeInTheDocument();
   });
 
   it("saves the draft with the typed answers", async () => {

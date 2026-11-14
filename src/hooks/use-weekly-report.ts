@@ -16,7 +16,6 @@ import { peerReportBadge } from "@/lib/peer-reports";
 import {
   isWeeklyLate,
   menteeFirstNames,
-  reportToday,
   toWeeklyInput,
   WEEKLY_QUESTIONS,
   weeklyAnswers,
@@ -136,7 +135,7 @@ export function useWeeklyReport(weekStart: string) {
     checklist: report ? weeklyChecklist(report, answers) : [],
     block,
     late: report ? isWeeklyLate(report, now) : false,
-    days: report ? weeklyDayCards(report.days, reportToday(now)) : [],
+    days: report ? weeklyDayCards(report.days) : [],
     skillBars: report ? weeklySkillBars(report.summary) : [],
     menteeNames: report ? menteeFirstNames(report.summary) : [],
     blockReason: weeklySubmitReason(block),

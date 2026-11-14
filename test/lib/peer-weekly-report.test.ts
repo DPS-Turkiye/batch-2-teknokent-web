@@ -11,8 +11,8 @@ import {
   missingMeetingReports,
   outcomeActionProgress,
   outcomeLines,
+  peerDailyReportHref,
   peerMeetingReportHref,
-  reportToday,
   toWeeklyInput,
   weeklyAnswers,
   weeklyChecklist,
@@ -301,28 +301,21 @@ describe("formatting", () => {
 });
 
 describe("weeklyDayCards", () => {
-  it("gives each day its pill, Eksik Bilgi for a missing meeting report, and marks today", () => {
+  it("gives each day its pill, Eksik Bilgi for a missing meeting report", () => {
     expect(
-      weeklyDayCards(
-        [
-          reportDay({ date: "2026-11-09" }),
-          reportDay({
-            date: "2026-11-12",
-            status: null,
-            missingMeetingReports: 1,
-          }),
-          reportDay({ date: "2026-11-13", status: null }),
-        ],
-        "2026-11-13",
-      ),
+      weeklyDayCards([
+        reportDay({ date: "2026-11-09" }),
+        reportDay({
+          date: "2026-11-12",
+          status: null,
+          missingMeetingReports: 1,
+        }),
+        reportDay({ date: "2026-11-13", status: null }),
+      ]),
     ).toEqual([
-      { date: "2026-11-09", badge: PeerReportBadge.Approved, isToday: false },
-      {
-        date: "2026-11-12",
-        badge: PeerReportBadge.MissingInfo,
-        isToday: false,
-      },
-      { date: "2026-11-13", badge: null, isToday: true },
+      { date: "2026-11-09", badge: PeerReportBadge.Approved },
+      { date: "2026-11-12", badge: PeerReportBadge.MissingInfo },
+      { date: "2026-11-13", badge: null },
     ]);
   });
 });
@@ -471,8 +464,9 @@ describe("edge cases", () => {
     expect(formatReportTime("x", "tr")).toBe("");
   });
 
-  it("takes today from the program's clock, not the browser's", () => {
-    // 23:30 UTC on Sunday is already Monday in Istanbul.
-    expect(reportToday(new Date("2026-11-15T23:30:00Z"))).toBe("2026-11-16");
+  it("links a day's report in the report tab's daily view", () => {
+    expect(peerDailyReportHref("2026-11-12")).toBe(
+      "/student/peer-mentoring?tab=report&view=daily&day=2026-11-12",
+    );
   });
 });
