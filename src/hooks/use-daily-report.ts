@@ -12,6 +12,7 @@ import { useReceivedPeerRequests } from "@/hooks/use-peer-mentor-give";
 import type {
   PeerDailyReport,
   PeerMentorSkill,
+  SavePeerActivityInput,
 } from "@/interfaces/peer-reports";
 import { ToastTone } from "@/interfaces/toast";
 import {
@@ -112,7 +113,7 @@ export function useDailyReport(day: string) {
   });
 
   const addActivity = useMutation({
-    mutationFn: addPeerActivity,
+    mutationFn: (input: SavePeerActivityInput) => addPeerActivity(input),
     onSuccess: () => {
       setActivityForm(null);
       void queryClient.invalidateQueries({ queryKey: key });
@@ -123,7 +124,7 @@ export function useDailyReport(day: string) {
   });
 
   const removeActivity = useMutation({
-    mutationFn: deletePeerActivity,
+    mutationFn: (activityId: string) => deletePeerActivity(activityId),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: key });
       refreshOtherReportViews(queryClient, key);
