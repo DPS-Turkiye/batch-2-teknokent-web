@@ -406,6 +406,10 @@ export function useAcademicianAppointmentsCalendar(
       openPropose: () => {
         replace({ ...search, step: RequestStep.Propose });
       },
+      // The profile pop-up stands in for the drawer the same way, so "Kapat" lands back on the request.
+      openProfile: () => {
+        replace({ ...search, step: RequestStep.Profile });
+      },
       backToRequest: () => {
         replace({ ...search, step: RequestStep.Detail });
       },
