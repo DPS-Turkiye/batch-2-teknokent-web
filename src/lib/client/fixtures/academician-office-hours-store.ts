@@ -132,6 +132,11 @@ export function saveSampleAvailability(
       ...oneOff,
       id: `sample-one-off-${index + 1}`,
     })),
+    // A source names every day off too, so one can be edited or removed later.
+    exceptions: payload.exceptions.map((exception, index) => ({
+      ...exception,
+      id: exception.id ?? `sample-exception-${index + 1}`,
+    })),
   };
   return structuredClone(state.availability);
 }

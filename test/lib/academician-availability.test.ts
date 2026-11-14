@@ -3,11 +3,24 @@ import { describe, expect, it } from "vitest";
 import { Weekday } from "@/interfaces/mentor";
 import {
   availabilitySummary,
+  dayOffError,
   hasAvailability,
   isDayOff,
+  oneOffError,
+  ruleError,
+  toAvailabilityPayload,
   weekAvailability,
+  withDayOff,
+  withOneOff,
+  withoutDayOff,
+  withoutOneOff,
+  withoutRule,
+  withRule,
 } from "@/lib/academician-availability";
-import { AvailabilityItemKind } from "@/types/academician-office-hours";
+import {
+  AvailabilityFormError,
+  AvailabilityItemKind,
+} from "@/types/academician-office-hours";
 import {
   academicianAvailability,
   halfHour,
@@ -157,5 +170,271 @@ describe("weekAvailability", () => {
     expect(
       weekAvailability(academicianAvailability({ rules: [] }), NOW),
     ).toEqual({ minutes: 0, weekdays: [] });
+  });
+});
+
+describe("availability edits", () => {
+  const availability = academicianAvailability({
+    exceptions: [
+      {
+        id: "conference",
+        startsOn: "2026-11-20",
+        endsOn: "2026-11-21",
+        reason: "Konferans",
+      },
+    ],
+    oneOffs: [ONE_OFF_FRIDAY],
+  });
+
+  it("sends everything without the ids the source hands out", () => {
+    expect(toAvailabilityPayload(availability)).toEqual({
+      rules: [
+        {
+          dayOfWeek: Weekday.Thursday,
+          startTime: "14:00",
+          endTime: "16:00",
+          slotMinutes: 30,
+        },
+        {
+          dayOfWeek: Weekday.Tuesday,
+          startTime: "10:00",
+          endTime: "12:00",
+          slotMinutes: 30,
+        },
+      ],
+      exceptions: availability.exceptions,
+      menteeCapacity: null,
+      defaultMeetingDurationMinutes: 30,
+      meetingBufferMinutes: 0,
+      oneOffs: [
+        {
+          startsAt: ONE_OFF_FRIDAY.startsAt,
+          endsAt: ONE_OFF_FRIDAY.endsAt,
+          place: null,
+        },
+      ],
+    });
+  });
+
+  it("adds, replaces and removes a weekly range", () => {
+    const monday = {
+      dayOfWeek: Weekday.Monday,
+      startTime: "09:00",
+      endTime: "10:00",
+    };
+    expect(withRule(availability, monday, null).rules).toHaveLength(3);
+    expect(withRule(availability, monday, "rule-tuesday").rules).toEqual([
+      expect.objectContaining({ dayOfWeek: Weekday.Thursday }),
+      { ...monday, slotMinutes: 30 },
+    ]);
+    expect(withoutRule(availability, "rule-thursday").rules).toEqual([
+      expect.objectContaining({ dayOfWeek: Weekday.Tuesday }),
+    ]);
+  });
+
+  it("keeps an edited weekly range's own slot length", () => {
+    const longer = {
+      ...availability,
+      rules: availability.rules.map((rule) =>
+        rule.id === "rule-tuesday" ? { ...rule, slotMinutes: 45 } : rule,
+      ),
+    };
+    const afternoon = {
+      dayOfWeek: Weekday.Tuesday,
+      startTime: "13:00",
+      endTime: "15:00",
+    };
+    expect(withRule(longer, afternoon, "rule-tuesday").rules).toContainEqual({
+      ...afternoon,
+      slotMinutes: 45,
+    });
+    expect(withRule(longer, afternoon, null).rules).toContainEqual({
+      ...afternoon,
+      slotMinutes: 30,
+    });
+  });
+
+  it("adds one-off hours in Turkey time, place trimmed, and removes them", () => {
+    expect(
+      withOneOff(
+        availability,
+        {
+          date: "2026-11-17",
+          startTime: "15:00",
+          endTime: "16:30",
+          place: "  B-110 ",
+        },
+        null,
+      ).oneOffs.at(-1),
+    ).toEqual({
+      startsAt: "2026-11-17T15:00:00+03:00",
+      endsAt: "2026-11-17T16:30:00+03:00",
+      place: "B-110",
+    });
+    expect(withoutOneOff(availability, "one-off-friday").oneOffs).toEqual([]);
+  });
+
+  it("adds a one-day day off, edits one keeping its id, and removes it", () => {
+    expect(
+      withDayOff(
+        availability,
+        { startsOn: "2026-11-25", endsOn: "", reason: " " },
+        null,
+      ).exceptions.at(-1),
+    ).toEqual({ startsOn: "2026-11-25", endsOn: "2026-11-25", reason: null });
+    expect(
+      withDayOff(
+        availability,
+        { startsOn: "2026-11-20", endsOn: "2026-11-22", reason: "Kongre" },
+        "conference",
+      ).exceptions,
+    ).toEqual([
+      {
+        id: "conference",
+        startsOn: "2026-11-20",
+        endsOn: "2026-11-22",
+        reason: "Kongre",
+      },
+    ]);
+    expect(withoutDayOff(availability, "conference").exceptions).toEqual([]);
+  });
+});
+
+describe("availability validation", () => {
+  const availability = academicianAvailability({
+    exceptions: [
+      { id: "off", startsOn: "2026-11-18", endsOn: "2026-11-18", reason: null },
+    ],
+    oneOffs: [ONE_OFF_FRIDAY],
+  });
+
+  it("checks a weekly range for times, order and a clash on the same day", () => {
+    const tuesday = (startTime: string, endTime: string) => ({
+      dayOfWeek: Weekday.Tuesday,
+      startTime,
+      endTime,
+    });
+    expect(ruleError(tuesday("", "12:00"), availability.rules, null)).toBe(
+      AvailabilityFormError.NeedFields,
+    );
+    expect(ruleError(tuesday("12:00", "11:00"), availability.rules, null)).toBe(
+      AvailabilityFormError.EndAfterStart,
+    );
+    expect(ruleError(tuesday("11:00", "13:00"), availability.rules, null)).toBe(
+      AvailabilityFormError.Overlap,
+    );
+    expect(
+      ruleError(tuesday("11:00", "13:00"), availability.rules, "rule-tuesday"),
+    ).toBeNull();
+    expect(
+      ruleError(tuesday("12:00", "13:00"), availability.rules, null),
+    ).toBeNull();
+  });
+
+  it("checks one-off hours for the past, a day off and a clash", () => {
+    const oneOff = (date: string, startTime: string, endTime: string) => ({
+      date,
+      startTime,
+      endTime,
+      place: "",
+    });
+    expect(
+      oneOffError(oneOff("", "10:00", "11:00"), availability, null, NOW),
+    ).toBe(AvailabilityFormError.NeedFields);
+    expect(
+      oneOffError(
+        oneOff("2026-11-17", "11:00", "10:00"),
+        availability,
+        null,
+        NOW,
+      ),
+    ).toBe(AvailabilityFormError.EndAfterStart);
+    expect(
+      oneOffError(
+        oneOff("2026-11-10", "09:00", "09:30"),
+        availability,
+        null,
+        NOW,
+      ),
+    ).toBe(AvailabilityFormError.Past);
+    expect(
+      oneOffError(
+        oneOff("2026-11-18", "10:00", "11:00"),
+        availability,
+        null,
+        NOW,
+      ),
+    ).toBe(AvailabilityFormError.InsideDayOff);
+    expect(
+      oneOffError(
+        oneOff("2026-11-13", "11:30", "12:30"),
+        availability,
+        null,
+        NOW,
+      ),
+    ).toBe(AvailabilityFormError.Overlap);
+    expect(
+      oneOffError(
+        oneOff("2026-11-13", "11:30", "12:30"),
+        availability,
+        "one-off-friday",
+        NOW,
+      ),
+    ).toBeNull();
+  });
+
+  it("checks a day off for a start, the order and the same days again", () => {
+    expect(
+      dayOffError(
+        { startsOn: "", endsOn: "", reason: "" },
+        availability,
+        null,
+        NOW,
+      ),
+    ).toBe(AvailabilityFormError.NeedFields);
+    expect(
+      dayOffError(
+        { startsOn: "2026-11-20", endsOn: "2026-11-19", reason: "" },
+        availability,
+        null,
+        NOW,
+      ),
+    ).toBe(AvailabilityFormError.EndAfterStart);
+    expect(
+      dayOffError(
+        { startsOn: "2026-11-17", endsOn: "2026-11-18", reason: "" },
+        availability,
+        null,
+        NOW,
+      ),
+    ).toBe(AvailabilityFormError.Overlap);
+    expect(
+      dayOffError(
+        { startsOn: "2026-11-18", endsOn: "", reason: "" },
+        availability,
+        "off",
+        NOW,
+      ),
+    ).toBeNull();
+  });
+
+  it("refuses a day off over one-off hours still ahead, which it would hide", () => {
+    expect(
+      dayOffError(
+        { startsOn: "2026-11-12", endsOn: "2026-11-13", reason: "" },
+        availability,
+        null,
+        NOW,
+      ),
+    ).toBe(AvailabilityFormError.HidesOneOff);
+    const withPast = { ...availability, oneOffs: [ONE_OFF_PAST] };
+    expect(
+      dayOffError(
+        { startsOn: "2026-11-09", endsOn: "2026-11-13", reason: "" },
+        withPast,
+        null,
+        NOW,
+      ),
+    ).toBeNull();
   });
 });
