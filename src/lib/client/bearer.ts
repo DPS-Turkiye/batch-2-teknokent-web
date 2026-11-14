@@ -10,3 +10,12 @@ export async function bearerHeader(signInText?: string) {
   if (!token) throw new Error(signInText ?? clientText("sessionExpired"));
   return { Authorization: `Bearer ${token}` };
 }
+
+/**
+ * The token when there is one, else no header: for calls the proxy can also make on its own credentials, where
+ * the token only lets the backend count the call against that person.
+ */
+export async function optionalBearerHeader(): Promise<Record<string, string>> {
+  const token = await currentIdToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}

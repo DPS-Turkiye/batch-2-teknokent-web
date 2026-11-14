@@ -12,13 +12,16 @@ import { NotificationMenu } from "@/components/common/notification-menu";
 import { FeedbackButton } from "@/components/dashboard/feedback-button";
 import { AccountSettingsDialog } from "@/components/hoc/account-dialogs";
 import { WorkspaceSwitcher } from "@/components/hoc/workspace-switcher";
+import { ProductTour } from "@/components/product-tour/product-tour";
 import {
   useAppSession,
   useSession,
 } from "@/components/providers/session-provider";
+import { useEdition } from "@/hooks/use-edition";
 import { useRoleGate } from "@/hooks/use-role-gate";
 import { UserRole } from "@/interfaces/session";
 import { Workspace } from "@/interfaces/workspace";
+import { openNavItems } from "@/lib/edition-nav";
 import { initials } from "@/lib/utils";
 import type messages from "@/messages/tr.json";
 import { IaAccent } from "@/types/ia-theme";
@@ -94,6 +97,7 @@ export function RoleFrame({
       roleLabel={roleLabel}
     >
       {children}
+      {workspace ? <ProductTour workspace={workspace} /> : null}
     </RoleShell>
   );
 }
@@ -116,6 +120,7 @@ function RoleShell({
 }) {
   const pathname = usePathname();
   const session = useAppSession();
+  const shownNav = openNavItems(useEdition(), nav);
   const { logout } = useSession();
   const t = useTranslations("appShell");
   const tFrame = useTranslations("roleFrame");
@@ -145,7 +150,7 @@ function RoleShell({
             aria-label={tFrame(menuLabel)}
             className="hidden items-center gap-0.5 rounded-full border border-border-subtle bg-background-surface p-1.5 shadow-hover lg:flex"
           >
-            {nav.map((item) => (
+            {shownNav.map((item) => (
               <NavLink
                 key={item.href}
                 item={item}
@@ -235,7 +240,7 @@ function RoleShell({
             aria-label={tFrame(menuLabel)}
             className="space-y-1 border-t border-[#f0f2f4] px-4 py-3 lg:hidden"
           >
-            {nav.map((item) =>
+            {shownNav.map((item) =>
               item.disabled ? (
                 <span
                   key={item.href}

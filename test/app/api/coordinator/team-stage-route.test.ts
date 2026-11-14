@@ -1,16 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  GET,
-  PUT,
-} from "@/app/api/coordinator/programs/[id]/team-details/[organizationId]/stage/route";
+import { GET } from "@/app/api/coordinator/programs/[id]/team-details/[organizationId]/stage/route";
 import { UserRole } from "@/interfaces/session";
-import { StartupStage } from "@/interfaces/startup-process";
 import { fetchProgramTeamDetail } from "@/lib/api/coordinator-programs";
-import {
-  fetchStartupProcess,
-  updateProcessStage,
-} from "@/lib/api/startup-process";
+import { fetchStartupProcess } from "@/lib/api/startup-process";
 import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 import {
   answerEachWith,
@@ -25,7 +18,6 @@ vi.mock("@/lib/api/coordinator-programs", () => ({
 }));
 vi.mock("@/lib/api/startup-process", () => ({
   fetchStartupProcess: vi.fn(),
-  updateProcessStage: vi.fn(),
 }));
 vi.mock("@/lib/server/require-coordinator", () => ({
   requireCoordinatorOrAdminSession: vi.fn(),
@@ -35,13 +27,8 @@ const ok = backendResponse({});
 const params = {
   params: Promise.resolve({ id: "program-1", organizationId: "org-1" }),
 };
-const put = (value: unknown) =>
-  new Request("http://localhost", {
-    method: "PUT",
-    body: JSON.stringify(value),
-  });
 
-describe("coordinator team stage route", () => {
+describe("coordinator team process route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(requireCoordinatorOrAdminSession).mockResolvedValue({
@@ -51,13 +38,10 @@ describe("coordinator team stage route", () => {
         role: UserRole.Coordinator,
       }),
     });
-    answerEachWith(
-      [fetchProgramTeamDetail, fetchStartupProcess, updateProcessStage],
-      ok,
-    );
+    answerEachWith([fetchProgramTeamDetail, fetchStartupProcess], ok);
   });
 
-  it("reads and changes the stage of a team in the coordinator's program", async () => {
+  it("reads the process of a team in the coordinator's program", async () => {
     expect((await GET(new Request("http://localhost"), params)).status).toBe(
       200,
     );
@@ -67,13 +51,6 @@ describe("coordinator team stage route", () => {
       "org-1",
     );
     expect(fetchStartupProcess).toHaveBeenCalledWith("org-1", "coordinator-1");
-
-    expect((await PUT(put({ stage: "MARKET" }), params)).status).toBe(200);
-    expect(updateProcessStage).toHaveBeenCalledWith(
-      "org-1",
-      "coordinator-1",
-      StartupStage.Market,
-    );
   });
 
   it("refuses a team outside the coordinator's programs", async () => {
@@ -81,11 +58,9 @@ describe("coordinator team stage route", () => {
       backendRefusal(404, { message: "Not found" }),
     );
 
-    expect((await PUT(put({ stage: "MARKET" }), params)).status).toBe(404);
     expect((await GET(new Request("http://localhost"), params)).status).toBe(
       404,
     );
-    expect(updateProcessStage).not.toHaveBeenCalled();
     expect(fetchStartupProcess).not.toHaveBeenCalled();
   });
 
@@ -94,15 +69,9 @@ describe("coordinator team stage route", () => {
       guardRefusal(403),
     );
 
-    expect((await PUT(put({ stage: "MARKET" }), params)).status).toBe(403);
+    expect((await GET(new Request("http://localhost"), params)).status).toBe(
+      403,
+    );
     expect(fetchProgramTeamDetail).not.toHaveBeenCalled();
-    expect(updateProcessStage).not.toHaveBeenCalled();
-  });
-
-  it("rejects a stage that does not exist", async () => {
-    const response = await PUT(put({ stage: "LAUNCH" }), params);
-
-    expect(response.status).toBe(400);
-    expect(updateProcessStage).not.toHaveBeenCalled();
   });
 });

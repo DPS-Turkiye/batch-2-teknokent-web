@@ -53,8 +53,8 @@ export function SignupWizardView({ account }: { account: RegisteredAccount }) {
   const { exit, exiting } = useOnboardingExit(wizard.saveDraft);
 
   if (wizard.submitted) {
-    // Someone who signed up without a startup is approved as a person; the startup comes later.
-    const solo = wizard.draft.startup.startupLater;
+    // An individual program (İŞKUR) has no startup: its student waits for the peer mentoring area instead.
+    const solo = wizard.draft.startup.individualProgram ?? false;
     const startupName = solo ? "" : wizard.draft.startup.name.trim();
     return (
       <OnboardingSubmittedView
@@ -62,15 +62,15 @@ export function SignupWizardView({ account }: { account: RegisteredAccount }) {
         name={startupName || signupFullName(wizard.draft)}
         title={
           solo
-            ? copy("soloSubmittedTitle")
+            ? copy("individualSubmittedTitle")
             : copy("submittedTitle", {
                 name: startupName || copy("submittedFallbackName"),
               })
         }
         submittedAt={submittedAt ?? new Date()}
-        lastStepLabel={copy(solo ? "soloLastStepLabel" : "lastStepLabel")}
+        lastStepLabel={copy(solo ? "individualLastStepLabel" : "lastStepLabel")}
         nextSteps={stringList(
-          copy.raw(solo ? "soloNextSteps" : "nextSteps") as unknown,
+          copy.raw(solo ? "individualNextSteps" : "nextSteps") as unknown,
         )}
         onSignOut={exit}
         signingOut={exiting}

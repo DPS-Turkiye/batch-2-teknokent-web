@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import "server-only";
+import { z } from "zod";
 
 import {
   apiText,
@@ -22,6 +23,24 @@ export async function readUuidParam(
   message: ApiTextKey,
 ): Promise<PathId> {
   if (isUuid(value)) return { ok: true, id: value };
+  return {
+    ok: false,
+    response: NextResponse.json(
+      { code: INVALID_REQUEST, message: await apiText(message), fields: [] },
+      { status: 400 },
+    ),
+  };
+}
+
+export type PathDay =
+  { ok: true; day: string } | { ok: false; response: NextResponse };
+
+/** A calendar day ("2026-11-12") from the URL; an impossible one ("2026-02-30") answers 400 like a malformed one. */
+export async function readIsoDayParam(
+  value: string,
+  message: ApiTextKey = "dateInvalid",
+): Promise<PathDay> {
+  if (z.iso.date().safeParse(value).success) return { ok: true, day: value };
   return {
     ok: false,
     response: NextResponse.json(

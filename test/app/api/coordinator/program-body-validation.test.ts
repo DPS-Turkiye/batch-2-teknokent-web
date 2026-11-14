@@ -19,7 +19,6 @@ import { PUT as updateTeamRoute } from "@/app/api/coordinator/programs/[id]/team
 import { POST as addTeamsRoute } from "@/app/api/coordinator/programs/[id]/teams/route";
 import { PUT as saveTrainingRoute } from "@/app/api/coordinator/programs/[id]/training/route";
 import { POST as createProgramRoute } from "@/app/api/coordinator/programs/route";
-import { POST as extractPhasesRoute } from "@/app/api/coordinator/programs/syllabus/phases/route";
 import { ProgramEventKind } from "@/interfaces/coordinator-program";
 import { PeerTopicCategory } from "@/interfaces/peer-mentoring";
 import { ProgramType } from "@/interfaces/program";
@@ -32,6 +31,7 @@ import * as proposals from "@/lib/api/meeting-proposals";
 import * as announcements from "@/lib/api/program-announcements";
 import * as peerCategories from "@/lib/api/program-peer-categories";
 import * as training from "@/lib/api/training";
+import { requireAdminSession } from "@/lib/server/require-admin";
 import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 import {
   answerAllWith200,
@@ -50,10 +50,14 @@ vi.mock("@/lib/api/training");
 vi.mock("@/lib/server/require-coordinator", () => ({
   requireCoordinatorOrAdminSession: vi.fn(),
 }));
+vi.mock("@/lib/server/require-admin", () => ({
+  requireAdminSession: vi.fn(),
+}));
 
 const program = { params: Promise.resolve({ id: "program-1" }) };
 const mentorship = { params: Promise.resolve({ id: "mentorship-1" }) };
 const ME = "coordinator-1";
+const COORDINATOR_ID = "5d0c1e6a-0f43-4c4b-9a54-6f2d6c1b7e21";
 
 const rules = {
   name: "METU",
@@ -92,8 +96,10 @@ const cases: BodyCase[] = [
         startDate: null,
         endDate: null,
         coordinatorIds: ["c-2"],
+        newCoordinators: [],
         phases: [
           {
+            id: null,
             name: "Başvuru",
             startDate: "2026-09-01",
             endDate: null,
@@ -110,6 +116,21 @@ const cases: BodyCase[] = [
         coordinatorIds: [],
       },
       "a missing program type": { name: "X", coordinatorIds: [] },
+      "the same e-mail invited twice": {
+        type: "PEER_MENTORING",
+        name: "X",
+        coordinatorIds: [],
+        newCoordinators: [
+          { fullName: "Yeni", email: "yeni@x.org" },
+          { fullName: "Yeni Kişi", email: "Yeni@X.org" },
+        ],
+      },
+      "an invited coordinator without a name": {
+        type: "PEER_MENTORING",
+        name: "X",
+        coordinatorIds: [],
+        newCoordinators: [{ email: "yeni@teknokent.org" }],
+      },
       "a rule sent as text": {
         type: "PEER_MENTORING",
         name: "X",
@@ -187,6 +208,7 @@ const cases: BodyCase[] = [
       "program-1",
       [
         {
+          id: null,
           name: "Doğrulama",
           startDate: null,
           endDate: null,
@@ -237,20 +259,6 @@ const cases: BodyCase[] = [
     invalid: { "a missing lead email": { teamName: "Tohum" } },
   },
   {
-    route: "POST /api/coordinator/programs/syllabus/phases",
-    send: (request) => extractPhasesRoute(request),
-    valid: { documentId: "doc-1", startDate: "", endDate: "2026-12-01" },
-    backend: programs.extractSyllabusPhases,
-    expected: [
-      ME,
-      { documentId: "doc-1", startDate: null, endDate: "2026-12-01" },
-    ],
-    invalid: {
-      "a missing document": { startDate: null },
-      "a date of the wrong type": { documentId: "doc-1", startDate: 5 },
-    },
-  },
-  {
     route: "POST /api/coordinator/programs/[id]/approvals/[kind]/[targetId]",
     send: (request) =>
       decideApprovalRoute(request, {
@@ -280,10 +288,24 @@ const cases: BodyCase[] = [
   {
     route: "POST /api/coordinator/programs/[id]/coordinators",
     send: (request) => addCoordinatorRoute(request, program),
-    valid: { userId: "c-2" },
+    valid: { userId: COORDINATOR_ID },
     backend: programs.addProgramCoordinator,
-    expected: [ME, "program-1", "c-2"],
-    invalid: { "a user id of the wrong type": { userId: 2 } },
+    expected: [ME, "program-1", { userId: COORDINATOR_ID }],
+    invalid: {
+      "a user id of the wrong type": { userId: 2 },
+      "a user id that is not an id": { userId: "c-2" },
+      "neither a user nor an invite": {},
+      "both a user and an invite": {
+        userId: COORDINATOR_ID,
+        invite: { fullName: "Yeni", email: "yeni@x.org" },
+      },
+      "an invite whose e-mail is not one": {
+        invite: { fullName: "Yeni", email: "yeni" },
+      },
+      "an invite with a blank name": {
+        invite: { fullName: " ", email: "yeni@x.org" },
+      },
+    },
   },
   {
     route: "POST /api/coordinator/programs/[id]/eligible-emails",
@@ -415,6 +437,10 @@ describe.each(cases)("$route", (bodyCase) => {
     vi.mocked(requireCoordinatorOrAdminSession).mockResolvedValue({
       ok: true,
       session: appSession({ userId: ME, role: UserRole.Coordinator }),
+    });
+    vi.mocked(requireAdminSession).mockResolvedValue({
+      ok: true,
+      session: appSession({ userId: ME, role: UserRole.Admin }),
     });
     answerAllWith200(
       badges,

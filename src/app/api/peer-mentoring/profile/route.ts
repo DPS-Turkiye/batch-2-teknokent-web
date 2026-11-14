@@ -1,11 +1,21 @@
 import type { NextRequest } from "next/server";
 import { z } from "zod";
 
-import { PeerTopicCategory } from "@/interfaces/peer-mentoring";
+import {
+  PeerExperienceKind,
+  PeerTopicCategory,
+  PeerTopicLevel,
+} from "@/interfaces/peer-mentoring";
 import {
   fetchPeerMentorProfile,
   savePeerMentorProfile,
 } from "@/lib/api/peer-mentoring";
+import {
+  PEER_EXPERIENCE_CARDS_MAX,
+  PEER_EXPERIENCE_SUMMARY_MAX,
+  PEER_EXPERIENCE_TITLE_MAX,
+  YEAR_MONTH,
+} from "@/lib/peer-mentoring";
 import {
   apiErrorResponse,
   apiText,
@@ -23,6 +33,19 @@ const peerMentorProfileSchema = z.object({
   erasmus: z.string(),
   helpWith: z.string(),
   linkedinUrl: z.string(),
+  levels: z.partialRecord(z.enum(PeerTopicCategory), z.enum(PeerTopicLevel)),
+  experiences: z
+    .array(
+      z.object({
+        kind: z.enum(PeerExperienceKind),
+        title: z.string().trim().min(1).max(PEER_EXPERIENCE_TITLE_MAX),
+        organization: z.string().max(PEER_EXPERIENCE_TITLE_MAX).nullable(),
+        startedOn: z.string().regex(YEAR_MONTH),
+        endedOn: z.string().regex(YEAR_MONTH).nullable(),
+        summary: z.string().max(PEER_EXPERIENCE_SUMMARY_MAX).nullable(),
+      }),
+    )
+    .max(PEER_EXPERIENCE_CARDS_MAX),
 });
 
 export async function GET() {

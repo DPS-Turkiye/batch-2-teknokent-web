@@ -1,0 +1,17 @@
+{
+  "status": {
+    "draft": "Taslak",
+    "missingInfo": "Eksik Bilgi",
+    "inReview": "İncelemede",
+    "revisionRequested": "Revizyon Gerekli",
+    "approved": "Onaylandı",
+    "completed": "Tamamlandı",
+    "awaitingOutput": "Çıktı Bekliyor",
+    "notStarted": "Henüz başlamadı"
+  },
+  "duration": {
+    "minutes": "{minutes} dk",
+    "hoursMinutes": "{hours} sa {minutes} dk",
+    "recordedNote": "Kayıtlı süre bilgilendirme amaçlıdır; resmi çalışma süresi onayı değildir."
+  }
+}

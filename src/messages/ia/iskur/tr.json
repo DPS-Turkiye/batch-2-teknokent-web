@@ -1,1 +1,473 @@
-{}
+{
+  "requestStatus": {
+    "PENDING": "Onay Bekliyor",
+    "MORE_INFO_REQUESTED": "Bilgi istendi",
+    "COUNTER_PROPOSED": "Yeni öneri",
+    "ACCEPTED": "Kabul edildi",
+    "DECLINED": "Reddedildi",
+    "WITHDRAWN": "Geri çekildi"
+  },
+  "give": {
+    "loading": "Yükleniyor…",
+    "noBadge": {
+      "title": "Mentor olmak için eğitimi tamamla",
+      "body": "Akran mentoru olabilmek için programının mentorluk eğitimini (kısa bir video ve 10 soruluk bir sınav) tamamlayıp rozetini alman gerekiyor. Rozetin doğrulandığında bu alan otomatik açılır; ek onay beklemen gerekmez.",
+      "training": "Eğitime Git",
+      "trainingReason": {
+        "loading": "Eğitim bilgisi yükleniyor…",
+        "notAvailable": "Programının eğitimi henüz yayında değil.",
+        "unavailable": "Eğitim şu an açılamıyor."
+      }
+    },
+    "journey": {
+      "heading": "Mentor olma adımları",
+      "youAreHere": "Şu an buradasın",
+      "earnBadge": {
+        "title": "Rozetini Al",
+        "hint": "Eğitimi tamamla"
+      },
+      "badgeVerified": {
+        "title": "Rozet Doğrulandı",
+        "hint": "Eğitimi tamamlayınca sistem doğrular"
+      },
+      "createProfile": {
+        "title": "Mentor Profilini Oluştur",
+        "hint": "Konular, deneyim ve müsaitlik"
+      },
+      "published": {
+        "title": "Profil Yayında",
+        "hint": "Öğrenciler seni keşfedebilir"
+      }
+    },
+    "cards": {
+      "keepGetting": {
+        "title": "Mentorluk almaya devam et",
+        "body": "Mentorluk Al sekmesinde mentor keşfetmeye ve taleplerini takip etmeye devam edebilirsin."
+      },
+      "badgeMissing": {
+        "title": "Rozetin görünmüyor mu?",
+        "body": "Eğitimi tamamladıysan rozetin hemen verilir. Görünmüyorsa sayfayı yenile; sorun devam ederse program koordinatörüne yaz."
+      },
+      "oneAccount": {
+        "title": "Tek hesap",
+        "body": "Mentor olduğunda ayrı bir hesap açılmaz; mentee ve mentor etkinliklerin aynı hesapta durur."
+      }
+    },
+    "revoked": {
+      "title": "Rozetin geri alındı",
+      "expiredTitle": "Rozetinin süresi doldu",
+      "body": "Akran Mentoru rozetin olmadığı için şu an mentorluk veremezsin. Süren mentorlukların için program koordinatörünle görüş.",
+      "reason": "Neden: {reason}"
+    },
+    "earned": {
+      "title": "Rozetin doğrulandı",
+      "body": "Artık akran mentoru olabilirsin. Mentor profilini oluştur; yayınladığında programındaki öğrenciler seni keşfedebilir.",
+      "createProfile": "Mentor profilini oluştur",
+      "signInAgain": "Rozetin yeni verildi. Mentorluk işlemleri için çıkış yapıp yeniden giriş yap."
+    },
+    "tabs": {
+      "label": "Mentorluk Ver",
+      "requests": "Mentorluk Talepleri",
+      "mentees": "Menteelerim",
+      "availability": "Müsaitliğim ve Kapasitem",
+      "profile": "Mentor Profilim"
+    },
+    "requests": {
+      "empty": "Yanıt bekleyen talep yok.",
+      "sentAt": "Mentorluk talebi · {date}",
+      "quote": "“{message}”",
+      "accept": "Kabul Et",
+      "decline": "Reddet"
+    },
+    "mentees": {
+      "empty": "Henüz kabul ettiğin bir talep yok."
+    },
+    "capacity": {
+      "title": "Kapasiten",
+      "ofCapacity": "/ {capacity} mentee",
+      "noLimit": "mentee",
+      "note": {
+        "unset": "Kapasite belirlemedin; yeni talepler gelmeye devam eder. Müsaitliğim ve Kapasitem sekmesinden belirleyebilirsin.",
+        "open": "Yeni talepleri kabul edebilirsin.",
+        "lastPlace": "Bir talebi kabul edersen kapasiten dolacak. Yeni talepler kapasite açılana kadar sana gelmez.",
+        "full": "Kapasiten dolu. Yeni talepler kapasite açılana kadar sana gelmez."
+      },
+      "valueText": "{used} / {capacity} mentee"
+    },
+    "profileCard": {
+      "title": "Mentor profilin",
+      "published": "Yayında",
+      "edit": "Profili Düzenle"
+    },
+    "profilePanel": {
+      "topics": "Yardımcı olabileceğin konular",
+      "helpWith": "Öğrencilere nasıl yardımcı olabilirsin?",
+      "edit": "Profili Düzenle"
+    },
+    "availability": {
+      "save": "Kaydet",
+      "saving": "Kaydediliyor…"
+    }
+  },
+  "wizard": {
+    "title": "Mentor profilini oluştur",
+    "editTitle": "Mentor profilini düzenle",
+    "progress": "Mentor profilini oluştur · {number}/{total}",
+    "stepsLabel": "Mentor profili adımları",
+    "steps": {
+      "categories": "Mentorluk kategorileri",
+      "subtopics": "Alt konular ve uzmanlık",
+      "experience": "İlgili deneyim",
+      "helpWith": "Nasıl yardımcı olabilirsin?",
+      "documents": "Belgeler ve kanıtlar",
+      "availability": "Müsaitlik ve kapasite",
+      "preview": "Önizle"
+    },
+    "headings": {
+      "categories": {
+        "title": "Hangi konularda mentorluk verebilirsin?",
+        "subtitle": "Yalnızca programda aktif olan kategoriler listelenir. En az birini seç."
+      },
+      "subtopics": {
+        "title": "Hangi alt konularda destek verebilirsin?",
+        "subtitle": "Seçtiğin kategorilerdeki alt konuları işaretle."
+      },
+      "experience": {
+        "title": "Bu konulardaki deneyimini paylaş",
+        "subtitle": "Güçlü olduğun dersleri, projelerini ve değişim deneyimini ekle."
+      },
+      "helpWith": {
+        "title": "Öğrencilere nasıl yardımcı olabilirsin?",
+        "subtitle": "Bu metin profilinde öne çıkar. Öğrenciler mentor seçerken en çok bu açıklamaya bakar."
+      },
+      "documents": {
+        "title": "Deneyimini belgelerle destekle",
+        "subtitle": "Seçtiğin kategorilere göre bazı belgeler istenir. Profilinde neyin görüneceğine sen karar verirsin."
+      },
+      "availability": {
+        "title": "Ne zaman müsaitsin?",
+        "subtitle": "Haftalık müsaitliğini ve aynı anda kaç mentee ile çalışabileceğini belirle."
+      },
+      "preview": {
+        "title": "Profilin öğrencilere böyle görünecek",
+        "subtitle": "Yayınlamadan önce kontrol et. İstediğin zaman Mentor Profilim'den düzenleyebilirsin."
+      }
+    },
+    "badge": {
+      "title": "Rozetin doğrulandı",
+      "body": "Profilini yayınladığında öğrenciler seni keşfedebilir."
+    },
+    "matchingNote": "Eşleştirme kategori, alt konu, deneyim ve müsaitliğe göre yapılır. CV tek başına belirleyici değildir.",
+    "noCategories": "Programında henüz aktif bir kategori yok. Program koordinatörün açtığında burada görünür.",
+    "noSubtopics": "Seçtiğin kategorilerde alt konu yok.",
+    "subtopicCount": "{count} alt konu seçildi",
+    "subtopicsNote": "Bir sonraki adımda bu konulardaki deneyimini paylaşabilirsin.",
+    "soon": "Yakında",
+    "level": {
+      "label": "Deneyim düzeyin",
+      "basic": "Temel",
+      "intermediate": "Orta",
+      "advanced": "İleri"
+    },
+    "experience": {
+      "title": "Deneyimlerin",
+      "strongCourses": "Güçlü olduğun dersler",
+      "projects": "Projelerin",
+      "erasmus": "Yurt dışı / değişim deneyimin (isteğe bağlı)",
+      "onePerLine": "Her satıra bir tane.",
+      "cardsTitle": "Deneyim kartların",
+      "cardsHint": "Staj, proje, kulüp veya iş deneyimlerini ekle.",
+      "newCard": "Yeni deneyim",
+      "editCard": "Deneyimi düzenle",
+      "cardTitle": "Deneyim başlığı",
+      "organization": "Kurum / kuruluş",
+      "startedOn": "Başlangıç",
+      "endedOn": "Bitiş",
+      "endedOnHint": "Devam ediyorsa boş bırak.",
+      "summary": "Kısa açıklama",
+      "cancel": "Vazgeç",
+      "save": "Deneyimi Kaydet",
+      "add": "Deneyim ekle",
+      "addAnother": "Başka deneyim ekle",
+      "edit": "Düzenle",
+      "remove": "Kaldır",
+      "range": "{start} – {end}",
+      "ongoing": "Devam ediyor",
+      "evidenceSoon": "Deneyimi bir belgeyle desteklemek yakında.",
+      "problems": {
+        "title": "Deneyim başlığını yaz.",
+        "organization": "Kurumu ya da kuruluşu yaz.",
+        "start": "Başlangıç ayını seç.",
+        "endBeforeStart": "Bitiş, başlangıçtan önce olamaz.",
+        "month": "Ayı 2025-07 biçiminde yaz."
+      },
+      "monthPlaceholder": "YYYY-AA",
+      "missingStart": "Başlangıç ayı eksik: eklemek için düzenle."
+    },
+    "helpWith": {
+      "tipsTitle": "İyi bir açıklama için",
+      "tips": {
+        "concrete": "Hangi konularda somut deneyimin olduğunu yaz",
+        "who": "Kimlere en çok faydalı olabileceğini belirt",
+        "how": "Görüşmelerde nasıl çalıştığını anlat",
+        "noContact": "Kişisel iletişim bilgisi paylaşma"
+      },
+      "label": "Açıklaman",
+      "counter": "En az {min} karakter · {length} / {max}"
+    },
+    "documents": {
+      "linkedin": "LinkedIn",
+      "linkedinPlaceholder": "https://www.linkedin.com/in/…",
+      "portfolio": "Portfolyo veya proje bağlantısı",
+      "portfolioPlaceholder": "https://github.com/…, behance.net veya kişisel site",
+      "addLink": "Bağlantı ekle",
+      "addingLink": "Ekleniyor…",
+      "removeLink": "{url} bağlantısını kaldır",
+      "kinds": {
+        "transcript": "Öğrenci belgesi veya transkript",
+        "cv": "CV",
+        "certificate": "Lisans veya sertifika",
+        "portfolio": "Portfolyo ve bağlantılar",
+        "other": "Diğer materyaller"
+      },
+      "hints": {
+        "requiredFor": "{category} kategorisi için istenir",
+        "requiredIn": "{category} kategorisinde zorunlu olur",
+        "certificate": "Mesleki lisans, sertifika ya da tamamladığın eğitimlerin belgeleri",
+        "other": "Deneyimini destekleyen başka belgeler"
+      },
+      "required": "Zorunlu",
+      "optional": "Opsiyonel",
+      "uploaded": "Yüklendi",
+      "progress": "{done} / {total} zorunlu belge yüklendi",
+      "progressItem": "{category} için {document}",
+      "noRequired": "Seçtiğin kategoriler için zorunlu belge yok; istersen yine de ekleyebilirsin.",
+      "drop": "Dosyanı sürükle bırak veya",
+      "choose": "dosya seç",
+      "formats": "PDF · en fazla {max}",
+      "uploading": "Yükleniyor…",
+      "fileMeta": "{size} · Yüklendi",
+      "removeFile": "{name} dosyasını kaldır",
+      "viewFile": "{name} dosyasını görüntüle",
+      "addMaterial": "Materyal ekle",
+      "otherKindsLabel": "Materyal türü",
+      "visibilityLabel": "{card}: kim görsün?",
+      "visibility": {
+        "VERIFICATION_ONLY": "Yalnızca doğrulama için",
+        "PROFILE": "Profilimde göster"
+      },
+      "types": {
+        "TRANSCRIPT": "Transkript",
+        "CV": "CV",
+        "CERTIFICATE": "Sertifika",
+        "PORTFOLIO": "Portfolyo",
+        "REFERENCE_LETTER": "Referans mektubu",
+        "AWARD": "Ödül / yarışma belgesi",
+        "VOLUNTEERING": "Gönüllülük belgesi",
+        "PROJECT_REPORT": "Proje raporu"
+      },
+      "safeTitle": "Belgelerin güvende",
+      "safeBody": "\"Yalnızca doğrulama için\" seçtiğin belgeleri sadece program koordinatörü doğrulama amacıyla görür. \"Profilimde göster\" seçtiklerin öğrencilere görünür.",
+      "notPdf": "Yalnızca PDF dosyası yükleyebilirsin.",
+      "tooLarge": "Dosya en fazla {max} olabilir.",
+      "linkInvalid": "https:// ile başlayan bir bağlantı gir.",
+      "uploadFailed": "Dosya yüklenemedi.",
+      "linkFailed": "Bağlantı eklenemedi.",
+      "visibilityFailed": "Görünürlük değiştirilemedi.",
+      "removeFailed": "Kaldırılamadı."
+    },
+    "availability": {
+      "title": "Haftalık müsaitlik"
+    },
+    "preview": {
+      "classYear": "{classYear}. sınıf",
+      "peer": "Akran Mentörlüğü",
+      "badgeVerified": "Rozet doğrulandı",
+      "topics": "Yardımcı olabileceği konular",
+      "helpWith": "Öğrencilere nasıl yardımcı olabilirim?",
+      "hours": "Müsaitlik",
+      "hoursRange": "{day} {start} – {end}",
+      "noHours": "Haftalık saat eklenmedi",
+      "capacity": "Kapasite",
+      "capacityValue": "Aynı anda {capacity} mentee",
+      "noCapacity": "Belirlenmedi",
+      "links": "Bağlantıların",
+      "linkShown": "Profilimde gösteriliyor",
+      "noLinks": "Bağlantı eklenmedi",
+      "experience": "İlgili deneyim"
+    },
+    "back": "Geri",
+    "next": "Devam Et",
+    "publish": "Profili Yayınla",
+    "publishing": "Yayınlanıyor…",
+    "saveDraft": "Taslak olarak kaydet",
+    "draftSoon": "Taslak kaydetme yakında.",
+    "published": "Mentor profilin yayında.",
+    "publishFailed": "Profilin yayınlanamadı.",
+    "errors": {
+      "categories": "En az bir kategori seç.",
+      "helpWith": "Bu metin en az {min} karakter olmalı.",
+      "link": "Bağlantı http:// veya https:// ile başlamalı.",
+      "experienceOpen": "Açık deneyimi önce kaydet ya da vazgeç.",
+      "experienceStart": "Başlangıç ayı eksik deneyimleri düzenle."
+    }
+  },
+  "take": {
+    "title": "Akran Mentörlüğü",
+    "subtitle": "ODTÜ öğrencilerinden mentorluk al. Mentorlar eğitimini tamamlamış ve rozeti doğrulanmış öğrencilerdir.",
+    "switchLabel": "Akran mentörlüğü tarafı",
+    "switch": {
+      "get": "Mentorluk Al",
+      "give": "Mentorluk Ver"
+    },
+    "tabs": {
+      "label": "Mentorluk Al",
+      "discover": "Keşfet",
+      "mine": "Mentorluklarım"
+    },
+    "discover": {
+      "categoriesTitle": "Mentorluk kategorileri",
+      "categoriesHint": "Programda aktif olanlar",
+      "noCategories": "Programında henüz etkin akran mentörlüğü kategorisi yok.",
+      "recommendedTitle": "Sana önerilenler",
+      "recommendedHint": "Konu, deneyim ve müsaitliğe göre",
+      "searchTitle": "Mentor ara",
+      "search": "Mentor veya konu ara",
+      "allCategories": "Tüm kategoriler",
+      "categoryFilter": "Kategori",
+      "empty": "Şu an listelenen akran mentoru yok.",
+      "noMatch": "Bu filtrelere uyan akran mentoru yok.",
+      "role": "Akran Mentoru",
+      "classYear": "{year}. sınıf",
+      "why": "Neden önerildi?",
+      "whyInterests": "İlgi alanlarınla eşleşiyor: {topics}",
+      "seeProfile": "Profili Gör",
+      "request": "Mentorluk Talebi Gönder",
+      "requested": "Talebin yanıt bekliyor",
+      "full": "Kontenjan dolu",
+      "nameSuffix": ", {name}",
+      "mentorCount": "{count} mentor",
+      "subTopicFilter": "Alt konu",
+      "allSubTopics": "Tüm alt konular",
+      "availableThisWeek": "Bu hafta müsait",
+      "mentoring": "Zaten mentorun"
+    },
+    "profile": {
+      "back": "Akran Mentörlüğü",
+      "notFound": "Bu akran mentoru bulunamadı ya da artık listelenmiyor.",
+      "peer": "Akran Mentörlüğü",
+      "badgeVerified": "Rozet doğrulandı",
+      "topics": "Yardımcı olabileceği konular",
+      "helpWith": "Öğrencilere nasıl yardımcı olabilirim?",
+      "requestNote": "{name} talebini kabul ettiğinde mentorluk başlar ve görüşme planlayabilirsiniz.",
+      "experience": "İlgili deneyim",
+      "strongCourses": "Güçlü olduğu dersler",
+      "projects": "Projeleri",
+      "erasmus": "Yurt dışı / değişim deneyimi",
+      "links": "Bağlantılar",
+      "linkedin": "LinkedIn profili",
+      "availability": "Müsaitlik",
+      "noHours": "Haftalık saat eklenmemiş.",
+      "hoursRange": "{start} – {end}",
+      "thisWeek": "Bu hafta",
+      "thisWeekOpen": "Boş saat var",
+      "thisWeekFull": "Boş saat yok",
+      "newTab": "(yeni sekmede açılır)",
+      "experienceRange": "{start} – {end}",
+      "ongoing": "Devam ediyor",
+      "sharedDocuments": "Paylaşılan belgeler",
+      "view": "Görüntüle",
+      "viewFile": "{name} dosyasını görüntüle",
+      "portfolioLink": "Portfolyo ({host})"
+    },
+    "dialog": {
+      "title": "Mentorluk talebi gönder",
+      "subtitle": "{name} · Akran Mentoru",
+      "close": "Kapat",
+      "category": "Konu",
+      "message": "Kısa mesaj",
+      "messagePlaceholder": "Örneğin: Yaz stajı için CV'mi birlikte gözden geçirmek istiyorum.",
+      "counter": "Kendini ve beklentini kısaca anlat (en az {min} karakter). {length} / {max}",
+      "messageTooShort": "Mesajın en az {min} karakter olmalı.",
+      "cancel": "Vazgeç",
+      "send": "Mentorluk Talebi Gönder",
+      "sending": "Gönderiliyor…",
+      "sent": "Talebin gönderildi.",
+      "failed": "Talep gönderilemedi."
+    },
+    "mine": {
+      "activeTitle": "Aktif mentorluk",
+      "othersTitle": "Taleplerim",
+      "empty": "Henüz bir mentorluk talebin yok. Keşfet'ten bir akran mentoru seçebilirsin.",
+      "noActive": "Henüz aktif mentorluğun yok.",
+      "noOthers": "Bekleyen ya da kapanmış talebin yok.",
+      "sentAt": "{date} gönderildi",
+      "nextSession": "Sıradaki görüşme: {date}",
+      "seeProfile": "Profili Gör",
+      "book": "Görüşme Planla",
+      "seeAppointment": "Randevuya git",
+      "findAnother": "Başka Mentor Bul",
+      "note": "Mentorluk, mentorunla aranızdaki ilişkidir. Görüşmelerin \"Randevularım\" altında listelenir.",
+      "since": "{day} {month} beri",
+      "sinceMonth": {
+        "jan": "Ocak'tan",
+        "feb": "Şubat'tan",
+        "mar": "Mart'tan",
+        "apr": "Nisan'dan",
+        "may": "Mayıs'tan",
+        "jun": "Haziran'dan",
+        "jul": "Temmuz'dan",
+        "aug": "Ağustos'tan",
+        "sep": "Eylül'den",
+        "oct": "Ekim'den",
+        "nov": "Kasım'dan",
+        "dec": "Aralık'tan"
+      }
+    }
+  },
+  "home": {
+    "giving": {
+      "title": "Mentorluk verdiğim",
+      "hint": "Akran mentoru olarak",
+      "all": "Mentorluk Ver",
+      "empty": "Yanıt bekleyen talep yok.",
+      "new": "Yeni talep",
+      "sentAt": "{topic} · {date}",
+      "accept": "Kabul Et",
+      "decline": "Reddet",
+      "more": "+{count} talep daha"
+    },
+    "mentor": {
+      "title": "Mentor profilin",
+      "active": "Aktif",
+      "badge": "Rozet",
+      "badgeVerified": "Doğrulandı",
+      "capacity": "Kapasite",
+      "capacityValue": "{used} / {capacity} mentee",
+      "noCapacity": "Belirlenmedi",
+      "open": "Mentor Profilim"
+    },
+    "training": {
+      "title": "Akran mentoru ol",
+      "body": "Programının eğitimini tamamla, rozetini al ve diğer öğrencilere mentorluk ver.",
+      "action": "Mentorluk Ver'e git"
+    },
+    "createProfile": {
+      "title": "Rozetin doğrulandı",
+      "body": "Mentor profilini oluştur; yayınladığında öğrenciler seni keşfedebilir.",
+      "action": "Mentor profilini oluştur"
+    }
+  },
+  "appointments": {
+    "filterLabel": "Görüşmelerde rolün",
+    "roles": {
+      "all": "Tümü",
+      "asMentor": "Mentor olarak",
+      "asMentee": "Mentee olarak"
+    },
+    "legend": {
+      "asMentor": "Mentorluk verdiğin görüşmeler",
+      "asMentee": "Mentorluk ya da Office Hours randevusu aldığın görüşmeler"
+    }
+  }
+}

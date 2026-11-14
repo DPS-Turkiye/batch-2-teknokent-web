@@ -8,34 +8,49 @@ import {
   ONBOARDING_TONES,
   OnboardingTone,
 } from "@/components/onboarding/onboarding-tone";
+import { OdtuSignupBanner } from "@/components/signup/odtu-signup-banner";
+import { useLoginChoices } from "@/hooks/use-login-choices";
 import { useOnboardingExit } from "@/hooks/use-onboarding-exit";
-import { SignupRole } from "@/interfaces/signup";
+import type { Edition } from "@/interfaces/edition";
+import type { SignupRole } from "@/interfaces/signup";
+import { SignupCardCopy, signupCards } from "@/lib/signup-cards";
 
-const ROLE_CARDS = [
-  { role: SignupRole.Founder, tone: OnboardingTone.Mentee, copy: "founder" },
-  { role: SignupRole.Mentor, tone: OnboardingTone.Mentor, copy: "mentor" },
-] as const;
-
-const BADGE_CLASSES: Record<OnboardingTone, string> = {
-  [OnboardingTone.Mentee]: "bg-[#fff4ec] text-[#e86f22]",
-  [OnboardingTone.Mentor]: "bg-[#f2f8fc] text-[#1592ea]",
-};
-
-const BULLET_CLASSES: Record<OnboardingTone, string> = {
-  [OnboardingTone.Mentee]: "bg-[#e86f22]",
-  [OnboardingTone.Mentor]: "bg-[#26a4ff]",
+/** Badge, bullets and button of each card: Girişimci orange, Mentor blue, the İŞKUR student ODTÜ red. */
+const CARD_STYLES: Record<
+  SignupCardCopy,
+  { badge: string; bullet: string; button: string }
+> = {
+  [SignupCardCopy.Founder]: {
+    badge: "bg-[#fff4ec] text-[#e86f22]",
+    bullet: "bg-[#e86f22]",
+    button: `${ONBOARDING_TONES[OnboardingTone.Mentee].bg} ${ONBOARDING_TONES[OnboardingTone.Mentee].bgHover}`,
+  },
+  [SignupCardCopy.Mentor]: {
+    badge: "bg-[#f2f8fc] text-[#1592ea]",
+    bullet: "bg-[#26a4ff]",
+    button: `${ONBOARDING_TONES[OnboardingTone.Mentor].bg} ${ONBOARDING_TONES[OnboardingTone.Mentor].bgHover}`,
+  },
+  [SignupCardCopy.Student]: {
+    badge: "bg-brand-odtu-bg text-brand-odtu-primary",
+    bullet: "bg-brand-odtu-primary",
+    button: "bg-brand-odtu-primary hover:opacity-90",
+  },
 };
 
 export function RoleSelectView({
+  edition,
   signedIn,
   onChoose,
 }: {
+  edition: Edition;
   signedIn: boolean;
   onChoose: (role: SignupRole) => void;
 }) {
   const t = useTranslations();
   const copy = useTranslations("roleSelect");
   const { exit, exiting } = useOnboardingExit();
+  const cards = signupCards(edition);
+  const choices = useLoginChoices(edition);
 
   return (
     <div className="flex min-h-screen flex-col bg-white text-[#1f2328]">
@@ -52,9 +67,17 @@ export function RoleSelectView({
           {copy("intro")}
         </p>
 
-        <div className="mt-11 grid w-full gap-5 md:grid-cols-2">
-          {ROLE_CARDS.map((card) => {
-            const tone = ONBOARDING_TONES[card.tone];
+        {choices.odtu ? (
+          <div className="mt-11 w-full">
+            <OdtuSignupBanner />
+          </div>
+        ) : null}
+
+        <div
+          className={`mt-11 grid w-full gap-5 ${cards.length > 1 ? "md:grid-cols-2" : "max-w-[430px]"}`}
+        >
+          {cards.map((card) => {
+            const style = CARD_STYLES[card.copy];
             return (
               <section
                 key={card.role}
@@ -62,7 +85,7 @@ export function RoleSelectView({
                 className="flex flex-col rounded-2xl border border-[#e3e6ea] bg-white p-5 sm:p-[22px]"
               >
                 <span
-                  className={`w-fit rounded-full px-3 py-1 text-[11px] font-medium leading-4 ${BADGE_CLASSES[card.tone]}`}
+                  className={`w-fit rounded-full px-3 py-1 text-[11px] font-medium leading-4 ${style.badge}`}
                 >
                   {copy(`cards.${card.copy}.badge`)}
                 </span>
@@ -84,7 +107,7 @@ export function RoleSelectView({
                       <li key={step} className="flex items-center gap-2">
                         <span
                           aria-hidden
-                          className={`size-1 rounded-full ${BULLET_CLASSES[card.tone]}`}
+                          className={`size-1 rounded-full ${style.bullet}`}
                         />
                         {step}
                       </li>
@@ -94,7 +117,7 @@ export function RoleSelectView({
                 <button
                   type="button"
                   onClick={() => onChoose(card.role)}
-                  className={`mt-5 h-10 w-full rounded-full text-[13px] font-medium text-white ${tone.bg} ${tone.bgHover}`}
+                  className={`mt-5 h-10 w-full rounded-full text-[13px] font-medium text-white ${style.button}`}
                 >
                   {copy(`cards.${card.copy}.action`)}
                 </button>
@@ -103,12 +126,14 @@ export function RoleSelectView({
           })}
         </div>
 
-        <p className="mt-11 text-center text-xs leading-5 text-[#4a5059]">
-          {copy("haveCode")}{" "}
-          <Link href="/invite" className="hover:underline">
-            {copy("codeLink")}
-          </Link>
-        </p>
+        {choices.invite ? (
+          <p className="mt-11 text-center text-xs leading-5 text-[#4a5059]">
+            {copy("haveCode")}{" "}
+            <Link href="/invite" className="hover:underline">
+              {copy("codeLink")}
+            </Link>
+          </p>
+        ) : null}
         {signedIn ? null : (
           <p className="mt-3 text-center text-xs leading-5 text-[#1f2328]">
             {t("register.haveAccount")}{" "}

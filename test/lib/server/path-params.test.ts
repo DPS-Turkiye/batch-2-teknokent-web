@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { readUuidParam } from "@/lib/server/path-params";
+import { readIsoDayParam, readUuidParam } from "@/lib/server/path-params";
 
 describe("readUuidParam", () => {
   it("passes a uuid through unchanged", async () => {
@@ -24,4 +24,29 @@ describe("readUuidParam", () => {
       fields: [],
     });
   });
+});
+
+describe("readIsoDayParam", () => {
+  it("passes a calendar day through unchanged", async () => {
+    await expect(readIsoDayParam("2026-11-12")).resolves.toEqual({
+      ok: true,
+      day: "2026-11-12",
+    });
+  });
+
+  it.each(["2026-02-30", "2026-13-01", "12.11.2026", "..", ""])(
+    "answers 400 for %j, a day that cannot be",
+    async (value) => {
+      const result = await readIsoDayParam(value);
+
+      expect(result.ok).toBe(false);
+      const response = result.ok ? null : result.response;
+      expect(response?.status).toBe(400);
+      expect(await response?.json()).toEqual({
+        code: "INVALID_REQUEST",
+        message: "Geçerli bir tarih seçin.",
+        fields: [],
+      });
+    },
+  );
 });

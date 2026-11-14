@@ -22,7 +22,11 @@ import { POST as shareDocumentRoute } from "@/app/api/startup/documents/[id]/sha
 import { PUT as submitAssignmentRoute } from "@/app/api/startup/process/assignments/[id]/submission/route";
 import { POST as leaveTeamRoute } from "@/app/api/team-changes/leave/route";
 import { POST as trainingAttemptRoute } from "@/app/api/training/peer/attempts/route";
-import { PeerTopicCategory } from "@/interfaces/peer-mentoring";
+import {
+  PeerExperienceKind,
+  PeerTopicCategory,
+  PeerTopicLevel,
+} from "@/interfaces/peer-mentoring";
 import * as conversations from "@/lib/api/coordinator-conversations";
 import * as documentRequests from "@/lib/api/document-requests";
 import * as proposals from "@/lib/api/meeting-proposals";
@@ -78,6 +82,17 @@ const peerProfile = {
   erasmus: "Lizbon",
   helpWith: "Başvuru",
   linkedinUrl: "",
+  levels: { [PeerTopicCategory.International]: PeerTopicLevel.Basic },
+  experiences: [
+    {
+      kind: PeerExperienceKind.Other,
+      title: "Kulüp başkanı",
+      organization: "IEEE ODTÜ",
+      startedOn: "2024-09",
+      endedOn: null,
+      summary: null,
+    },
+  ],
 };
 
 const cases: BodyCase[] = [
@@ -333,6 +348,35 @@ const cases: BodyCase[] = [
       "a missing field (once saved as empty)": {
         ...peerProfile,
         erasmus: undefined,
+      },
+      "an unknown level": {
+        ...peerProfile,
+        levels: { [PeerTopicCategory.International]: "EXPERT" },
+      },
+      "a month written as a date": {
+        ...peerProfile,
+        experiences: [
+          { ...peerProfile.experiences[0], startedOn: "2024-09-01" },
+        ],
+      },
+      "a thirteenth month": {
+        ...peerProfile,
+        experiences: [{ ...peerProfile.experiences[0], endedOn: "2024-13" }],
+      },
+      "a level for an unknown category": {
+        ...peerProfile,
+        levels: { ASTRONOMY: PeerTopicLevel.Basic },
+      },
+      "a card without a title": {
+        ...peerProfile,
+        experiences: [{ ...peerProfile.experiences[0], title: "  " }],
+      },
+      "eleven cards": {
+        ...peerProfile,
+        experiences: Array.from(
+          { length: 11 },
+          () => peerProfile.experiences[0],
+        ),
       },
     },
   },

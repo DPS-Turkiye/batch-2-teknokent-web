@@ -1,14 +1,16 @@
 import type { OptionGroup } from "@/hooks/use-option-label";
-import type { MentorExperience } from "@/interfaces/mentor";
+import { Weekday, type MentorExperience } from "@/interfaces/mentor";
 import {
   PersonProgramRelation,
   type PersonSummary,
+  type PersonSummaryAvailability,
   type PersonSummaryMentor,
   type PersonSummaryProgram,
   type PersonSummaryStartup,
 } from "@/interfaces/person-summary";
 import { ProgramMentorStatus } from "@/interfaces/program";
 import { UserAccountStatus, UserRole } from "@/interfaces/session";
+import { toTimeInput } from "@/lib/mentor-availability";
 import {
   educationLine,
   experienceDetail,
@@ -19,6 +21,7 @@ import {
   SummaryFactKind,
   type KeyedText,
   type PersonSummaryModel,
+  type SummaryAvailability,
   type SummaryFact,
   type SummaryFactLabel,
   type SummaryProgramNote,
@@ -51,6 +54,8 @@ function accountStatus(status: UserAccountStatus): {
       return { tone: "amber", label: "statuses.PENDING" };
     case UserAccountStatus.Rejected:
       return { tone: "red", label: "statuses.REJECTED" };
+    case UserAccountStatus.Deleted:
+      return { tone: "red", label: "statuses.DELETED" };
   }
 }
 
@@ -119,6 +124,43 @@ function mentorModel(mentor: PersonSummaryMentor) {
       key,
       value: key,
     })),
+    availability: availabilityModel(mentor.availability),
+  };
+}
+
+/** Weekly windows grouped by day, Monday first, each as "10:00–12:00"; days without a window are left out. */
+export function availabilityModel(
+  availability: PersonSummaryAvailability,
+): SummaryAvailability {
+  const days = Object.values(Weekday)
+    .map((day) => ({
+      day,
+      ranges: keyedValues(
+        availability.weekly
+          .filter((window) => window.dayOfWeek === day)
+          .map(
+            (window) =>
+              `${toTimeInput(window.startTime)}–${toTimeInput(window.endTime)}`,
+          ),
+      ),
+    }))
+    .filter((day) => day.ranges.length > 0);
+  const daysOff = availability.daysOff.map((dayOff) => ({
+    key: `${dayOff.startsOn}/${dayOff.endsOn}`,
+    startsOn: dayOff.startsOn,
+    endsOn: dayOff.endsOn,
+  }));
+  const extraSlots = availability.extraSlots.map((slot) => ({
+    key: slot.startsAt,
+    startsAt: slot.startsAt,
+    durationMinutes: slot.durationMinutes,
+  }));
+  return {
+    days,
+    daysOff,
+    extraSlots,
+    isEmpty:
+      days.length === 0 && daysOff.length === 0 && extraSlots.length === 0,
   };
 }
 

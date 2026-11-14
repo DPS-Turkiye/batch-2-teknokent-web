@@ -1,9 +1,14 @@
 import { BadgeCode, BadgeKind } from "@/interfaces/badges";
+import { Weekday } from "@/interfaces/mentor";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import {
+  PeerExperienceKind,
   PeerTopicCategory,
+  PeerTopicLevel,
   type CreatePeerMentoringRequestInput,
+  type PeerCategoryCount,
   type PeerMentorCard,
+  type PeerMentorDetail,
   type PeerMentorFilter,
   type PeerMentoringPerson,
   type PeerMentoringRequest,
@@ -30,6 +35,7 @@ export const PEER_MENTORS_FIXTURE: PeerMentorCard[] = [
       "Yazılım stajı başvuruları, CV ve teknik mülakatlara hazırlık konusunda yardımcı olabilirim.",
     recommendationReasons: ["Bu derste güçlü: CENG 242", "Aynı bölüm"],
     capacityFull: false,
+    availableThisWeek: true,
     badges: [
       {
         code: BadgeCode.Sessions10,
@@ -52,6 +58,7 @@ export const PEER_MENTORS_FIXTURE: PeerMentorCard[] = [
       "Erasmus başvurusu, ders denkliği ve yurt dışında bir dönem geçirmek üzerine konuşabiliriz.",
     recommendationReasons: ["Yurt dışı deneyimi var"],
     capacityFull: false,
+    availableThisWeek: false,
     badges: [],
   },
   {
@@ -67,6 +74,7 @@ export const PEER_MENTORS_FIXTURE: PeerMentorCard[] = [
       "Bir proje fikrini prototipe çevirmek ve lisans araştırma projelerine katılmak konusunda deneyimimi paylaşırım.",
     recommendationReasons: ["Benzer bir projede çalıştı"],
     capacityFull: true,
+    availableThisWeek: false,
     badges: [],
   },
   {
@@ -82,6 +90,7 @@ export const PEER_MENTORS_FIXTURE: PeerMentorCard[] = [
       "Kampüse uyum, zaman yönetimi ve kulüplerde sorumluluk almak konusunda yanındayım.",
     recommendationReasons: [],
     capacityFull: false,
+    availableThisWeek: true,
     badges: [],
   },
 ];
@@ -100,22 +109,109 @@ const INITIAL_REQUESTS: PeerMentoringRequest[] = [
       "Bahar döneminde Erasmus'a başvurmak istiyorum, nereden başlamalıyım?",
     status: MentorshipRequestStatus.Pending,
     createdAt: "2026-11-06T10:15:00+03:00",
+    acceptedAt: null,
   },
 ];
 
 let requests: PeerMentoringRequest[] = structuredClone(INITIAL_REQUESTS);
 let nextRequest = 1;
 
-export function peerMentorsFixture({ category, query }: PeerMentorFilter) {
+/** The catalogue sub-topics each fixture mentor offers (ids from the profile-completion catalogue). */
+export const PEER_MENTOR_SUBTOPICS: Record<string, string[]> = {
+  "fixture-peer-1": ["fixture-cv", "fixture-code"],
+  "fixture-peer-2": ["fixture-exchange"],
+  "fixture-peer-3": ["fixture-project"],
+  "fixture-peer-4": ["fixture-clubs", "fixture-time"],
+};
+
+export function peerMentorsFixture({
+  category,
+  query,
+  subTopic,
+  availableThisWeek,
+}: PeerMentorFilter) {
   const needle = query.trim().toLocaleLowerCase("tr");
   return PEER_MENTORS_FIXTURE.filter(
     (mentor) =>
       (!category || mentor.categories.includes(category)) &&
+      (!subTopic ||
+        (PEER_MENTOR_SUBTOPICS[mentor.mentorId] ?? []).includes(subTopic)) &&
+      (!availableThisWeek || mentor.availableThisWeek) &&
       (!needle ||
         [mentor.fullName, mentor.department ?? "", mentor.helpWith].some(
           (text) => text.toLocaleLowerCase("tr").includes(needle),
         )),
   );
+}
+
+/** One fixture mentor's profile page, or null for an id the directory doesn't list. */
+export function peerMentorDetailFixture(
+  mentorId: string,
+): PeerMentorDetail | null {
+  const card = PEER_MENTORS_FIXTURE.find((item) => item.mentorId === mentorId);
+  if (!card) return null;
+  const isDeniz = mentorId === "fixture-peer-1";
+  return {
+    ...card,
+    subTopics: [...(PEER_MENTOR_SUBTOPICS[mentorId] ?? []), "Serbest konu"],
+    strongCourses: isDeniz ? ["CENG 242", "CENG 315"] : [],
+    projects: isDeniz ? ["Kampüs etkinlik uygulaması"] : [],
+    erasmus: isDeniz ? "TU Delft, 2025 bahar" : null,
+    linkedinUrl: isDeniz ? "https://www.linkedin.com/in/deniz-kaya" : null,
+    weeklyHours: isDeniz
+      ? [
+          {
+            id: "fixture-rule-sat",
+            dayOfWeek: Weekday.Saturday,
+            startTime: "12:00:00",
+            endTime: "15:00:00",
+            slotMinutes: 60,
+          },
+          {
+            id: "fixture-rule-tue",
+            dayOfWeek: Weekday.Tuesday,
+            startTime: "18:00:00",
+            endTime: "20:00:00",
+            slotMinutes: 60,
+          },
+        ]
+      : [],
+    levels: isDeniz
+      ? { [PeerTopicCategory.CareerInternship]: PeerTopicLevel.Advanced }
+      : {},
+    experiences: isDeniz
+      ? [
+          {
+            kind: PeerExperienceKind.Internship,
+            title: "Yaz stajyeri",
+            organization: "ABC Lojistik",
+            startedOn: "2025-07",
+            endedOn: "2025-08",
+            summary: "Haftalık operasyon raporları hazırladım.",
+          },
+          {
+            kind: PeerExperienceKind.Club,
+            title: "Etkinlik koordinatörü",
+            organization: "ODTÜ Kariyer Kulübü",
+            startedOn: "2024-09",
+            endedOn: null,
+            summary: null,
+          },
+        ]
+      : [],
+  };
+}
+
+/** Mentors per category, counted the way the backend does over the fixture directory. */
+export function peerMentorCountsFixture(
+  active: readonly PeerTopicCategory[],
+): PeerCategoryCount[] {
+  return active.map((category) => ({
+    category,
+    mentorCount: PEER_MENTORS_FIXTURE.filter((mentor) =>
+      mentor.categories.includes(category),
+    ).length,
+  }));
 }
 
 export function peerMentoringRequestsFixture() {
@@ -141,6 +237,7 @@ export function addPeerMentoringRequestFixture(
     message: input.message,
     status: MentorshipRequestStatus.Pending,
     createdAt: new Date().toISOString(),
+    acceptedAt: null,
   };
   requests = [request, ...requests];
   return request;

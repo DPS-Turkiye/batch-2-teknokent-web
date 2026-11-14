@@ -1,6 +1,8 @@
 import type {
   CreatePeerMentoringRequestInput,
+  PeerCategoryCount,
   PeerMentorCard,
+  PeerMentorDetail,
   PeerMentorFilter,
   PeerMentoringRequest,
   PeerMentorProfile,
@@ -19,8 +21,41 @@ export async function getPeerMentors(
       params: {
         category: filter.category ?? undefined,
         q: filter.query || undefined,
+        subTopic: filter.subTopic ?? undefined,
+        availableThisWeek: filter.availableThisWeek ? true : undefined,
       },
     }),
+  );
+}
+
+/** One peer mentor of the student's program, or null when their directory doesn't list them. */
+export async function getPeerMentor(
+  mentorId: string,
+): Promise<PeerMentorDetail | null> {
+  try {
+    return requireSuccess(
+      await httpClient.get<PeerMentorDetail>(
+        `/api/peer-mentoring/mentors/${encodeURIComponent(mentorId)}`,
+      ),
+    );
+  } catch (error) {
+    // The proxy answers 400 only for an id that isn't a uuid, which can't name a listed mentor either.
+    if (
+      error instanceof ClientApiError &&
+      (error.status === 404 || error.status === 400)
+    ) {
+      return null;
+    }
+    throw error;
+  }
+}
+
+/** Mentors per category active in the student's program. */
+export async function getPeerMentorCounts(): Promise<PeerCategoryCount[]> {
+  return requireSuccess(
+    await httpClient.get<PeerCategoryCount[]>(
+      "/api/peer-mentoring/mentor-counts",
+    ),
   );
 }
 

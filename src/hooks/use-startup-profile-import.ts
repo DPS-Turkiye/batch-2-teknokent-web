@@ -85,6 +85,7 @@ export function useStartupProfileImport() {
           file,
           profileType: ProfileAnalysisType.Startup,
           ocrMode,
+          consentAccepted: consent,
         }),
       );
       setFile(null);

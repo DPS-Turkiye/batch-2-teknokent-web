@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { useCoordinatorAccess } from "@/hooks/use-admin-coordinators";
+import { useEdition } from "@/hooks/use-edition";
 import { useDecidePendingAccount } from "@/hooks/use-pending-accounts";
 import type { AdminOverview, AdminUser } from "@/interfaces/admin-overview";
 import { UserAccountStatus } from "@/interfaces/session";
@@ -26,9 +27,10 @@ import {
   teamKey,
   teamRow,
 } from "@/lib/admin-users";
+import { adminUserTabsOf } from "@/lib/edition-screens";
 import { errorMessage } from "@/lib/utils";
 import { useToast } from "@/stores/toast-store";
-import { UserFilter } from "@/types/admin-users";
+import { UserFilter, type UserTab } from "@/types/admin-users";
 
 type AccountDecision = UserAccountStatus.Approved | UserAccountStatus.Rejected;
 
@@ -236,4 +238,9 @@ export function useTeamsTable(data: AdminOverview) {
     select: setSelectedKey,
     closeDrawer: () => setSelectedKey(null),
   };
+}
+
+/** The Kullanıcılar tabs this deployment shows, in display order. */
+export function useAdminUserTabs(): readonly UserTab[] {
+  return adminUserTabsOf(useEdition());
 }

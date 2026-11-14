@@ -14,6 +14,7 @@ import {
   teamFilterOptions,
   TeamRowProblem,
   teamRowProblems,
+  waitingTeamCount,
 } from "@/lib/program-launch";
 import { coordinatorProgramDetail } from "@test/fixtures/coordinator-programs";
 import { translatorIn } from "@test/translators";
@@ -112,5 +113,23 @@ describe("program launch helpers", () => {
       "0 leads joined · 1 waiting",
     );
     expect(setupSteps(coordinatorProgramDetail(), [team()], t)).toBeNull();
+  });
+});
+
+describe("waitingTeamCount", () => {
+  it("counts the listed teams the program does not count yet", () => {
+    expect(
+      waitingTeamCount(
+        [
+          team(),
+          team({ inviteId: "invite-2" }),
+          team({ inviteId: "invite-3", status: TeamJoinStatus.Joined }),
+          // Joined, but the team is still waiting for approval, so the program does not count it yet.
+          team({ inviteId: "invite-4", status: TeamJoinStatus.Joined }),
+        ],
+        1,
+      ),
+    ).toBe(3);
+    expect(waitingTeamCount([team()], 4)).toBe(0);
   });
 });

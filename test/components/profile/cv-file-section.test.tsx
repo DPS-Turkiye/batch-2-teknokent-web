@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 import { CvFileSection } from "@/components/profile/cv-file-section";
@@ -12,7 +13,10 @@ function cvState(overrides: Partial<CvFileState> = {}): CvFileState {
     storedIsPdf: true,
     choose: vi.fn<CvFileState["choose"]>(),
     canRead: true,
+    consent: true,
+    setConsent: vi.fn<CvFileState["setConsent"]>(),
     canFill: true,
+    offerFill: true,
     fillFromStored: vi.fn<CvFileState["fillFromStored"]>(),
     isUploading: false,
     isParsing: false,
@@ -45,7 +49,7 @@ describe("CvFileSection", () => {
   });
 
   it("explains the manual path instead of offering to read the CV when parsing is switched off", () => {
-    renderSection(cvState({ canRead: false, canFill: false }));
+    renderSection(cvState({ canRead: false, consent: false, canFill: false }));
 
     expect(
       screen.queryByRole("button", { name: "Profili CV'den doldur" }),
@@ -55,5 +59,28 @@ describe("CvFileSection", () => {
         "Bu sistemde CV otomatik okunmuyor; dosyan yalnızca kaydedilir. Profil bilgilerini kendin gir.",
       ),
     ).toBeInTheDocument();
+    expect(screen.queryByRole("checkbox")).toBeNull();
+  });
+
+  it("asks for consent with an unticked box, and hands a tick to the hook", async () => {
+    const cv = cvState({ consent: false, canFill: false });
+    renderSection(cv);
+
+    const box = screen.getByRole("checkbox", { name: /CV'min okunmasını/ });
+    expect(box).not.toBeChecked();
+    expect(
+      screen.getByRole("button", { name: "Profili CV'den doldur" }),
+    ).toBeDisabled();
+    await userEvent.click(box);
+
+    expect(cv.setConsent).toHaveBeenCalledWith(true);
+  });
+
+  it("hides the fill button once nothing is on offer", () => {
+    renderSection(cvState({ offerFill: false }));
+
+    expect(
+      screen.queryByRole("button", { name: "Profili CV'den doldur" }),
+    ).toBeNull();
   });
 });

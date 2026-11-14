@@ -1,8 +1,9 @@
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PeerMentoringRequests } from "@/components/student/peer-mentoring-requests";
+import { AppointmentStatus } from "@/interfaces/appointment";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import {
   PeerTopicCategory,
@@ -15,7 +16,7 @@ import {
 } from "@/lib/client/mentor-requests";
 import { getPeerMentoringRequests } from "@/lib/client/peer-mentoring";
 import { getStudentAppointments } from "@/lib/client/student-appointments";
-import { expectLength, itemAt } from "@test/fixtures/list-assertions";
+import { itemAt } from "@test/fixtures/list-assertions";
 import { peerAppointment } from "@test/fixtures/student-appointments";
 import { renderWithQueryClient } from "@test/test-utils";
 
@@ -43,6 +44,10 @@ function request(
     message: "Staj başvurusu için CV'me bakar mısın?",
     status,
     createdAt: "2026-11-05T10:00:00.000Z",
+    acceptedAt:
+      status === MentorshipRequestStatus.Accepted
+        ? "2026-11-03T12:00:00+03:00"
+        : null,
   };
 }
 
@@ -55,10 +60,14 @@ const SLOT = {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // "Sıradaki görüşme" only counts meetings still to come, so the list is read at a fixed moment.
+  vi.useFakeTimers({ toFake: ["Date"] });
+  vi.setSystemTime(new Date("2026-11-09T09:00:00.000Z"));
   vi.mocked(getPeerMentoringRequests).mockResolvedValue([
     request("request-1", "Zeynep Demir", MentorshipRequestStatus.Accepted),
     request("request-2", "Mehmet Kaya", MentorshipRequestStatus.Accepted),
     request("request-3", "Deniz Ak", MentorshipRequestStatus.Pending),
+    request("request-4", "Selin Uçar", MentorshipRequestStatus.Declined),
   ]);
   vi.mocked(getStudentAppointments).mockResolvedValue([
     peerAppointment({ requestId: "request-2" }),
@@ -74,39 +83,115 @@ beforeEach(() => {
   });
 });
 
-async function rows() {
-  return within(await screen.findByRole("list")).getAllByRole("listitem");
+afterEach(() => {
+  vi.useRealTimers();
+});
+
+const onFindAnother = vi.fn();
+
+function renderMine() {
+  return renderWithQueryClient(
+    <PeerMentoringRequests onFindAnother={onFindAnother} />,
+  );
 }
 
-async function firstRow() {
-  return itemAt(await rows(), 0);
+async function activeMentorship(name: string) {
+  const active = await screen.findByRole("region", { name: /Aktif mentorluk/ });
+  return within(active).getByRole("article", { name });
 }
 
-describe("Mentorluk Al › Taleplerim booking", () => {
-  it("offers a booking only on an accepted request without a session, and shows the booked one", async () => {
-    renderWithQueryClient(<PeerMentoringRequests />);
-    const items = await rows();
-    expectLength(items, 3);
-    const [unbooked, booked, pending] = items;
+describe("Mentorluk Al › Mentorluklarım", () => {
+  it("shows accepted requests as active mentorships, with the next meeting or a way to plan one", async () => {
+    renderMine();
 
+    const unbooked = await activeMentorship("Zeynep Demir");
     expect(
-      await within(unbooked).findByRole("button", { name: "Randevu al" }),
+      await within(unbooked).findByRole("button", { name: "Görüşme Planla" }),
     ).toBeVisible();
-    expect(within(booked).getByText(/^Randevu: /)).toBeVisible();
+    expect(
+      within(unbooked).getByRole("link", { name: "Profili Gör, Zeynep Demir" }),
+    ).toHaveAttribute(
+      "href",
+      "/student/peer-mentoring/mentors/request-1-mentor",
+    );
+
+    const booked = await activeMentorship("Mehmet Kaya");
+    expect(within(booked).getByText(/^Sıradaki görüşme: /)).toBeVisible();
     expect(
       within(booked).getByRole("link", { name: "Randevuya git" }),
     ).toHaveAttribute("href", "/student/appointments");
     expect(within(booked).queryByRole("button")).toBeNull();
+  });
+
+  it("says since when each mentorship has run, with the month's own Turkish suffix", async () => {
+    renderMine();
+
+    const mentorship = await activeMentorship("Zeynep Demir");
+    expect(
+      within(mentorship).getByText("Kariyer ve Staj · 3 Kasım'dan beri"),
+    ).toBeVisible();
+  });
+
+  it("never shows a cancelled or past meeting as the next one, and offers to plan one instead", async () => {
+    vi.mocked(getStudentAppointments).mockResolvedValue([
+      peerAppointment({
+        id: "cancelled",
+        requestId: "request-1",
+        status: AppointmentStatus.Cancelled,
+      }),
+      peerAppointment({
+        id: "held",
+        requestId: "request-1",
+        startsAt: "2026-11-02T09:00:00.000Z",
+        endsAt: "2026-11-02T09:45:00.000Z",
+      }),
+      peerAppointment({ requestId: "request-2" }),
+    ]);
+    renderMine();
+
+    const zeynep = await activeMentorship("Zeynep Demir");
+    expect(
+      await within(zeynep).findByRole("button", { name: "Görüşme Planla" }),
+    ).toBeVisible();
+    expect(within(zeynep).queryByText(/^Sıradaki görüşme: /)).toBeNull();
+    const mehmet = await activeMentorship("Mehmet Kaya");
+    expect(within(mehmet).getByText(/^Sıradaki görüşme: /)).toBeVisible();
+  });
+
+  it("lists the other requests with their status, and offers another mentor after a decline", async () => {
+    const user = userEvent.setup();
+    renderMine();
+
+    const others = await screen.findByRole("region", { name: /Taleplerim/ });
+    const items = within(others).getAllByRole("listitem");
+    const pending = itemAt(items, 0);
+    const declined = itemAt(items, 1);
+    expect(pending).toHaveTextContent("Deniz Ak");
+    expect(pending).toHaveTextContent("Onay Bekliyor");
     expect(within(pending).queryByRole("button")).toBeNull();
-    expect(within(pending).queryByRole("link")).toBeNull();
+    expect(declined).toHaveTextContent("Reddedildi");
+    await user.click(
+      within(declined).getByRole("button", { name: "Başka Mentor Bul" }),
+    );
+    expect(onFindAnother).toHaveBeenCalledTimes(1);
+  });
+
+  it("says so when the student has no request yet", async () => {
+    vi.mocked(getPeerMentoringRequests).mockResolvedValueOnce([]);
+    renderMine();
+    expect(
+      await screen.findByText(/Henüz bir mentorluk talebin yok/),
+    ).toBeVisible();
   });
 
   it("books one of the mentor's open times, then refreshes the appointments and closes", async () => {
     const user = userEvent.setup();
-    renderWithQueryClient(<PeerMentoringRequests />);
-    const unbooked = await firstRow();
+    renderMine();
     await user.click(
-      await within(unbooked).findByRole("button", { name: "Randevu al" }),
+      await within(await activeMentorship("Zeynep Demir")).findByRole(
+        "button",
+        { name: "Görüşme Planla" },
+      ),
     );
 
     const dialog = await screen.findByRole("dialog");
@@ -134,10 +219,12 @@ describe("Mentorluk Al › Taleplerim booking", () => {
   it("says so when the mentor has no open time, and shows a refused booking", async () => {
     vi.mocked(getMentorAvailability).mockResolvedValueOnce([]);
     const user = userEvent.setup();
-    const { unmount } = renderWithQueryClient(<PeerMentoringRequests />);
-    let unbooked = await firstRow();
+    const { unmount } = renderMine();
     await user.click(
-      await within(unbooked).findByRole("button", { name: "Randevu al" }),
+      await within(await activeMentorship("Zeynep Demir")).findByRole(
+        "button",
+        { name: "Görüşme Planla" },
+      ),
     );
     expect(
       await screen.findByText(/Mentorunun şu an açık saati yok/),
@@ -150,10 +237,12 @@ describe("Mentorluk Al › Taleplerim booking", () => {
         400,
       ),
     );
-    renderWithQueryClient(<PeerMentoringRequests />);
-    unbooked = await firstRow();
+    renderMine();
     await user.click(
-      await within(unbooked).findByRole("button", { name: "Randevu al" }),
+      await within(await activeMentorship("Zeynep Demir")).findByRole(
+        "button",
+        { name: "Görüşme Planla" },
+      ),
     );
     const dialog = await screen.findByRole("dialog");
     await user.click(

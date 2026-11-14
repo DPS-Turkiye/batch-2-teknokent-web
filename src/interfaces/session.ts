@@ -1,3 +1,4 @@
+import type { Edition } from "@/interfaces/edition";
 import type { Workspace } from "@/interfaces/workspace";
 
 export enum UserRole {
@@ -19,6 +20,8 @@ export enum UserAccountStatus {
   Pending = "PENDING",
   Approved = "APPROVED",
   Rejected = "REJECTED",
+  /** An account an admin deleted: no personal data is left on it and nobody can sign in as it. */
+  Deleted = "DELETED",
 }
 
 export type AppSession = {
@@ -39,6 +42,8 @@ export type AppSession = {
   activeWorkspace?: Workspace;
   /** The organization is an ODTÜ student's hidden team of one: no startup, and no Girişim workspace. */
   personalOrganization?: boolean;
+  /** This deployment's edition (APP_EDITION); the server sets it on every read of the session, never trusting the cookie. */
+  edition?: Edition;
 };
 
 export type BackendUser = {
@@ -59,6 +64,8 @@ export type BackendUser = {
   institutionKinds?: IdentityKind[];
   /** The organization is an ODTÜ student's hidden team of one; organizationName is then null. */
   personalOrganization?: boolean;
+  /** The backend's edition; only /api/auth/me fills it. */
+  edition?: Edition | null;
 };
 
 export type SessionData = {

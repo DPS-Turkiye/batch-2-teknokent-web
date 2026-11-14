@@ -100,6 +100,20 @@ export function monthGridCells(monthDate: Date): MonthCell[] {
   return cells;
 }
 
+/** "Perşembe" / "Thursday" */
+export function weekdayName(date: Date, locale: string) {
+  return new Intl.DateTimeFormat(locale, { weekday: "long" }).format(date);
+}
+
+/** "12 Kasım Perşembe" / "Thursday, November 12": a day of this year with its weekday. */
+export function formatWeekdayDate(date: Date, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  }).format(date);
+}
+
 /** "Ekim 2026" / "October 2026" */
 export function monthLabel(date: Date, locale: string) {
   return new Intl.DateTimeFormat(locale, {

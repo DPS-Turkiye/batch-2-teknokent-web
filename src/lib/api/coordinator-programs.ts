@@ -6,13 +6,12 @@ import type {
   CoordinatorRef,
   CreateProgramEventInput,
   CreateProgramInput,
-  ExtractSyllabusPhasesInput,
+  ProgramCoordinatorTarget,
   ProgramEligibleEmail,
   ProgramEvent,
   ProgramPhaseInput,
   ProgramTeam,
   ProgramTeamDetail,
-  SyllabusPhases,
   TeamInviteInput,
   UpdateProgramDetailsInput,
 } from "@/interfaces/coordinator-program";
@@ -85,17 +84,6 @@ export function replaceCoordinatorProgramPhases(
   });
 }
 
-export function extractSyllabusPhases(
-  actorId: string,
-  input: ExtractSyllabusPhasesInput,
-) {
-  return backendRequest<SyllabusPhases>({
-    method: "POST",
-    url: "/api/coordinator/programs/syllabus/phases",
-    data: { ...input, actorId },
-  });
-}
-
 export function launchCoordinatorProgram(actorId: string, programId: string) {
   return backendRequest<CoordinatorProgramDetail>({
     method: HttpMethod.Post,
@@ -116,14 +104,10 @@ export function setCoordinatorProgramArchived(
   });
 }
 
-export function fetchProgramCoordinators(
-  actorId: string,
-  programId: string,
-  candidates = false,
-) {
+export function fetchProgramCoordinators(actorId: string, programId: string) {
   return backendRequest<CoordinatorRef[]>({
     method: "GET",
-    url: `${programUrl(programId)}/coordinators${candidates ? "/candidates" : ""}`,
+    url: `${programUrl(programId)}/coordinators`,
     params: { actorId },
   });
 }
@@ -131,12 +115,12 @@ export function fetchProgramCoordinators(
 export function addProgramCoordinator(
   actorId: string,
   programId: string,
-  userId: string,
+  target: ProgramCoordinatorTarget,
 ) {
   return backendRequest<CoordinatorRef[]>({
     method: "POST",
     url: `${programUrl(programId)}/coordinators`,
-    data: { actorId, userId },
+    data: { ...target, actorId },
   });
 }
 
