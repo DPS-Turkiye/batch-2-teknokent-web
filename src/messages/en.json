@@ -6596,21 +6596,6 @@
     }
   },
   "academicianWorkspace": {
-    "studyLevel": {
-      "BACHELOR": "Bachelor's",
-      "MASTER": "Master's",
-      "DOCTORATE": "Doctorate"
-    },
-    "advisees": {
-      "title": "My advisees",
-      "subtitle": "Students you advise according to ODTÜ's records. This information is read-only.",
-      "search": "Search students",
-      "count": "{count} students",
-      "classYear": "Year {year}",
-      "notSignedIn": "Has not signed in to Menton yet",
-      "empty": "ODTÜ's records show no students you advise.",
-      "noMatch": "No students match your search."
-    },
     "institution": {
       "title": "Institutional details",
       "readOnly": "From ODTÜ, read-only",

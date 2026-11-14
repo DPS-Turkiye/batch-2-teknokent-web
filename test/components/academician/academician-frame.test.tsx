@@ -62,18 +62,18 @@ describe("AcademicianFrame", () => {
     ]);
   });
 
-  it.each(["/academician/appointments/availability"])(
-    "keeps Randevularım selected on %s",
-    (path) => {
-      pathname = path;
-      renderWithQueryClient(
-        <AcademicianFrame>
-          <p>Alt sayfa</p>
-        </AcademicianFrame>,
-      );
-      expect(
-        within(nav()).getByRole("link", { name: "Randevularım" }),
-      ).toHaveAttribute("aria-current", "page");
-    },
-  );
+  it.each([
+    "/academician/appointments/availability",
+    "/academician/students/sample-student-deniz",
+  ])("keeps Randevularım selected on %s", (path) => {
+    pathname = path;
+    renderWithQueryClient(
+      <AcademicianFrame>
+        <p>Alt sayfa</p>
+      </AcademicianFrame>,
+    );
+    expect(
+      within(nav()).getByRole("link", { name: "Randevularım" }),
+    ).toHaveAttribute("aria-current", "page");
+  });
 });

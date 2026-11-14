@@ -18,7 +18,10 @@ const NAV: RoleNavItem[] = [
     href: ACADEMICIAN_ROUTES.appointments,
     label: "myAppointments",
     icon: "/admin/nav-calendar.svg",
-    match: (path) => path.startsWith(ACADEMICIAN_ROUTES.appointments),
+    // A student's profile is opened from a request, so it stays under Randevularım as in the design.
+    match: (path) =>
+      path.startsWith(ACADEMICIAN_ROUTES.appointments) ||
+      path.startsWith(ACADEMICIAN_ROUTES.students),
   },
   {
     href: ACADEMICIAN_ROUTES.advisees,
