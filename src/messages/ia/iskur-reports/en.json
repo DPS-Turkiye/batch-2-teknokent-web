@@ -13,5 +13,114 @@
     "minutes": "{minutes} min",
     "hoursMinutes": "{hours} h {minutes} min",
     "recordedNote": "Recorded time is for information only; it is not an approved working time."
+  },
+  "weekly": {
+    "summary": {
+      "title": "Week at a glance",
+      "auto": "Automatic from the daily reports",
+      "meetings": "Meetings",
+      "meetingsSplit": "{first} first · {followUp} follow-up",
+      "mentees": "Mentees met",
+      "noMentees": "No meetings this week",
+      "reports": "Meeting reports",
+      "reportsValue": "{sent} / {total}",
+      "reportsAllSent": "all sent",
+      "reportsMissing": "{count} reports missing",
+      "activities": "Other activities",
+      "noActivities": "No activities added",
+      "recorded": "Recorded activity time · {duration}",
+      "recordedNote": "Calculated from meeting and activity records. It is not an approved official working time and does not replace the İŞKUR timesheet."
+    },
+    "activityType": {
+      "RESOURCE_PREP": "resources",
+      "MESSAGE_FOLLOW_UP": "messages",
+      "EVENT": "events",
+      "OTHER": "other"
+    },
+    "skills": {
+      "title": "Skills you used this week",
+      "subtitle": "Calculated from your choices in the meeting reports ({count} meetings)",
+      "meetings": "{count} meetings",
+      "empty": "No skills were chosen in this week's meeting reports."
+    },
+    "outcomes": {
+      "title": "Meeting outcomes",
+      "subtitle": "Per mentee, from the meeting reports",
+      "meetings": "· {count} meetings",
+      "open": "See reports",
+      "openFor": "See the reports for {name}",
+      "noOutcome": "No outcome written this week.",
+      "actions": "{done} / {total} actions done",
+      "allActions": "All actions done",
+      "empty": "No meetings this week."
+    },
+    "evaluation": {
+      "title": "Weekly reflection",
+      "subtitle": "Don't repeat your daily reports; describe the week as a whole.",
+      "needsObserved": "1. Which student needs did you notice this week?",
+      "growth": "2. How did you grow as a mentor this week?",
+      "nextWeekPlan": "3. What do you plan to do next week?"
+    },
+    "sideDays": {
+      "title": "Daily reports",
+      "open": "{day}, {status}: open the daily report"
+    },
+    "status": {
+      "title": "Weekly summary",
+      "deadline": "Due",
+      "late": "The deadline has passed; you can still send it.",
+      "inReview": "You can't edit it while the coordinator reviews it. It is approved automatically if there is no answer within 7 days.",
+      "approved": "Your weekly summary was approved, and so were the reports under it.",
+      "revision": "The coordinator asked for changes: {note}",
+      "revisionNoNote": "The coordinator asked for changes.",
+      "opensAt": "Can be sent from",
+      "edit": "Edit the report"
+    },
+    "check": {
+      "dailyReports": "{done} / {total} daily reports sent",
+      "meetingReports": "{done} / {total} meeting reports",
+      "evaluation": "Weekly reflection · {done} / {total}",
+      "done": "Done",
+      "open": "Missing",
+      "informational": "Doesn't block sending"
+    },
+    "block": {
+      "notOpen": "The weekly summary can be sent from {opensAt}.",
+      "meetingReports": "First send all of this week's meeting reports.",
+      "evaluation": "Answer all three reflection questions."
+    },
+    "footer": {
+      "note": "The preview and the PDF show what the coordinator will see",
+      "preview": "Preview",
+      "save": "Save as draft",
+      "saving": "Saving…",
+      "submit": "Send the weekly summary to the coordinator",
+      "submitting": "Sending…"
+    },
+    "saved": "Draft saved.",
+    "saveFailed": "The draft could not be saved.",
+    "submitted": "The weekly summary was sent to the coordinator.",
+    "submitFailed": "The weekly summary could not be sent.",
+    "preview": {
+      "title": "Weekly activity summary",
+      "week": "{start} – {end}",
+      "close": "Close",
+      "print": "Download PDF / Print",
+      "printHint": "In the print window, choose “Save as PDF” as the destination.",
+      "answers": "Weekly reflection",
+      "noAnswer": "Not answered"
+    },
+    "skill": {
+      "ACTIVE_LISTENING": "Active listening",
+      "OPEN_QUESTIONS": "Asking open questions",
+      "GOAL_SETTING": "Goal setting",
+      "RESOURCE_REFERRAL": "Pointing to resources",
+      "FEEDBACK": "Giving feedback",
+      "EXPERIENCE_SHARING": "Sharing experience",
+      "PROBLEM_SOLVING": "Problem solving",
+      "EMPATHY": "Empathy",
+      "MOTIVATION_SUPPORT": "Motivation support",
+      "TIME_PLANNING": "Time planning"
+    }
   }
 }
