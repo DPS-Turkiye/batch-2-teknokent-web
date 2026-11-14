@@ -87,11 +87,15 @@ export function reportDayOf(at: string) {
 
 /** The day's view in "Faaliyet Raporum" for a moment (the meeting report's way back). */
 export function dailyReportHref(at: string) {
-  const day = reportDayOf(at);
-  return `/student/peer-mentoring?tab=report&view=daily&day=${day}`;
+  return reportDayHref(reportDayOf(at));
 }
 
 /** A meeting's report page (Görüşme Raporu), read-only once it is sent. */
 export function meetingReportHref(meetingId: string) {
   return `/student/peer-mentoring/reports/meetings/${encodeURIComponent(meetingId)}`;
+}
+
+/** A report day's view in "Faaliyet Raporum" ("yyyy-mm-dd"). */
+export function reportDayHref(day: string) {
+  return `/student/peer-mentoring?tab=report&view=daily&day=${day}`;
 }

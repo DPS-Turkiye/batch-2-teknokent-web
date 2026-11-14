@@ -1,0 +1,176 @@
+import {
+  PeerActivityType,
+  PeerReportStatus,
+  type PeerDailyReport,
+  type PeerReportDay,
+  type PeerReportMeeting,
+  type SavePeerActivityInput,
+  type SavePeerDailyReportInput,
+} from "@/interfaces/peer-reports";
+import {
+  fromIsoDay,
+  peerReportBadge,
+  reportWeekDays,
+} from "@/lib/peer-reports";
+import type {
+  ActivityForm,
+  DailyReportForm,
+  ReportDayCard,
+} from "@/types/peer-daily-report";
+import { PeerReportBadge } from "@/types/peer-reports";
+
+export const DAILY_TEXT_MAX = 4000;
+export const ACTIVITY_TITLE_MAX = 200;
+export const ACTIVITY_DESCRIPTION_MAX = 2000;
+export const ACTIVITY_MINUTES_MAX = 720;
+
+/** The four written answers the backend requires, plus the skills, make "Günlük değerlendirme · n / 5". */
+export const DAILY_EVALUATION_PARTS = 5;
+
+/**
+ * The form from the day's report. A day never saved starts with the skills its meeting reports used ("Görüşme
+ * raporlarındaki seçimlerinden otomatik işaretlendi").
+ */
+export function dailyReportForm(report: PeerDailyReport): DailyReportForm {
+  return {
+    didToday: report.didToday ?? "",
+    challenge: report.challenge ?? "",
+    skills:
+      report.id === null ? [...report.suggestedSkills] : [...report.skills],
+    learned: report.learned ?? "",
+    tomorrowPlan: report.tomorrowPlan ?? "",
+  };
+}
+
+export function dailyReportInput(
+  form: DailyReportForm,
+): SavePeerDailyReportInput {
+  return {
+    didToday: textOrNull(form.didToday),
+    challenge: textOrNull(form.challenge),
+    skills: form.skills,
+    learned: textOrNull(form.learned),
+    tomorrowPlan: textOrNull(form.tomorrowPlan),
+  };
+}
+
+/** How many of the five evaluation parts are answered. */
+export function answeredDailyParts(form: DailyReportForm): number {
+  return (
+    [form.didToday, form.challenge, form.learned, form.tomorrowPlan].filter(
+      (answer) => answer.trim() !== "",
+    ).length + (form.skills.length > 0 ? 1 : 0)
+  );
+}
+
+/** The backend's rule for sending a day: its four written answers, and every held meeting's report sent. */
+export function dailyReportReady(
+  report: PeerDailyReport,
+  form: DailyReportForm,
+): boolean {
+  return (
+    report.editable &&
+    report.missingMeetingReports === 0 &&
+    [form.didToday, form.challenge, form.learned, form.tomorrowPlan].every(
+      (answer) => answer.trim() !== "",
+    )
+  );
+}
+
+/** A meeting row's state: "Tamamlandı" once its report is sent, "Çıktı Bekliyor" before. */
+export function meetingRowBadge(meeting: PeerReportMeeting): PeerReportBadge {
+  return meeting.reportStatus === PeerReportStatus.InReview ||
+    meeting.reportStatus === PeerReportStatus.Approved
+    ? PeerReportBadge.Completed
+    : PeerReportBadge.AwaitingOutput;
+}
+
+/** The week's five day cards, with the chosen day and today marked. */
+export function reportDayCards(
+  weekStart: string,
+  days: readonly PeerReportDay[],
+  selected: string,
+  today: string,
+): ReportDayCard[] {
+  return reportWeekDays(weekStart).map((date) => {
+    const day = days.find((candidate) => candidate.date === date);
+    return {
+      date,
+      badge: day
+        ? peerReportBadge(day.status, day.missingMeetingReports)
+        : null,
+      isToday: date === today,
+      isSelected: date === selected,
+      isFuture: date > today,
+    };
+  });
+}
+
+/** "9–13 Kasım 2026" (or "30 Kasım – 4 Aralık 2026" across months). */
+export function reportWeekLabel(weekStart: string, locale: string): string {
+  const [monday] = reportWeekDays(weekStart);
+  const friday = reportWeekDays(weekStart).at(-1);
+  if (monday === undefined || friday === undefined) return weekStart;
+  return new Intl.DateTimeFormat(locale, {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).formatRange(fromIsoDay(monday), fromIsoDay(friday));
+}
+
+/** "Per · 12 Kasım" */
+export function reportDayLabel(day: string, locale: string): string {
+  const date = fromIsoDay(day);
+  const weekday = new Intl.DateTimeFormat(locale, { weekday: "short" }).format(
+    date,
+  );
+  const dayMonth = new Intl.DateTimeFormat(locale, {
+    day: "numeric",
+    month: "long",
+  }).format(date);
+  return `${weekday} · ${dayMonth}`;
+}
+
+/** A new activity on the given day ("Kaynak hazırlama" first, as in 3.2.3b). */
+export function emptyActivityForm(day: string): ActivityForm {
+  return {
+    type: PeerActivityType.ResourcePrep,
+    title: "",
+    activityDate: day,
+    durationMinutes: "",
+    menteeId: "",
+    description: "",
+  };
+}
+
+/** The activity to send, or null while the title or the minutes (1–720, whole) are not right. */
+export function activityInput(
+  form: ActivityForm,
+): SavePeerActivityInput | null {
+  const minutesText = form.durationMinutes.trim();
+  const minutes = /^\d{1,3}$/.test(minutesText) ? Number(minutesText) : 0;
+  const title = form.title.trim();
+  if (title === "" || minutes < 1 || minutes > ACTIVITY_MINUTES_MAX) {
+    return null;
+  }
+  return {
+    activityDate: form.activityDate,
+    type: form.type,
+    title,
+    durationMinutes: minutes,
+    menteeId: form.menteeId === "" ? null : form.menteeId,
+    description: textOrNull(form.description),
+  };
+}
+
+/** "15:00": when the activity was added, in the program's time. */
+export function activityTimeLabel(createdAt: string, locale: string): string {
+  return new Intl.DateTimeFormat(locale, {
+    timeStyle: "short",
+    timeZone: "Europe/Istanbul",
+  }).format(new Date(createdAt));
+}
+
+function textOrNull(value: string) {
+  return value.trim() === "" ? null : value.trim();
+}
