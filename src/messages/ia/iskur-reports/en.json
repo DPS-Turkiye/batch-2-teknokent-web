@@ -321,6 +321,7 @@
     "meta": "{type} · {duration}"
   },
   "appointments": {
-    "fillReport": "Fill in the meeting report"
+    "fillReport": "Fill in the meeting report",
+    "fillReportFor": "Fill in the report of your meeting with {name}"
   }
 }

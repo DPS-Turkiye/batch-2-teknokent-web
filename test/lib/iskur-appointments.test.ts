@@ -47,7 +47,7 @@ describe("appointmentReportHref", () => {
     side: AppointmentSide.Mentor,
     startsAt: "2026-11-12T08:00:00.000Z",
   });
-  const after = new Date("2026-11-12T08:00:00.000Z");
+  const after = new Date("2026-11-12T08:00:00.001Z");
 
   it("links a started peer meeting the student gave to its report", () => {
     expect(appointmentReportHref(given, after)).toBe(
@@ -55,19 +55,28 @@ describe("appointmentReportHref", () => {
     );
   });
 
-  it("has no report before the meeting starts, for a cancelled one, the mentee's side or Office Hours", () => {
+  it("has no report until the meeting has started, as the backend counts it", () => {
     expect(
-      appointmentReportHref(given, new Date("2026-11-12T07:59:00.000Z")),
+      appointmentReportHref(given, new Date("2026-11-12T08:00:00.000Z")),
     ).toBeNull();
+  });
+
+  it("has no report for a cancelled meeting", () => {
     expect(
       appointmentReportHref(
         { ...given, status: AppointmentStatus.Cancelled },
         after,
       ),
     ).toBeNull();
+  });
+
+  it("has no report on the mentee's side", () => {
     expect(
       appointmentReportHref({ ...given, side: AppointmentSide.Mentee }, after),
     ).toBeNull();
+  });
+
+  it("has no report for Office Hours", () => {
     expect(
       appointmentReportHref(
         { ...given, kind: AppointmentKind.OfficeHours },

@@ -40,6 +40,6 @@ export function appointmentReportHref(
     appointment.kind === AppointmentKind.PeerMentoring &&
     appointment.side === AppointmentSide.Mentor &&
     appointment.status !== AppointmentStatus.Cancelled &&
-    Date.parse(appointment.startsAt) <= now.getTime();
+    Date.parse(appointment.startsAt) < now.getTime();
   return reportable ? meetingReportHref(appointment.id) : null;
 }

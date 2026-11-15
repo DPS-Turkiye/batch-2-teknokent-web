@@ -90,6 +90,9 @@ export function IskurAppointmentsView({ sentTo }: { sentTo: string | null }) {
                 href={reportHref}
                 size={ButtonSize.Small}
                 variant={ButtonVariant.Secondary}
+                aria-label={tReports("fillReportFor", {
+                  name: appointment.counterpart.fullName,
+                })}
               >
                 {tReports("fillReport")}
               </Button>

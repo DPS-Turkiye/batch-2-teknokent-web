@@ -109,9 +109,13 @@ describe("IskurAppointmentsView", () => {
     const past = screen.getByRole("tabpanel");
     expect(await within(past).findByText("Mert Yılmaz")).toBeVisible();
     const links = within(past).getAllByRole("link", {
-      name: "Görüşme raporunu doldur",
+      name: /raporunu doldur/,
     });
     expect(links).toHaveLength(1);
+    expect(links[0]).toHaveAccessibleName(
+      "Mert Yılmaz ile görüşmenin raporunu doldur",
+    );
+    expect(links[0]).toHaveTextContent("Görüşme raporunu doldur");
     expect(links[0]).toHaveAttribute(
       "href",
       "/student/peer-mentoring/reports/meetings/meeting-2",
@@ -123,8 +127,6 @@ describe("IskurAppointmentsView", () => {
 
     const panel = await screen.findByRole("tabpanel");
     expect(await within(panel).findByText("Mert Yılmaz")).toBeVisible();
-    expect(
-      screen.queryByRole("link", { name: "Görüşme raporunu doldur" }),
-    ).toBeNull();
+    expect(screen.queryByRole("link", { name: /raporunu doldur/ })).toBeNull();
   });
 });

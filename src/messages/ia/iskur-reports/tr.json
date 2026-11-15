@@ -321,6 +321,7 @@
     "meta": "{type} · {duration}"
   },
   "appointments": {
-    "fillReport": "Görüşme raporunu doldur"
+    "fillReport": "Görüşme raporunu doldur",
+    "fillReportFor": "{name} ile görüşmenin raporunu doldur"
   }
 }
