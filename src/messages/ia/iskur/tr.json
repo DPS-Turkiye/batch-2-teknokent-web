@@ -67,9 +67,7 @@
     },
     "tabs": {
       "label": "Mentorluk Ver",
-      "requests": "Mentorluk Talepleri",
       "mentees": "Menteelerim",
-      "availability": "Müsaitliğim ve Kapasitem",
       "profile": "Mentor Profilim"
     },
     "requests": {
@@ -87,7 +85,7 @@
       "ofCapacity": "/ {capacity} mentee",
       "noLimit": "mentee",
       "note": {
-        "unset": "Kapasite belirlemedin; yeni talepler gelmeye devam eder. Müsaitliğim ve Kapasitem sekmesinden belirleyebilirsin.",
+        "unset": "Kapasite belirlemedin; yeni talepler gelmeye devam eder. Mentor Profilim sekmesinden belirleyebilirsin.",
         "open": "Yeni talepleri kabul edebilirsin.",
         "lastPlace": "Bir talebi kabul edersen kapasiten dolacak. Yeni talepler kapasite açılana kadar sana gelmez.",
         "full": "Kapasiten dolu. Yeni talepler kapasite açılana kadar sana gelmez."

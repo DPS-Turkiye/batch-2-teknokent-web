@@ -47,7 +47,12 @@ export function reportWeekStart(now: Date) {
 
 /** Another week's Monday, `weeks` before (negative) or after this one. */
 export function shiftReportWeek(weekStart: string, weeks: number) {
-  return isoDay(addDays(fromIsoDay(weekStart), weeks * 7));
+  return shiftReportDay(weekStart, weeks * 7);
+}
+
+/** A report day ("yyyy-mm-dd") moved by whole days, as a calendar day. */
+export function shiftReportDay(day: string, days: number) {
+  return isoDay(addDays(fromIsoDay(day), days));
 }
 
 /** The working days of a report week, Monday to Friday. */
@@ -99,4 +104,9 @@ export function meetingReportHref(meetingId: string) {
 /** A report day's view in "Faaliyet Raporum" ("yyyy-mm-dd"), on the Mentorluk Ver side (`as=MENTOR`). */
 export function reportDayHref(day: string) {
   return `${PEER_MENTOR_GIVE_HREF}&tab=report&view=daily&day=${day}`;
+}
+
+/** A week's Haftalık Özet in "Faaliyet Raporum" (the Monday, "yyyy-mm-dd"), on the Mentorluk Ver side. */
+export function reportWeekHref(weekStart: string) {
+  return `${PEER_MENTOR_GIVE_HREF}&tab=report&view=weekly&week=${weekStart}`;
 }

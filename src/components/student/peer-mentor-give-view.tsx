@@ -18,12 +18,16 @@ import {
   TagTone,
   UnderlineTabs,
 } from "@/components/student/iskur-ui";
+import { ActivityReportView } from "@/components/student/reports/activity-report-view";
+import { ReportDayPill } from "@/components/student/reports/report-day-pill";
 import { useAvailabilitySettingsForm } from "@/hooks/use-mentor-profile";
+import { usePeerMenteesTab } from "@/hooks/use-peer-mentees-tab";
 import {
   usePeerGivePublished,
   usePeerMentorGate,
   usePeerMentorProfile,
   usePeerMentorTrainingEntry,
+  type PeerGivePublished,
 } from "@/hooks/use-peer-mentor-give";
 import {
   PeerMentorGateState,
@@ -239,8 +243,9 @@ function EarnedView({ sessionBehind }: { sessionBehind: boolean }) {
 
 function PublishedView({ profile }: { profile: PeerMentorProfile }) {
   const t = useTranslations("iaIskur.give");
+  const tReports = useTranslations("iaIskurReports.give");
   const view = usePeerGivePublished(profile.menteeCapacity);
-  const { received, decision, loaded } = view;
+  const { received, loaded } = view;
 
   return (
     <div className="space-y-7">
@@ -251,98 +256,177 @@ function PublishedView({ profile }: { profile: PeerMentorProfile }) {
         onSelect={view.setTab}
         tabs={[
           {
-            id: PeerGiveTab.Requests,
-            label: t("tabs.requests"),
-            ...(loaded ? { count: received.waiting.length } : {}),
-          },
-          {
             id: PeerGiveTab.Mentees,
             label: t("tabs.mentees"),
-            ...(loaded ? { count: received.mentees.length } : {}),
+            ...(loaded ? { count: received.waiting.length } : {}),
           },
-          { id: PeerGiveTab.Availability, label: t("tabs.availability") },
+          { id: PeerGiveTab.Report, label: tReports("reportTab") },
           { id: PeerGiveTab.Profile, label: t("tabs.profile") },
         ]}
       />
+      <TabPanel
+        idPrefix={TABS_ID}
+        id={PeerGiveTab.Mentees}
+        selected={view.tab === PeerGiveTab.Mentees}
+      >
+        <MenteesTab view={view} />
+      </TabPanel>
+      <TabPanel
+        idPrefix={TABS_ID}
+        id={PeerGiveTab.Report}
+        selected={view.tab === PeerGiveTab.Report}
+      >
+        <ActivityReportView />
+      </TabPanel>
+      <TabPanel
+        idPrefix={TABS_ID}
+        id={PeerGiveTab.Profile}
+        selected={view.tab === PeerGiveTab.Profile}
+      >
+        {/* The profile and availability panels stay here until the Mentor Profilim screen replaces them. The capacity
+            card lives on Menteelerim only: every panel stays mounted, so a second copy would repeat its ids. */}
+        <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
+          <div className="flex min-w-0 flex-1 flex-col gap-8">
+            <ProfilePanel profile={profile} />
+            <AvailabilityPanel />
+          </div>
+          <aside className="flex w-full flex-col gap-6 lg:w-[400px] lg:shrink-0">
+            <ProfileSummaryCard profile={profile} />
+          </aside>
+        </div>
+      </TabPanel>
+    </div>
+  );
+}
+
+/** Menteelerim: a meeting report due, waiting requests, active mentees, capacity and this week's report. */
+function MenteesTab({ view }: { view: PeerGivePublished }) {
+  const t = useTranslations("iaIskur.give");
+  const tReports = useTranslations("iaIskurReports.give");
+  const cards = usePeerMenteesTab();
+  const { received, decision, loaded } = view;
+
+  return (
+    <div className="flex flex-col gap-6">
+      {cards.dueMeeting ? (
+        <section
+          aria-labelledby="peer-meeting-report-due"
+          className="flex flex-wrap items-center justify-between gap-4 rounded-card border border-status-warning-border bg-status-warning-bg px-6 py-4"
+        >
+          <div className="flex flex-col gap-0.5">
+            <h2
+              id="peer-meeting-report-due"
+              className="type-label text-status-warning-text"
+            >
+              {tReports("dueTitle", { name: cards.dueMeeting.menteeName })}
+            </h2>
+            <p className="type-body-sm text-text-secondary">
+              {tReports("dueBody")}
+            </p>
+          </div>
+          <Button href={cards.dueMeeting.href}>{tReports("dueAction")}</Button>
+        </section>
+      ) : null}
       <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
-        <div className="min-w-0 flex-1">
-          <TabPanel
-            idPrefix={TABS_ID}
-            id={PeerGiveTab.Requests}
-            selected={view.tab === PeerGiveTab.Requests}
-          >
-            <QueryNotice
-              isLoading={received.query.isLoading}
-              error={received.query.error}
-            />
-            {loaded ? (
-              <RequestList
-                requests={received.waiting}
-                empty={t("requests.empty")}
-                renderActions={(request, index) => (
-                  <div className="flex gap-3">
+        <div className="flex min-w-0 flex-1 flex-col gap-8">
+          <QueryNotice
+            isLoading={received.query.isLoading}
+            error={received.query.error}
+          />
+          <QueryNotice isLoading={false} error={cards.error} />
+          {loaded && view.capacityFull && received.waiting.length > 0 ? (
+            <p className="type-body-sm text-status-warning-text">
+              {tReports("capacityFull")}
+            </p>
+          ) : null}
+          {loaded ? (
+            <RequestList
+              requests={received.waiting}
+              empty={t("requests.empty")}
+              renderActions={(request, index) => (
+                <div className="flex gap-3">
+                  <Button
+                    variant={ButtonVariant.Secondary}
+                    fullWidth
+                    className="flex-1"
+                    disabled={decision.pendingId === request.id}
+                    onClick={() => decision.decline(request.id)}
+                  >
+                    {t("requests.decline")}
+                  </Button>
+                  <span
+                    className="flex flex-1"
+                    data-tour={index === 0 ? "peer-request-accept" : undefined}
+                  >
                     <Button
-                      variant={ButtonVariant.Secondary}
                       fullWidth
-                      className="flex-1"
-                      disabled={decision.pendingId === request.id}
-                      onClick={() => decision.decline(request.id)}
-                    >
-                      {t("requests.decline")}
-                    </Button>
-                    <span
-                      className="flex flex-1"
-                      data-tour={
-                        index === 0 ? "peer-request-accept" : undefined
+                      disabled={
+                        view.capacityFull || decision.pendingId === request.id
                       }
+                      onClick={() => decision.accept(request.id)}
                     >
-                      <Button
-                        fullWidth
-                        disabled={decision.pendingId === request.id}
-                        onClick={() => decision.accept(request.id)}
-                      >
-                        {t("requests.accept")}
-                      </Button>
-                    </span>
-                  </div>
-                )}
-              />
-            ) : null}
-          </TabPanel>
-          <TabPanel
-            idPrefix={TABS_ID}
-            id={PeerGiveTab.Mentees}
-            selected={view.tab === PeerGiveTab.Mentees}
-          >
-            {/* The requests tab carries the loading notice; an error shows on both tabs. */}
-            {received.query.error ? (
-              <QueryNotice isLoading={false} error={received.query.error} />
-            ) : null}
-            {loaded ? (
+                      {t("requests.accept")}
+                    </Button>
+                  </span>
+                </div>
+              )}
+            />
+          ) : null}
+          {loaded ? (
+            <section
+              aria-labelledby="peer-active-mentees"
+              className="flex flex-col gap-4"
+            >
+              <h2
+                id="peer-active-mentees"
+                className="type-title-card text-text-primary"
+              >
+                {tReports("activeMentees", { count: received.mentees.length })}
+              </h2>
               <RequestList
                 requests={received.mentees}
                 empty={t("mentees.empty")}
               />
-            ) : null}
-          </TabPanel>
-          <TabPanel
-            idPrefix={TABS_ID}
-            id={PeerGiveTab.Availability}
-            selected={view.tab === PeerGiveTab.Availability}
-          >
-            <AvailabilityPanel />
-          </TabPanel>
-          <TabPanel
-            idPrefix={TABS_ID}
-            id={PeerGiveTab.Profile}
-            selected={view.tab === PeerGiveTab.Profile}
-          >
-            <ProfilePanel profile={profile} />
-          </TabPanel>
+            </section>
+          ) : null}
         </div>
         <aside className="flex w-full flex-col gap-6 lg:w-[400px] lg:shrink-0">
-          {view.capacity ? <CapacityCard capacity={view.capacity} /> : null}
-          <ProfileSummaryCard profile={profile} />
+          {view.capacity ? (
+            <div className="flex flex-col gap-2">
+              <CapacityCard capacity={view.capacity} />
+              <button
+                type="button"
+                onClick={() => view.setTab(PeerGiveTab.Profile)}
+                className="w-fit type-label text-text-accent hover:underline focus-visible:outline-2 focus-visible:outline-border-selected"
+              >
+                {tReports("editCapacity")}
+              </button>
+            </div>
+          ) : null}
+          {cards.week ? (
+            <Card labelledBy="peer-week-report" className="flex flex-col gap-3">
+              <div className="flex items-center justify-between gap-2">
+                <h2
+                  id="peer-week-report"
+                  className="type-title-card text-text-primary"
+                >
+                  {tReports("weekTitle")}
+                </h2>
+                <ReportDayPill badge={cards.week.badge} />
+              </div>
+              <p className="type-h3 text-text-primary">{cards.week.label}</p>
+              <ul className="flex flex-col gap-2 type-body-sm text-text-secondary">
+                <li>{tReports("weekAdded", { count: cards.week.added })}</li>
+                {cards.week.waitingForAnswers ? (
+                  <li>{tReports("weekWaiting")}</li>
+                ) : null}
+                <li>{tReports("weekDue", { time: cards.week.deadline })}</li>
+              </ul>
+              <Button href={cards.week.href} fullWidth>
+                {tReports("weekAction")}
+              </Button>
+            </Card>
+          ) : null}
         </aside>
       </div>
     </div>

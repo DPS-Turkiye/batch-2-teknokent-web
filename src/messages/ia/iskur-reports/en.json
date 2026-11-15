@@ -319,5 +319,19 @@
     "close": "Close",
     "invalid": "Enter a title and a length between 1 and 720 minutes.",
     "meta": "{type} · {duration}"
+  },
+  "give": {
+    "reportTab": "Activity report",
+    "dueTitle": "Your meeting with {name} is done",
+    "dueBody": "Fill in the meeting report today; it is added to your daily report.",
+    "dueAction": "Fill in the meeting report",
+    "activeMentees": "Active mentees · {count}",
+    "editCapacity": "Edit capacity and availability",
+    "capacityFull": "Your capacity is full; raise it in Mentor profile to accept new requests.",
+    "weekTitle": "This week's report",
+    "weekAdded": "{count} activities added automatically",
+    "weekWaiting": "Your weekly evaluation is waiting",
+    "weekDue": "Due: {time}",
+    "weekAction": "Complete the report"
   }
 }

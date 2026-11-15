@@ -4,6 +4,7 @@ import {
   type PeerDailyReport,
   type PeerReportDay,
   type PeerReportMeeting,
+  type PeerWeeklyReport,
   type SavePeerActivityInput,
   type SavePeerDailyReportInput,
 } from "@/interfaces/peer-reports";
@@ -13,6 +14,7 @@ import {
   REPORT_TIME_ZONE,
   reportWeekDays,
   reportWeekStart,
+  shiftReportDay,
 } from "@/lib/peer-reports";
 import { weeklyDayCards } from "@/lib/peer-weekly-report";
 import { ISO_DAY_PATTERN } from "@/lib/utils";
@@ -215,5 +217,39 @@ export function invalidActivityFields(form: ActivityForm) {
     title: form.title.trim() === "",
     activityDate: !isCalendarDay(form.activityDate),
     durationMinutes: minutes < 1 || minutes > ACTIVITY_MINUTES_MAX,
+  };
+}
+
+/**
+ * The meeting Menteelerim's banner asks a report for ("X ile görüşmen tamamlandı"): the latest held meeting whose report
+ * is not sent yet; null when every held meeting has one.
+ */
+export function latestUnreportedMeeting(
+  meetings: readonly PeerReportMeeting[],
+): PeerReportMeeting | null {
+  return (
+    meetings
+      .filter(
+        (meeting) => meetingRowBadge(meeting) !== PeerReportBadge.Completed,
+      )
+      .toSorted(
+        (a, b) => Date.parse(b.scheduledAt) - Date.parse(a.scheduledAt),
+      )[0] ?? null
+  );
+}
+
+/** The days the banner looks back over: the last week, today included ("yyyy-mm-dd"). */
+export function bannerWindow(today: string) {
+  return { from: shiftReportDay(today, -6), to: today };
+}
+
+/**
+ * "Bu haftanın raporu": what the week gathered on its own (its meetings and activities), and whether the mentor still
+ * owes its written evaluation (not started, a draft, or sent back).
+ */
+export function weekCardCounts(week: PeerWeeklyReport) {
+  return {
+    added: week.summary.meetings + week.summary.activities,
+    waitingForAnswers: week.status === null || week.editable,
   };
 }

@@ -1,6 +1,6 @@
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PeerMentorGiveView } from "@/components/student/peer-mentor-give-view";
 import {
@@ -14,7 +14,9 @@ import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import {
   PeerTopicCategory,
   type PeerMentoringRequest,
+  type PeerMentorProfile,
 } from "@/interfaces/peer-mentoring";
+import { PeerReportStatus } from "@/interfaces/peer-reports";
 import { IdentityKind, UserRole, type AppSession } from "@/interfaces/session";
 import { TrainingState, type StudentTraining } from "@/interfaces/training";
 import { ClientApiError } from "@/lib/client/api";
@@ -26,8 +28,31 @@ import {
   getPeerMentorProfile,
   getReceivedPeerRequests,
 } from "@/lib/client/peer-mentoring";
+import {
+  getPeerDailyReport,
+  getPeerReportMeetings,
+  getPeerReportWeek,
+  getPeerWeeklyReport,
+} from "@/lib/client/peer-reports";
 import { getStudentTraining } from "@/lib/client/training";
-import { renderWithQueryClient } from "@test/test-utils";
+import { peerDailyReportFixture } from "@test/fixtures/peer-reports";
+import { weeklyReport } from "@test/fixtures/peer-weekly-report";
+import { freezeDate, renderWithQueryClient } from "@test/test-utils";
+
+const replace = vi.fn();
+let search = new URLSearchParams();
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ replace, push: vi.fn(), refresh: vi.fn() }),
+  usePathname: () => "/student/peer-mentoring",
+  useSearchParams: () => search,
+}));
+vi.mock("@/lib/client/peer-reports", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/client/peer-reports")>()),
+  getPeerReportMeetings: vi.fn(),
+  getPeerWeeklyReport: vi.fn(),
+  getPeerReportWeek: vi.fn(),
+  getPeerDailyReport: vi.fn(),
+}));
 
 let session: AppSession;
 const refresh = vi.fn(async () => null);
@@ -134,8 +159,39 @@ function received(
   };
 }
 
+function publishedProfile(): PeerMentorProfile {
+  return {
+    categories: [PeerTopicCategory.CareerInternship],
+    subTopics: [],
+    strongCourses: [],
+    projects: [],
+    erasmus: null,
+    helpWith: "Staj ve CV konusunda yardımcı olurum.",
+    linkedinUrl: null,
+    department: "Endüstri Mühendisliği",
+    classYear: 4,
+    menteeCapacity: 3,
+    levels: {},
+    experiences: [],
+  };
+}
+
+afterEach(() => {
+  vi.useRealTimers();
+});
+
 beforeEach(() => {
   vi.clearAllMocks();
+  freezeDate("2026-11-12T13:00:00Z");
+  search = new URLSearchParams();
+  vi.mocked(getPeerReportMeetings).mockResolvedValue([]);
+  vi.mocked(getPeerWeeklyReport).mockResolvedValue(weeklyReport());
+  vi.mocked(getPeerDailyReport).mockResolvedValue(peerDailyReportFixture());
+  vi.mocked(getPeerReportWeek).mockResolvedValue({
+    weekStart: "2026-11-09",
+    days: [],
+    dailySent: 0,
+  });
   session = student([UserRole.Mentee, UserRole.Mentor]);
   vi.mocked(getMyBadges).mockResolvedValue([gateAward(BadgeStatus.Active)]);
   vi.mocked(fetchInstitutionRecord).mockResolvedValue({
@@ -267,21 +323,8 @@ describe("PeerMentorGiveView", () => {
     expect(refresh).not.toHaveBeenCalled();
   });
 
-  it("lets a published peer mentor accept and decline requests and lists their mentees", async () => {
-    vi.mocked(getPeerMentorProfile).mockResolvedValue({
-      categories: [PeerTopicCategory.CareerInternship],
-      subTopics: [],
-      strongCourses: [],
-      projects: [],
-      erasmus: null,
-      helpWith: "Staj ve CV konusunda yardımcı olurum.",
-      linkedinUrl: null,
-      department: "Endüstri Mühendisliği",
-      classYear: 4,
-      menteeCapacity: 3,
-      levels: {},
-      experiences: [],
-    });
+  it("opens on Menteelerim: answers the waiting requests and lists the active mentees", async () => {
+    vi.mocked(getPeerMentorProfile).mockResolvedValue(publishedProfile());
     vi.mocked(getReceivedPeerRequests).mockResolvedValue([
       received("r1", MentorshipRequestStatus.Pending),
       received("r2", MentorshipRequestStatus.Accepted),
@@ -290,25 +333,32 @@ describe("PeerMentorGiveView", () => {
     renderWithQueryClient(<PeerMentorGiveView />);
 
     const panel = await screen.findByRole("tabpanel", {
-      name: /Mentorluk Talepleri/,
+      name: /Menteelerim/,
     });
     const card = await within(panel).findByRole("article", {
       name: "Ayşe Yılmaz",
     });
     expect(within(card).getByText("Onay Bekliyor")).toBeVisible();
     expect(within(card).getByText("Kariyer ve Staj")).toBeVisible();
+    expect(screen.getByRole("tab", { name: /Menteelerim/ })).toHaveTextContent(
+      "1",
+    );
+    const active = within(panel).getByRole("region", {
+      name: /Aktif menteelerim/,
+    });
     expect(
-      screen.getByRole("tab", { name: /Mentorluk Talepleri/ }),
-    ).toHaveTextContent("1");
+      within(active).getByRole("article", { name: "Mehmet Kaya" }),
+    ).toBeVisible();
+    expect(within(active).getByText("Kabul edildi")).toBeVisible();
+    expect(
+      within(active).queryByRole("button", { name: "Kabul Et" }),
+    ).not.toBeInTheDocument();
     const capacity = screen.getByRole("region", { name: "Kapasiten" });
     expect(within(capacity).getByText("/ 3 mentee")).toBeVisible();
     expect(within(capacity).getByRole("progressbar")).toHaveAttribute(
       "aria-valuetext",
       "1 / 3 mentee",
     );
-    expect(
-      screen.getByRole("link", { name: "Profili Düzenle" }),
-    ).toHaveAttribute("href", "/student/peer-mentoring/profile");
 
     expect(
       within(card)
@@ -332,26 +382,196 @@ describe("PeerMentorGiveView", () => {
         status: MentorshipRequestStatus.Declined,
       }),
     );
+  });
 
-    screen.getByRole("tab", { name: /Mentorluk Talepleri/ }).focus();
+  it("keeps the open tab in the URL, so report links land on Faaliyet Raporum", async () => {
+    vi.mocked(getPeerMentorProfile).mockResolvedValue(publishedProfile());
+    search = new URLSearchParams("as=MENTOR");
+    const user = userEvent.setup();
+    renderWithQueryClient(<PeerMentorGiveView />);
+
+    const mentees = await screen.findByRole("tab", { name: /Menteelerim/ });
+    expect(mentees).toHaveAttribute("aria-selected", "true");
+    mentees.focus();
     await user.keyboard("{ArrowRight}");
-    expect(screen.getByRole("tab", { name: /Menteelerim/ })).toHaveFocus();
-    const mentees = screen.getByRole("tabpanel", { name: /Menteelerim/ });
-    expect(
-      within(mentees).getByRole("article", { name: "Mehmet Kaya" }),
-    ).toBeVisible();
-    expect(within(mentees).getByText("Kabul edildi")).toBeVisible();
-    expect(
-      within(mentees).queryByRole("button", { name: "Kabul Et" }),
-    ).not.toBeInTheDocument();
+    expect(replace).toHaveBeenLastCalledWith(
+      "/student/peer-mentoring?as=MENTOR&tab=report",
+      { scroll: false },
+    );
+    await user.click(
+      await screen.findByRole("button", {
+        name: "Kapasite ve müsaitliği düzenle",
+      }),
+    );
+    expect(replace).toHaveBeenLastCalledWith(
+      "/student/peer-mentoring?as=MENTOR&tab=profile",
+      { scroll: false },
+    );
+  });
 
-    await user.keyboard("{End}");
+  it("shows the activity report on tab=report", async () => {
+    vi.mocked(getPeerMentorProfile).mockResolvedValue(publishedProfile());
+    search = new URLSearchParams("as=MENTOR&tab=report");
+    renderWithQueryClient(<PeerMentorGiveView />);
+
     expect(
-      screen.getByRole("tab", { name: "Mentor Profilim" }),
+      await screen.findByRole("tab", { name: "Faaliyet Raporum" }),
     ).toHaveAttribute("aria-selected", "true");
+    const report = screen.getByRole("tabpanel", { name: "Faaliyet Raporum" });
     expect(
-      screen.getByText("Staj ve CV konusunda yardımcı olurum."),
+      await within(report).findByRole("button", { name: "Haftalık Özet" }),
     ).toBeVisible();
+    expect(
+      screen.queryByRole("tabpanel", { name: /Menteelerim/ }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows the profile and availability on tab=profile, and falls back to Menteelerim for an unknown tab", async () => {
+    vi.mocked(getPeerMentorProfile).mockResolvedValue(publishedProfile());
+    search = new URLSearchParams("tab=profile");
+    const { unmount } = renderWithQueryClient(<PeerMentorGiveView />);
+
+    expect(
+      await screen.findByText("Staj ve CV konusunda yardımcı olurum."),
+    ).toBeVisible();
+    for (const link of screen.getAllByRole("link", {
+      name: "Profili Düzenle",
+    })) {
+      expect(link).toHaveAttribute("href", "/student/peer-mentoring/profile");
+    }
+    expect(
+      screen.queryByRole("region", { name: "Kapasiten" }),
+    ).not.toBeInTheDocument();
+    unmount();
+
+    search = new URLSearchParams("tab=requests");
+    renderWithQueryClient(<PeerMentorGiveView />);
+    expect(
+      await screen.findByRole("tab", { name: /Menteelerim/ }),
+    ).toHaveAttribute("aria-selected", "true");
+  });
+
+  it("disables Kabul Et once the capacity is full", async () => {
+    vi.mocked(getPeerMentorProfile).mockResolvedValue(publishedProfile());
+    vi.mocked(getAvailabilitySettings).mockResolvedValue({
+      rules: [],
+      exceptions: [],
+      menteeCapacity: 1,
+      defaultMeetingDurationMinutes: 30,
+      meetingBufferMinutes: 0,
+    });
+    vi.mocked(getReceivedPeerRequests).mockResolvedValue([
+      received("r1", MentorshipRequestStatus.Pending),
+      received("r2", MentorshipRequestStatus.Accepted),
+    ]);
+    renderWithQueryClient(<PeerMentorGiveView />);
+
+    const card = await screen.findByRole("article", { name: "Ayşe Yılmaz" });
+    await waitFor(() =>
+      expect(
+        within(card).getByRole("button", { name: "Kabul Et" }),
+      ).toBeDisabled(),
+    );
+    expect(
+      screen.getByText(/Kapasiten dolu; yeni talep kabul etmek için/),
+    ).toBeVisible();
+    expect(within(card).getByRole("button", { name: "Reddet" })).toBeEnabled();
+  });
+
+  it("asks for the latest held meeting's report and shows this week's report", async () => {
+    vi.mocked(getPeerMentorProfile).mockResolvedValue(publishedProfile());
+    const [meeting] = peerDailyReportFixture().meetings;
+    if (!meeting) throw new Error("fixture meeting missing");
+    vi.mocked(getPeerReportMeetings).mockResolvedValue([
+      {
+        ...meeting,
+        meetingId: "m-sent",
+        menteeName: "Emre Kaya",
+        reportStatus: PeerReportStatus.InReview,
+      },
+      {
+        ...meeting,
+        meetingId: "m-due",
+        menteeName: "Ayşe Yıldız",
+        reportStatus: null,
+      },
+    ]);
+    renderWithQueryClient(<PeerMentorGiveView />);
+
+    const banner = await screen.findByRole("region", {
+      name: /Ayşe Yıldız ile görüşmen tamamlandı/,
+    });
+    expect(
+      within(banner).getByRole("link", { name: "Görüşme Raporunu Doldur" }),
+    ).toHaveAttribute("href", "/student/peer-mentoring/reports/meetings/m-due");
+    expect(getPeerReportMeetings).toHaveBeenCalledWith(
+      "2026-11-06",
+      "2026-11-12",
+    );
+
+    const week = await screen.findByRole("region", {
+      name: "Bu haftanın raporu",
+    });
+    expect(getPeerWeeklyReport).toHaveBeenCalledWith("2026-11-09");
+    expect(within(week).getByText("Taslak")).toBeVisible();
+    expect(
+      within(week).getByText("11 faaliyet otomatik eklendi"),
+    ).toBeVisible();
+    expect(
+      within(week).getByText("Haftalık değerlendirmen bekleniyor"),
+    ).toBeVisible();
+    expect(within(week).getByText("Teslim: 16 Kasım, 23:59")).toBeVisible();
+    expect(
+      within(week).getByRole("link", { name: "Raporu Tamamla" }),
+    ).toHaveAttribute(
+      "href",
+      "/student/peer-mentoring?as=MENTOR&tab=report&view=weekly&week=2026-11-09",
+    );
+  });
+
+  it("says so when the report cards can't be read, instead of hiding them", async () => {
+    vi.mocked(getPeerMentorProfile).mockResolvedValue(publishedProfile());
+    vi.mocked(getPeerReportMeetings).mockRejectedValue(
+      new ClientApiError("Görüşmeler okunamadı.", 500),
+    );
+    renderWithQueryClient(<PeerMentorGiveView />);
+
+    const mentees = await screen.findByRole("tabpanel", {
+      name: /Menteelerim/,
+    });
+    expect(
+      await within(mentees).findByText(/Görüşmeler okunamadı/),
+    ).toBeVisible();
+  });
+
+  it("drops the evaluation line once the week is sent", async () => {
+    vi.mocked(getPeerMentorProfile).mockResolvedValue(publishedProfile());
+    vi.mocked(getPeerWeeklyReport).mockResolvedValue(
+      weeklyReport({ status: PeerReportStatus.InReview, editable: false }),
+    );
+    renderWithQueryClient(<PeerMentorGiveView />);
+
+    const week = await screen.findByRole("region", {
+      name: "Bu haftanın raporu",
+    });
+    expect(
+      within(week).getByText("11 faaliyet otomatik eklendi"),
+    ).toBeVisible();
+    expect(
+      within(week).queryByText("Haftalık değerlendirmen bekleniyor"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows no banner when every held meeting has its report", async () => {
+    vi.mocked(getPeerMentorProfile).mockResolvedValue(publishedProfile());
+    renderWithQueryClient(<PeerMentorGiveView />);
+
+    expect(
+      await screen.findByRole("region", { name: "Bu haftanın raporu" }),
+    ).toBeVisible();
+    expect(
+      screen.queryByRole("link", { name: "Görüşme Raporunu Doldur" }),
+    ).not.toBeInTheDocument();
   });
 
   it("reads the capacity from the saved availability settings, so the card follows a save", async () => {
@@ -382,7 +602,7 @@ describe("PeerMentorGiveView", () => {
     expect(await within(capacity).findByText("/ 5 mentee")).toBeVisible();
   });
 
-  it("tells the mentor on the Menteelerim tab too when the requests can't be read", async () => {
+  it("tells the mentor on Menteelerim when the requests can't be read", async () => {
     vi.mocked(getPeerMentorProfile).mockResolvedValue({
       categories: [PeerTopicCategory.CareerInternship],
       subTopics: [],
@@ -400,11 +620,11 @@ describe("PeerMentorGiveView", () => {
     vi.mocked(getReceivedPeerRequests).mockRejectedValue(
       new ClientApiError("Talepler okunamadı.", 500),
     );
-    const user = userEvent.setup();
     renderWithQueryClient(<PeerMentorGiveView />);
 
-    await user.click(await screen.findByRole("tab", { name: /Menteelerim/ }));
-    const mentees = screen.getByRole("tabpanel", { name: /Menteelerim/ });
+    const mentees = await screen.findByRole("tabpanel", {
+      name: /Menteelerim/,
+    });
     expect(
       await within(mentees).findByText(/Talepler okunamadı/),
     ).toBeVisible();
