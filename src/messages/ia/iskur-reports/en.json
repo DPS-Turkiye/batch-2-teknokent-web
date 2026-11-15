@@ -319,5 +319,8 @@
     "close": "Close",
     "invalid": "Enter a title and a length between 1 and 720 minutes.",
     "meta": "{type} · {duration}"
+  },
+  "appointments": {
+    "fillReport": "Fill in the meeting report"
   }
 }

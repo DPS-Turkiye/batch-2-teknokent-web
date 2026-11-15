@@ -319,5 +319,8 @@
     "close": "Kapat",
     "invalid": "Bir başlık ve 1–720 dakika arası bir süre gir.",
     "meta": "{type} · {duration}"
+  },
+  "appointments": {
+    "fillReport": "Görüşme raporunu doldur"
   }
 }
