@@ -45,6 +45,16 @@ export function chosenCategories(
   return categories.filter((item) => topics.includes(item.id));
 }
 
+/** The picked sub-topics with their labels, in the order of their categories; ids the catalogue lacks drop out. */
+export function chosenSubtopics(
+  categories: ProfileCompletionCategory[],
+  interests: Interests,
+) {
+  return chosenCategories(categories, interests.topics)
+    .flatMap((item) => item.subtopics)
+    .filter((sub) => interests.subtopics.includes(sub.id));
+}
+
 /**
  * The catalogue narrowed to a program's active categories, in the catalogue's order. Sub-topics stay the
  * catalogue's sample ones until the board names real ones.

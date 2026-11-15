@@ -318,6 +318,13 @@
     "notFound": "Bu öğrenci hakkında gösterilecek bilgi yok.",
     "openProfile": "Öğrenci profilini gör",
     "close": "Kapat",
-    "fullProfile": "Tam Profili Gör"
+    "fullProfile": "Tam Profili Gör",
+    "interests": {
+      "title": "İlgi alanları ve hedefi",
+      "topics": "İlgi alanları",
+      "goal": "Hedefi",
+      "noGoal": "Henüz bir hedef yazmadı.",
+      "empty": "Öğrenci henüz ilgi alanlarını ve hedefini doldurmadı."
+    }
   }
 }

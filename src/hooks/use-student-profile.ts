@@ -21,6 +21,7 @@ import {
 } from "@/lib/client/student-profile-completion";
 import {
   chosenCategories,
+  chosenSubtopics,
   toggleInterestSubtopic,
   toggleInterestTopic,
 } from "@/lib/student-interests";
@@ -95,9 +96,10 @@ export function useStudentInterests() {
     /** The chosen categories with their sub-topics, for whatever is on screen. */
     chosen: chosenCategories(catalogue, shown?.topics ?? []),
     /** The saved sub-topics, in the order of their categories. */
-    savedSubtopics: chosenCategories(catalogue, saved?.topics ?? [])
-      .flatMap((item) => item.subtopics)
-      .filter((sub) => saved?.subtopics.includes(sub.id) ?? false),
+    savedSubtopics: chosenSubtopics(
+      catalogue,
+      saved ?? { topics: [], subtopics: [] },
+    ),
     isLoading: profile.isLoading || categories.isLoading,
     loadError: profile.error ?? categories.error,
     isFetching: profile.isFetching || categories.isFetching,

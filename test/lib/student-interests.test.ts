@@ -5,6 +5,7 @@ import { PROFILE_COMPLETION_CATEGORIES } from "@/lib/client/fixtures/student-pro
 import {
   activeCatalogue,
   chosenCategories,
+  chosenSubtopics,
   toggleInterestSubtopic,
   toggleInterestTopic,
 } from "@/lib/student-interests";
@@ -56,6 +57,29 @@ describe("student interests", () => {
       PeerTopicCategory.AcademicDevelopment,
       PeerTopicCategory.International,
     ]);
+  });
+});
+
+describe("chosenSubtopics", () => {
+  it("labels the picked sub-topics in category order and drops ids the catalogue lacks", () => {
+    expect(
+      chosenSubtopics(PROFILE_COMPLETION_CATEGORIES, {
+        topics: [
+          PeerTopicCategory.International,
+          PeerTopicCategory.CareerInternship,
+        ],
+        subtopics: ["fixture-exchange", "cv", "fixture-cv"],
+      }).map((sub) => sub.labelKey),
+    ).toEqual(["cv", "exchange"]);
+  });
+
+  it("leaves out a sub-topic whose category was not picked", () => {
+    expect(
+      chosenSubtopics(PROFILE_COMPLETION_CATEGORIES, {
+        topics: [],
+        subtopics: ["fixture-cv"],
+      }),
+    ).toEqual([]);
   });
 });
 

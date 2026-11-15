@@ -318,6 +318,13 @@
     "notFound": "There's nothing to show about this student.",
     "openProfile": "See the student's profile",
     "close": "Close",
-    "fullProfile": "See full profile"
+    "fullProfile": "See full profile",
+    "interests": {
+      "title": "Interests and goal",
+      "topics": "Interests",
+      "goal": "Goal",
+      "noGoal": "No goal written yet.",
+      "empty": "The student hasn't filled in their interests and goal yet."
+    }
   }
 }
