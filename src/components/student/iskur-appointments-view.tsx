@@ -3,6 +3,7 @@
 import { Check } from "lucide-react";
 import { useTranslations } from "next-intl";
 
+import { Button, ButtonSize, ButtonVariant } from "@/components/ia/button";
 import { StudentAppointmentsView } from "@/components/student/appointments-view";
 import { useIskurAppointmentsRole } from "@/hooks/use-iskur-appointments";
 import { AppointmentSide } from "@/interfaces/appointment";
@@ -30,6 +31,7 @@ const LEGEND = [
  */
 export function IskurAppointmentsView({ sentTo }: { sentTo: string | null }) {
   const t = useTranslations("iaIskur.appointments");
+  const tReports = useTranslations("iaIskurReports.appointments");
   const roles = useIskurAppointmentsRole();
 
   if (!roles.enabled) return <StudentAppointmentsView sentTo={sentTo} />;
@@ -78,9 +80,26 @@ export function IskurAppointmentsView({ sentTo }: { sentTo: string | null }) {
           </dl>
         </div>
       }
-      renderActions={(appointment) => (
-        <RoleChip role={SIDE_ROLE[appointment.side]} />
-      )}
+      renderActions={(appointment) => {
+        const reportHref = roles.reportHref(appointment);
+        return (
+          <>
+            <RoleChip role={SIDE_ROLE[appointment.side]} />
+            {reportHref ? (
+              <Button
+                href={reportHref}
+                size={ButtonSize.Small}
+                variant={ButtonVariant.Secondary}
+                aria-label={tReports("fillReportFor", {
+                  name: appointment.counterpart.fullName,
+                })}
+              >
+                {tReports("fillReport")}
+              </Button>
+            ) : null}
+          </>
+        );
+      }}
     />
   );
 }

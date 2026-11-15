@@ -99,4 +99,34 @@ describe("IskurAppointmentsView", () => {
     ).toBeNull();
     expect(within(panel).queryByText("Mentor olarak")).toBeNull();
   });
+
+  it("links a held meeting the student gave to its report, and only that one", async () => {
+    vi.setSystemTime(new Date("2026-11-11T11:40:00.000Z"));
+    const user = userEvent.setup();
+    renderWithQueryClient(<IskurAppointmentsView sentTo={null} />);
+
+    await user.click(await screen.findByRole("tab", { name: /Geçmiş/ }));
+    const past = screen.getByRole("tabpanel");
+    expect(await within(past).findByText("Mert Yılmaz")).toBeVisible();
+    const links = within(past).getAllByRole("link", {
+      name: /raporunu doldur/,
+    });
+    expect(links).toHaveLength(1);
+    expect(links[0]).toHaveAccessibleName(
+      "Mert Yılmaz ile görüşmenin raporunu doldur",
+    );
+    expect(links[0]).toHaveTextContent("Görüşme raporunu doldur");
+    expect(links[0]).toHaveAttribute(
+      "href",
+      "/student/peer-mentoring/reports/meetings/meeting-2",
+    );
+  });
+
+  it("offers no report link before the student's meeting starts", async () => {
+    renderWithQueryClient(<IskurAppointmentsView sentTo={null} />);
+
+    const panel = await screen.findByRole("tabpanel");
+    expect(await within(panel).findByText("Mert Yılmaz")).toBeVisible();
+    expect(screen.queryByRole("link", { name: /raporunu doldur/ })).toBeNull();
+  });
 });

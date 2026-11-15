@@ -333,5 +333,9 @@
     "weekWaiting": "Haftalık değerlendirmen bekleniyor",
     "weekDue": "Teslim: {time}",
     "weekAction": "Raporu Tamamla"
+  },
+  "appointments": {
+    "fillReport": "Görüşme raporunu doldur",
+    "fillReportFor": "{name} ile görüşmenin raporunu doldur"
   }
 }

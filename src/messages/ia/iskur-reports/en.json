@@ -333,5 +333,9 @@
     "weekWaiting": "Your weekly evaluation is waiting",
     "weekDue": "Due: {time}",
     "weekAction": "Complete the report"
+  },
+  "appointments": {
+    "fillReport": "Fill in the meeting report",
+    "fillReportFor": "Fill in the report of your meeting with {name}"
   }
 }
