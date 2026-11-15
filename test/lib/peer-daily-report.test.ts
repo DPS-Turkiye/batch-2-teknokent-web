@@ -20,10 +20,11 @@ import {
   parseReportSearch,
   reportDayCards,
   reportWeekLabel,
+  weekCardCounts,
 } from "@/lib/peer-daily-report";
 import { PeerReportBadge, PeerReportView } from "@/types/peer-reports";
 import { peerDailyReportFixture } from "@test/fixtures/peer-reports";
-import { reportDay } from "@test/fixtures/peer-weekly-report";
+import { reportDay, weeklyReport } from "@test/fixtures/peer-weekly-report";
 
 const complete = {
   didToday: "İki görüşme.",
@@ -254,6 +255,13 @@ describe("Menteelerim's report banner", () => {
       "newer",
     );
     expect(latestUnreportedMeeting([sent])).toBeNull();
+    // Times may come with an offset; the order is by the instant, not the text.
+    const offset = {
+      ...meeting,
+      meetingId: "offset",
+      scheduledAt: "2026-11-12T14:00:00+03:00",
+    };
+    expect(latestUnreportedMeeting([offset, newer])?.meetingId).toBe("offset");
     expect(latestUnreportedMeeting([])).toBeNull();
   });
 
@@ -262,5 +270,23 @@ describe("Menteelerim's report banner", () => {
       from: "2026-11-27",
       to: "2026-12-03",
     });
+  });
+});
+
+describe("weekCardCounts", () => {
+  it("counts the week's meetings and activities, and asks for the evaluation until it is sent", () => {
+    expect(weekCardCounts(weeklyReport())).toEqual({
+      added: 11,
+      waitingForAnswers: true,
+    });
+    expect(
+      weekCardCounts(weeklyReport({ status: null, id: null }))
+        .waitingForAnswers,
+    ).toBe(true);
+    expect(
+      weekCardCounts(
+        weeklyReport({ status: PeerReportStatus.Approved, editable: false }),
+      ).waitingForAnswers,
+    ).toBe(false);
   });
 });

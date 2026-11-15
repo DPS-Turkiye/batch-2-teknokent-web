@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useLocale } from "next-intl";
 
-import { PEER_REPORTS_QUERY_KEY } from "@/hooks/peer-report-queries";
+import { peerReportMeetingsQueryKey } from "@/hooks/peer-report-queries";
 import { useMinuteClock } from "@/hooks/use-minute-clock";
 import { peerWeeklyReportQueryKey } from "@/hooks/use-weekly-report";
 import {
@@ -14,6 +14,7 @@ import {
   bannerWindow,
   latestUnreportedMeeting,
   reportWeekLabel,
+  weekCardCounts,
 } from "@/lib/peer-daily-report";
 import {
   fromIsoDay,
@@ -34,10 +35,10 @@ export function usePeerMenteesTab() {
   const now = useMinuteClock();
   const today = reportDayOf(now.toISOString());
   const weekStart = reportWeekStart(fromIsoDay(today));
-  const window = bannerWindow(today);
+  const range = bannerWindow(today);
   const meetings = useQuery({
-    queryKey: [...PEER_REPORTS_QUERY_KEY, "meetings", window.from, window.to],
-    queryFn: () => getPeerReportMeetings(window.from, window.to),
+    queryKey: peerReportMeetingsQueryKey(range.from, range.to),
+    queryFn: () => getPeerReportMeetings(range.from, range.to),
   });
   const weekly = useQuery({
     queryKey: peerWeeklyReportQueryKey(weekStart),
@@ -47,6 +48,8 @@ export function usePeerMenteesTab() {
   const week = weekly.data;
 
   return {
+    // A failed read must not look like "nothing due", so the tab says it could not load the cards.
+    error: meetings.error ?? weekly.error,
     dueMeeting: due
       ? { menteeName: due.menteeName, href: meetingReportHref(due.meetingId) }
       : null,
@@ -54,8 +57,7 @@ export function usePeerMenteesTab() {
       ? {
           badge: peerReportBadge(week.status),
           label: reportWeekLabel(weekStart, locale),
-          added: week.summary.meetings + week.summary.activities,
-          waitingForAnswers: week.status === null || week.editable,
+          ...weekCardCounts(week),
           deadline: formatReportDeadline(week.deadline, locale),
           href: reportWeekHref(weekStart),
         }

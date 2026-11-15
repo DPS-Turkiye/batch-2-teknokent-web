@@ -236,6 +236,7 @@ export function usePeerGivePublished(profileCapacity: number | null) {
   const pathname = usePathname();
   const asked = params.get("tab");
   const tab = isEnumValue(PeerGiveTab, asked) ? asked : PeerGiveTab.Mentees;
+  // The report's own params (view, week, day) stay, so coming back to Faaliyet Raporum reopens the same day or week.
   const setTab = (next: PeerGiveTab) => {
     const query = new URLSearchParams(params.toString());
     query.set("tab", next);
@@ -250,23 +251,23 @@ export function usePeerGivePublished(profileCapacity: number | null) {
       ? profileCapacity
       : settings.data.menteeCapacity;
   const loaded = received.query.data !== undefined;
+  // Until the requests load the mentee count is unknown, so the card waits instead of showing 0.
+  const capacity = loaded
+    ? peerMentorCapacity(received.mentees.length, menteeCapacity)
+    : null;
   return {
     tab,
     setTab,
     received,
     decision,
     loaded,
-    // Until the requests load the mentee count is unknown, so the card waits instead of showing 0.
-    capacity: loaded
-      ? peerMentorCapacity(received.mentees.length, menteeCapacity)
-      : null,
+    capacity,
     /** A full capacity disables "Kabul Et": the backend would refuse the acceptance anyway. */
-    capacityFull:
-      loaded &&
-      peerMentorCapacity(received.mentees.length, menteeCapacity).note ===
-        PeerCapacityNote.Full,
+    capacityFull: capacity?.note === PeerCapacityNote.Full,
   };
 }
+
+export type PeerGivePublished = ReturnType<typeof usePeerGivePublished>;
 
 /** Who the wizard's preview card shows: the student, from the session and the institution record. */
 export function usePeerMentorPreviewPerson() {

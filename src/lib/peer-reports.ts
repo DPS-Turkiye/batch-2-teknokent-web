@@ -47,7 +47,12 @@ export function reportWeekStart(now: Date) {
 
 /** Another week's Monday, `weeks` before (negative) or after this one. */
 export function shiftReportWeek(weekStart: string, weeks: number) {
-  return isoDay(addDays(fromIsoDay(weekStart), weeks * 7));
+  return shiftReportDay(weekStart, weeks * 7);
+}
+
+/** A report day ("yyyy-mm-dd") moved by whole days, as a calendar day. */
+export function shiftReportDay(day: string, days: number) {
+  return isoDay(addDays(fromIsoDay(day), days));
 }
 
 /** The working days of a report week, Monday to Friday. */

@@ -4,16 +4,17 @@ import {
   type PeerDailyReport,
   type PeerReportDay,
   type PeerReportMeeting,
+  type PeerWeeklyReport,
   type SavePeerActivityInput,
   type SavePeerDailyReportInput,
 } from "@/interfaces/peer-reports";
-import { addDays, isoDay } from "@/lib/coordinator-calendar";
 import { isEnumValue } from "@/lib/enum";
 import {
   fromIsoDay,
   REPORT_TIME_ZONE,
   reportWeekDays,
   reportWeekStart,
+  shiftReportDay,
 } from "@/lib/peer-reports";
 import { weeklyDayCards } from "@/lib/peer-weekly-report";
 import { ISO_DAY_PATTERN } from "@/lib/utils";
@@ -231,11 +232,24 @@ export function latestUnreportedMeeting(
       .filter(
         (meeting) => meetingRowBadge(meeting) !== PeerReportBadge.Completed,
       )
-      .toSorted((a, b) => b.scheduledAt.localeCompare(a.scheduledAt))[0] ?? null
+      .toSorted(
+        (a, b) => Date.parse(b.scheduledAt) - Date.parse(a.scheduledAt),
+      )[0] ?? null
   );
 }
 
 /** The days the banner looks back over: the last week, today included ("yyyy-mm-dd"). */
 export function bannerWindow(today: string) {
-  return { from: isoDay(addDays(fromIsoDay(today), -6)), to: today };
+  return { from: shiftReportDay(today, -6), to: today };
+}
+
+/**
+ * "Bu haftanın raporu": what the week gathered on its own (its meetings and activities), and whether the mentor still
+ * owes its written evaluation (not started, a draft, or sent back).
+ */
+export function weekCardCounts(week: PeerWeeklyReport) {
+  return {
+    added: week.summary.meetings + week.summary.activities,
+    waitingForAnswers: week.status === null || week.editable,
+  };
 }

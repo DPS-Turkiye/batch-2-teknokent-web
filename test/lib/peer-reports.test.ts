@@ -12,6 +12,7 @@ import {
   reportWeekDays,
   reportWeekHref,
   reportWeekStart,
+  shiftReportDay,
   shiftReportWeek,
   splitMinutes,
 } from "@/lib/peer-reports";
@@ -126,6 +127,13 @@ describe("reportDayHref", () => {
     expect(reportDayHref("2026-11-12")).toBe(
       "/student/peer-mentoring?as=MENTOR&tab=report&view=daily&day=2026-11-12",
     );
+  });
+});
+
+describe("shiftReportDay", () => {
+  it("moves by calendar days across months and years", () => {
+    expect(shiftReportDay("2026-12-31", 1)).toBe("2027-01-01");
+    expect(shiftReportDay("2026-03-01", -1)).toBe("2026-02-28");
   });
 });
 

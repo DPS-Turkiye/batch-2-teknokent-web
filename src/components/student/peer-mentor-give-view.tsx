@@ -27,6 +27,7 @@ import {
   usePeerMentorGate,
   usePeerMentorProfile,
   usePeerMentorTrainingEntry,
+  type PeerGivePublished,
 } from "@/hooks/use-peer-mentor-give";
 import {
   PeerMentorGateState,
@@ -268,44 +269,38 @@ function PublishedView({ profile }: { profile: PeerMentorProfile }) {
         id={PeerGiveTab.Mentees}
         selected={view.tab === PeerGiveTab.Mentees}
       >
-        {view.tab === PeerGiveTab.Mentees ? <MenteesTab view={view} /> : null}
+        <MenteesTab view={view} />
       </TabPanel>
       <TabPanel
         idPrefix={TABS_ID}
         id={PeerGiveTab.Report}
         selected={view.tab === PeerGiveTab.Report}
       >
-        {view.tab === PeerGiveTab.Report ? <ActivityReportView /> : null}
+        <ActivityReportView />
       </TabPanel>
       <TabPanel
         idPrefix={TABS_ID}
         id={PeerGiveTab.Profile}
         selected={view.tab === PeerGiveTab.Profile}
       >
-        {/* The profile and availability panels stay here until the Mentor Profilim screen replaces them. */}
-        {view.tab === PeerGiveTab.Profile ? (
-          <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
-            <div className="flex min-w-0 flex-1 flex-col gap-8">
-              <ProfilePanel profile={profile} />
-              <AvailabilityPanel />
-            </div>
-            <aside className="flex w-full flex-col gap-6 lg:w-[400px] lg:shrink-0">
-              {view.capacity ? <CapacityCard capacity={view.capacity} /> : null}
-              <ProfileSummaryCard profile={profile} />
-            </aside>
+        {/* The profile and availability panels stay here until the Mentor Profilim screen replaces them. The capacity
+            card lives on Menteelerim only: every panel stays mounted, so a second copy would repeat its ids. */}
+        <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
+          <div className="flex min-w-0 flex-1 flex-col gap-8">
+            <ProfilePanel profile={profile} />
+            <AvailabilityPanel />
           </div>
-        ) : null}
+          <aside className="flex w-full flex-col gap-6 lg:w-[400px] lg:shrink-0">
+            <ProfileSummaryCard profile={profile} />
+          </aside>
+        </div>
       </TabPanel>
     </div>
   );
 }
 
 /** Menteelerim: a meeting report due, waiting requests, active mentees, capacity and this week's report. */
-function MenteesTab({
-  view,
-}: {
-  view: ReturnType<typeof usePeerGivePublished>;
-}) {
+function MenteesTab({ view }: { view: PeerGivePublished }) {
   const t = useTranslations("iaIskur.give");
   const tReports = useTranslations("iaIskurReports.give");
   const cards = usePeerMenteesTab();
@@ -314,24 +309,23 @@ function MenteesTab({
   return (
     <div className="flex flex-col gap-6">
       {cards.dueMeeting ? (
-        <div
-          role="status"
+        <section
           aria-labelledby="peer-meeting-report-due"
           className="flex flex-wrap items-center justify-between gap-4 rounded-card border border-status-warning-border bg-status-warning-bg px-6 py-4"
         >
           <div className="flex flex-col gap-0.5">
-            <p
+            <h2
               id="peer-meeting-report-due"
               className="type-label text-status-warning-text"
             >
               {tReports("dueTitle", { name: cards.dueMeeting.menteeName })}
-            </p>
+            </h2>
             <p className="type-body-sm text-text-secondary">
               {tReports("dueBody")}
             </p>
           </div>
           <Button href={cards.dueMeeting.href}>{tReports("dueAction")}</Button>
-        </div>
+        </section>
       ) : null}
       <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
         <div className="flex min-w-0 flex-1 flex-col gap-8">
@@ -339,6 +333,12 @@ function MenteesTab({
             isLoading={received.query.isLoading}
             error={received.query.error}
           />
+          <QueryNotice isLoading={false} error={cards.error} />
+          {loaded && view.capacityFull && received.waiting.length > 0 ? (
+            <p className="type-body-sm text-status-warning-text">
+              {tReports("capacityFull")}
+            </p>
+          ) : null}
           {loaded ? (
             <RequestList
               requests={received.waiting}
@@ -357,9 +357,6 @@ function MenteesTab({
                   <span
                     className="flex flex-1"
                     data-tour={index === 0 ? "peer-request-accept" : undefined}
-                    title={
-                      view.capacityFull ? tReports("capacityFull") : undefined
-                    }
                   >
                     <Button
                       fullWidth
@@ -384,10 +381,7 @@ function MenteesTab({
                 id="peer-active-mentees"
                 className="type-title-card text-text-primary"
               >
-                {tReports("activeMentees")}
-                <span className="ml-2 type-body text-text-muted">
-                  · {received.mentees.length}
-                </span>
+                {tReports("activeMentees", { count: received.mentees.length })}
               </h2>
               <RequestList
                 requests={received.mentees}

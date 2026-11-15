@@ -186,6 +186,7 @@ beforeEach(() => {
   search = new URLSearchParams();
   vi.mocked(getPeerReportMeetings).mockResolvedValue([]);
   vi.mocked(getPeerWeeklyReport).mockResolvedValue(weeklyReport());
+  vi.mocked(getPeerDailyReport).mockResolvedValue(peerDailyReportFixture());
   vi.mocked(getPeerReportWeek).mockResolvedValue({
     weekStart: "2026-11-09",
     days: [],
@@ -410,14 +411,19 @@ describe("PeerMentorGiveView", () => {
 
   it("shows the activity report on tab=report", async () => {
     vi.mocked(getPeerMentorProfile).mockResolvedValue(publishedProfile());
-    vi.mocked(getPeerDailyReport).mockResolvedValue(peerDailyReportFixture());
     search = new URLSearchParams("as=MENTOR&tab=report");
     renderWithQueryClient(<PeerMentorGiveView />);
 
     expect(
       await screen.findByRole("tab", { name: "Faaliyet Raporum" }),
     ).toHaveAttribute("aria-selected", "true");
-    await waitFor(() => expect(getPeerReportWeek).toHaveBeenCalled());
+    const report = screen.getByRole("tabpanel", { name: "Faaliyet Raporum" });
+    expect(
+      await within(report).findByRole("button", { name: "Haftalık Özet" }),
+    ).toBeVisible();
+    expect(
+      screen.queryByRole("tabpanel", { name: /Menteelerim/ }),
+    ).not.toBeInTheDocument();
   });
 
   it("shows the profile and availability on tab=profile, and falls back to Menteelerim for an unknown tab", async () => {
@@ -434,8 +440,8 @@ describe("PeerMentorGiveView", () => {
       expect(link).toHaveAttribute("href", "/student/peer-mentoring/profile");
     }
     expect(
-      await screen.findByRole("region", { name: "Kapasiten" }),
-    ).toBeVisible();
+      screen.queryByRole("region", { name: "Kapasiten" }),
+    ).not.toBeInTheDocument();
     unmount();
 
     search = new URLSearchParams("tab=requests");
@@ -466,7 +472,9 @@ describe("PeerMentorGiveView", () => {
         within(card).getByRole("button", { name: "Kabul Et" }),
       ).toBeDisabled(),
     );
-    expect(within(card).getByTitle("Kapasiten dolu")).toBeInTheDocument();
+    expect(
+      screen.getByText(/Kapasiten dolu; yeni talep kabul etmek için/),
+    ).toBeVisible();
     expect(within(card).getByRole("button", { name: "Reddet" })).toBeEnabled();
   });
 
@@ -490,7 +498,7 @@ describe("PeerMentorGiveView", () => {
     ]);
     renderWithQueryClient(<PeerMentorGiveView />);
 
-    const banner = await screen.findByRole("status", {
+    const banner = await screen.findByRole("region", {
       name: /Ayşe Yıldız ile görüşmen tamamlandı/,
     });
     expect(
@@ -519,6 +527,39 @@ describe("PeerMentorGiveView", () => {
       "href",
       "/student/peer-mentoring?as=MENTOR&tab=report&view=weekly&week=2026-11-09",
     );
+  });
+
+  it("says so when the report cards can't be read, instead of hiding them", async () => {
+    vi.mocked(getPeerMentorProfile).mockResolvedValue(publishedProfile());
+    vi.mocked(getPeerReportMeetings).mockRejectedValue(
+      new ClientApiError("Görüşmeler okunamadı.", 500),
+    );
+    renderWithQueryClient(<PeerMentorGiveView />);
+
+    const mentees = await screen.findByRole("tabpanel", {
+      name: /Menteelerim/,
+    });
+    expect(
+      await within(mentees).findByText(/Görüşmeler okunamadı/),
+    ).toBeVisible();
+  });
+
+  it("drops the evaluation line once the week is sent", async () => {
+    vi.mocked(getPeerMentorProfile).mockResolvedValue(publishedProfile());
+    vi.mocked(getPeerWeeklyReport).mockResolvedValue(
+      weeklyReport({ status: PeerReportStatus.InReview, editable: false }),
+    );
+    renderWithQueryClient(<PeerMentorGiveView />);
+
+    const week = await screen.findByRole("region", {
+      name: "Bu haftanın raporu",
+    });
+    expect(
+      within(week).getByText("11 faaliyet otomatik eklendi"),
+    ).toBeVisible();
+    expect(
+      within(week).queryByText("Haftalık değerlendirmen bekleniyor"),
+    ).not.toBeInTheDocument();
   });
 
   it("shows no banner when every held meeting has its report", async () => {
