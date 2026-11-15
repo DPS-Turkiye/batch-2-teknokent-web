@@ -1,8 +1,10 @@
-/** Mentorluk Ver's tabs once the peer mentor's profile is published. */
+/**
+ * Mentorluk Ver's tabs once the peer mentor's profile is published (flow 3.2): Menteelerim, Faaliyet Raporum,
+ * Mentor Profilim. The value is the URL's `tab`, so report links (`tab=report`) land on the right one.
+ */
 export enum PeerGiveTab {
-  Requests = "requests",
   Mentees = "mentees",
-  Availability = "availability",
+  Report = "report",
   Profile = "profile",
 }
 

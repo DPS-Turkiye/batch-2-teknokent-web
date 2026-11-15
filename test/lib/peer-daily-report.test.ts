@@ -9,11 +9,13 @@ import {
   activityInput,
   activityTimeLabel,
   answeredDailyParts,
+  bannerWindow,
   dailyReportForm,
   dailyReportInput,
   dailyReportReady,
   emptyActivityForm,
   invalidActivityFields,
+  latestUnreportedMeeting,
   meetingRowBadge,
   parseReportSearch,
   reportDayCards,
@@ -224,5 +226,41 @@ describe("Faaliyet ekle", () => {
         durationMinutes: "10",
       }),
     ).toBeNull();
+  });
+});
+
+describe("Menteelerim's report banner", () => {
+  it("asks for the latest held meeting whose report is not sent", () => {
+    const [meeting] = peerDailyReportFixture().meetings;
+    if (!meeting) throw new Error("fixture meeting missing");
+    const older = {
+      ...meeting,
+      meetingId: "older",
+      scheduledAt: "2026-11-10T09:00:00Z",
+    };
+    const newer = {
+      ...meeting,
+      meetingId: "newer",
+      scheduledAt: "2026-11-12T09:00:00Z",
+      reportStatus: PeerReportStatus.Draft,
+    };
+    const sent = {
+      ...meeting,
+      meetingId: "sent",
+      scheduledAt: "2026-11-13T09:00:00Z",
+      reportStatus: PeerReportStatus.InReview,
+    };
+    expect(latestUnreportedMeeting([older, sent, newer])?.meetingId).toBe(
+      "newer",
+    );
+    expect(latestUnreportedMeeting([sent])).toBeNull();
+    expect(latestUnreportedMeeting([])).toBeNull();
+  });
+
+  it("looks back over the last seven days, across a month", () => {
+    expect(bannerWindow("2026-12-03")).toEqual({
+      from: "2026-11-27",
+      to: "2026-12-03",
+    });
   });
 });

@@ -10,6 +10,7 @@ import {
   reportDayHref,
   reportDayOf,
   reportWeekDays,
+  reportWeekHref,
   reportWeekStart,
   shiftReportWeek,
   splitMinutes,
@@ -124,6 +125,14 @@ describe("reportDayHref", () => {
   it("opens the day on the Mentorluk Ver side", () => {
     expect(reportDayHref("2026-11-12")).toBe(
       "/student/peer-mentoring?as=MENTOR&tab=report&view=daily&day=2026-11-12",
+    );
+  });
+});
+
+describe("reportWeekHref", () => {
+  it("opens the week's summary on the Mentorluk Ver side", () => {
+    expect(reportWeekHref("2026-11-09")).toBe(
+      "/student/peer-mentoring?as=MENTOR&tab=report&view=weekly&week=2026-11-09",
     );
   });
 });

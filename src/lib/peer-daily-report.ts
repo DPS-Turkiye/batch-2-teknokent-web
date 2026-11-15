@@ -7,6 +7,7 @@ import {
   type SavePeerActivityInput,
   type SavePeerDailyReportInput,
 } from "@/interfaces/peer-reports";
+import { addDays, isoDay } from "@/lib/coordinator-calendar";
 import { isEnumValue } from "@/lib/enum";
 import {
   fromIsoDay,
@@ -216,4 +217,25 @@ export function invalidActivityFields(form: ActivityForm) {
     activityDate: !isCalendarDay(form.activityDate),
     durationMinutes: minutes < 1 || minutes > ACTIVITY_MINUTES_MAX,
   };
+}
+
+/**
+ * The meeting Menteelerim's banner asks a report for ("X ile görüşmen tamamlandı"): the latest held meeting whose report
+ * is not sent yet; null when every held meeting has one.
+ */
+export function latestUnreportedMeeting(
+  meetings: readonly PeerReportMeeting[],
+): PeerReportMeeting | null {
+  return (
+    meetings
+      .filter(
+        (meeting) => meetingRowBadge(meeting) !== PeerReportBadge.Completed,
+      )
+      .toSorted((a, b) => b.scheduledAt.localeCompare(a.scheduledAt))[0] ?? null
+  );
+}
+
+/** The days the banner looks back over: the last week, today included ("yyyy-mm-dd"). */
+export function bannerWindow(today: string) {
+  return { from: isoDay(addDays(fromIsoDay(today), -6)), to: today };
 }

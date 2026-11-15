@@ -67,9 +67,7 @@
     },
     "tabs": {
       "label": "Give mentoring",
-      "requests": "Mentoring requests",
       "mentees": "My mentees",
-      "availability": "Availability and capacity",
       "profile": "My mentor profile"
     },
     "requests": {
@@ -87,7 +85,7 @@
       "ofCapacity": "/ {capacity} mentees",
       "noLimit": "mentees",
       "note": {
-        "unset": "You haven't set a capacity, so new requests keep coming. You can set it on the Availability and capacity tab.",
+        "unset": "You haven't set a capacity, so new requests keep coming. You can set it on the Mentor profile tab.",
         "open": "You can accept new requests.",
         "lastPlace": "Accepting one more request fills your capacity. New requests won't reach you until a place opens.",
         "full": "Your capacity is full. New requests won't reach you until a place opens."

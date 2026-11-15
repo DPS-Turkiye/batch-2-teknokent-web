@@ -319,5 +319,19 @@
     "close": "Kapat",
     "invalid": "Bir başlık ve 1–720 dakika arası bir süre gir.",
     "meta": "{type} · {duration}"
+  },
+  "give": {
+    "reportTab": "Faaliyet Raporum",
+    "dueTitle": "{name} ile görüşmen tamamlandı",
+    "dueBody": "Görüşme raporunu bugün doldur; günlük raporuna otomatik eklenir.",
+    "dueAction": "Görüşme Raporunu Doldur",
+    "activeMentees": "Aktif menteelerim",
+    "editCapacity": "Kapasite ve müsaitliği düzenle",
+    "capacityFull": "Kapasiten dolu",
+    "weekTitle": "Bu haftanın raporu",
+    "weekAdded": "{count} faaliyet otomatik eklendi",
+    "weekWaiting": "Haftalık değerlendirmen bekleniyor",
+    "weekDue": "Teslim: {time}",
+    "weekAction": "Raporu Tamamla"
   }
 }

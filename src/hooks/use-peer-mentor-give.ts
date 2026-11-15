@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
@@ -62,6 +62,7 @@ import {
 } from "@/lib/client/peer-mentoring";
 import { getPeerMentorCategories } from "@/lib/client/student-profile-completion";
 import { getStudentTraining } from "@/lib/client/training";
+import { isEnumValue } from "@/lib/enum";
 import { withKeys, withoutKeys, type Keyed } from "@/lib/keyed-list";
 import {
   chosenSubtopics,
@@ -86,7 +87,7 @@ import {
 } from "@/lib/student-interests";
 import { errorMessage, initials } from "@/lib/utils";
 import { useToast } from "@/stores/toast-store";
-import { PeerGiveTab } from "@/types/iskur-student";
+import { PeerCapacityNote, PeerGiveTab } from "@/types/iskur-student";
 
 export const PEER_MENTOR_PROFILE_QUERY_KEY = [
   "peer-mentoring",
@@ -226,11 +227,20 @@ export function usePeerRequestDecision() {
 }
 
 /**
- * Mentorluk Ver once the profile is published: the open tab (requests first), the received requests, the decision
- * actions and the "Kapasiten" card's numbers.
+ * Mentorluk Ver once the profile is published: the open tab (from the URL's `tab`, Menteelerim first), the received
+ * requests, the decision actions and the "Kapasiten" card's numbers.
  */
 export function usePeerGivePublished(profileCapacity: number | null) {
-  const [tab, setTab] = useState(PeerGiveTab.Requests);
+  const params = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const asked = params.get("tab");
+  const tab = isEnumValue(PeerGiveTab, asked) ? asked : PeerGiveTab.Mentees;
+  const setTab = (next: PeerGiveTab) => {
+    const query = new URLSearchParams(params.toString());
+    query.set("tab", next);
+    router.replace(`${pathname}?${query.toString()}`, { scroll: false });
+  };
   const received = useReceivedPeerRequests();
   const decision = usePeerRequestDecision();
   // The availability tab saves the capacity to the settings, not the profile; read it there so the card follows a save.
@@ -250,6 +260,11 @@ export function usePeerGivePublished(profileCapacity: number | null) {
     capacity: loaded
       ? peerMentorCapacity(received.mentees.length, menteeCapacity)
       : null,
+    /** A full capacity disables "Kabul Et": the backend would refuse the acceptance anyway. */
+    capacityFull:
+      loaded &&
+      peerMentorCapacity(received.mentees.length, menteeCapacity).note ===
+        PeerCapacityNote.Full,
   };
 }
 

@@ -100,3 +100,8 @@ export function meetingReportHref(meetingId: string) {
 export function reportDayHref(day: string) {
   return `${PEER_MENTOR_GIVE_HREF}&tab=report&view=daily&day=${day}`;
 }
+
+/** A week's Haftalık Özet in "Faaliyet Raporum" (the Monday, "yyyy-mm-dd"), on the Mentorluk Ver side. */
+export function reportWeekHref(weekStart: string) {
+  return `${PEER_MENTOR_GIVE_HREF}&tab=report&view=weekly&week=${weekStart}`;
+}
