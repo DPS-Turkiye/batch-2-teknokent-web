@@ -320,6 +320,20 @@
     "invalid": "Bir başlık ve 1–720 dakika arası bir süre gir.",
     "meta": "{type} · {duration}"
   },
+  "give": {
+    "reportTab": "Faaliyet Raporum",
+    "dueTitle": "{name} ile görüşmen tamamlandı",
+    "dueBody": "Görüşme raporunu bugün doldur; günlük raporuna otomatik eklenir.",
+    "dueAction": "Görüşme Raporunu Doldur",
+    "activeMentees": "Aktif menteelerim · {count}",
+    "editCapacity": "Kapasite ve müsaitliği düzenle",
+    "capacityFull": "Kapasiten dolu; yeni talep kabul etmek için Mentor Profilim'de kapasiteni artır.",
+    "weekTitle": "Bu haftanın raporu",
+    "weekAdded": "{count} faaliyet otomatik eklendi",
+    "weekWaiting": "Haftalık değerlendirmen bekleniyor",
+    "weekDue": "Teslim: {time}",
+    "weekAction": "Raporu Tamamla"
+  },
   "appointments": {
     "fillReport": "Görüşme raporunu doldur",
     "fillReportFor": "{name} ile görüşmenin raporunu doldur"

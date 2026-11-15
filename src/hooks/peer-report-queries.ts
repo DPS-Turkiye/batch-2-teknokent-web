@@ -10,6 +10,11 @@ export function peerMeetingReportQueryKey(meetingId: string) {
   return [...PEER_REPORTS_QUERY_KEY, "meeting", meetingId] as const;
 }
 
+/** The held meetings between two days ("yyyy-mm-dd", both included), with their report state. */
+export function peerReportMeetingsQueryKey(from: string, to: string) {
+  return [...PEER_REPORTS_QUERY_KEY, "meetings", from, to] as const;
+}
+
 export function peerDailyReportQueryKey(day: string) {
   return [...PEER_REPORTS_QUERY_KEY, "days", day] as const;
 }

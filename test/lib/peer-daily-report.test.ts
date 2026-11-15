@@ -9,19 +9,22 @@ import {
   activityInput,
   activityTimeLabel,
   answeredDailyParts,
+  bannerWindow,
   dailyReportForm,
   dailyReportInput,
   dailyReportReady,
   emptyActivityForm,
   invalidActivityFields,
+  latestUnreportedMeeting,
   meetingRowBadge,
   parseReportSearch,
   reportDayCards,
   reportWeekLabel,
+  weekCardCounts,
 } from "@/lib/peer-daily-report";
 import { PeerReportBadge, PeerReportView } from "@/types/peer-reports";
 import { peerDailyReportFixture } from "@test/fixtures/peer-reports";
-import { reportDay } from "@test/fixtures/peer-weekly-report";
+import { reportDay, weeklyReport } from "@test/fixtures/peer-weekly-report";
 
 const complete = {
   didToday: "İki görüşme.",
@@ -224,5 +227,66 @@ describe("Faaliyet ekle", () => {
         durationMinutes: "10",
       }),
     ).toBeNull();
+  });
+});
+
+describe("Menteelerim's report banner", () => {
+  it("asks for the latest held meeting whose report is not sent", () => {
+    const [meeting] = peerDailyReportFixture().meetings;
+    if (!meeting) throw new Error("fixture meeting missing");
+    const older = {
+      ...meeting,
+      meetingId: "older",
+      scheduledAt: "2026-11-10T09:00:00Z",
+    };
+    const newer = {
+      ...meeting,
+      meetingId: "newer",
+      scheduledAt: "2026-11-12T09:00:00Z",
+      reportStatus: PeerReportStatus.Draft,
+    };
+    const sent = {
+      ...meeting,
+      meetingId: "sent",
+      scheduledAt: "2026-11-13T09:00:00Z",
+      reportStatus: PeerReportStatus.InReview,
+    };
+    expect(latestUnreportedMeeting([older, sent, newer])?.meetingId).toBe(
+      "newer",
+    );
+    expect(latestUnreportedMeeting([sent])).toBeNull();
+    // Times may come with an offset; the order is by the instant, not the text.
+    const offset = {
+      ...meeting,
+      meetingId: "offset",
+      scheduledAt: "2026-11-12T14:00:00+03:00",
+    };
+    expect(latestUnreportedMeeting([offset, newer])?.meetingId).toBe("offset");
+    expect(latestUnreportedMeeting([])).toBeNull();
+  });
+
+  it("looks back over the last seven days, across a month", () => {
+    expect(bannerWindow("2026-12-03")).toEqual({
+      from: "2026-11-27",
+      to: "2026-12-03",
+    });
+  });
+});
+
+describe("weekCardCounts", () => {
+  it("counts the week's meetings and activities, and asks for the evaluation until it is sent", () => {
+    expect(weekCardCounts(weeklyReport())).toEqual({
+      added: 11,
+      waitingForAnswers: true,
+    });
+    expect(
+      weekCardCounts(weeklyReport({ status: null, id: null }))
+        .waitingForAnswers,
+    ).toBe(true);
+    expect(
+      weekCardCounts(
+        weeklyReport({ status: PeerReportStatus.Approved, editable: false }),
+      ).waitingForAnswers,
+    ).toBe(false);
   });
 });
