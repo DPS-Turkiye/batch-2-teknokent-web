@@ -1,10 +1,12 @@
 import {
   PeerActionOwner,
+  PeerActivityType,
   PeerMeetingFormat,
   PeerMeetingTopic,
   PeerMeetingType,
   PeerMentorSkill,
   PeerReportStatus,
+  type PeerDailyReport,
   type PeerMeetingReport,
 } from "@/interfaces/peer-reports";
 
@@ -77,4 +79,55 @@ export function completePeerMeetingReportFixture(
     updatedAt: "2026-11-12T11:52:00Z",
     ...overrides,
   });
+}
+
+/** The day 12 Kasım 2026 (Thursday): one meeting waiting for its report, one activity, nothing written yet. */
+export function peerDailyReportFixture(
+  overrides: Partial<PeerDailyReport> = {},
+): PeerDailyReport {
+  return {
+    date: "2026-11-12",
+    id: null,
+    status: null,
+    editable: true,
+    deadline: "2026-11-12T21:00:00Z",
+    late: false,
+    meetings: [
+      {
+        meetingId: "meeting-1",
+        menteeId: "mentee-1",
+        menteeName: "Emre Kaya",
+        scheduledAt: "2026-11-12T08:00:00Z",
+        durationMinutes: 30,
+        meetingType: PeerMeetingType.First,
+        meetingFormat: PeerMeetingFormat.Online,
+        reportStatus: null,
+      },
+    ],
+    activities: [
+      {
+        id: "activity-1",
+        activityDate: "2026-11-12",
+        type: PeerActivityType.ResourcePrep,
+        title: "Staj başvuru rehberi hazırlığı",
+        durationMinutes: 90,
+        menteeId: null,
+        menteeName: null,
+        description: null,
+        createdAt: "2026-11-12T12:00:00Z",
+      },
+    ],
+    didToday: null,
+    challenge: null,
+    skills: [],
+    learned: null,
+    tomorrowPlan: null,
+    suggestedSkills: [PeerMentorSkill.ActiveListening],
+    recordedMinutes: 120,
+    missingMeetingReports: 1,
+    submittedAt: null,
+    revisionNote: null,
+    updatedAt: null,
+    ...overrides,
+  };
 }

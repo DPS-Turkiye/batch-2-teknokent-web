@@ -22,7 +22,7 @@ import {
 } from "@/hooks/use-report-format";
 import { useWeeklyReport } from "@/hooks/use-weekly-report";
 import type { PeerWeeklyReport } from "@/interfaces/peer-reports";
-import { meetingReportHref } from "@/lib/peer-reports";
+import { meetingReportHref, reportDayHref } from "@/lib/peer-reports";
 import {
   formatReportDeadline,
   formatReportTime,
@@ -30,7 +30,6 @@ import {
   missingMeetingReports,
   outcomeActionProgress,
   outcomeLines,
-  peerDailyReportHref,
   WEEKLY_QUESTIONS,
   type WeeklyDayCard,
   type WeeklyOutcome,
@@ -445,7 +444,7 @@ function SideDays({ days }: { days: WeeklyDayCard[] }) {
           return (
             <li key={day.date}>
               <Link
-                href={peerDailyReportHref(day.date)}
+                href={reportDayHref(day.date)}
                 aria-label={t("open", {
                   day: label,
                   status: tStatus(day.badge ?? "notStarted"),

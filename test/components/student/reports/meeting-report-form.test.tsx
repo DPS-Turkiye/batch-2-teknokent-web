@@ -211,7 +211,7 @@ describe("MeetingReportScreen", () => {
     );
     expect(savePeerMeetingReport).toHaveBeenCalledTimes(1);
     expect(push).toHaveBeenCalledWith(
-      "/student/peer-mentoring?tab=report&view=daily&day=2026-11-12",
+      "/student/peer-mentoring?as=MENTOR&tab=report&view=daily&day=2026-11-12",
     );
   });
 
@@ -387,6 +387,45 @@ describe("MeetingReportScreen", () => {
 
     expect(await screen.findByText(/Son kaydetme/)).toBeInTheDocument();
     expect(discussion).toHaveValue("İlk ve sonra");
+  });
+
+  it("drops what was typed during a send once the report comes back locked", async () => {
+    vi.mocked(getPeerMeetingReport).mockResolvedValue(
+      completePeerMeetingReportFixture(),
+    );
+    vi.mocked(savePeerMeetingReport).mockResolvedValue(
+      completePeerMeetingReportFixture(),
+    );
+    let finish: (
+      report: ReturnType<typeof peerMeetingReportFixture>,
+    ) => void = () => undefined;
+    vi.mocked(submitPeerMeetingReport).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          finish = resolve;
+        }),
+    );
+    const user = userEvent.setup();
+    renderScreen();
+
+    const discussion = await screen.findByLabelText(
+      /Görüşmede neler konuştunuz/,
+    );
+    await user.click(
+      screen.getByRole("button", { name: "Görüşme Raporunu Gönder" }),
+    );
+    await waitFor(() => expect(submitPeerMeetingReport).toHaveBeenCalled());
+    await user.type(discussion, " sonradan");
+    finish(
+      completePeerMeetingReportFixture({
+        status: PeerReportStatus.InReview,
+        editable: false,
+        submittedAt: "2026-11-12T12:00:00Z",
+      }),
+    );
+
+    expect(await screen.findByText("İncelemede")).toBeInTheDocument();
+    expect(discussion).toHaveValue("Hedef şirket listesi çıkardık.");
   });
 
   it("tells the mentor when the report cannot be loaded", async () => {

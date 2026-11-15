@@ -1,5 +1,6 @@
 import { PeerReportStatus } from "@/interfaces/peer-reports";
 import { addDays, isoDay, startOfWeek } from "@/lib/coordinator-calendar";
+import { PEER_MENTOR_GIVE_HREF } from "@/lib/peer-mentoring";
 import { PeerReportBadge } from "@/types/peer-reports";
 
 /** A report week is Monday to Friday: the working days a daily report is due on. */
@@ -87,11 +88,15 @@ export function reportDayOf(at: string) {
 
 /** The day's view in "Faaliyet Raporum" for a moment (the meeting report's way back). */
 export function dailyReportHref(at: string) {
-  const day = reportDayOf(at);
-  return `/student/peer-mentoring?tab=report&view=daily&day=${day}`;
+  return reportDayHref(reportDayOf(at));
 }
 
 /** A meeting's report page (Görüşme Raporu), read-only once it is sent. */
 export function meetingReportHref(meetingId: string) {
   return `/student/peer-mentoring/reports/meetings/${encodeURIComponent(meetingId)}`;
+}
+
+/** A report day's view in "Faaliyet Raporum" ("yyyy-mm-dd"), on the Mentorluk Ver side (`as=MENTOR`). */
+export function reportDayHref(day: string) {
+  return `${PEER_MENTOR_GIVE_HREF}&tab=report&view=daily&day=${day}`;
 }

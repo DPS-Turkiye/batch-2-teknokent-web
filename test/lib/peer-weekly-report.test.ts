@@ -11,7 +11,6 @@ import {
   missingMeetingReports,
   outcomeActionProgress,
   outcomeLines,
-  peerDailyReportHref,
   toWeeklyInput,
   weeklyAnswers,
   weeklyChecklist,
@@ -455,11 +454,5 @@ describe("edge cases", () => {
 
   it("shows nothing for a time it can't read", () => {
     expect(formatReportTime("x", "tr")).toBe("");
-  });
-
-  it("links a day's report in the report tab's daily view", () => {
-    expect(peerDailyReportHref("2026-11-12")).toBe(
-      "/student/peer-mentoring?tab=report&view=daily&day=2026-11-12",
-    );
   });
 });

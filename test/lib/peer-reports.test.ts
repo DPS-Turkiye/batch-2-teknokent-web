@@ -7,6 +7,7 @@ import {
   isPeerReportEditable,
   meetingReportHref,
   peerReportBadge,
+  reportDayHref,
   reportDayOf,
   reportWeekDays,
   reportWeekStart,
@@ -111,10 +112,18 @@ describe("splitMinutes", () => {
 describe("report links", () => {
   it("go to the day of a moment and to a meeting's report", () => {
     expect(dailyReportHref("2026-11-12T11:00:00Z")).toBe(
-      "/student/peer-mentoring?tab=report&view=daily&day=2026-11-12",
+      "/student/peer-mentoring?as=MENTOR&tab=report&view=daily&day=2026-11-12",
     );
     expect(meetingReportHref("meeting/1")).toBe(
       "/student/peer-mentoring/reports/meetings/meeting%2F1",
+    );
+  });
+});
+
+describe("reportDayHref", () => {
+  it("opens the day on the Mentorluk Ver side", () => {
+    expect(reportDayHref("2026-11-12")).toBe(
+      "/student/peer-mentoring?as=MENTOR&tab=report&view=daily&day=2026-11-12",
     );
   });
 });

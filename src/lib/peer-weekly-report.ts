@@ -200,15 +200,6 @@ export function latestOutcomeMeetingId(outcome: WeeklyOutcome) {
   return byMeetingTime(outcome).at(-1)?.meetingId ?? null;
 }
 
-/**
- * A day in the report tab's daily view (Figma 221:73). The reports tab shell owns these params; switch to its own
- * builder once it lands.
- */
-export function peerDailyReportHref(day: string) {
-  const params = new URLSearchParams({ tab: "report", view: "daily", day });
-  return `/student/peer-mentoring?${params.toString()}`;
-}
-
 /** "Ayşe, Emre, Deniz" under "Görüşülen mentee". */
 export function menteeFirstNames(summary: PeerWeeklySummary) {
   return summary.mentees.map(
