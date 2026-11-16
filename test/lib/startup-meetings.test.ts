@@ -11,6 +11,7 @@ import {
   meetingTiming,
   meetingTitle,
   notePreview,
+  soleMeetingId,
   visibleMeetings,
 } from "@/lib/startup-meetings";
 import { expectLength, itemAt } from "@test/fixtures/list-assertions";
@@ -110,6 +111,22 @@ describe("groupMeetingsByTopic", () => {
 
     expectLength(topics, 1);
     expect(topics[0].meetings).toHaveLength(2);
+  });
+});
+
+describe("soleMeetingId", () => {
+  it("names the meeting of a one-meeting stack, and none for a real stack", () => {
+    const [single, pair] = groupMeetingsByTopic(
+      [
+        meeting("solo", "2026-08-01T09:00:00Z", { agenda: "Pitch Prova" }),
+        meeting("a", "2026-08-02T09:00:00Z", { agenda: "Finans" }),
+        meeting("b", "2026-08-09T09:00:00Z", { agenda: "finans" }),
+      ],
+      NOW,
+    ).sort((left, right) => left.meetings.length - right.meetings.length);
+
+    expect(single && soleMeetingId(single)).toBe("solo");
+    expect(pair && soleMeetingId(pair)).toBeNull();
   });
 });
 

@@ -43,7 +43,7 @@ export function MeetingTopicGrid({
         const { mentorTitle, summary } = details(meeting);
         const timing = featured ? MeetingTiming.Upcoming : MeetingTiming.Held;
         return (
-          <li key={topic.key} className="relative pt-2.5">
+          <li key={topic.key} className="relative flex pt-2.5">
             {!featured && topic.meetings.length > 1 ? (
               <>
                 <span
@@ -60,15 +60,15 @@ export function MeetingTopicGrid({
               type="button"
               onClick={() => onOpenTopic(topic.key)}
               aria-label={t("openTopic", { title: topic.title })}
-              className={`relative w-full space-y-2.5 rounded-[21px] p-5 text-left transition ${featured ? "bg-[#ffe3d5]" : "border border-[#e4e7ea] bg-white hover:border-[#fbe2d0]"}`}
+              className={`relative flex w-full flex-col gap-2.5 rounded-[21px] p-5 text-left transition ${featured ? "bg-[#ffe3d5]" : "border border-[#e4e7ea] bg-white hover:border-[#f2b78f]"}`}
             >
               <h3
-                className={`text-lg leading-6 ${featured ? "text-[#f97316]" : "text-[#676e78]"}`}
+                className={`text-lg leading-6 ${featured ? "text-[#c2410c]" : "text-[#22262b]"}`}
               >
                 {topic.title}
               </h3>
               <div
-                className={`space-y-2.5 rounded-[10px] bg-white p-2.5 ${featured ? "" : "border border-[#e4e7ea]"}`}
+                className={`flex flex-1 flex-col gap-2.5 rounded-[10px] bg-white p-2.5 ${featured ? "" : "border border-[#e4e7ea]"}`}
               >
                 {kind === "mentor" ? (
                   <p className="text-sm leading-5 text-[#676e78]">
@@ -82,7 +82,7 @@ export function MeetingTopicGrid({
                     {summary}
                   </p>
                 ) : null}
-                <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="mt-auto flex flex-wrap items-center justify-between gap-2">
                   <MeetingWhen meeting={meeting} timing={timing} />
                   <TimingBadge timing={timing} />
                 </div>

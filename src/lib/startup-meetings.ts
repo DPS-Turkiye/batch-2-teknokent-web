@@ -98,6 +98,11 @@ export function groupMeetingsByTopic(
   return sortMeetingStacks(topics.filter((topic) => topic != null));
 }
 
+/** A stack with a single meeting has nothing to choose between, so it opens that meeting's note directly. */
+export function soleMeetingId(stack: MeetingTopic): string | null {
+  return stack.meetings.length === 1 ? (stack.meetings[0]?.id ?? null) : null;
+}
+
 /** One deck per mentor: every meeting this startup had with them. */
 export function groupMeetingsByMentor(
   meetings: MeetingItem[],
