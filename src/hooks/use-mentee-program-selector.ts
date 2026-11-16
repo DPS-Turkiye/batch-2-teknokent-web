@@ -27,16 +27,11 @@ export function useMenteeProgramSelector() {
   function select(programId: string) {
     if (!programId || programId === current?.id) return;
     setActive.mutate(programId, {
-      onSuccess: (data) => {
+      // No success toast: the selector shows the chosen program and the list reloads under it.
+      onSuccess: () => {
         void queryClient.invalidateQueries({ queryKey: MENTORS_QUERY_KEY });
         // Server-rendered lists (the request wizard's mentors, the Startup'ım header) reload too.
         router.refresh();
-        showToast({
-          message: t("switched", {
-            name: currentOrganizationProgram(data)?.name ?? "",
-          }),
-          tone: ToastTone.Success,
-        });
       },
       onError: (error) =>
         showToast({

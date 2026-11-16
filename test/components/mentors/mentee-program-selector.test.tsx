@@ -54,7 +54,7 @@ describe("MenteeProgramSelector", () => {
     ).toBeInTheDocument();
   });
 
-  it("switches the program and refreshes the mentor pool", async () => {
+  it("switches the program and refreshes the mentor pool without a toast", async () => {
     vi.mocked(getOrganizationPrograms).mockResolvedValue(programs());
     vi.mocked(setActiveProgram).mockResolvedValue(programs(undefined, "p-1"));
     const { queryClient } = renderWithQueryClient(<MenteeProgramSelector />);
@@ -69,13 +69,11 @@ describe("MenteeProgramSelector", () => {
     await waitFor(() =>
       expect(invalidate).toHaveBeenCalledWith({ queryKey: MENTORS_QUERY_KEY }),
     );
-    expect(
-      await screen.findByText(
-        "Mentor havuzu artık Alpha 2026 programına göre gösteriliyor.",
-      ),
-    ).toBeInTheDocument();
+    await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1));
     expect(screen.getByLabelText("Program")).toHaveValue("p-1");
-    expect(refresh).toHaveBeenCalledTimes(1);
+    // The new list is the feedback; a toast in the corner only confused people.
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    expect(screen.queryByText(/Alpha 2026 programına/)).not.toBeInTheDocument();
   });
 
   it("says so when the switch is refused", async () => {

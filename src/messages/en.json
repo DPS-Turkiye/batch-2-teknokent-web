@@ -1708,7 +1708,6 @@
     "program": {
       "label": "Program",
       "hint": "The mentor pool shows the selected program's mentors. The choice applies to your whole team.",
-      "switched": "The mentor pool now shows {name}'s mentors.",
       "switchFailed": "Couldn't switch the program. Please try again."
     },
     "sort": {
