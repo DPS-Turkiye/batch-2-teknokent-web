@@ -14,7 +14,8 @@ export enum ProgramWeekCardState {
   Ready = "READY",
 }
 
-export const MAX_WEEK_LINES = 8;
+// Matches the backend's cap: a week read from one row per session can carry up to twelve lines.
+export const MAX_WEEK_LINES = 12;
 export const MAX_PLAN_WEEKS = 104;
 
 export function programWeekCardState(week: ProgramThisWeek) {
