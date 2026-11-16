@@ -72,13 +72,30 @@ describe("MentorRequestDialog", () => {
     vi.useRealTimers();
   });
 
-  it("will not send a time sooner than four hours", () => {
+  it("will not send a time sooner than four hours, and says so", () => {
     renderDialog();
     fillPreference(1, upcomingPreferenceDays()[0]?.value ?? "", "07:00");
 
+    const send = screen.getByRole("button", { name: "Talebi gönder" });
+    expect(send).toBeDisabled();
+    expect(send).toHaveAccessibleDescription(
+      "Tercih saatlerin en erken 4 saat sonrası olmalı.",
+    );
+  });
+
+  it("tells a mentor without open hours that a typed preference is enough", () => {
+    renderDialog();
+
+    expect(
+      screen.getByText(
+        /Mentörün şu an açık saati yok; yine de talep gönderebilirsin/,
+      ),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Talebi gönder" }),
-    ).toBeDisabled();
+    ).toHaveAccessibleDescription(
+      "Göndermek için en az bir tercih günü ve saati gir.",
+    );
   });
 
   it("keeps Talebi gönder disabled until at least one valid preference is entered", () => {
@@ -95,6 +112,7 @@ describe("MentorRequestDialog", () => {
 
     fillPreference(1, first, "10:00");
     expect(send).toBeEnabled();
+    expect(send).not.toHaveAccessibleDescription();
   });
 
   it("sends the request with a single preferred day and time", async () => {

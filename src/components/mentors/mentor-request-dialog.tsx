@@ -18,10 +18,10 @@ import {
   availabilityColumns,
   emptyPreferredSlots,
   formatPreferredSlot,
-  hasPreferredSlots,
   isHalfOrFullHour,
   isValidPreferredSlot,
   preferredSlotKey,
+  preferredSlotsIssue,
   slotFromStartsAt,
   slotTimeLabel,
   upcomingPreferenceDays,
@@ -90,7 +90,8 @@ export function MentorRequestDialog({
       : mentor.specialties[0] &&
         optionLabel("mentorTopic", mentor.specialties[0])) ||
     mentor.professionalTitle;
-  const canSend = hasPreferredSlots(preferredSlots);
+  const slotsIssue = preferredSlotsIssue(preferredSlots);
+  const canSend = slotsIssue === null;
   const durationMinutes =
     slots.find((slot) => !slot.booked)?.durationMinutes ?? 45;
   const summaryWhen = preferredSlots
@@ -345,10 +346,19 @@ export function MentorRequestDialog({
           </p>
         ) : null}
 
-        <div className="mt-5 flex justify-end gap-2">
+        <div className="mt-5 flex flex-wrap items-center justify-end gap-2">
+          {slotsIssue && !isSubmitting ? (
+            <p
+              id="mentor-request-send-hint"
+              className="mr-auto text-xs text-[#9e4400]"
+            >
+              {t(`slotsIssue.${slotsIssue}`)}
+            </p>
+          ) : null}
           <SecondaryButton onClick={onClose}>{t("cancel")}</SecondaryButton>
           <PrimaryButton
             disabled={isSubmitting || !canSend}
+            describedBy={slotsIssue ? "mentor-request-send-hint" : undefined}
             onClick={() => void sendRequest()}
           >
             {isSubmitting ? t("sending") : t("send")}
