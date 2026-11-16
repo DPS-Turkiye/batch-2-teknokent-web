@@ -15,6 +15,7 @@ import {
   CalendarFilter,
   MENTEE_WEEK_HOURS,
   startOfWeek,
+  WEEK_DAY_COUNT,
   weekDays,
 } from "@/lib/calendar";
 import { ClientApiError } from "@/lib/client/api";
@@ -27,7 +28,6 @@ import {
   filterEntries,
   isOpenDeliverable,
   meetingEntries,
-  MENTEE_WEEK_DAY_COUNT,
   upcomingEntries,
   weekSummary,
 } from "@/lib/mentee-calendar";
@@ -72,10 +72,7 @@ export function useMenteeCalendar(importedMeetings: MeetingItem[] = []) {
   const actionItems = useActionItemsForRequests(requestIds);
 
   const weekStart = useMemo(() => startOfWeek(cursor), [cursor]);
-  const days = useMemo(
-    () => weekDays(weekStart, MENTEE_WEEK_DAY_COUNT),
-    [weekStart],
-  );
+  const days = useMemo(() => weekDays(weekStart, WEEK_DAY_COUNT), [weekStart]);
 
   const meetings = useMemo(() => {
     const byId = new Map<string, MeetingItem>();
@@ -99,7 +96,7 @@ export function useMenteeCalendar(importedMeetings: MeetingItem[] = []) {
     ),
   ];
   const weekEnd = new Date(weekStart);
-  weekEnd.setDate(weekEnd.getDate() + MENTEE_WEEK_DAY_COUNT);
+  weekEnd.setDate(weekEnd.getDate() + WEEK_DAY_COUNT);
   const weekEntries = entries.filter(
     (entry) => entry.startsAt >= weekStart && entry.startsAt < weekEnd,
   );

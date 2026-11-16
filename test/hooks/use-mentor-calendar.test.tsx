@@ -145,7 +145,7 @@ describe("useMentorCalendar", () => {
     expect(result.current.meetings.map((m) => m.id)).toEqual(["this-week"]);
     expect(result.current.slots.map((s) => s.id)).toEqual(["this-week-free"]);
     expect(result.current.freeSlotCount).toBe(1);
-    expect(result.current.days).toHaveLength(5);
+    expect(result.current.days).toHaveLength(7);
   });
 
   it("offers the next seven days of free slots in order, whatever week is browsed", async () => {

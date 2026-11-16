@@ -39,7 +39,7 @@ export function MenteeWeekGrid({
 
   return (
     <div className="overflow-x-auto">
-      <div className="flex min-w-[600px]">
+      <div className="flex min-w-[760px]">
         <div className="w-[52px] shrink-0" style={{ height: columnHeight }}>
           <div style={{ height: DAY_HEADER_HEIGHT }} />
           {hours.map((hour) => (

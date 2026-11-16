@@ -51,7 +51,7 @@ export function weekRangeLabel(start: Date, end: Date, locale: string) {
   );
 }
 
-/** The mentee week grid runs 09:00–18:00, Monday to Friday. */
+/** The mentee week grid runs 09:00–18:00, Monday to Sunday. */
 export const MENTEE_WEEK_HOURS = Array.from({ length: 10 }, (_, i) => 9 + i);
 
 export function startOfWeek(date: Date) {
@@ -62,6 +62,9 @@ export function startOfWeek(date: Date) {
   copy.setHours(0, 0, 0, 0);
   return copy;
 }
+
+/** Week views show the whole week: a meeting set for a Saturday must not vanish from the calendar. */
+export const WEEK_DAY_COUNT = 7;
 
 export function weekDays(weekStart: Date, count: number) {
   return Array.from({ length: count }, (_, index) => {
