@@ -107,9 +107,9 @@ export function SignupWizardView({ account }: { account: RegisteredAccount }) {
         <OnboardingFooter
           tone={TONE}
           onBack={wizard.goBack}
-          backDisabled={isFirstStep || wizard.submitting}
+          backDisabled={isFirstStep || wizard.submitting || wizard.registered}
           onSaveDraft={wizard.saveDraft}
-          saveDisabled={wizard.submitting}
+          saveDisabled={wizard.submitting || wizard.registered}
           primaryLabel={
             wizard.submitting
               ? copy("sending")

@@ -2,7 +2,11 @@ import {
   OnboardingDraftKind,
   type OnboardingDraftRecord,
 } from "@/interfaces/onboarding-draft";
-import { UserAccountStatus } from "@/interfaces/session";
+import {
+  UserAccountStatus,
+  UserRole,
+  type BackendUser,
+} from "@/interfaces/session";
 import { ClientApiError } from "@/lib/client/api";
 import {
   clearOnboardingDraft,
@@ -29,10 +33,16 @@ export async function clearStaleDraft(idToken: string) {
   }
 }
 
-/** Where someone who already has an account goes from the signup wizard: sign in, or their status page while they wait. */
-export function existingAccountHref(status: UserAccountStatus | undefined) {
-  return status === UserAccountStatus.Pending ||
-    status === UserAccountStatus.Rejected
+/**
+ * Where someone who already has an account goes from the founder wizard: sign in, or their status page while
+ * they wait. A mentor signs in either way: a pending mentor's sign-in is what returns them to their onboarding.
+ */
+export function existingAccountHref(
+  account: Pick<BackendUser, "role" | "status"> | null,
+) {
+  if (!account || account.role === UserRole.Mentor) return "/login";
+  return account.status === UserAccountStatus.Pending ||
+    account.status === UserAccountStatus.Rejected
     ? APPLICATION_STATUS_HREF
     : "/login";
 }

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { UserAccountStatus } from "@/interfaces/session";
+import { UserAccountStatus, UserRole } from "@/interfaces/session";
 import {
   accountNotReadyHref,
   clearStaleDraft,
@@ -118,13 +118,29 @@ describe("clearStaleDraft", () => {
 
 describe("existingAccountHref", () => {
   it("sends a waiting or refused account to its status page, anyone else to sign in", () => {
-    expect(existingAccountHref(UserAccountStatus.Pending)).toBe(
+    const founder = (status?: UserAccountStatus) => ({
+      role: UserRole.Mentee,
+      ...(status ? { status } : {}),
+    });
+    expect(existingAccountHref(founder(UserAccountStatus.Pending))).toBe(
       "/application-status",
     );
-    expect(existingAccountHref(UserAccountStatus.Rejected)).toBe(
+    expect(existingAccountHref(founder(UserAccountStatus.Rejected))).toBe(
       "/application-status",
     );
-    expect(existingAccountHref(UserAccountStatus.Approved)).toBe("/login");
-    expect(existingAccountHref(undefined)).toBe("/login");
+    expect(existingAccountHref(founder(UserAccountStatus.Approved))).toBe(
+      "/login",
+    );
+    expect(existingAccountHref(founder())).toBe("/login");
+    expect(existingAccountHref(null)).toBe("/login");
+  });
+
+  it("sends a pending mentor to sign in, which is what returns them to their onboarding", () => {
+    expect(
+      existingAccountHref({
+        role: UserRole.Mentor,
+        status: UserAccountStatus.Pending,
+      }),
+    ).toBe("/login");
   });
 });

@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useFounderApplication } from "@/hooks/use-founder-application";
 import { useSignupWizard } from "@/hooks/use-signup-wizard";
+import { SignupStep } from "@/interfaces/signup";
 import { DocumentKind } from "@/interfaces/startup-document";
 import { registerFounder } from "@/lib/client/auth";
 import { uploadDocument } from "@/lib/client/documents";
@@ -80,6 +81,19 @@ describe("useFounderApplication", () => {
     expect(clearOnboardingDraft).toHaveBeenCalledWith("id-token");
     expect(result.current.submitted).toBe(false);
     expect(result.current.submitError).toBe("Dosya yüklenemedi");
+  });
+
+  it("holds the wizard on its step once the account exists, since edits could no longer be sent", async () => {
+    vi.mocked(uploadDocument).mockRejectedValue(new Error("Dosya yüklenemedi"));
+    const { result } = await renderApplication();
+    const step = result.current.step;
+
+    await act(() => result.current.submit());
+    act(() => result.current.goBack());
+    act(() => result.current.goToStep(SignupStep.PersonalProfile));
+
+    expect(result.current.registered).toBe(true);
+    expect(result.current.step).toBe(step);
   });
 
   it("retries only the uploads, never a second registration", async () => {
