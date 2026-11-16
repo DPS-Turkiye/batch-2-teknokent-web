@@ -53,6 +53,7 @@ vi.mock("@/hooks/use-mentor-profile-overview", () => ({
 }));
 
 const fillFromStored = vi.fn();
+const openStored = vi.fn();
 vi.mock("@/hooks/use-mentor-cv", () => ({
   useMentorCv: vi.fn(() => ({
     selected: null,
@@ -65,6 +66,7 @@ vi.mock("@/hooks/use-mentor-cv", () => ({
     canFill: true,
     offerFill: true,
     fillFromStored,
+    openStored,
     isUploading: false,
     isParsing: false,
     error: null,
@@ -537,6 +539,10 @@ describe("MentorProfilePage", () => {
     );
     expect(fillFromStored).toHaveBeenCalled();
     expect(vi.mocked(useMentorCv)).toHaveBeenCalledWith(formActions.applyCv);
+    await user.click(
+      screen.getByRole("button", { name: "Yüklü CV'yi aç (nihan-cv.pdf)" }),
+    );
+    expect(openStored).toHaveBeenCalled();
   });
 
   it("edits the text sections through the form hook", async () => {
