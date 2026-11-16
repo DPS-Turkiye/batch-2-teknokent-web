@@ -28,10 +28,12 @@ vi.mock("@/components/hoc/app-shell", () => ({
   ),
 }));
 
+const navigation = vi.hoisted(() => ({ search: "tab=active" }));
+
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn(), back: vi.fn() }),
   usePathname: () => "/mentorships",
-  useSearchParams: () => new URLSearchParams(),
+  useSearchParams: () => new URLSearchParams(navigation.search),
 }));
 
 const sessionState = vi.hoisted(() => ({
@@ -110,6 +112,7 @@ function mockMeetings(data: MeetingItem[]) {
 
 describe("MentorshipsPage", () => {
   beforeEach(() => {
+    navigation.search = "tab=active";
     sessionState.isLoading = false;
     vi.mocked(getMentorRequestsPage).mockClear();
     mockMentors([]);
@@ -315,6 +318,25 @@ describe("MentorshipsPage", () => {
       screen.getByRole("link", { name: /Dr. Kemal Arslan/ }),
     ).toHaveAttribute("href", `/mentors/${mentorProfile.id}`);
     expect(screen.queryByText(/Maks\./)).not.toBeInTheDocument();
+  });
+
+  it("opens on Mentor Havuzu, the first tab, when the link names no tab", () => {
+    navigation.search = "";
+    mockMentors([mentorProfile]);
+
+    renderWithQueryClient(<MentorshipsPage />);
+
+    expect(screen.getByRole("tab", { name: "Mentor Havuzu" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    expect(screen.getByRole("tab", { name: "Aktif" })).toHaveAttribute(
+      "aria-selected",
+      "false",
+    );
+    expect(
+      screen.getByRole("link", { name: /Dr. Kemal Arslan/ }),
+    ).toBeInTheDocument();
   });
 
   it("moves ended meetings to Geçmiş with info and evaluate links", async () => {

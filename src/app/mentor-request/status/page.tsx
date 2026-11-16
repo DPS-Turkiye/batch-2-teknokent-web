@@ -47,6 +47,7 @@ import {
 import { mentorProfileHref } from "@/lib/mentor-profile-request";
 import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
+import { MentorshipWorkspaceTab } from "@/types/mentorship";
 
 const statusTones: Record<
   MentorshipRequestStatus,
@@ -157,7 +158,7 @@ function RequestStatusContent() {
           });
         } catch {}
       }
-      router.push("/mentorships");
+      router.push(`/mentorships?tab=${MentorshipWorkspaceTab.Active}`);
     } catch (caught) {
       setProposalError(
         caught instanceof Error ? caught.message : t("acceptFailed"),
