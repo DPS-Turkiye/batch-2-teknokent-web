@@ -107,6 +107,7 @@ function ConversationList({
               <li key={request.id}>
                 <button
                   type="button"
+                  aria-current={selected ? "true" : undefined}
                   onClick={() => onSelect(request.id)}
                   className={`flex h-[79px] w-full items-center gap-3 px-6 py-3.5 text-left ${selected ? "bg-[#fdebdd]" : "hover:bg-[#fafafa]"}`}
                 >
@@ -135,9 +136,6 @@ function ConversationList({
                       {last ? withoutSlotLines(last.body) : t("noMessages")}
                     </span>
                   </span>
-                  {selected && last ? (
-                    <span className="size-2 shrink-0 rounded-full bg-[#e86f22]" />
-                  ) : null}
                 </button>
               </li>
             );
