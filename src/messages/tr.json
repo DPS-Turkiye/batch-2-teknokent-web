@@ -784,8 +784,6 @@
           "title": "Platform",
           "links": {
             "mentoring": "Mentorluk nedir?",
-            "programs": "Programlar",
-            "trainings": "Eğitimler",
             "announcements": "Duyurular"
           }
         },
@@ -795,14 +793,6 @@
             "help": "Yardım Merkezi",
             "faq": "Sıkça Sorulan Sorular",
             "contact": "İletişim"
-          }
-        },
-        "legal": {
-          "title": "Yasal",
-          "links": {
-            "privacy": "Gizlilik",
-            "terms": "Kullanım Koşulları",
-            "kvkk": "KVKK"
           }
         }
       }
