@@ -51,7 +51,7 @@ export function weekRangeLabel(start: Date, end: Date, locale: string) {
   );
 }
 
-/** The mentee week grid runs 09:00–18:00, Monday to Friday. */
+/** The mentee week grid runs 09:00–18:00, Monday to Sunday. */
 export const MENTEE_WEEK_HOURS = Array.from({ length: 10 }, (_, i) => 9 + i);
 
 export function startOfWeek(date: Date) {
