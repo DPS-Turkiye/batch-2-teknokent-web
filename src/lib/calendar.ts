@@ -63,6 +63,9 @@ export function startOfWeek(date: Date) {
   return copy;
 }
 
+/** Week views show the whole week: a meeting set for a Saturday must not vanish from the calendar. */
+export const WEEK_DAY_COUNT = 7;
+
 export function weekDays(weekStart: Date, count: number) {
   return Array.from({ length: count }, (_, index) => {
     const day = new Date(weekStart);

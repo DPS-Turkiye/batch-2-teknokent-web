@@ -27,7 +27,6 @@ export type CalendarTexts = {
   locale: string;
 };
 
-export const MENTEE_WEEK_DAY_COUNT = 5;
 export const HOUR_ROW_HEIGHT = 42;
 export const DAY_HEADER_HEIGHT = 34;
 const MIN_EVENT_HEIGHT = 26;
