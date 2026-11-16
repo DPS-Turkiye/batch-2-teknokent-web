@@ -254,7 +254,9 @@
     "retry": "Tekrar dene",
     "existingAccountTitle": "Bu e-postayla zaten bir hesabın var",
     "existingAccountBody": "{email} adresiyle kayıtlı bir hesap zaten var. Yeniden kayıt olman gerekmiyor; giriş yaparak devam et.",
-    "existingAccountSignIn": "Giriş yap"
+    "existingAccountSignIn": "Giriş yap",
+    "existingAccountWaitingBody": "{email} adresiyle başvurun alındı ve koordinatör onayını bekliyor. Yeniden kayıt olman gerekmiyor.",
+    "existingAccountStatus": "Başvuru durumunu gör"
   },
   "signupWizard": {
     "programRequired": "Lütfen bir program seçin.",

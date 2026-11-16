@@ -91,12 +91,20 @@ function resumeStep(saved: SignupStep, draft: SignupDraft) {
 }
 
 export function useSignupWizard(
-  options: { onSubmit?: (draft: SignupDraft) => Promise<void> } = {},
+  options: {
+    /** `onRegistered` is called once the account exists, before any file is uploaded. */
+    onSubmit?: (
+      draft: SignupDraft,
+      onRegistered: () => Promise<void>,
+    ) => Promise<void>;
+  } = {},
 ) {
   const [step, setStep] = useState<SignupStep>(SignupStep.PersonalProfile);
   const [draft, setDraft] = useState<SignupDraft>(emptySignupDraft);
   const [droppedFiles, setDroppedFiles] = useState(0);
   const [submitted, setSubmitted] = useState(false);
+  // Once the account exists its answers are sent; going back to edit them would change nothing on the server.
+  const [registered, setRegistered] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [draftSavedAt, setDraftSavedAt] = useState<number | null>(null);
@@ -173,15 +181,21 @@ export function useSignupWizard(
     scrollToTop();
   }, [step]);
 
-  const goToStep = useCallback((next: SignupStep) => setStep(next), []);
+  const goToStep = useCallback(
+    (next: SignupStep) => {
+      if (!registered) setStep(next);
+    },
+    [registered],
+  );
 
   const goNext = useCallback(() => {
     setStep((current) => steps[steps.indexOf(current) + 1] ?? current);
   }, [steps]);
 
   const goBack = useCallback(() => {
+    if (registered) return;
     setStep((current) => steps[steps.indexOf(current) - 1] ?? current);
-  }, [steps]);
+  }, [registered, steps]);
 
   const onSubmit = options.onSubmit;
   const submit = useCallback(async () => {
@@ -192,7 +206,12 @@ export function useSignupWizard(
     }
     setSubmitting(true);
     try {
-      await onSubmit(draft);
+      // The draft goes as soon as the account exists. If an upload then failed with the draft still saved,
+      // the next sign-in would reopen this wizard, which can only turn an existing account away.
+      await onSubmit(draft, async () => {
+        setRegistered(true);
+        await clearRemote();
+      });
       await clearRemote();
       setSubmitted(true);
     } catch (error) {
@@ -235,6 +254,7 @@ export function useSignupWizard(
     steps,
     draft,
     submitted,
+    registered,
     submitting,
     submitError,
     draftSavedAt,
