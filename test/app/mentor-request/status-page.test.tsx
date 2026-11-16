@@ -348,7 +348,7 @@ describe("RequestStatusPage", () => {
         durationMinutes: 45,
       }),
     );
-    expect(push).toHaveBeenCalledWith("/mentorships");
+    expect(push).toHaveBeenCalledWith("/mentorships?tab=active");
   });
 
   it("asks the mentee to pick a request when the link names none", () => {

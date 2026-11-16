@@ -32,27 +32,12 @@ import {
   menteeRequestDetailHref,
   menteeRequestOwnerLabel,
   menteeRequestStatusHref,
+  menteeWorkspaceTab,
   pickRequestMeeting,
   requestProgressPercent,
 } from "@/lib/mentorship-workspace";
 import { AppArea } from "@/types/app-area";
 import { MentorshipWorkspaceTab } from "@/types/mentorship";
-
-function tabFromSearchParam(value: string | null): MentorshipWorkspaceTab {
-  if (value === MentorshipWorkspaceTab.Requests) {
-    return MentorshipWorkspaceTab.Requests;
-  }
-  if (value === MentorshipWorkspaceTab.History) {
-    return MentorshipWorkspaceTab.History;
-  }
-  if (value === MentorshipWorkspaceTab.MentorPool) {
-    return MentorshipWorkspaceTab.MentorPool;
-  }
-  if (value === MentorshipWorkspaceTab.Regular) {
-    return MentorshipWorkspaceTab.Regular;
-  }
-  return MentorshipWorkspaceTab.Active;
-}
 
 export default function MentorshipsPage() {
   const { session, isLoading } = useSession();
@@ -88,7 +73,7 @@ function MenteeMentorshipsWorkspace() {
   const t = useTranslations("mentorships");
   const searchParams = useSearchParams();
   const { meetings, meetingsError, meetingsLoading, setTab, tab } =
-    useMentorshipWorkspace(tabFromSearchParam(searchParams.get("tab")));
+    useMentorshipWorkspace(menteeWorkspaceTab(searchParams.get("tab")));
 
   return (
     <AppShell active={AppArea.Mentorships}>

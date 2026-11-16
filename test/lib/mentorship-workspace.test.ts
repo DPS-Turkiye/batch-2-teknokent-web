@@ -15,6 +15,7 @@ import {
   meetingFeedbackHref,
   menteeRequestDetailHref,
   menteeRequestStatusHref,
+  menteeWorkspaceTab,
   mentorRequestMessagesHref,
   mentorRequestStartupHref,
   mentorshipRequestAllowsMessaging,
@@ -24,6 +25,7 @@ import {
   requestHasOpenMeeting,
   requestProgressPercent,
 } from "@/lib/mentorship-workspace";
+import { MentorshipWorkspaceTab } from "@/types/mentorship";
 
 const request: MentorshipRequest = {
   id: "req-1",
@@ -240,5 +242,24 @@ describe("mentorship workspace helpers", () => {
     expect(
       mentorshipRequestAllowsMessaging(MentorshipRequestStatus.Declined),
     ).toBe(false);
+  });
+});
+
+describe("menteeWorkspaceTab", () => {
+  it("opens on Mentor Havuzu without a tab, or with one it does not know", () => {
+    expect(menteeWorkspaceTab(null)).toBe(MentorshipWorkspaceTab.MentorPool);
+    expect(menteeWorkspaceTab("")).toBe(MentorshipWorkspaceTab.MentorPool);
+    expect(menteeWorkspaceTab("ACTIVE")).toBe(
+      MentorshipWorkspaceTab.MentorPool,
+    );
+  });
+
+  it("keeps a tab the link names", () => {
+    expect(menteeWorkspaceTab("active")).toBe(MentorshipWorkspaceTab.Active);
+    expect(menteeWorkspaceTab("requests")).toBe(
+      MentorshipWorkspaceTab.Requests,
+    );
+    expect(menteeWorkspaceTab("regular")).toBe(MentorshipWorkspaceTab.Regular);
+    expect(menteeWorkspaceTab("history")).toBe(MentorshipWorkspaceTab.History);
   });
 });

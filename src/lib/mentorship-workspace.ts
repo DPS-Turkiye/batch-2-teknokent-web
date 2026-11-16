@@ -3,8 +3,20 @@ import {
   MentorshipRequestStatus,
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
+import { MENTORSHIPS_TABS } from "@/lib/const";
+import { isOneOf } from "@/lib/enum";
 import { meetingCallHref as callHref } from "@/lib/meeting-context";
 import { pickUpcomingMeetings } from "@/lib/upcoming-meetings";
+import { MentorshipWorkspaceTab } from "@/types/mentorship";
+
+/** The mentee's Mentorluklarım tab from `?tab=`; without one it opens on the first tab, Mentor Havuzu. */
+export function menteeWorkspaceTab(
+  value: string | null,
+): MentorshipWorkspaceTab {
+  return isOneOf(MENTORSHIPS_TABS, value)
+    ? value
+    : MentorshipWorkspaceTab.MentorPool;
+}
 
 export function meetingsForRequest(
   meetings: MeetingItem[],
