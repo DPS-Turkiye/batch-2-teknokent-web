@@ -1,9 +1,13 @@
 import Image from "next/image";
+import Link from "next/link";
 
 import { ArrowIcon, CheckIcon } from "@/components/landing/landing-icons";
 import { cx } from "@/components/landing/landing-styles";
 import { useLandingContent } from "@/hooks/use-landing-content";
-import { LANDING_PHOTOS } from "@/lib/const/landing";
+import {
+  LANDING_ANNOUNCEMENTS_HREF,
+  LANDING_PHOTOS,
+} from "@/lib/const/landing";
 import { LandingMock, type LandingAnnouncement } from "@/types/landing";
 
 const CALENDAR_DAYS = 21;
@@ -99,13 +103,13 @@ function AnnouncementCard({
         </div>
         <h3>{item.title}</h3>
         <p>{item.text}</p>
-        <a
+        <Link
           className={cx("link")}
-          href="#duyurular"
+          href={LANDING_ANNOUNCEMENTS_HREF}
           tabIndex={hidden ? -1 : undefined}
         >
           {landing.ui.viewDetails} <ArrowIcon />
-        </a>
+        </Link>
       </div>
     </article>
   );
@@ -137,9 +141,9 @@ export function LandingAnnouncements() {
             {landing.ui.announcementsLead}
           </p>
         </div>
-        <a className={cx("link", "rv")} href="#duyurular">
+        <Link className={cx("link", "rv")} href={LANDING_ANNOUNCEMENTS_HREF}>
           {landing.ui.viewAllAnnouncements} <ArrowIcon />
-        </a>
+        </Link>
       </div>
       <div className={cx("marquee")} aria-label={landing.ui.announcementsLabel}>
         <div className={cx("track")}>

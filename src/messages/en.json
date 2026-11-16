@@ -782,8 +782,6 @@
           "title": "Platform",
           "links": {
             "mentoring": "What is mentoring?",
-            "programs": "Programs",
-            "trainings": "Trainings",
             "announcements": "Announcements"
           }
         },
@@ -793,14 +791,6 @@
             "help": "Help Center",
             "faq": "Frequently Asked Questions",
             "contact": "Contact"
-          }
-        },
-        "legal": {
-          "title": "Legal",
-          "links": {
-            "privacy": "Privacy",
-            "terms": "Terms of Use",
-            "kvkk": "KVKK (data protection)"
           }
         }
       }

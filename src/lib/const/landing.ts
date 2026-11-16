@@ -1,3 +1,4 @@
+import { SUPPORT_EMAIL } from "@/lib/const";
 import { LandingMock } from "@/types/landing";
 
 export const LANDING_TITLE = "menton · ODTÜ Teknokent";
@@ -67,30 +68,24 @@ export const LANDING_TASKS = [
 /** The "Hangi desteğe ihtiyacım olduğunu nasıl anlarım?" link opens this answer. */
 export const LANDING_FAQ_DIFFERENCE_INDEX = 3;
 
+/** Where "Tüm duyurular" and a card's details lead: announcements live in Mesajlar, after sign-in. */
+export const LANDING_ANNOUNCEMENTS_HREF = "/messages";
+
+// Only links with a real destination: Programlar, Eğitimler and the legal texts come back once their pages exist.
 export const LANDING_FOOTER_COLUMNS = [
   {
     key: "platform",
     links: [
       { key: "mentoring", href: "#karsilastirma" },
-      { key: "programs", href: "#top" },
-      { key: "trainings", href: "#top" },
       { key: "announcements", href: "#duyurular" },
     ],
   },
   {
     key: "support",
     links: [
-      { key: "help", href: "#top" },
+      { key: "help", href: `mailto:${SUPPORT_EMAIL}` },
       { key: "faq", href: "#sss" },
-      { key: "contact", href: "#top" },
-    ],
-  },
-  {
-    key: "legal",
-    links: [
-      { key: "privacy", href: "#top" },
-      { key: "terms", href: "#top" },
-      { key: "kvkk", href: "#top" },
+      { key: "contact", href: `mailto:${SUPPORT_EMAIL}` },
     ],
   },
 ] as const;
