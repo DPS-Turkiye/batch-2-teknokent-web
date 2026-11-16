@@ -3,7 +3,6 @@
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 import { MeetingNotesPanel } from "@/components/startup/meeting-notes-panel";
 import { MeetingTimeline } from "@/components/startup/meeting-timeline";
@@ -14,10 +13,7 @@ import {
   MeetingLayout,
   useStartupMeetings,
 } from "@/hooks/use-startup-meetings";
-import {
-  meetingNotebookHref,
-  StartupMeetingView,
-} from "@/lib/startup-meetings";
+import { StartupMeetingView } from "@/lib/startup-meetings";
 
 const VIEW_ICONS: Record<StartupMeetingView, { idle: string; active: string }> =
   {
@@ -42,7 +38,7 @@ const VIEW_ICONS: Record<StartupMeetingView, { idle: string; active: string }> =
 const chipClass =
   "flex h-10 items-center gap-1.5 rounded-3xl border bg-white px-6 text-sm leading-5 transition";
 const activeChip = "border-[#e86f22] text-[#e86f22]";
-const idleChip = "border-[#fff4ec] text-[#858c96] hover:border-[#fbe2d0]";
+const idleChip = "border-[#e4e7ea] text-[#515861] hover:border-[#f2b78f]";
 
 const HUB_VIEWS = [
   StartupMeetingView.Topic,
@@ -56,19 +52,9 @@ export function StartupMeetingsView({
   hideNotesChip?: boolean;
 }) {
   const t = useTranslations("startupMeetings");
-  const router = useRouter();
-  const meetings = useStartupMeetings();
+  const meetings = useStartupMeetings({ notebookPages: hideNotesChip });
   const openDocument = useOpenDocument();
   const views = hideNotesChip ? HUB_VIEWS : Object.values(StartupMeetingView);
-
-  function openMeeting(meetingId: string) {
-    if (hideNotesChip) {
-      meetings.closeTopicStack();
-      router.push(meetingNotebookHref(meetingId));
-      return;
-    }
-    meetings.openMeetingNotes(meetingId);
-  }
 
   if (meetings.isLoading) {
     return <p className="py-10 text-sm text-[#858c96]">{t("loading")}</p>;
@@ -157,7 +143,7 @@ export function StartupMeetingsView({
         <MeetingTopicGrid
           details={meetings.details}
           layout={meetings.layout}
-          onOpenTopic={meetings.openTopicStack}
+          onOpenTopic={meetings.openTopic}
           topics={meetings.topics}
         />
       ) : view === StartupMeetingView.Time ? (
@@ -166,7 +152,7 @@ export function StartupMeetingsView({
           expandedMonthKey={meetings.expandedMonthKey}
           expandedYear={meetings.expandedYear}
           onOpenFile={(id) => void openDocument(id)}
-          onOpenMeeting={openMeeting}
+          onOpenMeeting={meetings.openMeeting}
           onToggleMonth={meetings.toggleMonth}
           onToggleYear={meetings.toggleYear}
           years={meetings.years}
@@ -176,7 +162,7 @@ export function StartupMeetingsView({
           details={meetings.details}
           kind="mentor"
           layout={meetings.layout}
-          onOpenTopic={meetings.openTopicStack}
+          onOpenTopic={meetings.openTopic}
           topics={meetings.mentors}
         />
       ) : meetings.selectedMeeting ? (
@@ -184,7 +170,7 @@ export function StartupMeetingsView({
           details={meetings.details}
           meeting={meetings.selectedMeeting}
           onOpenFile={(id) => void openDocument(id)}
-          onSelectMeeting={openMeeting}
+          onSelectMeeting={meetings.openMeeting}
           otherMeetings={meetings.otherMeetings}
         />
       ) : null}
@@ -194,7 +180,7 @@ export function StartupMeetingsView({
           details={meetings.details}
           onClose={meetings.closeTopicStack}
           onOpenFile={(id) => void openDocument(id)}
-          onSelectMeeting={openMeeting}
+          onSelectMeeting={meetings.openMeeting}
           topic={meetings.selectedTopic}
         />
       ) : null}

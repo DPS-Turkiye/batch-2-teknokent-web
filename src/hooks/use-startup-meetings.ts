@@ -1,6 +1,7 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
 import { useMeetings } from "@/hooks/use-meetings";
@@ -14,8 +15,10 @@ import {
   groupMeetingsByMentor,
   groupMeetingsByTopic,
   groupMeetingsByYear,
+  meetingNotebookHref,
   MeetingTiming,
   meetingTiming,
+  soleMeetingId,
   StartupMeetingView,
   visibleMeetings,
 } from "@/lib/startup-meetings";
@@ -58,9 +61,16 @@ function monthKey(meeting: MeetingItem) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 }
 
-/** The Toplantılar tab: its meetings in three views, plus what each card needs. */
-export function useStartupMeetings() {
+/**
+ * The Toplantılar tab: its meetings in three views, plus what each card needs.
+ * On the Toplantı Notlarım hub (`notebookPages`) a meeting opens its own note page;
+ * on the startup's tab it opens in the notes view.
+ */
+export function useStartupMeetings({
+  notebookPages = false,
+}: { notebookPages?: boolean } = {}) {
   const t = useTranslations("startupMeetings");
+  const router = useRouter();
   const tNotes = useTranslations("notes");
   const locale = useLocale();
   const untitled = tNotes("untitled");
@@ -164,6 +174,20 @@ export function useStartupMeetings() {
     [topics, selectedMeeting],
   );
 
+  const openMeetingNotes = (meetingId: string) => {
+    setSelectedTopicKey(null);
+    setSelectedMeetingId(meetingId);
+    setViewState(StartupMeetingView.Notes);
+  };
+  const openMeeting = (meetingId: string) => {
+    if (notebookPages) {
+      setSelectedTopicKey(null);
+      router.push(meetingNotebookHref(meetingId));
+      return;
+    }
+    openMeetingNotes(meetingId);
+  };
+
   return {
     details,
     error: meetingsQuery.error,
@@ -174,10 +198,19 @@ export function useStartupMeetings() {
     meetingCount: meetings.length,
     mentors,
     closeTopicStack: () => setSelectedTopicKey(null),
-    openMeetingNotes: (meetingId: string) => {
-      setSelectedTopicKey(null);
-      setSelectedMeetingId(meetingId);
-      setViewState(StartupMeetingView.Notes);
+    openMeeting,
+    openMeetingNotes,
+    /** A card's click: one meeting opens straight away, several open the stack to choose from. */
+    openTopic: (topicKey: string) => {
+      const stack = [...topics, ...mentors].find(
+        (item) => item.key === topicKey,
+      );
+      const sole = stack ? soleMeetingId(stack) : null;
+      if (sole) {
+        openMeeting(sole);
+        return;
+      }
+      setSelectedTopicKey(topicKey);
     },
     openTopicStack: (topicKey: string) => setSelectedTopicKey(topicKey),
     otherMeetings,

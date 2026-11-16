@@ -52,7 +52,9 @@ function state(overrides: Partial<Meetings> = {}): Meetings {
     layout: MeetingLayout.Grid,
     meetingCount: 1,
     mentors: groupMeetingsByMentor([meeting], new Date("2026-09-11T12:00:00Z")),
+    openMeeting: vi.fn(),
     openMeetingNotes: vi.fn(),
+    openTopic: vi.fn(),
     openTopicStack: vi.fn(),
     otherMeetings: [],
     selectedMeeting: meeting,
@@ -123,7 +125,7 @@ describe("StartupMeetingsView", () => {
     ).toHaveAttribute("href", "/calendar");
   });
 
-  it("opens a topic stack from the Konu grid", async () => {
+  it("opens a topic from the Konu grid", async () => {
     const user = userEvent.setup();
     const meetings = state();
     vi.mocked(useStartupMeetings).mockReturnValue(meetings);
@@ -135,7 +137,7 @@ describe("StartupMeetingsView", () => {
       }),
     );
 
-    expect(meetings.openTopicStack).toHaveBeenCalledWith("req-mvp");
+    expect(meetings.openTopic).toHaveBeenCalledWith("req-mvp");
   });
 
   it("shows the topic stack dialog when a topic is selected", () => {

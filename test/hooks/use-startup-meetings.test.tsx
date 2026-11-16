@@ -16,6 +16,8 @@ import {
 } from "@test/fixtures/startup-meetings";
 import { successQuery } from "@test/mocks/query-results";
 
+const push = vi.hoisted(() => vi.fn<(href: string) => void>());
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
 vi.mock("@/hooks/use-meetings", () => ({ useMeetings: vi.fn() }));
 vi.mock("@/hooks/use-mentors", () => ({ useMentors: vi.fn() }));
 vi.mock("@/hooks/use-mentorship-requests", () => ({
@@ -38,6 +40,7 @@ const meetings = [
 
 describe("useStartupMeetings", () => {
   beforeEach(() => {
+    push.mockReset();
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(new Date("2026-09-11T12:00:00Z"));
     vi.mocked(useMeetings).mockReturnValue(successQuery(meetings));
@@ -122,6 +125,34 @@ describe("useStartupMeetings", () => {
     ]);
 
     act(() => result.current.closeTopicStack());
+    expect(result.current.selectedTopic).toBeNull();
+  });
+
+  it("opens a card's only meeting straight away, and a stack only when there are several", () => {
+    const { result } = renderHook(() => useStartupMeetings());
+
+    act(() => result.current.openTopic("req-finance"));
+    expect(result.current.selectedTopic).toBeNull();
+    expect(result.current.view).toBe(StartupMeetingView.Notes);
+    expect(result.current.selectedMeeting?.id).toBe("finance");
+
+    act(() => result.current.openTopic("req-mvp"));
+    expect(result.current.selectedTopic?.key).toBe("req-mvp");
+    expect(push).not.toHaveBeenCalled();
+  });
+
+  it("opens the note page itself on the Toplantı Notlarım hub", () => {
+    const { result } = renderHook(() =>
+      useStartupMeetings({ notebookPages: true }),
+    );
+
+    act(() => result.current.openTopic("req-finance"));
+    expect(push).toHaveBeenCalledWith("/notes/finance");
+    expect(result.current.view).toBe(StartupMeetingView.Topic);
+
+    act(() => result.current.openTopicStack("req-mvp"));
+    act(() => result.current.openMeeting("mvp-held"));
+    expect(push).toHaveBeenLastCalledWith("/notes/mvp-held");
     expect(result.current.selectedTopic).toBeNull();
   });
 
