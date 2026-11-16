@@ -2274,6 +2274,7 @@
   "cvFile": {
     "intro": "{whoSees} Yüklediğin CV hemen kaydedilir; profilin Kaydet'e basınca değişir.",
     "pick": "CV dosyası seç",
+    "open": "Yüklü CV'yi aç ({name})",
     "help": "PDF · En fazla 25 MB",
     "fill": "Profili CV'den doldur",
     "needPdf": "Profili doldurmak için CV'ni PDF olarak yükle.",
