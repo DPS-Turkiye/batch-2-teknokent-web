@@ -155,12 +155,12 @@ describe("CalendarView", () => {
     ).toBeInTheDocument();
   });
 
-  it("puts a meeting on the Monday–Friday grid under its mentor's name and moves between weeks", async () => {
+  it("puts a meeting on the Monday–Sunday grid under its mentor's name and moves between weeks", async () => {
     const user = userEvent.setup();
     mockUseMeetings.mockReturnValue(meetingsResult({ data: [meeting()] }));
 
     renderWithQueryClient(<CalendarView />);
-    const week = screen.getByRole("region", { name: "24–28 Ağustos 2026" });
+    const week = screen.getByRole("region", { name: "24–30 Ağustos 2026" });
 
     expect(
       within(week).getByRole("button", {
@@ -169,7 +169,7 @@ describe("CalendarView", () => {
     ).toHaveTextContent("Nihan Öztürk");
     await user.click(screen.getByRole("button", { name: "Sonraki hafta" }));
     expect(
-      screen.getByRole("heading", { name: /^31 Ağustos\s–\s4 Eylül 2026$/ }),
+      screen.getByRole("heading", { name: /^31 Ağustos\s–\s6 Eylül 2026$/ }),
     ).toBeInTheDocument();
   });
 

@@ -24,7 +24,12 @@ import {
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
-import { CalendarFilter, startOfWeek, weekDays } from "@/lib/calendar";
+import {
+  CalendarFilter,
+  startOfWeek,
+  WEEK_DAY_COUNT,
+  weekDays,
+} from "@/lib/calendar";
 import {
   deleteMeeting,
   getMeetings,
@@ -63,7 +68,7 @@ export function useMentorCalendar() {
     return base;
   }, [weekOffset]);
 
-  const days = useMemo(() => weekDays(weekStart, 5), [weekStart]);
+  const days = useMemo(() => weekDays(weekStart, WEEK_DAY_COUNT), [weekStart]);
 
   const meetingsQuery = useQuery({
     queryKey: ["meetings"],
@@ -158,7 +163,7 @@ export function useMentorCalendar() {
 
   const weekEnd = useMemo(() => {
     const end = new Date(weekStart);
-    end.setDate(end.getDate() + 5);
+    end.setDate(end.getDate() + WEEK_DAY_COUNT);
     return end;
   }, [weekStart]);
 

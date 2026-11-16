@@ -287,7 +287,7 @@ export default function MentorCalendarPage() {
                 {t("loading")}
               </p>
             ) : (
-              <div className="mt-[14px] grid min-w-[720px] grid-cols-[52px_repeat(5,1fr)] text-[11px]">
+              <div className="mt-[14px] grid min-w-[720px] grid-cols-[52px_repeat(7,1fr)] text-[11px]">
                 <div />
                 {days.map((day) => (
                   <div

@@ -104,14 +104,14 @@ describe("useMenteeCalendar", () => {
     vi.useRealTimers();
   });
 
-  it("shows Monday to Friday of this week and moves a week at a time", () => {
+  it("shows Monday to Sunday of this week and moves a week at a time", () => {
     const { result } = renderHook(() => useMenteeCalendar(), { wrapper });
 
-    expect(result.current.rangeLabel).toBe("24–28 Ağustos 2026");
+    expect(result.current.rangeLabel).toBe("24–30 Ağustos 2026");
     act(() => result.current.next());
-    expect(result.current.rangeLabel).toMatch(/^31 Ağustos\s–\s4 Eylül 2026$/);
+    expect(result.current.rangeLabel).toMatch(/^31 Ağustos\s–\s6 Eylül 2026$/);
     act(() => result.current.today());
-    expect(result.current.rangeLabel).toBe("24–28 Ağustos 2026");
+    expect(result.current.rangeLabel).toBe("24–30 Ağustos 2026");
   });
 
   it("lays out meetings and deliverables by day and summarises the week", async () => {
@@ -125,7 +125,15 @@ describe("useMenteeCalendar", () => {
     const labels = result.current.entriesByDay.map((day) =>
       day.map((entry) => entry.gridLabel),
     );
-    expect(labels).toEqual([[], ["Teslim"], [], ["Teslim"], ["Nihan Öztürk"]]);
+    expect(labels).toEqual([
+      [],
+      ["Teslim"],
+      [],
+      ["Teslim"],
+      ["Nihan Öztürk"],
+      [],
+      [],
+    ]);
   });
 
   it("filters the grid without changing the summary", async () => {
@@ -151,7 +159,7 @@ describe("useMenteeCalendar", () => {
     ]);
   });
 
-  it("counts only what the Monday–Friday grid can show", async () => {
+  it("counts a Saturday meeting, now that the grid shows the weekend", async () => {
     vi.mocked(useMeetings).mockReturnValue(
       successQuery([
         meeting,
@@ -166,7 +174,7 @@ describe("useMenteeCalendar", () => {
 
     await waitFor(() =>
       expect(result.current.summary).toBe(
-        "Bu hafta 1 mentorluk görüşmesi · 2 teslim",
+        "Bu hafta 2 mentorluk görüşmesi · 2 teslim",
       ),
     );
   });

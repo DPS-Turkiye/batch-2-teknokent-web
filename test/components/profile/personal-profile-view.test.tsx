@@ -29,6 +29,7 @@ type Page = ReturnType<typeof usePersonalProfilePage>;
 const cvActions = {
   choose: vi.fn<Cv["choose"]>(),
   fillFromStored: vi.fn<Cv["fillFromStored"]>(),
+  openStored: vi.fn<Cv["openStored"]>(),
   setExpertise: vi.fn<Cv["setExpertise"]>(),
   setConsent: vi.fn<Cv["setConsent"]>(),
 };
