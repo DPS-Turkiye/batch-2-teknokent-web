@@ -66,4 +66,23 @@ describe("startup process routes", () => {
       "doc-1",
     );
   });
+
+  it("hands in an Ödev without a file as a null document", async () => {
+    vi.mocked(submitProcessAssignment).mockResolvedValue(ok);
+
+    await PUT(
+      new NextRequest(
+        "http://localhost/api/startup/process/assignments/odev-1/submission",
+        { method: "PUT", body: JSON.stringify({}) },
+      ),
+      { params: Promise.resolve({ id: "odev-1" }) },
+    );
+
+    expect(submitProcessAssignment).toHaveBeenCalledWith(
+      "org-1",
+      "odev-1",
+      "user-1",
+      null,
+    );
+  });
 });

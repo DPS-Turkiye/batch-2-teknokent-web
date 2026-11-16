@@ -18,6 +18,8 @@ export function processAssignment(
     createdByName: null,
     createdByRole: null,
     createdAt: "2026-08-10T09:00:00Z",
+    programAssignmentId: null,
+    fileRequired: true,
     ...overrides,
   };
 }

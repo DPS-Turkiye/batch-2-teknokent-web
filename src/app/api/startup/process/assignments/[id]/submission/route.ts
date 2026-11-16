@@ -1,5 +1,4 @@
 import type { NextRequest } from "next/server";
-import { z } from "zod";
 
 import { submitProcessAssignment } from "@/lib/api/startup-process";
 import {
@@ -7,10 +6,9 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import { processSubmissionSchema } from "@/lib/server/program-assignment-schemas";
 import { readJsonBody } from "@/lib/server/request-body";
 import { getSessionIds } from "@/lib/session";
-
-const submissionSchema = z.object({ documentId: z.string() });
 
 export async function PUT(
   request: NextRequest,
@@ -19,7 +17,7 @@ export async function PUT(
   try {
     const { id } = await params;
     const { userId, organizationId } = await getSessionIds();
-    const body = await readJsonBody(request, submissionSchema);
+    const body = await readJsonBody(request, processSubmissionSchema);
     if (!body.ok) return body.response;
     return backendResponse(
       await submitProcessAssignment(

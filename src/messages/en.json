@@ -2205,7 +2205,12 @@
     "noPhases": "The program's phases haven't been added yet. Your assignments are below.",
     "unphased": "Assignments without a phase ({count})",
     "unphasedTitle": "Assignments without a phase",
-    "allAssignmentsTitle": "Your assignments"
+    "allAssignmentsTitle": "Your assignments",
+    "markDone": "Hand in",
+    "markingDone": "Handing in…",
+    "markedDone": "Assignment handed in.",
+    "markDoneFailed": "Could not hand in the assignment.",
+    "uploadOptional": "Add a file"
   },
   "personalProfile": {
     "comingSoon": "This section is coming soon.",
@@ -4021,7 +4026,8 @@
       "APPOINTMENTS": "Appointments",
       "STUDENTS": "Students",
       "PEER_MENTORS": "Peer Mentors",
-      "ACADEMICS": "Academics"
+      "ACADEMICS": "Academics",
+      "ASSIGNMENTS": "Assignments"
     },
     "phaseWeek": "{phase}, week {current}/{total}",
     "coordinators": "{count, plural, =1 {Coordinator} other {Coordinators}}: {names}",
@@ -6137,7 +6143,9 @@
     "sessionRefreshFailed": "Couldn't update your session.",
     "personSummaryLoadFailed": "Could not load the profile.",
     "personIdInvalid": "Choose a valid person.",
-    "aiFeaturesLoadFailed": "Could not load the AI settings."
+    "aiFeaturesLoadFailed": "Could not load the AI settings.",
+    "programAssignmentsLoadFailed": "Could not load the assignments.",
+    "programAssignmentCreateFailed": "Could not send the assignment."
   },
   "startupStart": {
     "title": "My startup",
@@ -6303,6 +6311,44 @@
     "teamChangesEmpty": "No requests waiting.",
     "wantsToLeave": "wants to leave {startup}",
     "removalAsked": "{leader} asks to remove them from {startup}"
+  },
+  "programAssignments": {
+    "title": "Assignments",
+    "hint": "An assignment you give goes to every team of the program; each team hands it in from its Process tab.",
+    "give": "Give an assignment",
+    "formLabel": "Give an assignment",
+    "allTeams": "This assignment goes to every team of the program. Teams that join later get it too unless the due date has passed.",
+    "fields": {
+      "title": "Title",
+      "description": "Description",
+      "dueDate": "Due date",
+      "phase": "Phase",
+      "noPhase": "No phase (placed by its due date)",
+      "fileRequired": "A file upload is required"
+    },
+    "problems": {
+      "titleRequired": "The assignment needs a title.",
+      "duePassed": "The due date cannot be before today."
+    },
+    "cancel": "Cancel",
+    "send": "Send to all teams",
+    "sending": "Sending…",
+    "created": "{count, plural, =0 {Assignment saved; the program has no teams yet.} one {Assignment sent to # team.} other {Assignment sent to # teams.}}",
+    "createFailed": "Could not send the assignment.",
+    "empty": "No assignments have been given in this program yet.",
+    "due": "Due {date}",
+    "noDue": "No due date",
+    "fileRequired": "File required",
+    "summary": "{submitted} handed in · {late} late · {overdue} missed · {open} waiting",
+    "noTeams": "The program has no teams yet.",
+    "openFile": "Open the file",
+    "openFileLabel": "Open the file {team} handed in",
+    "state": {
+      "SUBMITTED": "Handed in",
+      "LATE": "Late",
+      "OVERDUE": "Missed",
+      "OPEN": "Waiting"
+    }
   },
   "programContext": {
     "label": "Program",

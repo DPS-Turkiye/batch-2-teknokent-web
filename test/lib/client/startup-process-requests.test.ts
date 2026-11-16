@@ -40,6 +40,15 @@ const calls: ClientCall[] = [
     ],
   },
   {
+    title: "submitAssignment sends a null document to mark an Ödev done",
+    call: () => submitAssignment("as/1", null),
+    method: "put",
+    args: [
+      "/api/startup/process/assignments/as%2F1/submission",
+      { documentId: null },
+    ],
+  },
+  {
     title: "getTeamProcess reads a program team's process",
     call: () => getTeamProcess("prog/1", "org/1"),
     method: "get",

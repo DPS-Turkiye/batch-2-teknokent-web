@@ -307,7 +307,7 @@ const cases: BodyCase[] = [
     valid: { documentId: "doc-1" },
     backend: startupProcess.submitProcessAssignment,
     expected: ["org-1", "assignment-1", "user-1", "doc-1"],
-    invalid: { "a missing document": {} },
+    invalid: { "a document id that is not text": { documentId: 42 } },
   },
   {
     route: "PUT /api/document-requests",

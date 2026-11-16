@@ -37,6 +37,8 @@ function assignment(
     createdByName: "Çağrı Yılmaz",
     createdByRole: UserRole.Mentor,
     createdAt: "2026-08-10T09:00:00Z",
+    programAssignmentId: null,
+    fileRequired: true,
     ...overrides,
   };
 }
