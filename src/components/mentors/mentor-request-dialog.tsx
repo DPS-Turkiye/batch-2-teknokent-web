@@ -350,6 +350,7 @@ export function MentorRequestDialog({
           {slotsIssue && !isSubmitting ? (
             <p
               id="mentor-request-send-hint"
+              aria-live="polite"
               className="mr-auto text-xs text-[#9e4400]"
             >
               {t(`slotsIssue.${slotsIssue}`)}
