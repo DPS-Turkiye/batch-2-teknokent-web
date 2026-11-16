@@ -6131,6 +6131,7 @@
     "academicsLoadFailed": "Could not load the academics.",
     "weekPlanLoadFailed": "Couldn't load the weekly plan.",
     "weekPlanSaveFailed": "Couldn't save the weekly plan.",
+    "weekPlanAlignFailed": "Couldn't update the program dates from the syllabus.",
     "weeklyProgramReadFailed": "Couldn't read the weekly program.",
     "weeklyProgramSaveFailed": "Couldn't save the weekly program.",
     "programThisWeekLoadFailed": "Couldn't load this week's plan.",
@@ -6676,6 +6677,8 @@
     "signedIn": "Signed in"
   },
   "programThisWeek": {
+    "sessions": "This week's sessions",
+    "specialDays": "Special days",
     "eyebrow": "This week",
     "loading": "Loading this week's plan…",
     "loadFailed": "Couldn't load this week's plan.",
@@ -6692,6 +6695,8 @@
     "empty": "The coordinator hasn't added the syllabus for this week yet."
   },
   "programWeekPlan": {
+    "sessionsOf": "Week {week} sessions",
+    "specialDays": "Special days",
     "title": "Weekly plan",
     "subtitle": "Participants see only that week's plan on their Process page.",
     "subtitleWeeks": "The program runs {total} weeks. Participants see only that week's plan on their Process page.",
@@ -6719,8 +6724,15 @@
     "problems": {
       "MISSING_TITLE": "Give every week a title.",
       "REPEATED_WEEK": "A week appears more than once.",
-      "PAST_THE_END": "Week numbers must be between 1 and {total}."
-    }
+      "PAST_THE_END": "Week numbers must be between 1 and {total}.",
+      "INVALID_DATES": "Enter both week dates in chronological order."
+    },
+    "datesMismatch": "The syllabus runs {start} – {end}; the program is set to {programStart} – {programEnd}.",
+    "alignDates": "Update program dates from syllabus",
+    "datesAligned": "Program dates updated.",
+    "alignFailed": "The program dates could not be updated.",
+    "startDate": "Week start",
+    "endDate": "Week end"
   },
   "weeklyProgram": {
     "manualHint": "Automatic weekly program reading is disabled here; add phases here and weeks in the Weekly plan manually.",
@@ -6770,7 +6782,8 @@
     "weekProblems": {
       "MISSING_TITLE": "Give every week a title.",
       "REPEATED_WEEK": "A week appears more than once.",
-      "PAST_THE_END": "Week numbers must be between 1 and {total}."
+      "PAST_THE_END": "Week numbers must be between 1 and {total}.",
+      "INVALID_DATES": "Enter both week dates in chronological order."
     },
     "phaseProblems": {
       "MISSING_NAME": "Give every phase a name.",

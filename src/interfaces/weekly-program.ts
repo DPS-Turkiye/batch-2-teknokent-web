@@ -2,6 +2,7 @@ import type { CoordinatorProgramDetail } from "@/interfaces/coordinator-program"
 import type {
   ProgramPlanWeek,
   ProgramPlanWeekInput,
+  ProgramSpecialDay,
   ProgramWeekPlan,
 } from "@/interfaces/program-week";
 
@@ -48,6 +49,7 @@ export type WeeklyProgramExisting = {
 export type WeeklyProgramProposal = {
   totalWeeks: number;
   weeks: ProgramPlanWeek[];
+  specialDays: ProgramSpecialDay[];
   phases: WeeklyProgramPhase[];
   warnings: WeeklyProgramWarning[];
   notes: string[];
@@ -65,6 +67,7 @@ export type WeeklyProgramPhaseInput = Pick<
 export type SaveWeeklyProgramInput = {
   documentId: string;
   weeks: ProgramPlanWeekInput[];
+  specialDays: ProgramSpecialDay[];
   phases: WeeklyProgramPhaseInput[];
   /** The plan the coordinator was shown (`existing`); a plan that changed since is not overwritten. */
   seenPhaseCount: number;

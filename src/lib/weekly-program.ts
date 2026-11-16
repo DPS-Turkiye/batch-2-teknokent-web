@@ -1,3 +1,4 @@
+import type { ProgramSpecialDay } from "@/interfaces/program-week";
 import type {
   SaveWeeklyProgramInput,
   WeeklyProgramExisting,
@@ -134,12 +135,14 @@ export function replacesExistingPlan(existing: WeeklyProgramExisting) {
 export function weeklyProgramSaveInput({
   documentId,
   weeks,
+  specialDays,
   phases,
   existing,
   keepPast,
 }: {
   documentId: string;
   weeks: readonly WeekDraft[];
+  specialDays: readonly ProgramSpecialDay[];
   phases: readonly PhaseRangeDraft[];
   existing: WeeklyProgramExisting;
   keepPast: boolean;
@@ -147,6 +150,7 @@ export function weeklyProgramSaveInput({
   return {
     documentId,
     weeks: weeks.map(weekInputOf),
+    specialDays: [...specialDays],
     phases: withoutKeys(phases).map((phase) => ({
       ...phase,
       name: phase.name.trim(),

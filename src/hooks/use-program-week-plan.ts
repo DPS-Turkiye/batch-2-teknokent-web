@@ -1,25 +1,29 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
+import { coordinatorProgramQueryKey } from "@/hooks/use-coordinator-program";
+import { COORDINATOR_PROGRAMS_QUERY_KEY } from "@/hooks/use-coordinator-programs";
 import { ToastTone } from "@/interfaces/toast";
 import {
+  alignProgramDates,
   getProgramWeekPlan,
   saveProgramWeekPlan,
 } from "@/lib/client/program-weeks";
 import { newRowKey } from "@/lib/keyed-list";
 import {
+  MAX_PLAN_WEEKS,
   nextFreeWeek,
   programTotalWeeks,
-  programWeekDays,
+  weekDaysOf,
   weekDraftOf,
   weekInputOf,
   weekPlanProblem,
   type WeekDraft,
 } from "@/lib/program-week";
-import { errorMessage } from "@/lib/utils";
+import { errorMessage, formatCalendarDay } from "@/lib/utils";
 import { useToast } from "@/stores/toast-store";
 
 export const programWeekPlanQueryKey = (programId: string) =>
@@ -34,6 +38,7 @@ export function useProgramWeekPlan(
   program: { startDate: string | null; endDate: string | null },
 ) {
   const t = useTranslations("programWeekPlan");
+  const locale = useLocale();
   const { showToast } = useToast();
   const client = useQueryClient();
   const query = useQuery({
@@ -51,10 +56,17 @@ export function useProgramWeekPlan(
     [query.data?.weeks],
   );
   const weeks = draft ?? loaded;
+  const dateCheck = query.data?.dateCheck ?? null;
 
   const save = useMutation({
     mutationFn: (next: WeekDraft[]) =>
-      saveProgramWeekPlan(programId, next.map(weekInputOf)),
+      // The editor changes weeks only; the special days go back as they were saved. Saving waits for the plan to
+      // load (see `canEdit`), so this never sends an empty list in place of days it has not read yet.
+      saveProgramWeekPlan(
+        programId,
+        next.map(weekInputOf),
+        query.data?.specialDays ?? [],
+      ),
     onSuccess: (saved) => {
       client.setQueryData(programWeekPlanQueryKey(programId), saved);
       setDraft(null);
@@ -67,6 +79,27 @@ export function useProgramWeekPlan(
       }),
   });
 
+  const align = useMutation({
+    mutationFn: () => alignProgramDates(programId),
+    onSuccess: async (saved) => {
+      client.setQueryData(programWeekPlanQueryKey(programId), saved);
+      // The program's own dates changed: its detail and the program list's week counter, not the plan just set.
+      await Promise.all([
+        client.invalidateQueries({
+          queryKey: coordinatorProgramQueryKey(programId),
+          exact: true,
+        }),
+        client.invalidateQueries({ queryKey: COORDINATOR_PROGRAMS_QUERY_KEY }),
+      ]);
+      showToast({ message: t("datesAligned"), tone: ToastTone.Success });
+    },
+    onError: (failure) =>
+      showToast({
+        message: errorMessage(failure, t("alignFailed")),
+        tone: ToastTone.Error,
+      }),
+  });
+
   const change = (next: WeekDraft[]) => {
     setProblem(null);
     setDraft(next);
@@ -75,14 +108,35 @@ export function useProgramWeekPlan(
   return {
     weeks,
     totalWeeks,
-    daysOf: (week: number) =>
-      programWeekDays(program.startDate, program.endDate, week),
+    specialDays: query.data?.specialDays ?? [],
+    dateCheck,
+    /** Why the program's dates and the syllabus's differ, for the warning above the plan. */
+    dateCheckMessage: dateCheck
+      ? t("datesMismatch", {
+          start: formatCalendarDay(dateCheck.syllabusStart, locale),
+          end: formatCalendarDay(dateCheck.syllabusEnd, locale),
+          programStart: program.startDate
+            ? formatCalendarDay(program.startDate, locale)
+            : "–",
+          programEnd: program.endDate
+            ? formatCalendarDay(program.endDate, locale)
+            : "–",
+        })
+      : null,
+    alignDates: () => align.mutate(),
+    isAligning: align.isPending,
+    daysOf: (number: number) =>
+      weekDaysOf(weeks, number, program.startDate, program.endDate),
     isLoading: query.isLoading,
     loadError: query.error,
     dirty: draft !== null,
     problem,
     isSaving: save.isPending,
-    canAdd: nextFreeWeek(weeks, totalWeeks) !== null,
+    canAdd:
+      query.data !== undefined && nextFreeWeek(weeks, totalWeeks) !== null,
+    /** The highest week number a row may take: any for a week with its own dates, else the program's last. */
+    maxWeekOf: (week: WeekDraft) =>
+      week.startDate ? MAX_PLAN_WEEKS : (totalWeeks ?? undefined),
     update: (index: number, patch: Partial<WeekDraft>) =>
       change(
         weeks.map((week, at) => (at === index ? { ...week, ...patch } : week)),
@@ -102,6 +156,9 @@ export function useProgramWeekPlan(
             activities: "",
             deliverables: "",
             inferred: false,
+            startDate: null,
+            endDate: null,
+            sessions: [],
           },
         ].toSorted((left, right) => left.week - right.week),
       );
@@ -111,6 +168,7 @@ export function useProgramWeekPlan(
       setProblem(null);
     },
     save: () => {
+      if (!query.data) return;
       const reason = weekPlanProblem(weeks, totalWeeks);
       if (reason) {
         setProblem(t(`problems.${reason}`, { total: totalWeeks ?? 0 }));

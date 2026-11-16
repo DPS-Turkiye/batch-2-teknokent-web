@@ -25,6 +25,7 @@ import {
 import type { ToastInput } from "@/stores/toast-store";
 import { aiFeatures } from "@test/fixtures/ai-features";
 import { coordinatorProgramDetail } from "@test/fixtures/coordinator-programs";
+import { weekPlan } from "@test/fixtures/program-week";
 import { weeklyProgramProposal } from "@test/fixtures/weekly-program";
 import { createTestQueryClient, InLocale } from "@test/test-utils";
 
@@ -276,7 +277,7 @@ describe("useWeeklyProgramImport", () => {
         kind: DocumentKind.WeeklyProgram,
       },
     });
-    const plan = { totalWeeks: 11, weeks: [] };
+    const plan = weekPlan({ totalWeeks: 11 });
     vi.mocked(saveWeeklyProgram).mockResolvedValue({ program: detail, plan });
     const client = createTestQueryClient();
     const { result } = render(detail, client);

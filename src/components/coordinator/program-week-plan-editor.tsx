@@ -4,6 +4,7 @@
 import { Plus, Trash2 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 
+import { ProgramPlanDays } from "@/components/program-plan-days";
 import type { useProgramWeekPlan } from "@/hooks/use-program-week-plan";
 import { dayRangeLabel, type WeekDraft } from "@/lib/program-week";
 
@@ -60,6 +61,25 @@ export function ProgramWeekPlanEditor({
         </button>
       </div>
 
+      {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+      {plan.dateCheck ? (
+        <div
+          role="status"
+          className="space-y-2 rounded-xl border border-amber-200 p-3 text-sm"
+        >
+          <p>{plan.dateCheckMessage}</p>
+          {!locked ? (
+            <button
+              type="button"
+              className={OUTLINE_BUTTON}
+              disabled={plan.isAligning || plan.dirty}
+              onClick={plan.alignDates}
+            >
+              {t("alignDates")}
+            </button>
+          ) : null}
+        </div>
+      ) : null}
       {plan.isLoading ? (
         <p role="status" className="text-[13px] text-[#858c96]">
           {t("loading")}
@@ -86,6 +106,20 @@ export function ProgramWeekPlanEditor({
         </ol>
       )}
 
+      {plan.specialDays.length > 0 ? (
+        <div className="space-y-2 rounded-[18px] border border-[#e4e7ea] bg-white p-4">
+          <h4
+            id="week-plan-special-days"
+            className="text-[13px] font-semibold text-[#22262b]"
+          >
+            {t("specialDays")}
+          </h4>
+          <ProgramPlanDays
+            days={plan.specialDays}
+            labelledBy="week-plan-special-days"
+          />
+        </div>
+      ) : null}
       {plan.problem ? (
         <p role="alert" className="text-[12.5px] text-[#b42318]">
           {plan.problem}
@@ -140,7 +174,7 @@ function WeekRow({
           <input
             type="number"
             min={1}
-            max={plan.totalWeeks ?? undefined}
+            max={plan.maxWeekOf(week)}
             value={week.week}
             disabled={locked}
             aria-label={t("weekNumberOf", { week: week.week })}
@@ -180,6 +214,37 @@ function WeekRow({
           className={FIELD}
         />
       </label>
+      {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+      <div className="grid gap-3 md:grid-cols-2">
+        <label>
+          {t("startDate")}
+          <input
+            type="date"
+            className={FIELD}
+            value={week.startDate ?? ""}
+            disabled={locked}
+            onChange={(event) =>
+              plan.update(index, { startDate: event.target.value || null })
+            }
+          />
+        </label>
+        <label>
+          {t("endDate")}
+          <input
+            type="date"
+            className={FIELD}
+            value={week.endDate ?? ""}
+            disabled={locked}
+            onChange={(event) =>
+              plan.update(index, { endDate: event.target.value || null })
+            }
+          />
+        </label>
+      </div>
+      <ProgramPlanDays
+        days={week.sessions}
+        label={t("sessionsOf", { week: week.week })}
+      />
       <div className="grid gap-3 md:grid-cols-3">
         {LIST_FIELDS.map((field) => (
           <label

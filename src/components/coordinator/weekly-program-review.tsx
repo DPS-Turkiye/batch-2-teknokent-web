@@ -5,6 +5,7 @@ import { AlertTriangle, Info, Trash2 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useRef } from "react";
 
+import { ProgramPlanDays } from "@/components/program-plan-days";
 import type { useWeeklyProgramImport } from "@/hooks/use-weekly-program-import";
 import { dayRangeLabel, type WeekDraft } from "@/lib/program-week";
 import {
@@ -149,6 +150,21 @@ export function WeeklyProgramReview({ weekly }: { weekly: Import }) {
           ))}
         </ol>
       </div>
+
+      {proposal.specialDays.length > 0 ? (
+        <div className="space-y-2">
+          <h4
+            id="weekly-program-special-days"
+            className="text-[13px] font-semibold text-[#22262b]"
+          >
+            {tWeek("specialDays")}
+          </h4>
+          <ProgramPlanDays
+            days={proposal.specialDays}
+            labelledBy="weekly-program-special-days"
+          />
+        </div>
+      ) : null}
 
       {proposal.notes.length ? (
         <div className="space-y-1 rounded-[16px] bg-[#f7f8fa] px-4 py-3">
@@ -310,6 +326,10 @@ function ReviewWeek({
           className={FIELD}
         />
       </label>
+      <ProgramPlanDays
+        days={week.sessions}
+        label={tWeek("sessionsOf", { week: week.week })}
+      />
       <div className="grid gap-3 md:grid-cols-3">
         {LIST_FIELDS.map((field) => (
           <label

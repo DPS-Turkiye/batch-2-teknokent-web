@@ -27,6 +27,7 @@ import {
   coordinatorProgramDetail,
   phase,
 } from "@test/fixtures/coordinator-programs";
+import { weekPlan } from "@test/fixtures/program-week";
 import { weeklyProgramProposal } from "@test/fixtures/weekly-program";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
@@ -43,7 +44,7 @@ vi.mock("@/lib/client/program-peer-categories", () => ({
 }));
 
 vi.mock("@/lib/client/program-weeks", () => ({
-  getProgramWeekPlan: vi.fn(async () => ({ totalWeeks: null, weeks: [] })),
+  getProgramWeekPlan: vi.fn(async () => weekPlan({ totalWeeks: null })),
   saveProgramWeekPlan: vi.fn(),
 }));
 vi.mock("@/lib/client/weekly-program", () => ({
@@ -450,7 +451,7 @@ describe("coordinator program detail", () => {
     vi.mocked(readWeeklyProgram).mockResolvedValue(weeklyProgramProposal());
     vi.mocked(saveWeeklyProgram).mockResolvedValue({
       program: detail,
-      plan: { totalWeeks: 11, weeks: [] },
+      plan: weekPlan({ totalWeeks: 11 }),
     });
     const user = userEvent.setup();
     renderWithQueryClient(<ProgramSettingsView programId="program-1" />);

@@ -86,6 +86,7 @@ export function weeklyProgramProposal(
     readingWarnings: [],
     pageCount: 1,
     existing: { phaseCount: 0, weekCount: 0, currentWeek: null },
+    specialDays: [],
     ...overrides,
   };
 }

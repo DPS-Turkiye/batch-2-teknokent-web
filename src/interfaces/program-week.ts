@@ -1,6 +1,31 @@
+/** A session of a week on its own day, as the syllabus prints it. Times are "HH:mm" or "HH:mm:ss". */
+export type ProgramSession = {
+  date: string;
+  startTime: string | null;
+  endTime: string | null;
+  place: string | null;
+  title: string | null;
+};
+
+/** A day that is an event of its own (a bootcamp, a demo day), not part of a week. */
+export type ProgramSpecialDay = {
+  date: string;
+  startTime: string | null;
+  endTime: string | null;
+  place: string | null;
+  title: string;
+  details: string[];
+};
+
+/** The first and last day the saved plan prints, when they are not the program's start and end. */
+export type ProgramDateCheck = {
+  syllabusStart: string;
+  syllabusEnd: string;
+};
+
 /**
- * A week of a program's plan as the coordinator saved it (or the AI proposed it). Dates come from the program's
- * start and end; they are null while the program has no start date. `inferred` marks a week the AI spread out
+ * A week of a program's plan as the coordinator saved it (or the AI proposed it). Its dates are the ones the
+ * syllabus prints (`datesFromSource`), else the program calendar's; null while neither exists. `inferred` marks a week the AI spread out
  * from a longer phase instead of reading it from a week-by-week syllabus.
  */
 export type ProgramPlanWeek = {
@@ -12,17 +37,25 @@ export type ProgramPlanWeek = {
   activities: string[];
   deliverables: string[];
   inferred: boolean;
+  datesFromSource: boolean;
+  sessions: ProgramSession[];
 };
 
 export type ProgramWeekPlan = {
   totalWeeks: number | null;
   weeks: ProgramPlanWeek[];
+  specialDays: ProgramSpecialDay[];
+  dateCheck: ProgramDateCheck | null;
 };
 
 export type ProgramPlanWeekInput = Omit<
   ProgramPlanWeek,
-  "startDate" | "endDate"
->;
+  "startDate" | "endDate" | "datesFromSource"
+> & {
+  /** The week's own dates (both or neither); null follows the program calendar. */
+  startDate: string | null;
+  endDate: string | null;
+};
 
 export type ProgramThisWeekPhase = {
   id: string;
@@ -53,4 +86,6 @@ export type ProgramThisWeek = {
   hasSyllabus: boolean;
   plan: ProgramPlanWeek | null;
   phases: ProgramThisWeekPhase[];
+  /** Special days in the shown week, or today's. */
+  specialDays: ProgramSpecialDay[];
 };
