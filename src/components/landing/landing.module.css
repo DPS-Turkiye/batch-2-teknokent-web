@@ -1946,7 +1946,7 @@
 }
 .fgrid {
   display: grid;
-  grid-template-columns: 1.4fr repeat(3, 1fr);
+  grid-template-columns: 1.4fr repeat(2, 1fr);
   gap: 40px;
 }
 @media (max-width: 860px) {
