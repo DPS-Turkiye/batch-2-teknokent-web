@@ -1,4 +1,10 @@
-export type OnboardingDraftKind = "signup-wizard" | "mentor-onboarding";
+export const OnboardingDraftKind = {
+  SignupWizard: "signup-wizard",
+  MentorOnboarding: "mentor-onboarding",
+} as const;
+
+export type OnboardingDraftKind =
+  (typeof OnboardingDraftKind)[keyof typeof OnboardingDraftKind];
 
 export type OnboardingDraftRecord = {
   kind: OnboardingDraftKind;

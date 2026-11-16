@@ -254,7 +254,9 @@
     "retry": "Try again",
     "existingAccountTitle": "You already have an account with this e-mail",
     "existingAccountBody": "An account with {email} already exists. You don't need to sign up again; sign in to continue.",
-    "existingAccountSignIn": "Sign in"
+    "existingAccountSignIn": "Sign in",
+    "existingAccountWaitingBody": "Your application with {email} is in and waiting for the coordinator's approval. You don't need to sign up again.",
+    "existingAccountStatus": "See your application status"
   },
   "signupWizard": {
     "programRequired": "Please select a program.",

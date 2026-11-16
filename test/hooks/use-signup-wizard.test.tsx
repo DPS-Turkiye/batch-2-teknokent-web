@@ -454,6 +454,7 @@ describe("useSignupWizard", () => {
       expect.objectContaining({
         startup: expect.objectContaining({ name: "Döngü" }),
       }),
+      expect.any(Function),
     );
     expect(result.current.submitted).toBe(true);
   });

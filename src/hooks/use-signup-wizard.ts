@@ -91,7 +91,13 @@ function resumeStep(saved: SignupStep, draft: SignupDraft) {
 }
 
 export function useSignupWizard(
-  options: { onSubmit?: (draft: SignupDraft) => Promise<void> } = {},
+  options: {
+    /** `onRegistered` is called once the account exists, before any file is uploaded. */
+    onSubmit?: (
+      draft: SignupDraft,
+      onRegistered: () => Promise<void>,
+    ) => Promise<void>;
+  } = {},
 ) {
   const [step, setStep] = useState<SignupStep>(SignupStep.PersonalProfile);
   const [draft, setDraft] = useState<SignupDraft>(emptySignupDraft);
@@ -192,7 +198,9 @@ export function useSignupWizard(
     }
     setSubmitting(true);
     try {
-      await onSubmit(draft);
+      // The draft goes as soon as the account exists. If an upload then failed with the draft still saved,
+      // the next sign-in would reopen this wizard, which can only turn an existing account away.
+      await onSubmit(draft, clearRemote);
       await clearRemote();
       setSubmitted(true);
     } catch (error) {

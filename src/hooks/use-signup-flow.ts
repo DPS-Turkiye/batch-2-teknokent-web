@@ -5,8 +5,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 import type { RegisteredAccount, RegisterForm } from "@/interfaces/auth";
-import { UserRole } from "@/interfaces/session";
+import { UserRole, type UserAccountStatus } from "@/interfaces/session";
 import { SignupRole } from "@/interfaces/signup";
+import { clearStaleDraft, existingAccountHref } from "@/lib/account-not-ready";
 import { ClientApiError } from "@/lib/client/api";
 import { fetchAccountStatus, registerMentor } from "@/lib/client/auth";
 import {
@@ -58,6 +59,7 @@ export function useSignupFlow() {
   );
   // null until a founder's login has been checked, so the wizard never opens for an existing account.
   const [existingAccount, setExistingAccount] = useState<boolean | null>(null);
+  const [existingStatus, setExistingStatus] = useState<UserAccountStatus>();
   const [mentorRegistrationError, setMentorRegistrationError] = useState("");
 
   const isMentor = role === SignupRole.Mentor;
@@ -161,16 +163,21 @@ export function useSignupFlow() {
     const cancellation = new AbortController();
     void (async () => {
       let exists = false;
+      let status: UserAccountStatus | undefined;
       try {
         const idToken = await currentIdToken();
         if (idToken) {
-          await fetchAccountStatus(idToken);
+          status = (await fetchAccountStatus(idToken)).status;
           exists = true;
+          // The account exists, so the wizard's saved draft is a leftover; left in place it sends every sign-in back here.
+          await clearStaleDraft(idToken);
         }
       } catch {
         // No account yet (401) is the normal case; any other failure is left to the final submit, which says why.
       }
-      if (!cancellation.signal.aborted) setExistingAccount(exists);
+      if (cancellation.signal.aborted) return;
+      setExistingStatus(status);
+      setExistingAccount(exists);
     })();
     return () => cancellation.abort();
   }, [account, isFounder, needsEmailVerification]);
@@ -205,6 +212,8 @@ export function useSignupFlow() {
     mentorRegistration,
     mentorRegistrationError,
     existingAccount,
+    /** Where the existing-account notice leads; a waiting account goes to its status page, not back to sign-in. */
+    existingAccountHref: existingAccountHref(existingStatus),
     chooseRole,
     createAccount,
     finishAfterEmail,

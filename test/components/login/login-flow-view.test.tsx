@@ -5,7 +5,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LoginFlowView } from "@/components/login/login-flow-view";
 import { Edition } from "@/interfaces/edition";
 import { ClientApiError } from "@/lib/client/api";
-import { fetchOnboardingDraft } from "@/lib/client/onboarding-draft";
+import {
+  clearOnboardingDraft,
+  fetchOnboardingDraft,
+} from "@/lib/client/onboarding-draft";
 import {
   currentIdToken,
   isCurrentEmailVerified,
@@ -31,6 +34,7 @@ vi.mock("@/components/providers/session-provider", () => ({
 }));
 
 vi.mock("@/lib/client/onboarding-draft", () => ({
+  clearOnboardingDraft: vi.fn().mockResolvedValue(undefined),
   fetchOnboardingDraft: vi.fn(),
 }));
 
@@ -342,6 +346,34 @@ describe("Login screen", () => {
       expect(push).toHaveBeenCalledWith("/signup?resume=1&role=mentor"),
     );
     expect(fetchOnboardingDraft).toHaveBeenCalledWith("id-token");
+    expect(signOutOfFirebase).not.toHaveBeenCalled();
+  });
+
+  it("sends a pending founder with a leftover draft to the status page, not back into the wizard", async () => {
+    login.mockRejectedValue(
+      new ClientApiError(
+        "Hesabınız koordinatör onayı bekliyor.",
+        403,
+        "ACCOUNT_NOT_APPROVED",
+      ),
+    );
+    vi.mocked(fetchOnboardingDraft).mockResolvedValue({
+      kind: "signup-wizard",
+      step: "4",
+      payload: {},
+    });
+    const user = userEvent.setup();
+    render(<LoginFlowView edition={Edition.Teknokent} />);
+    await waitUntilLoginReady();
+
+    await fillCredentials(user);
+    await user.click(screen.getByRole("button", { name: "Giriş yap" }));
+
+    await waitFor(() =>
+      expect(push).toHaveBeenCalledWith("/application-status"),
+    );
+    expect(push).not.toHaveBeenCalledWith("/signup?resume=1&role=founder");
+    expect(clearOnboardingDraft).toHaveBeenCalledWith("id-token");
     expect(signOutOfFirebase).not.toHaveBeenCalled();
   });
 

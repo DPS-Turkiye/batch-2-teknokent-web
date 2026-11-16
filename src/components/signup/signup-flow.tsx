@@ -13,6 +13,7 @@ import { SignupWizardView } from "@/components/signup/signup-wizard";
 import { MentorRegistration, useSignupFlow } from "@/hooks/use-signup-flow";
 import type { RegisteredAccount } from "@/interfaces/auth";
 import type { Edition } from "@/interfaces/edition";
+import { APPLICATION_STATUS_HREF } from "@/lib/account-not-ready";
 
 function ResumeMentorIdentity({
   account,
@@ -81,8 +82,15 @@ function ResumeLoading({ message }: { message: string }) {
 }
 
 // TEST UI: placeholder until the design team's screen; replace when it arrives.
-function ExistingAccountNotice({ email }: { email: string }) {
+function ExistingAccountNotice({
+  email,
+  href,
+}: {
+  email: string;
+  href: string;
+}) {
   const copy = useTranslations("signupFlow");
+  const waiting = href === APPLICATION_STATUS_HREF;
   return (
     <AuthShell>
       <div className="flex flex-col gap-4 py-10 text-center">
@@ -90,13 +98,18 @@ function ExistingAccountNotice({ email }: { email: string }) {
           {copy("existingAccountTitle")}
         </h1>
         <p className="text-sm text-[#6b7280]">
-          {copy("existingAccountBody", { email })}
+          {copy(
+            waiting ? "existingAccountWaitingBody" : "existingAccountBody",
+            {
+              email,
+            },
+          )}
         </p>
         <Link
-          href="/login"
+          href={href}
           className="mx-auto rounded-[10px] bg-[#e5701d] px-5 py-2.5 text-sm font-semibold text-white"
         >
-          {copy("existingAccountSignIn")}
+          {copy(waiting ? "existingAccountStatus" : "existingAccountSignIn")}
         </Link>
       </div>
     </AuthShell>
@@ -168,7 +181,12 @@ export function SignupFlow({ edition }: { edition: Edition }) {
   }
 
   if (!isMentor && flow.existingAccount) {
-    return <ExistingAccountNotice email={account.email} />;
+    return (
+      <ExistingAccountNotice
+        email={account.email}
+        href={flow.existingAccountHref}
+      />
+    );
   }
 
   return isMentor ? (
