@@ -1566,7 +1566,14 @@
     "pickable": "Time you can pick",
     "workWith": "Would you like to work with {name}?",
     "workWithBody": "Send your request with your mentorship need. Once it's accepted, you can settle the time of the first meeting.",
-    "sendRequest": "Send a mentorship request"
+    "sendRequest": "Send a mentorship request",
+    "viewOnly": "{name} mentors in another of your programs ({programs}). To send a request, pick that program in the Mentor Pool.",
+    "viewOnlyAction": "Go to the Mentor Pool"
+  },
+  "mentorUnavailable": {
+    "title": "This mentor's profile isn't open to you",
+    "body": "This mentor isn't in any of your programs, or their profile isn't published yet.",
+    "back": "Back to the Mentor Pool"
   },
   "mentorRequestDialog": {
     "title": "Plan a mentorship with {name}",

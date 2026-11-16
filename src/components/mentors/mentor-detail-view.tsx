@@ -28,6 +28,7 @@ import {
   menteeLoadLabel,
 } from "@/lib/mentor-detail";
 import { mentorFirstName } from "@/lib/mentor-profile-request";
+import { MentorshipWorkspaceTab } from "@/types/mentorship";
 
 const cardClass =
   "space-y-2.5 rounded-[10px] border border-[#e4e7ea] bg-white p-4";
@@ -40,10 +41,13 @@ export function MentorDetailView({
   mentor,
   slots,
   startup,
+  viewOnlyPrograms = null,
 }: {
   mentor: MentorProfile;
   slots: MentorAvailabilitySlot[];
   startup: StartupContext;
+  /** Set when the mentor is in another of the viewer's programs: they can look, not ask. */
+  viewOnlyPrograms?: readonly string[] | null;
 }) {
   const t = useTranslations("mentorDetail");
   const locale = useLocale();
@@ -343,13 +347,34 @@ export function MentorDetailView({
             <p className="text-xs leading-[18px] text-[#676e78]">
               {t("workWithBody")}
             </p>
-            <button
-              type="button"
-              onClick={openRequest}
-              className="rounded-lg bg-[#e86f22] px-4 py-[11px] text-sm font-medium text-white transition hover:bg-[#ce5e19]"
-            >
-              {t("sendRequest")}
-            </button>
+            {viewOnlyPrograms ? (
+              <>
+                {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+                <p
+                  role="note"
+                  className="rounded-lg bg-[#fff4ec] px-3 py-2.5 text-xs leading-[18px] text-[#9e4400]"
+                >
+                  {t("viewOnly", {
+                    name: firstName,
+                    programs: viewOnlyPrograms.join(", "),
+                  })}
+                </p>
+                <Link
+                  href={`/mentorships?tab=${MentorshipWorkspaceTab.MentorPool}`}
+                  className="rounded-lg border border-[#e86f22] px-4 py-[11px] text-center text-sm font-medium text-[#22262b] transition hover:bg-[#fff4ec]"
+                >
+                  {t("viewOnlyAction")}
+                </Link>
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={openRequest}
+                className="rounded-lg bg-[#e86f22] px-4 py-[11px] text-sm font-medium text-white transition hover:bg-[#ce5e19]"
+              >
+                {t("sendRequest")}
+              </button>
+            )}
           </section>
         </aside>
       </div>

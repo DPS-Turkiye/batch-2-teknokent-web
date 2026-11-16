@@ -1568,7 +1568,14 @@
     "pickable": "Seçilebilir saat",
     "workWith": "{name} ile çalışmak ister misin?",
     "workWithBody": "Mentorluk ihtiyacınla birlikte talebini gönder. Kabul edildiğinde ilk görüşme saatini netleştirebilirsin.",
-    "sendRequest": "Mentorluk talebi gönder"
+    "sendRequest": "Mentorluk talebi gönder",
+    "viewOnly": "{name} katıldığın başka bir programın mentoru ({programs}). Talep göndermek için Mentor Havuzu'nda bu programı seç.",
+    "viewOnlyAction": "Mentor Havuzu'na git"
+  },
+  "mentorUnavailable": {
+    "title": "Bu mentor profili sana açık değil",
+    "body": "Bu mentor katıldığın programlardan birinde değil ya da profili henüz yayında değil.",
+    "back": "Mentor Havuzu'na dön"
   },
   "mentorRequestDialog": {
     "title": "{name} ile mentorluk planla",
