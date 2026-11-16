@@ -10,6 +10,8 @@ import {
   fetchMentorAvailabilityRules,
   fetchMentorAvailabilitySettings,
   fetchMentorProfile,
+  fetchOwnMentorAvailability,
+  fetchOwnMentorProfile,
   updateMentorAvailabilitySettings,
   updateMentorProfile,
 } from "@/lib/api/mentor-profile";
@@ -32,6 +34,20 @@ const cases: RequestCase[] = [
     "reads the mentor's profile at its encoded path",
     () => fetchMentorProfile("mentor/1"),
     { method: "GET", url: MENTOR_URL },
+  ],
+  [
+    "reads a mentor's own profile as that mentor, so a pending one still gets it",
+    () => fetchOwnMentorProfile("mentor/1"),
+    { method: "GET", url: MENTOR_URL, params: { actorId: "mentor/1" } },
+  ],
+  [
+    "lists a mentor's own slots as that mentor",
+    () => fetchOwnMentorAvailability("mentor/1"),
+    {
+      method: "GET",
+      url: `${MENTOR_URL}/availability`,
+      params: { actorId: "mentor/1" },
+    },
   ],
   [
     "lists the mentor's recurring availability rules",

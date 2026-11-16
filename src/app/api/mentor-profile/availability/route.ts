@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 
 import {
   createMentorAvailabilitySlot,
-  fetchMentorAvailability,
+  fetchOwnMentorAvailability,
 } from "@/lib/api/mentor-profile";
 import {
   apiErrorResponse,
@@ -15,7 +15,7 @@ import { getSessionIds } from "@/lib/session";
 export async function GET() {
   try {
     const { userId } = await getSessionIds();
-    return backendResponse(await fetchMentorAvailability(userId));
+    return backendResponse(await fetchOwnMentorAvailability(userId));
   } catch (error) {
     return apiErrorResponse(error, {
       message: await apiText("availabilityLoadFailed"),

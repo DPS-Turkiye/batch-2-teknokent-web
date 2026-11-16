@@ -10,6 +10,18 @@ export function fetchMentorProfile(mentorId: string) {
   });
 }
 
+/**
+ * A mentor reading their own profile. The backend shows a mentor who is not approved yet only to themselves,
+ * so the session's user is named as the actor; `fetchMentorProfile` reads somebody else's.
+ */
+export function fetchOwnMentorProfile(userId: string) {
+  return backendRequest({
+    method: HttpMethod.Get,
+    url: `/api/mentors/${encodeURIComponent(userId)}`,
+    params: { actorId: userId },
+  });
+}
+
 export function updateMentorProfile(
   mentorId: string,
   payload: Record<string, unknown>,
@@ -76,6 +88,15 @@ export function fetchMentorAvailability(mentorId: string) {
   return backendRequest({
     method: HttpMethod.Get,
     url: `/api/mentors/${encodeURIComponent(mentorId)}/availability`,
+  });
+}
+
+/** A mentor's own slots, readable before approval too; see `fetchOwnMentorProfile`. */
+export function fetchOwnMentorAvailability(userId: string) {
+  return backendRequest({
+    method: HttpMethod.Get,
+    url: `/api/mentors/${encodeURIComponent(userId)}/availability`,
+    params: { actorId: userId },
   });
 }
 
