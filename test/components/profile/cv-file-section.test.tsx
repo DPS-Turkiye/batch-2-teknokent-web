@@ -10,6 +10,7 @@ function cvState(overrides: Partial<CvFileState> = {}): CvFileState {
   return {
     selected: null,
     storedName: "gulse-cv.pdf",
+    openStored: vi.fn<CvFileState["openStored"]>(),
     storedIsPdf: true,
     choose: vi.fn<CvFileState["choose"]>(),
     canRead: true,
@@ -40,6 +41,25 @@ function renderSection(cv: CvFileState) {
 }
 
 describe("CvFileSection", () => {
+  it("opens the CV on file", async () => {
+    const cv = cvState();
+    renderSection(cv);
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "Yüklü CV'yi aç (gulse-cv.pdf)" }),
+    );
+
+    expect(cv.openStored).toHaveBeenCalledTimes(1);
+  });
+
+  it("offers nothing to open before a CV is stored", () => {
+    renderSection(cvState({ storedName: null, offerFill: false }));
+
+    expect(
+      screen.queryByRole("button", { name: /Yüklü CV'yi aç/ }),
+    ).not.toBeInTheDocument();
+  });
+
   it("offers to fill the profile from the CV on file", () => {
     renderSection(cvState());
 

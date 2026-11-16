@@ -11,6 +11,7 @@ import { isAiFeatureDisabledError } from "@/lib/ai-features";
 import { ClientApiError } from "@/lib/client/api";
 import { listDocuments, uploadDocument } from "@/lib/client/documents";
 import { readCv } from "@/lib/client/profile-analysis";
+import { getDocumentDownloadUrl } from "@/lib/client/startup-documents";
 import { aiFeatures } from "@test/fixtures/ai-features";
 import { createTestQueryClient } from "@test/test-utils";
 
@@ -19,6 +20,9 @@ vi.mock("@/lib/client/documents", () => ({
   uploadDocument: vi.fn(),
 }));
 vi.mock("@/lib/client/profile-analysis", () => ({ readCv: vi.fn() }));
+vi.mock("@/lib/client/startup-documents", () => ({
+  getDocumentDownloadUrl: vi.fn(),
+}));
 vi.mock("@/hooks/use-ai-features", () => ({
   useAiFeatures: vi.fn(),
   useAiFeatureRefusal: vi.fn(),
@@ -262,5 +266,25 @@ describe("usePersonalCv", () => {
     await waitFor(() => expect(result.current.error).toBe("CV okunamadı."));
     expect(setField).not.toHaveBeenCalled();
     expect(result.current.filled).toBe(false);
+  });
+
+  it("opens the CV on file in the document preview", async () => {
+    vi.mocked(listDocuments).mockResolvedValue([storedCv("gulse-cv.pdf")]);
+    vi.mocked(getDocumentDownloadUrl).mockResolvedValue({
+      url: "https://files.example/cv-1",
+      filename: "gulse-cv.pdf",
+      contentType: "application/pdf",
+    });
+    const setField = vi.fn();
+    const { result } = renderHook(() => usePersonalCv(draft, setField), {
+      wrapper,
+    });
+    await waitFor(() => expect(result.current.storedName).toBe("gulse-cv.pdf"));
+
+    act(() => result.current.openStored());
+
+    await waitFor(() =>
+      expect(getDocumentDownloadUrl).toHaveBeenCalledWith("cv-1"),
+    );
   });
 });

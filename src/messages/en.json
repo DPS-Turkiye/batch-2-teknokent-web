@@ -2261,6 +2261,7 @@
   "cvFile": {
     "intro": "{whoSees} The CV you upload is saved right away; your profile changes when you press Save.",
     "pick": "Choose a CV file",
+    "open": "Open the CV on file ({name})",
     "help": "PDF · Up to 25 MB",
     "fill": "Fill in my profile from the CV",
     "needPdf": "Upload your CV as a PDF to fill in your profile.",
