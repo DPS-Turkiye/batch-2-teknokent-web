@@ -63,7 +63,7 @@ export function MeetingTopicGrid({
               className={`relative flex w-full flex-col gap-2.5 rounded-[21px] p-5 text-left transition ${featured ? "bg-[#ffe3d5]" : "border border-[#e4e7ea] bg-white hover:border-[#f2b78f]"}`}
             >
               <h3
-                className={`text-lg leading-6 ${featured ? "text-[#c2410c]" : "text-[#22262b]"}`}
+                className={`text-lg leading-6 ${featured ? "text-[#9a3412]" : "text-[#22262b]"}`}
               >
                 {topic.title}
               </h3>

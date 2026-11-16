@@ -74,14 +74,14 @@ export function MeetingTimeline({
                 className="space-y-3 rounded-[24px] bg-[#f5faff] p-6"
               >
                 <div className="flex items-center justify-between gap-3">
-                  <h3 className="text-xl leading-7 text-[#007ecc]">
+                  <h3 className="text-xl leading-7 text-[#006bb3]">
                     {expanded.label}
                   </h3>
                   <button
                     type="button"
                     aria-expanded
                     onClick={() => onToggleMonth(expanded.key)}
-                    className="flex items-center gap-2 text-sm text-[#007ecc] underline"
+                    className="flex items-center gap-2 text-sm text-[#006bb3] underline"
                   >
                     {countLabel(expanded)}
                     <Image
@@ -140,7 +140,7 @@ export function MeetingTimeline({
                       <span className="text-xl text-[#005f99]">
                         {month.label}
                       </span>
-                      <span className="flex items-center gap-2 text-sm text-[#007ecc] underline">
+                      <span className="flex items-center gap-2 text-sm text-[#006bb3] underline">
                         {countLabel(month)}
                         <Image
                           src="/startup/expand-muted.svg"
