@@ -104,7 +104,7 @@ describe("the weekly plan editor's rules", () => {
     const many = {
       ...draft(1),
       title: "  Tanışma ",
-      topics: "\n1\n2\n3\n4\n5\n6\n7\n8\n9\n",
+      topics: "\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n",
     };
     expect(weekInputOf(many).title).toBe("Tanışma");
     expect(weekInputOf(many).topics).toEqual([
@@ -116,6 +116,10 @@ describe("the weekly plan editor's rules", () => {
       "6",
       "7",
       "8",
+      "9",
+      "10",
+      "11",
+      "12",
     ]);
   });
 
