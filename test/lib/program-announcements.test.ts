@@ -1,8 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import { announcementThreads } from "@/lib/program-announcements";
+import { AnnouncementAudience } from "@/interfaces/program-announcement";
+import {
+  announcementThreads,
+  audienceName,
+  audienceOptions,
+  audienceSummary,
+} from "@/lib/program-announcements";
 import { expectLength } from "@test/fixtures/list-assertions";
 import { programAnnouncement } from "@test/fixtures/program-announcements";
+import { translatorIn } from "@test/translators";
 
 describe("program announcement helpers", () => {
   it("groups a viewer's announcements into one thread per program", () => {
@@ -26,5 +33,70 @@ describe("program announcement helpers", () => {
       "a3",
       "a1",
     ]);
+  });
+
+  it("keeps whether the program's teams are single participants", () => {
+    const [thread] = announcementThreads([
+      programAnnouncement({ individualProgram: true }),
+    ]);
+    expect(thread?.individualProgram).toBe(true);
+  });
+
+  describe("audience labels", () => {
+    const t = translatorIn("tr", "announcements");
+    const tEn = translatorIn("en", "announcements");
+
+    it("counts in English with plurals", () => {
+      expect(
+        audienceSummary(
+          programAnnouncement({
+            audience: AnnouncementAudience.Mentors,
+            mentorCount: 1,
+          }),
+          tEn,
+        ),
+      ).toBe("Mentors only · 1 mentor");
+    });
+
+    it("names each audience, with participants for an individual program", () => {
+      expect(audienceOptions(false, t).map((option) => option.label)).toEqual([
+        "Herkes",
+        "Yalnızca mentorlar",
+        "Yalnızca takımlar",
+      ]);
+      expect(audienceName(AnnouncementAudience.Participants, true, t)).toBe(
+        "Yalnızca katılımcılar",
+      );
+    });
+
+    it.each([
+      [AnnouncementAudience.Everyone, false, "Herkes · 42 takım · 28 mentor"],
+      [
+        AnnouncementAudience.Everyone,
+        true,
+        "Herkes · 42 katılımcı · 28 mentor",
+      ],
+      [AnnouncementAudience.Mentors, false, "Yalnızca mentorlar · 28 mentor"],
+      [
+        AnnouncementAudience.Participants,
+        false,
+        "Yalnızca takımlar · 42 takım",
+      ],
+      [
+        AnnouncementAudience.Participants,
+        true,
+        "Yalnızca katılımcılar · 42 katılımcı",
+      ],
+    ])(
+      "summarises %s (individual: %s) as %s",
+      (audience, individual, label) => {
+        expect(
+          audienceSummary(
+            programAnnouncement({ audience, individualProgram: individual }),
+            t,
+          ),
+        ).toBe(label);
+      },
+    );
   });
 });

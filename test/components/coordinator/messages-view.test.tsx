@@ -8,6 +8,7 @@ import {
   ProgramMentorInvitedBy,
   ProgramMentorStatus,
 } from "@/interfaces/program";
+import { AnnouncementAudience } from "@/interfaces/program-announcement";
 import {
   getCoordinatorConversations,
   getCoordinatorMessages,
@@ -262,18 +263,61 @@ describe("CoordinatorMessagesView", () => {
       await screen.findByRole("button", { name: /METU Stars 2026 — Duyuru/ }),
     );
 
-    expect(screen.getAllByText("42 takım · 28 mentor").length).toBeGreaterThan(
-      0,
-    );
+    expect(
+      screen.getAllByText("Herkes · 42 takım · 28 mentor").length,
+    ).toBeGreaterThan(0);
     await user.type(
       screen.getByLabelText("Duyuru"),
       "Demo Day 12 Ekim'de yapılacak",
     );
     await user.click(screen.getByRole("button", { name: "Duyur" }));
 
-    expect(postProgramAnnouncement).toHaveBeenCalledWith(
-      "program-1",
-      "Demo Day 12 Ekim'de yapılacak",
+    expect(postProgramAnnouncement).toHaveBeenCalledWith("program-1", {
+      body: "Demo Day 12 Ekim'de yapılacak",
+      audience: AnnouncementAudience.Everyone,
+    });
+  });
+
+  it("posts only to the mentors and labels each announcement with its audience", async () => {
+    vi.mocked(getProgramAnnouncements).mockResolvedValue([
+      programAnnouncement({
+        id: "for-teams",
+        body: "Demo günü provası",
+        audience: AnnouncementAudience.Participants,
+        mentorCount: 0,
+      }),
+      programAnnouncement({
+        id: "for-mentors",
+        body: "Mentor buluşması",
+        audience: AnnouncementAudience.Mentors,
+        teamCount: 0,
+        createdAt: "2026-09-20T09:00:00Z",
+      }),
+    ]);
+    const user = userEvent.setup();
+    renderWithQueryClient(<CoordinatorMessagesView link={noLink} />);
+
+    await user.click(await screen.findByRole("button", { name: "Duyurular" }));
+    await user.click(
+      await screen.findByRole("button", { name: /METU Stars 2026 — Duyuru/ }),
     );
+
+    expect(
+      screen.getAllByText("Yalnızca takımlar · 42 takım").length,
+    ).toBeGreaterThan(0);
+    expect(
+      screen.getByText("Yalnızca mentorlar · 28 mentor"),
+    ).toBeInTheDocument();
+    await user.selectOptions(
+      screen.getByLabelText("Kime?"),
+      "Yalnızca mentorlar",
+    );
+    await user.type(screen.getByLabelText("Duyuru"), "Mentor toplantısı");
+    await user.click(screen.getByRole("button", { name: "Duyur" }));
+
+    expect(postProgramAnnouncement).toHaveBeenCalledWith("program-1", {
+      body: "Mentor toplantısı",
+      audience: AnnouncementAudience.Mentors,
+    });
   });
 });

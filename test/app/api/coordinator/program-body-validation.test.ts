@@ -22,6 +22,7 @@ import { POST as createProgramRoute } from "@/app/api/coordinator/programs/route
 import { ProgramEventKind } from "@/interfaces/coordinator-program";
 import { PeerTopicCategory } from "@/interfaces/peer-mentoring";
 import { ProgramType } from "@/interfaces/program";
+import { AnnouncementAudience } from "@/interfaces/program-announcement";
 import { ApprovalKind } from "@/interfaces/program-approvals";
 import { UserRole } from "@/interfaces/session";
 import * as badges from "@/lib/api/badges";
@@ -339,8 +340,15 @@ const cases: BodyCase[] = [
     send: (request) => announceRoute(request, program),
     valid: { body: "Demo Day ertelendi." },
     backend: announcements.postProgramAnnouncement,
-    expected: [ME, "program-1", "Demo Day ertelendi."],
-    invalid: { "a text of the wrong type": { body: ["Demo"] } },
+    expected: [
+      ME,
+      "program-1",
+      { body: "Demo Day ertelendi.", audience: AnnouncementAudience.Everyone },
+    ],
+    invalid: {
+      "a text of the wrong type": { body: ["Demo"] },
+      "an unknown audience": { body: "Demo", audience: "ADMINS" },
+    },
   },
   {
     route: "POST /api/coordinator/mentorships/[id]/notes",

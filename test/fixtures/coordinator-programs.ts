@@ -24,6 +24,7 @@ export function coordinatorProgram(
     status: ProgramStatus.Active,
     lifecycle: ProgramLifecycle.Active,
     type: ProgramType.StartupMentoring,
+    individualMentees: false,
     description: null,
     startDate: "2026-02-01",
     endDate: "2026-12-10",

@@ -49,7 +49,10 @@ import {
   threadTopics,
 } from "@/lib/mobile-messages";
 import { POLL_INTERVAL, polling } from "@/lib/poll";
-import { announcementThreads } from "@/lib/program-announcements";
+import {
+  announcementThreads,
+  audienceSummary,
+} from "@/lib/program-announcements";
 import { initials } from "@/lib/utils";
 
 export const MAX_CHAT_MESSAGE_LENGTH = 4000;
@@ -206,10 +209,7 @@ export function useMobileChat(kind: MobileConversationKind, id: string) {
         initials: initials(announcementThread.programName),
         isStartup: false,
         subtitle: latest
-          ? tAnnouncements("audience", {
-              teams: latest.teamCount,
-              mentors: latest.mentorCount,
-            })
+          ? audienceSummary(latest, tAnnouncements)
           : tAnnouncements("none"),
       };
     }

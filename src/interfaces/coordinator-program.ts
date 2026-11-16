@@ -36,6 +36,8 @@ export type CoordinatorProgram = {
   status: ProgramStatus;
   lifecycle: ProgramLifecycle;
   type: ProgramType;
+  /** Each mentee joins as a team of one (İŞKUR), so screens say "katılımcılar" instead of "takımlar". */
+  individualMentees: boolean;
   description: string | null;
   startDate: string | null;
   endDate: string | null;

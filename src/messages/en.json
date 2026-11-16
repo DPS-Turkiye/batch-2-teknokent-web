@@ -1838,12 +1838,25 @@
     "label": "Announcements",
     "title": "Announcements",
     "threadName": "{program} — Announcements",
-    "audience": "{teams, plural, one {# team} other {# teams}} · {mentors, plural, one {# mentor} other {# mentors}}",
+    "summary": "{audience} · {reach}",
+    "to": {
+      "everyone": "Everyone",
+      "mentors": "Mentors only",
+      "teams": "Teams only",
+      "participants": "Participants only"
+    },
+    "reach": {
+      "both": "{teams} · {mentors}",
+      "teams": "{count, plural, one {# team} other {# teams}}",
+      "participants": "{count, plural, one {# participant} other {# participants}}",
+      "mentors": "{count, plural, one {# mentor} other {# mentors}}"
+    },
+    "audienceLabel": "To whom?",
     "none": "No announcements yet",
     "empty": "No announcements yet.",
     "authorFallback": "Coordinator",
     "inputLabel": "Announcement",
-    "placeholder": "Write an announcement to every team and mentor in the program…",
+    "placeholder": "Write your announcement…",
     "send": "Announce",
     "readOnly": "Announcements are read-only. Use the Program conversation to write to the coordinator."
   },
