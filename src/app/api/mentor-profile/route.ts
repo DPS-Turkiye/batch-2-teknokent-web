@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { fetchSignedInUser } from "@/lib/api/auth";
 import {
-  fetchMentorProfile,
+  fetchOwnMentorProfile,
   updateMentorProfile,
 } from "@/lib/api/mentor-profile";
 import {
@@ -17,7 +17,7 @@ import { getSessionIds } from "@/lib/session";
 export async function GET() {
   try {
     const { userId } = await getSessionIds();
-    return backendResponse(await fetchMentorProfile(userId));
+    return backendResponse(await fetchOwnMentorProfile(userId));
   } catch (error) {
     return apiErrorResponse(error, {
       message: await apiText("mentorProfileLoadFailed"),
