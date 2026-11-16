@@ -208,6 +208,30 @@ export function hasPreferredSlots(slots: readonly PreferredSlot[]) {
   );
 }
 
+/** Why a request's preferred times cannot be sent yet, so the dialog can say it instead of only greying out Gönder. */
+export enum PreferredSlotsIssue {
+  Missing = "missing",
+  Incomplete = "incomplete",
+  TooSoon = "too-soon",
+  Duplicate = "duplicate",
+}
+
+/** Null when the times can be sent; the same rule as `hasPreferredSlots`. */
+export function preferredSlotsIssue(
+  slots: readonly PreferredSlot[],
+): PreferredSlotsIssue | null {
+  if (hasPreferredSlots(slots)) return null;
+  const valid = slots.filter(isValidPreferredSlot);
+  if (valid.some((slot) => !isBookableSlot(slot))) {
+    return PreferredSlotsIssue.TooSoon;
+  }
+  if (valid.length > 0) return PreferredSlotsIssue.Duplicate;
+  if (slots.some((slot) => slot.date || slot.time)) {
+    return PreferredSlotsIssue.Incomplete;
+  }
+  return PreferredSlotsIssue.Missing;
+}
+
 export const PREFERRED_TIMES_LINE_PREFIX = "Tercih edilen saatler:";
 export const PREFERRED_SLOTS_LINE_PREFIX = "preferredSlots:";
 export const PROPOSED_TIMES_LINE_PREFIX = "Mentörün önerdiği saatler:";

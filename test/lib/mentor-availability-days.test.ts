@@ -12,6 +12,8 @@ import {
   isValidPreferredSlot,
   parsePreferredSlotsFromMessage,
   parseProposedSlotsFromMessage,
+  PreferredSlotsIssue,
+  preferredSlotsIssue,
   preferredSlotsMessageLines,
   proposedSlotsMessageLines,
   requestOutcomeFromMessage,
@@ -144,6 +146,44 @@ describe("preferred day and time slots", () => {
         { date: "", time: "" },
       ]),
     ).toBe(false);
+  });
+
+  it("names why the preferred times cannot be sent yet", () => {
+    const empty = { date: "", time: "" };
+    expect(preferredSlotsIssue([empty, empty, empty])).toBe(
+      PreferredSlotsIssue.Missing,
+    );
+    expect(
+      preferredSlotsIssue([{ date: "2026-09-10", time: "" }, empty, empty]),
+    ).toBe(PreferredSlotsIssue.Incomplete);
+    expect(
+      preferredSlotsIssue([
+        { date: "2026-09-10", time: "10:15" },
+        empty,
+        empty,
+      ]),
+    ).toBe(PreferredSlotsIssue.Incomplete);
+    expect(
+      preferredSlotsIssue([
+        { date: "2026-09-10", time: "10:00" },
+        { date: "2026-09-08", time: "07:00" },
+        empty,
+      ]),
+    ).toBe(PreferredSlotsIssue.TooSoon);
+    expect(
+      preferredSlotsIssue([
+        { date: "2026-09-10", time: "10:00" },
+        { date: "2026-09-10", time: "10:00" },
+        empty,
+      ]),
+    ).toBe(PreferredSlotsIssue.Duplicate);
+    expect(
+      preferredSlotsIssue([
+        { date: "2026-09-10", time: "10:00" },
+        empty,
+        empty,
+      ]),
+    ).toBeNull();
   });
 
   it("fills empty preferred slots and toggles an existing day and time", () => {
