@@ -55,6 +55,15 @@ export function CvFileSection({
         accept=".pdf"
         helpText={t("help")}
       />
+      {cv.storedName ? (
+        <button
+          type="button"
+          onClick={cv.openStored}
+          className={`self-start rounded-full border px-4 py-2 ${ACCENT_CLASSES[accent]} ${buttonTextClass}`}
+        >
+          {t("open", { name: cv.storedName })}
+        </button>
+      ) : null}
       {!cv.canRead ? (
         <>
           {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 import { startupRequestFields } from "@/hooks/use-startup-draft";
 import type { RegisteredAccount } from "@/interfaces/auth";
@@ -46,6 +46,8 @@ export function useFounderApplication(account: RegisteredAccount) {
   const tErrors = useTranslations("clientErrors");
   const tWizard = useTranslations("signupWizard");
   const [submittedAt, setSubmittedAt] = useState<Date | null>(null);
+  // A retry after a failed upload must not register again: the account already exists.
+  const registeredRef = useRef(false);
 
   // A validation 400 names its fields; the generic "check the fields" leaves the founder guessing which.
   const namingFields = useCallback(
@@ -64,7 +66,7 @@ export function useFounderApplication(account: RegisteredAccount) {
   );
 
   const sendApplication = useCallback(
-    async (draft: SignupDraft) => {
+    async (draft: SignupDraft, onRegistered?: () => Promise<void>) => {
       const idToken = await currentIdToken();
       if (!idToken) {
         throw new Error(tErrors("sessionExpired"));
@@ -82,14 +84,18 @@ export function useFounderApplication(account: RegisteredAccount) {
         contactPreferences: draft.personal.contactPreferences,
       };
 
-      if (individualProgram) {
-        await registerFounder(personal, idToken);
-      } else {
-        const { name, ...startupFields } = startupRequestFields(draft);
-        await registerFounder(
-          { ...personal, ...startupFields, organizationName: name },
-          idToken,
-        );
+      if (!registeredRef.current) {
+        if (individualProgram) {
+          await registerFounder(personal, idToken);
+        } else {
+          const { name, ...startupFields } = startupRequestFields(draft);
+          await registerFounder(
+            { ...personal, ...startupFields, organizationName: name },
+            idToken,
+          );
+        }
+        registeredRef.current = true;
+        await onRegistered?.();
       }
       if (draft.personal.cv?.file) {
         await uploadDocument(draft.personal.cv.file, DocumentKind.Cv, idToken);
@@ -115,9 +121,9 @@ export function useFounderApplication(account: RegisteredAccount) {
   );
 
   const submitApplication = useCallback(
-    async (draft: SignupDraft) => {
+    async (draft: SignupDraft, onRegistered?: () => Promise<void>) => {
       try {
-        await sendApplication(draft);
+        await sendApplication(draft, onRegistered);
       } catch (error) {
         throw namingFields(error);
       }

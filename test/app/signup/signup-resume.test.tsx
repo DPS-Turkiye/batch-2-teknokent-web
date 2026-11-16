@@ -4,9 +4,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SignupFlow } from "@/components/signup/signup-flow";
 import { Edition } from "@/interfaces/edition";
-import { UserRole } from "@/interfaces/session";
+import { UserAccountStatus, UserRole } from "@/interfaces/session";
 import { ClientApiError } from "@/lib/client/api";
 import { fetchAccountStatus, registerMentor } from "@/lib/client/auth";
+import {
+  clearOnboardingDraft,
+  fetchOnboardingDraft,
+} from "@/lib/client/onboarding-draft";
 import { currentFirebaseAccount } from "@/lib/firebase/auth";
 import { backendUser } from "@test/fixtures/session";
 
@@ -39,6 +43,11 @@ vi.mock("@/lib/client/auth", () => ({
   registerMentor: vi.fn().mockResolvedValue({}),
 }));
 
+vi.mock("@/lib/client/onboarding-draft", () => ({
+  clearOnboardingDraft: vi.fn().mockResolvedValue(undefined),
+  fetchOnboardingDraft: vi.fn().mockResolvedValue(null),
+}));
+
 vi.mock("@/components/signup/signup-wizard", () => ({
   SignupWizardView: ({ account }: { account: { email: string } }) => (
     <div data-testid="wizard">{account.email}</div>
@@ -55,6 +64,7 @@ beforeEach(() => {
   searchParams.delete("resume");
   searchParams.delete("programInvite");
   vi.mocked(currentFirebaseAccount).mockResolvedValue(null);
+  vi.mocked(fetchOnboardingDraft).mockResolvedValue(null);
   vi.mocked(registerMentor).mockResolvedValue(
     backendUser({ role: UserRole.Mentor }),
   );
@@ -191,6 +201,38 @@ describe("SignupFlow resume", () => {
       "href",
       "/login",
     );
+    expect(screen.queryByTestId("wizard")).not.toBeInTheDocument();
+  });
+
+  it("sends a founder whose application is waiting to its status page, and drops the leftover draft", async () => {
+    searchParams.set("resume", "1");
+    searchParams.set("role", "founder");
+    vi.mocked(currentFirebaseAccount).mockResolvedValue({
+      email: "gulse@dongu.co",
+      fullName: "Gülse Yılmaz",
+      verified: true,
+    });
+    vi.mocked(fetchAccountStatus).mockResolvedValue(
+      backendUser({ status: UserAccountStatus.Pending }),
+    );
+    vi.mocked(fetchOnboardingDraft).mockResolvedValue({
+      kind: "signup-wizard",
+      step: "4",
+      payload: {},
+    });
+
+    render(<SignupFlow edition={Edition.Teknokent} />);
+
+    expect(
+      await screen.findByRole("link", { name: "Başvuru durumunu gör" }),
+    ).toHaveAttribute("href", "/application-status");
+    expect(
+      screen.getByText(/koordinatör onayını bekliyor/),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Giriş yap" }),
+    ).not.toBeInTheDocument();
+    expect(clearOnboardingDraft).toHaveBeenCalledWith("id-token");
     expect(screen.queryByTestId("wizard")).not.toBeInTheDocument();
   });
 

@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 
 import { useAiFeatureRefusal, useAiFeatures } from "@/hooks/use-ai-features";
+import { useOpenDocument } from "@/hooks/use-startup-documents";
 import {
   STORED_DOCUMENTS_QUERY_KEY,
   useStoredDocuments,
@@ -31,6 +32,7 @@ export function useCvFile<T>({
   const canRead = useAiFeatures().profileParsing;
   const refused = useAiFeatureRefusal();
   const storedCv = useStoredDocuments().byKind(DocumentKind.Cv);
+  const openDocument = useOpenDocument();
   const [selected, setSelected] = useState<UploadedFile | null>(null);
   const [filled, setFilled] = useState(false);
   const [consent, setConsentState] = useState(false);
@@ -97,6 +99,10 @@ export function useCvFile<T>({
   return {
     selected,
     storedName: storedCv?.originalFilename ?? null,
+    // The CV on file could only be replaced, never looked at; it opens in the app's document preview.
+    openStored: () => {
+      if (storedCv) void openDocument(storedCv.id);
+    },
     storedIsPdf,
     choose,
     canRead,

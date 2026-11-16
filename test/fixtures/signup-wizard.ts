@@ -38,6 +38,7 @@ export function signupWizardStub(
     steps: SIGNUP_STEP_ORDER,
     draft: signupDraft(),
     submitted: false,
+    registered: false,
     submitting: false,
     submitError: "",
     draftSavedAt: null,
