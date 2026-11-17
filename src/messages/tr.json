@@ -1837,12 +1837,25 @@
     "label": "Duyurular",
     "title": "Duyurular",
     "threadName": "{program} — Duyuru",
-    "audience": "{teams} takım · {mentors} mentor",
+    "summary": "{audience} · {reach}",
+    "to": {
+      "everyone": "Herkes",
+      "mentors": "Yalnızca mentorlar",
+      "teams": "Yalnızca takımlar",
+      "participants": "Yalnızca katılımcılar"
+    },
+    "reach": {
+      "both": "{teams} · {mentors}",
+      "teams": "{count} takım",
+      "participants": "{count} katılımcı",
+      "mentors": "{count} mentor"
+    },
+    "audienceLabel": "Kime?",
     "none": "Henüz duyuru yok",
     "empty": "Henüz duyuru yok.",
     "authorFallback": "Koordinatör",
     "inputLabel": "Duyuru",
-    "placeholder": "Programdaki tüm takımlara ve mentorlara duyuru yaz…",
+    "placeholder": "Duyurunu yaz…",
     "send": "Duyur",
     "readOnly": "Duyurular yalnızca okunur. Koordinatöre yazmak için Program konuşmasını kullan."
   },

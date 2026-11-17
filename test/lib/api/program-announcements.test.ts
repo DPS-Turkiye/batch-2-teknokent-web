@@ -1,6 +1,7 @@
 import type { AxiosRequestConfig } from "axios";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { AnnouncementAudience } from "@/interfaces/program-announcement";
 import {
   fetchMyAnnouncements,
   fetchProgramAnnouncements,
@@ -29,12 +30,20 @@ const cases: RequestCase[] = [
     },
   ],
   [
-    "posts an announcement with its body",
-    () => postProgramAnnouncement("coord-1", "prog/1", "Demo günü cuma"),
+    "posts an announcement with its body and audience",
+    () =>
+      postProgramAnnouncement("coord-1", "prog/1", {
+        body: "Demo günü cuma",
+        audience: AnnouncementAudience.Mentors,
+      }),
     {
       method: "POST",
       url: "/api/coordinator/programs/prog%2F1/announcements",
-      data: { actorId: "coord-1", body: "Demo günü cuma" },
+      data: {
+        actorId: "coord-1",
+        body: "Demo günü cuma",
+        audience: AnnouncementAudience.Mentors,
+      },
     },
   ],
   [

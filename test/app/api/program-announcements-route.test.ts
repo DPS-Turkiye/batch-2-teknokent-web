@@ -5,6 +5,7 @@ import {
   POST as post,
 } from "@/app/api/coordinator/programs/[id]/announcements/route";
 import { GET as mine } from "@/app/api/program-announcements/route";
+import { AnnouncementAudience } from "@/interfaces/program-announcement";
 import { UserRole } from "@/interfaces/session";
 import {
   fetchMyAnnouncements,
@@ -70,8 +71,39 @@ describe("program announcement routes", () => {
     expect(postProgramAnnouncement).toHaveBeenCalledWith(
       "coordinator-1",
       "program-1",
-      "Demo Day",
+      { body: "Demo Day", audience: AnnouncementAudience.Everyone },
     );
+  });
+
+  it("forwards the chosen audience and rejects an unknown one", async () => {
+    await post(
+      new Request("http://localhost", {
+        method: "POST",
+        body: JSON.stringify({
+          body: "Mentor toplantısı",
+          audience: AnnouncementAudience.Participants,
+        }),
+      }),
+      params,
+    );
+    expect(postProgramAnnouncement).toHaveBeenCalledWith(
+      "coordinator-1",
+      "program-1",
+      {
+        body: "Mentor toplantısı",
+        audience: AnnouncementAudience.Participants,
+      },
+    );
+
+    const rejected = await post(
+      new Request("http://localhost", {
+        method: "POST",
+        body: JSON.stringify({ body: "Duyuru", audience: "ADMINS" }),
+      }),
+      params,
+    );
+    expect(rejected.status).toBe(400);
+    expect(postProgramAnnouncement).toHaveBeenCalledTimes(1);
   });
 
   it("gives a team member or mentor their own announcements, and needs a session", async () => {

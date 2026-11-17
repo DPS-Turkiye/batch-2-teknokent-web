@@ -2,30 +2,23 @@
 
 import { Megaphone } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
+import { useId } from "react";
 
 import type {
+  AnnouncementAudience,
   AnnouncementThread,
-  ProgramAnnouncement,
 } from "@/interfaces/program-announcement";
 import {
   conversationTime,
   messageDayLabel,
   messageTime,
 } from "@/lib/coordinator-messages";
-import { MAX_ANNOUNCEMENT_LENGTH } from "@/lib/program-announcements";
+import {
+  audienceSummary,
+  MAX_ANNOUNCEMENT_LENGTH,
+} from "@/lib/program-announcements";
 
 type Accent = { strong: string; soft: string };
-
-function useAudienceLabel() {
-  const t = useTranslations("announcements");
-  return (announcement: ProgramAnnouncement | null) =>
-    announcement
-      ? t("audience", {
-          teams: announcement.teamCount,
-          mentors: announcement.mentorCount,
-        })
-      : t("none");
-}
 
 /** The "Duyurular" rows: one read-only thread per program. Hidden when there are none. */
 export function AnnouncementThreadList({
@@ -41,7 +34,6 @@ export function AnnouncementThreadList({
 }) {
   const t = useTranslations("announcements");
   const locale = useLocale();
-  const audienceLabel = useAudienceLabel();
   if (!threads.length) return null;
   return (
     <section aria-label={t("label")}>
@@ -79,7 +71,9 @@ export function AnnouncementThreadList({
                     </span>
                   </span>
                   <span className="mt-0.5 block truncate text-[10.5px] text-[#676e78]">
-                    {audienceLabel(thread.latest)}
+                    {thread.latest
+                      ? audienceSummary(thread.latest, t)
+                      : t("none")}
                   </span>
                   <span className="mt-1 block truncate text-[10.5px] text-[#858c96]">
                     {thread.latest?.body ?? t("none")}
@@ -97,6 +91,9 @@ export function AnnouncementThreadList({
 type Composer = {
   draft: string;
   setDraft: (value: string) => void;
+  audience: AnnouncementAudience;
+  setAudience: (value: string) => void;
+  audienceOptions: { id: AnnouncementAudience; label: string }[];
   canSend: boolean;
   send: () => void;
   sendError: Error | null;
@@ -116,7 +113,7 @@ export function AnnouncementPane({
 }) {
   const t = useTranslations("announcements");
   const locale = useLocale();
-  const audienceLabel = useAudienceLabel();
+  const audienceId = useId();
   const chronological = [...thread.announcements].reverse();
   return (
     <section className={`flex min-h-0 flex-col bg-white ${className}`}>
@@ -125,7 +122,7 @@ export function AnnouncementPane({
           {t("threadName", { program: thread.programName })}
         </h2>
         <p className="mt-0.5 text-[12px] text-[#676e78]">
-          {audienceLabel(thread.latest)}
+          {thread.latest ? audienceSummary(thread.latest, t) : t("none")}
         </p>
       </header>
       <div className="min-h-[240px] flex-1 space-y-4 overflow-y-auto px-6 py-5">
@@ -147,6 +144,13 @@ export function AnnouncementPane({
                 </p>
                 <p className="whitespace-pre-wrap">{announcement.body}</p>
               </div>
+              {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+              {/* Only the coordinator (the one with a composer) sees whom each announcement went to. */}
+              {composer ? (
+                <p className="mt-1 text-[10px] text-[#676e78]">
+                  {audienceSummary(announcement, t)}
+                </p>
+              ) : null}
               <time className="mt-1 text-[10px] text-[#858c96]">
                 {messageTime(announcement.createdAt, locale)}
               </time>
@@ -164,6 +168,24 @@ export function AnnouncementPane({
           }}
           className="border-t border-[#e4e7ea] px-6 py-4"
         >
+          {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+          <div className="mb-2 flex items-center gap-2">
+            <label htmlFor={audienceId} className="text-[12px] text-[#676e78]">
+              {t("audienceLabel")}
+            </label>
+            <select
+              id={audienceId}
+              value={composer.audience}
+              onChange={(event) => composer.setAudience(event.target.value)}
+              className="h-8 rounded-full border border-[#e9ecef] px-3 text-[12.5px] text-[#22262b] outline-none"
+            >
+              {composer.audienceOptions.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
           <div className="flex items-end gap-3">
             <textarea
               value={composer.draft}

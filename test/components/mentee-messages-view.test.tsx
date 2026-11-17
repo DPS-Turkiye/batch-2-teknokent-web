@@ -166,6 +166,7 @@ describe("MenteeMessagesView", () => {
     const thread = {
       programId: "program-1",
       programName: "METU Stars 2026",
+      individualProgram: false,
       latest: announcement,
       announcements: [announcement],
     };

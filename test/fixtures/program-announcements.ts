@@ -1,7 +1,10 @@
 import { vi } from "vitest";
 
 import type { MyAnnouncements } from "@/hooks/use-program-announcements";
-import type { ProgramAnnouncement } from "@/interfaces/program-announcement";
+import {
+  AnnouncementAudience,
+  type ProgramAnnouncement,
+} from "@/interfaces/program-announcement";
 
 export function programAnnouncement(
   overrides: Partial<ProgramAnnouncement> = {},
@@ -13,6 +16,8 @@ export function programAnnouncement(
     authorName: "Elif Demir",
     body: "Ürün-Pazar Uyumu Atölyesi bugün 16:00'da",
     createdAt: "2026-09-27T09:00:00Z",
+    audience: AnnouncementAudience.Everyone,
+    individualProgram: false,
     teamCount: 42,
     mentorCount: 28,
     ...overrides,

@@ -1,6 +1,9 @@
 import "server-only";
 
-import type { ProgramAnnouncement } from "@/interfaces/program-announcement";
+import type {
+  PostProgramAnnouncementInput,
+  ProgramAnnouncement,
+} from "@/interfaces/program-announcement";
 import { backendRequest } from "@/lib/server/backend-client";
 
 const programUrl = (programId: string) =>
@@ -17,12 +20,12 @@ export function fetchProgramAnnouncements(actorId: string, programId: string) {
 export function postProgramAnnouncement(
   actorId: string,
   programId: string,
-  body: string,
+  input: PostProgramAnnouncementInput,
 ) {
   return backendRequest<ProgramAnnouncement>({
     method: "POST",
     url: programUrl(programId),
-    data: { actorId, body },
+    data: { actorId, body: input.body, audience: input.audience },
   });
 }
 

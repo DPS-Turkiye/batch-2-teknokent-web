@@ -1,4 +1,7 @@
-import type { ProgramAnnouncement } from "@/interfaces/program-announcement";
+import type {
+  PostProgramAnnouncementInput,
+  ProgramAnnouncement,
+} from "@/interfaces/program-announcement";
 import { requireSuccess } from "@/lib/client/api";
 import { httpClient } from "@/lib/http-client";
 
@@ -11,9 +14,12 @@ export async function getProgramAnnouncements(programId: string) {
   );
 }
 
-export async function postProgramAnnouncement(programId: string, body: string) {
+export async function postProgramAnnouncement(
+  programId: string,
+  input: PostProgramAnnouncementInput,
+) {
   return requireSuccess(
-    await httpClient.post<ProgramAnnouncement>(programUrl(programId), { body }),
+    await httpClient.post<ProgramAnnouncement>(programUrl(programId), input),
   );
 }
 

@@ -360,7 +360,9 @@ describe("useMobileChat for a Duyurular thread", () => {
 
     await waitFor(() => expect(result.current.header).not.toBeNull());
     expect(result.current.header?.name).toBe("METU Stars 2026 — Duyuru");
-    expect(result.current.header?.subtitle).toBe("42 takım · 28 mentor");
+    expect(result.current.header?.subtitle).toBe(
+      "Herkes · 42 takım · 28 mentor",
+    );
     expect(
       result.current.items.flatMap((item) =>
         item.kind === MobileChatItemKind.Message ? [item.body] : [],
@@ -380,7 +382,9 @@ describe("useMobileChat for a Duyurular thread", () => {
 
     await waitFor(() => expect(result.current.header).not.toBeNull());
     expect(result.current.header?.name).toBe("METU Stars 2026 — Announcements");
-    expect(result.current.header?.subtitle).toBe("42 teams · 28 mentors");
+    expect(result.current.header?.subtitle).toBe(
+      "Everyone · 42 teams · 28 mentors",
+    );
     expect(result.current.closedNote).toMatch(/Announcements are read-only/);
   });
 });

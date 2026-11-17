@@ -8,6 +8,10 @@ import {
   useMyAnnouncements,
 } from "@/hooks/use-program-announcements";
 import {
+  AnnouncementAudience,
+  type ProgramAnnouncement,
+} from "@/interfaces/program-announcement";
+import {
   getMyAnnouncements,
   getProgramAnnouncements,
   postProgramAnnouncement,
@@ -29,7 +33,10 @@ function wrapper({ children }: { children: ReactNode }) {
   );
 }
 
-const programs = [{ id: "program-1", name: "METU Stars 2026" }];
+const programs = [
+  { id: "program-1", name: "METU Stars 2026", individualMentees: false },
+  { id: "program-2", name: "İŞKUR 2026", individualMentees: true },
+];
 
 describe("program announcement hooks", () => {
   beforeEach(() => {
@@ -64,9 +71,68 @@ describe("program announcement hooks", () => {
     act(() => result.current.send());
 
     await waitFor(() => expect(result.current.draft).toBe(""));
-    expect(postProgramAnnouncement).toHaveBeenCalledWith(
-      "program-1",
-      "Demo Day",
+    expect(postProgramAnnouncement).toHaveBeenCalledWith("program-1", {
+      body: "Demo Day",
+      audience: AnnouncementAudience.Everyone,
+    });
+  });
+
+  it("sends to the chosen audience, then goes back to everyone", async () => {
+    const { result } = renderHook(() => useCoordinatorAnnouncements(programs), {
+      wrapper,
+    });
+    act(() => result.current.open("program-1"));
+    expect(result.current.audience).toBe(AnnouncementAudience.Everyone);
+    act(() => result.current.setAudience(AnnouncementAudience.Mentors));
+    act(() => result.current.setAudience("ADMINS"));
+    act(() => result.current.setDraft("Mentor toplantısı"));
+    act(() => result.current.send());
+
+    await waitFor(() => expect(result.current.draft).toBe(""));
+    expect(postProgramAnnouncement).toHaveBeenCalledWith("program-1", {
+      body: "Mentor toplantısı",
+      audience: AnnouncementAudience.Mentors,
+    });
+    expect(result.current.audience).toBe(AnnouncementAudience.Everyone);
+  });
+
+  it("keeps the next program's draft when an earlier post settles", async () => {
+    let settle: (value: ProgramAnnouncement) => void = () => undefined;
+    vi.mocked(postProgramAnnouncement).mockReturnValue(
+      new Promise((resolve) => {
+        settle = resolve;
+      }),
+    );
+    const { result } = renderHook(() => useCoordinatorAnnouncements(programs), {
+      wrapper,
+    });
+    act(() => result.current.open("program-1"));
+    act(() => result.current.setDraft("Demo Day"));
+    act(() => result.current.send());
+    act(() => result.current.open("program-2"));
+    act(() => result.current.setAudience(AnnouncementAudience.Participants));
+    act(() => result.current.setDraft("Kayıtlar açıldı"));
+
+    await act(async () => settle(programAnnouncement()));
+
+    expect(result.current.draft).toBe("Kayıtlar açıldı");
+    expect(result.current.audience).toBe(AnnouncementAudience.Participants);
+  });
+
+  it("names the participants by the open program's type", () => {
+    const { result } = renderHook(() => useCoordinatorAnnouncements(programs), {
+      wrapper,
+    });
+
+    act(() => result.current.open("program-1"));
+    expect(
+      result.current.audienceOptions.map((option) => option.label),
+    ).toEqual(["Herkes", "Yalnızca mentorlar", "Yalnızca takımlar"]);
+    act(() => result.current.setAudience(AnnouncementAudience.Participants));
+    act(() => result.current.open("program-2"));
+    expect(result.current.audience).toBe(AnnouncementAudience.Everyone);
+    expect(result.current.audienceOptions[2]?.label).toBe(
+      "Yalnızca katılımcılar",
     );
   });
 });
