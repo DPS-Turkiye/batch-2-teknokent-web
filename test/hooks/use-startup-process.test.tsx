@@ -1,5 +1,5 @@
 import { QueryClientProvider } from "@tanstack/react-query";
-import { act, renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -201,5 +201,42 @@ describe("useStartupProcess", () => {
     expect(uploadDocument).toHaveBeenCalledWith(file, DocumentKind.Homework);
     expect(submitAssignment).toHaveBeenCalledWith("mvp", "doc-1");
     expect(result.current.uploadingAssignmentId).toBeNull();
+  });
+
+  it("marks a program Ödev that asks for no file done without uploading", async () => {
+    const done = process({
+      assignments: [assignment("mvp", "mvp", ActionItemStatus.Completed)],
+    });
+    vi.mocked(getStartupProcess).mockResolvedValue(process());
+    vi.mocked(submitAssignment).mockResolvedValue(done);
+    const { result } = renderHook(() => useStartupProcess(), { wrapper });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    act(() => result.current.markDone("mvp"));
+
+    await waitFor(() =>
+      expect(result.current.assignments[0]?.status).toBe(
+        ActionItemStatus.Completed,
+      ),
+    );
+    expect(submitAssignment).toHaveBeenCalledWith("mvp", null);
+    expect(uploadDocument).not.toHaveBeenCalled();
+    expect(result.current.markingAssignmentId).toBeNull();
+    expect(await screen.findByText("Ödev teslim edildi.")).toBeInTheDocument();
+  });
+
+  it("says why a hand-in failed", async () => {
+    vi.mocked(getStartupProcess).mockResolvedValue(process());
+    vi.mocked(submitAssignment).mockRejectedValue(
+      new Error("Bu ödev bir dosya yüklenerek teslim edilir."),
+    );
+    const { result } = renderHook(() => useStartupProcess(), { wrapper });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    act(() => result.current.markDone("mvp"));
+
+    expect(
+      await screen.findByText("Bu ödev bir dosya yüklenerek teslim edilir."),
+    ).toBeInTheDocument();
   });
 });

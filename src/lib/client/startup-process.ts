@@ -8,9 +8,10 @@ export async function getStartupProcess() {
   );
 }
 
+/** Hands an Ödev in: with the uploaded file, or with null for a program Ödev that asks for no file. */
 export async function submitAssignment(
   assignmentId: string,
-  documentId: string,
+  documentId: string | null,
 ) {
   return requireSuccess(
     await httpClient.put<StartupProcess>(

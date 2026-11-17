@@ -2229,7 +2229,12 @@
     "noPhases": "Programın fazları henüz eklenmedi. Ödevlerin aşağıda.",
     "unphased": "Fazsız görevler ({count})",
     "unphasedTitle": "Fazsız görevler",
-    "allAssignmentsTitle": "Ödevlerin"
+    "allAssignmentsTitle": "Ödevlerin",
+    "markDone": "Teslim et",
+    "markingDone": "Teslim ediliyor…",
+    "markedDone": "Ödev teslim edildi.",
+    "markDoneFailed": "Ödev teslim edilemedi.",
+    "uploadOptional": "Dosya ekle"
   },
   "personalProfile": {
     "comingSoon": "Bu bölüm yakında eklenecek.",
@@ -4046,7 +4051,8 @@
       "APPOINTMENTS": "Randevular",
       "STUDENTS": "Öğrenciler",
       "PEER_MENTORS": "Akran Mentorları",
-      "ACADEMICS": "Akademisyenler"
+      "ACADEMICS": "Akademisyenler",
+      "ASSIGNMENTS": "Ödevler"
     },
     "phaseWeek": "{phase}, hafta {current}/{total}",
     "coordinators": "{count, plural, =1 {Koordinatör} other {Koordinatörler}}: {names}",
@@ -6162,7 +6168,9 @@
     "sessionRefreshFailed": "Oturum bilgilerin güncellenemedi.",
     "personSummaryLoadFailed": "Profil yüklenemedi.",
     "personIdInvalid": "Geçerli bir kişi seçin.",
-    "aiFeaturesLoadFailed": "Yapay zekâ ayarları yüklenemedi."
+    "aiFeaturesLoadFailed": "Yapay zekâ ayarları yüklenemedi.",
+    "programAssignmentsLoadFailed": "Ödevler yüklenemedi.",
+    "programAssignmentCreateFailed": "Ödev gönderilemedi."
   },
   "startupStart": {
     "title": "Startup'ım",
@@ -6328,6 +6336,44 @@
     "teamChangesEmpty": "Bekleyen talep yok.",
     "wantsToLeave": "{startup} takımından ayrılmak istiyor",
     "removalAsked": "{leader}, {startup} takımından çıkarılmasını istiyor"
+  },
+  "programAssignments": {
+    "title": "Ödevler",
+    "hint": "Verdiğin ödev programdaki tüm takımlara gider; her takım Süreç sekmesinden teslim eder.",
+    "give": "Ödev ver",
+    "formLabel": "Ödev ver",
+    "allTeams": "Bu ödev programdaki tüm takımlara verilir. Sonradan katılan takımlar da teslim tarihi geçmemişse alır.",
+    "fields": {
+      "title": "Başlık",
+      "description": "Açıklama",
+      "dueDate": "Teslim tarihi",
+      "phase": "Faz",
+      "noPhase": "Faz seçme (teslim tarihine göre yerleşir)",
+      "fileRequired": "Dosya yüklenmesi gerekli"
+    },
+    "problems": {
+      "titleRequired": "Ödevin bir başlığı olmalı.",
+      "duePassed": "Teslim tarihi bugünden önce olamaz."
+    },
+    "cancel": "Vazgeç",
+    "send": "Tüm takımlara gönder",
+    "sending": "Gönderiliyor…",
+    "created": "{count, plural, =0 {Ödev kaydedildi; programda henüz takım yok.} other {Ödev # takıma gönderildi.}}",
+    "createFailed": "Ödev gönderilemedi.",
+    "empty": "Bu programda henüz ödev verilmedi.",
+    "due": "Teslim {date}",
+    "noDue": "Teslim tarihi yok",
+    "fileRequired": "Dosya gerekli",
+    "summary": "{submitted} teslim etti · {late} geç teslim · {overdue} teslim etmedi · {open} bekleniyor",
+    "noTeams": "Programda henüz takım yok.",
+    "openFile": "Dosyayı aç",
+    "openFileLabel": "{team} takımının teslim ettiği dosyayı aç",
+    "state": {
+      "SUBMITTED": "Teslim etti",
+      "LATE": "Geç teslim",
+      "OVERDUE": "Teslim etmedi",
+      "OPEN": "Bekleniyor"
+    }
   },
   "programContext": {
     "label": "Program",

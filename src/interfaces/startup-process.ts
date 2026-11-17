@@ -32,7 +32,10 @@ export interface StartupRound {
   endsOn: string;
 }
 
-/** An "Ödev" given to the startup, done once a file is submitted. */
+/**
+ * An "Ödev" given to the startup, done once a file is submitted; a program Ödev that asks for no file is done
+ * once marked so.
+ */
 export interface ProcessAssignment {
   id: string;
   roundId: string | null;
@@ -47,6 +50,10 @@ export interface ProcessAssignment {
   createdByName: string | null;
   createdByRole: UserRole | null;
   createdAt: string;
+  /** The program Ödev this copy came from ("Ödev ver"), or null. */
+  programAssignmentId: string | null;
+  /** Handed in only with a file; false only for a program Ödev that asks for none. */
+  fileRequired: boolean;
 }
 
 export interface StartupProcess {

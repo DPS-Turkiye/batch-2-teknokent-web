@@ -143,11 +143,15 @@ function AssignmentRow({
   source,
   isUploading,
   onUpload,
+  isMarking,
+  onMarkDone,
 }: {
   assignment: ProcessAssignment;
   source: string;
   isUploading: boolean;
   onUpload: (file: File) => void;
+  isMarking: boolean;
+  onMarkDone: () => void;
 }) {
   const t = useTranslations("startupProcess");
   const locale = useLocale();
@@ -168,6 +172,12 @@ function AssignmentRow({
               {source}
             </p>
           ) : null}
+          {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+          {assignment.description ? (
+            <p className="whitespace-pre-line text-[12px] leading-[17px] text-[#858c96]">
+              {assignment.description}
+            </p>
+          ) : null}
         </div>
       </div>
       <div className="flex flex-wrap items-center gap-2.5">
@@ -183,11 +193,26 @@ function AssignmentRow({
         >
           {t(`assignmentStatus.${assignment.status}`)}
         </span>
+        {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+        {canUpload && !assignment.fileRequired ? (
+          <button
+            type="button"
+            onClick={onMarkDone}
+            disabled={isMarking}
+            className={`${startupPrimaryActionClass} ${isMarking ? "opacity-60" : ""}`}
+          >
+            {isMarking ? t("markingDone") : t("markDone")}
+          </button>
+        ) : null}
         {canUpload ? (
           <label
             className={`${startupPrimaryActionClass} cursor-pointer ${isUploading ? "opacity-60" : ""}`}
           >
-            {isUploading ? t("uploading") : t("upload")}
+            {isUploading
+              ? t("uploading")
+              : assignment.fileRequired
+                ? t("upload")
+                : t("uploadOptional")}
             <input
               type="file"
               className="sr-only"
@@ -350,6 +375,8 @@ export function StartupProcessView() {
                   onUpload={(file) =>
                     process.uploadAssignment(assignment.id, file)
                   }
+                  isMarking={process.markingAssignmentId === assignment.id}
+                  onMarkDone={() => process.markDone(assignment.id)}
                 />
               ))}
             </ul>

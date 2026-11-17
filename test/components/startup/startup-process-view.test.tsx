@@ -28,6 +28,7 @@ vi.mock("@/hooks/use-startup-process", () => ({
 }));
 
 const uploadAssignment = vi.fn();
+const markDone = vi.fn();
 const toggleShowAll = vi.fn();
 const selectPhase = vi.fn();
 const selectUnphased = vi.fn();
@@ -50,6 +51,8 @@ function assignment(
     createdByName: "Çağrı Yılmaz",
     createdByRole: UserRole.Mentor,
     createdAt: "2026-08-10T09:00:00Z",
+    programAssignmentId: null,
+    fileRequired: true,
     ...overrides,
   };
 }
@@ -110,6 +113,8 @@ function state(overrides: Partial<Process> = {}): Process {
     totalAssignments: 7,
     uploadAssignment,
     uploadingAssignmentId: null,
+    markDone,
+    markingAssignmentId: null,
     ...overrides,
   };
 }
@@ -243,6 +248,54 @@ describe("StartupProcessView", () => {
     expect(
       screen.getByLabelText("Finansal model taslağı için ödev yükle"),
     ).toBeDisabled();
+  });
+
+  it("hands in a program Ödev that asks for no file with one click, a file still optional", async () => {
+    const user = userEvent.setup();
+    vi.mocked(useStartupProcess).mockReturnValue(
+      state({
+        assignments: [
+          assignment("market", "Pazar araştırması", {
+            createdByName: "Elif Demir",
+            createdByRole: UserRole.Coordinator,
+            description: "Hedef pazarı anlat.",
+            programAssignmentId: "program-odev-1",
+            fileRequired: false,
+          }),
+        ],
+      }),
+    );
+    const { rerender } = renderWithQueryClient(<StartupProcessView />);
+
+    expect(
+      screen.getByText("Elif Demir · program ödevi · MVP test turu"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Hedef pazarı anlat.")).toBeInTheDocument();
+    expect(screen.getByText("Dosya ekle")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Teslim et" }));
+    expect(markDone).toHaveBeenCalledWith("market");
+
+    vi.mocked(useStartupProcess).mockReturnValue(
+      state({
+        assignments: [
+          assignment("market", "Pazar araştırması", { fileRequired: false }),
+        ],
+        markingAssignmentId: "market",
+      }),
+    );
+    rerender(<StartupProcessView />);
+    expect(
+      screen.getByRole("button", { name: "Teslim ediliyor…" }),
+    ).toBeDisabled();
+  });
+
+  it("offers only the upload when the Ödev asks for a file", () => {
+    renderWithQueryClient(<StartupProcessView />);
+
+    expect(
+      screen.queryByRole("button", { name: "Teslim et" }),
+    ).not.toBeInTheDocument();
+    expect(screen.getAllByText("Ödev yükle").length).toBeGreaterThan(0);
   });
 
   it("switches between the phase's Ödevler and every Ödev", async () => {

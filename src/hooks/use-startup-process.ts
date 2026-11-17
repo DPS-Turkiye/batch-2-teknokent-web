@@ -17,6 +17,7 @@ import {
   roundForPhase,
   unphasedAssignments,
 } from "@/lib/startup-process";
+import { errorMessage } from "@/lib/utils";
 import { useToast } from "@/stores/toast-store";
 
 export const STARTUP_PROCESS_QUERY_KEY = ["startup-process"] as const;
@@ -55,6 +56,19 @@ export function useStartupProcess() {
     onError: (error) =>
       showToast({
         message: error instanceof Error ? error.message : t("uploadFailed"),
+        tone: ToastTone.Error,
+      }),
+  });
+
+  const markDone = useMutation({
+    mutationFn: (assignmentId: string) => submitAssignment(assignmentId, null),
+    onSuccess: (process) => {
+      queryClient.setQueryData(STARTUP_PROCESS_QUERY_KEY, process);
+      showToast({ message: t("markedDone"), tone: ToastTone.Success });
+    },
+    onError: (error) =>
+      showToast({
+        message: errorMessage(error, t("markDoneFailed")),
         tone: ToastTone.Error,
       }),
   });
@@ -141,5 +155,8 @@ export function useStartupProcess() {
     uploadingAssignmentId: upload.isPending
       ? upload.variables.assignmentId
       : null,
+    /** A program Ödev that asks for no file is handed in by marking it done. */
+    markDone: (assignmentId: string) => markDone.mutate(assignmentId),
+    markingAssignmentId: markDone.isPending ? markDone.variables : null,
   };
 }

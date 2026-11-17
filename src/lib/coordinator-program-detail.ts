@@ -18,6 +18,7 @@ export enum ProgramTab {
   PeerMentors = "PEER_MENTORS",
   Academics = "ACADEMICS",
   Matching = "MATCHING",
+  Assignments = "ASSIGNMENTS",
   Appointments = "APPOINTMENTS",
   Approvals = "APPROVALS",
   Settings = "SETTINGS",
@@ -110,6 +111,15 @@ export function programTabs(
           href: `${base}/matching`,
           count: startup ? detail.program.awaitingMatchCount : null,
         },
+    ...(startup
+      ? [
+          {
+            id: ProgramTab.Assignments,
+            href: `${base}/assignments`,
+            count: null,
+          },
+        ]
+      : []),
     ...(officeHours
       ? []
       : [
@@ -226,7 +236,8 @@ export function misplacedTabHref(
       )
         return `${base}/academics`;
       if (tab === ProgramTab.Matching) return `${base}/appointments`;
-      if (tab === ProgramTab.Approvals) return base;
+      if (tab === ProgramTab.Approvals || tab === ProgramTab.Assignments)
+        return base;
       return null;
     default:
       if (
@@ -237,6 +248,7 @@ export function misplacedTabHref(
       )
         return `${base}/students`;
       if (tab === ProgramTab.Appointments) return `${base}/matching`;
+      if (tab === ProgramTab.Assignments) return base;
       return null;
   }
 }

@@ -19,7 +19,7 @@ export function submitProcessAssignment(
   organizationId: string,
   assignmentId: string,
   actorId: string,
-  documentId: string,
+  documentId: string | null,
 ) {
   return backendRequest({
     method: HttpMethod.Put,

@@ -119,6 +119,7 @@ describe("program tabs by type", () => {
       [ProgramTab.Overview, "/coordinator/programs/p1", null],
       [ProgramTab.Participants, "/coordinator/programs/p1/teams", null],
       [ProgramTab.Matching, "/coordinator/programs/p1/matching", 5],
+      [ProgramTab.Assignments, "/coordinator/programs/p1/assignments", null],
       [ProgramTab.Approvals, "/coordinator/programs/p1/approvals", 6],
       [ProgramTab.Settings, "/coordinator/programs/p1/settings", null],
     ]);
@@ -220,11 +221,17 @@ describe("program tabs by type", () => {
       ProgramTab.Teams,
       ProgramTab.MentorPool,
       ProgramTab.Matching,
+      ProgramTab.Assignments,
       ProgramTab.Approvals,
       ProgramTab.Settings,
     ]) {
       expect(misplacedTabHref(startup, "p1", tab)).toBeNull();
     }
+    // Ödevler go to a program's teams, so only Girişim has the tab.
+    expect(misplacedTabHref(officeHours, "p1", ProgramTab.Assignments)).toBe(
+      base,
+    );
+    expect(misplacedTabHref(peer, "p1", ProgramTab.Assignments)).toBe(base);
 
     expect(misplacedTabHref(officeHours, "p1", ProgramTab.Teams)).toBe(
       `${base}/academics`,

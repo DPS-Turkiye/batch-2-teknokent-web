@@ -5,6 +5,7 @@ import { POST as addNoteRoute } from "@/app/api/coordinator/mentorships/[id]/not
 import { POST as announceRoute } from "@/app/api/coordinator/programs/[id]/announcements/route";
 import { POST as decideApprovalRoute } from "@/app/api/coordinator/programs/[id]/approvals/[kind]/[targetId]/route";
 import { PUT as archiveRoute } from "@/app/api/coordinator/programs/[id]/archive/route";
+import { POST as giveAssignmentRoute } from "@/app/api/coordinator/programs/[id]/assignments/route";
 import { POST as revokeBadgeRoute } from "@/app/api/coordinator/programs/[id]/badges/awards/[awardId]/revoke/route";
 import { POST as awardBadgeRoute } from "@/app/api/coordinator/programs/[id]/badges/awards/route";
 import { POST as addCoordinatorRoute } from "@/app/api/coordinator/programs/[id]/coordinators/route";
@@ -30,6 +31,7 @@ import * as notes from "@/lib/api/coordinator-notes";
 import * as programs from "@/lib/api/coordinator-programs";
 import * as proposals from "@/lib/api/meeting-proposals";
 import * as announcements from "@/lib/api/program-announcements";
+import * as programAssignments from "@/lib/api/program-assignments";
 import * as peerCategories from "@/lib/api/program-peer-categories";
 import * as training from "@/lib/api/training";
 import { requireAdminSession } from "@/lib/server/require-admin";
@@ -46,6 +48,7 @@ vi.mock("@/lib/api/coordinator-notes");
 vi.mock("@/lib/api/coordinator-programs");
 vi.mock("@/lib/api/meeting-proposals");
 vi.mock("@/lib/api/program-announcements");
+vi.mock("@/lib/api/program-assignments");
 vi.mock("@/lib/api/program-peer-categories");
 vi.mock("@/lib/api/training");
 vi.mock("@/lib/server/require-coordinator", () => ({
@@ -351,6 +354,30 @@ const cases: BodyCase[] = [
     },
   },
   {
+    route: "POST /api/coordinator/programs/[id]/assignments",
+    send: (request) => giveAssignmentRoute(request, program),
+    valid: { title: "Pazar araştırması", dueDate: "2026-12-01" },
+    backend: programAssignments.createProgramAssignment,
+    expected: [
+      ME,
+      "program-1",
+      {
+        title: "Pazar araştırması",
+        description: null,
+        dueDate: "2026-12-01",
+        phaseId: null,
+        fileRequired: false,
+      },
+    ],
+    invalid: {
+      "a missing title": { dueDate: "2026-12-01" },
+      "a file flag that is not a boolean": {
+        title: "Pazar araştırması",
+        fileRequired: "evet",
+      },
+    },
+  },
+  {
     route: "POST /api/coordinator/mentorships/[id]/notes",
     send: (request) => addNoteRoute(request, mentorship),
     valid: { body: "Takım iyi gidiyor." },
@@ -456,6 +483,7 @@ describe.each(cases)("$route", (bodyCase) => {
       programs,
       proposals,
       announcements,
+      programAssignments,
       peerCategories,
       training,
     );
