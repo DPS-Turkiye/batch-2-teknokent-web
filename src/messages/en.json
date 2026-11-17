@@ -4877,7 +4877,7 @@
       "keptHeading": "What stays",
       "kept": {
         "history": "History shared with others (meetings, requests, messages); the person shows as “Silinmiş kullanıcı”",
-        "teams": "Teams that have other members, with their files; a startup whose only member this is gets archived"
+        "teams": "Teams that have other members, with their files; a startup whose only member this is gets archived and leaves the startup lists (its history is kept)"
       },
       "emailLabel": "Type the user's e-mail to confirm",
       "confirm": "Delete for good",

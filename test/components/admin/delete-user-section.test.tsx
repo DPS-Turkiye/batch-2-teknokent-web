@@ -242,5 +242,10 @@ describe("DeleteUserSection", () => {
     await screen.findByText("Kullanıcı silindi.");
     expect(invalidate).toHaveBeenCalledWith({ queryKey: ["admin-overview"] });
     expect(invalidate).toHaveBeenCalledWith({ queryKey: ["admin"] });
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["programs"] });
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["program-detail"] });
+    expect(invalidate).toHaveBeenCalledWith({
+      queryKey: ["coordinator-programs"],
+    });
   });
 });

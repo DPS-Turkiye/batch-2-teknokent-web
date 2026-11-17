@@ -7,10 +7,13 @@ import { useState } from "react";
 
 import { useAppSession } from "@/components/providers/session-provider";
 import { ADMIN_OVERVIEW_QUERY_KEY } from "@/hooks/use-admin-overview";
+import { COORDINATOR_PROGRAMS_QUERY_KEY } from "@/hooks/use-coordinator-programs";
 import { personSummaryQueryKey } from "@/hooks/use-person-summary";
+import { PROGRAMS_QUERY_KEY } from "@/hooks/use-programs";
 import { ToastTone } from "@/interfaces/toast";
 import { deleteUserAccount } from "@/lib/client/admin-users";
 import { getPersonSummary } from "@/lib/client/person-summary";
+import { PROGRAM_DETAIL_QUERY_KEY } from "@/lib/const/programs";
 import { currentIdToken } from "@/lib/firebase/auth";
 import {
   canOfferDeletion,
@@ -87,6 +90,14 @@ export function useUserDeletion(
             queryKey: ADMIN_OVERVIEW_QUERY_KEY,
           });
           void queryClient.invalidateQueries({ queryKey: ADMIN_LISTS_KEY });
+          // A startup whose only member this was is archived and leaves the program lists too.
+          void queryClient.invalidateQueries({ queryKey: PROGRAMS_QUERY_KEY });
+          void queryClient.invalidateQueries({
+            queryKey: [PROGRAM_DETAIL_QUERY_KEY],
+          });
+          void queryClient.invalidateQueries({
+            queryKey: COORDINATOR_PROGRAMS_QUERY_KEY,
+          });
         },
         onError: (error) =>
           showToast({

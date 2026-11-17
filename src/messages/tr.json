@@ -4879,7 +4879,7 @@
       "keptHeading": "Kalacaklar",
       "kept": {
         "history": "Başkalarıyla ortak geçmiş (görüşmeler, talepler, mesajlar); kişi “Silinmiş kullanıcı” olarak görünür",
-        "teams": "Başka üyesi olan takımlar ve dosyaları; tek üyesi bu kişi olan startup arşivlenir"
+        "teams": "Başka üyesi olan takımlar ve dosyaları; tek üyesi bu kişi olan startup arşivlenir ve startup listelerinden kalkar (geçmişi korunur)"
       },
       "emailLabel": "Onaylamak için kullanıcının e-postasını yaz",
       "confirm": "Kalıcı olarak sil",
