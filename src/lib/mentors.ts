@@ -2,7 +2,14 @@ import { getTranslations } from "next-intl/server";
 import "server-only";
 
 import type { MentorProfile } from "@/interfaces/mentor";
+import { fetchMentorProfile } from "@/lib/api/mentor-profile";
+import { fetchOrganizationPrograms } from "@/lib/api/programs";
 import { HttpMethod } from "@/lib/http-method";
+import {
+  MentorPageAccess,
+  mentorPageAccess,
+  sharedProgramNames,
+} from "@/lib/mentor-access";
 import { backendRequest } from "@/lib/server/backend-client";
 import { getSessionIds } from "@/lib/session";
 
@@ -110,4 +117,63 @@ export async function loadMentors(): Promise<{
         : (await getTranslations("loadErrors"))("mentorsUnexpected");
     return { mentors: [], error: message };
   }
+}
+
+async function fetchMentorById(
+  mentorId: string,
+): Promise<MentorProfile | null> {
+  try {
+    const response = await fetchMentorProfile(mentorId);
+    return response.status === 200 && isMentorProfile(response.data)
+      ? response.data
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+/** The viewer's programs, taken from the session; none for someone outside programs. */
+async function viewerProgramIds(): Promise<string[]> {
+  try {
+    const { userId } = await getSessionIds();
+    const response = await fetchOrganizationPrograms(userId);
+    if (response.status !== 200) return [];
+    return response.data.programs.map((program) => program.id);
+  } catch {
+    return [];
+  }
+}
+
+export type MentorPage = {
+  mentor: MentorProfile;
+  /** Shared programs when the profile is view-only; null when the viewer may send a request. */
+  viewOnlyPrograms: string[] | null;
+};
+
+/** The mentor a profile page shows, or null when the viewer may not see them. */
+export async function loadMentorPage(
+  mentorId: string,
+): Promise<MentorPage | null> {
+  const { mentors } = await loadMentors();
+  const reachable = mentors.find((item) => item.id === mentorId);
+  if (reachable) return { mentor: reachable, viewOnlyPrograms: null };
+
+  const [mentor, programIds] = await Promise.all([
+    fetchMentorById(mentorId),
+    viewerProgramIds(),
+  ]);
+  if (
+    !mentor ||
+    mentorPageAccess({
+      reachable: false,
+      mentor,
+      viewerProgramIds: programIds,
+    }) !== MentorPageAccess.ViewOnly
+  ) {
+    return null;
+  }
+  return {
+    mentor,
+    viewOnlyPrograms: sharedProgramNames(mentor, programIds),
+  };
 }

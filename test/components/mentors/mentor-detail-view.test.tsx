@@ -70,6 +70,26 @@ describe("MentorDetailView", () => {
     ).toBeInTheDocument();
   });
 
+  it("shows a mentor from another program without the request, and says how to ask", () => {
+    vi.mocked(useMentorshipRequests).mockReturnValue(successQuery([]));
+    renderWithQueryClient(
+      <MentorDetailView
+        mentor={mentorProfile}
+        slots={[]}
+        startup={startup}
+        viewOnlyPrograms={["Sude Hızlandırma"]}
+      />,
+    );
+
+    expect(
+      screen.queryByRole("button", { name: "Mentorluk talebi gönder" }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("note")).toHaveTextContent("Sude Hızlandırma");
+    expect(
+      screen.getByRole("link", { name: "Mentor Havuzu'na git" }),
+    ).toHaveAttribute("href", "/mentorships?tab=mentor-pool");
+  });
+
   it("shows a student mentor's studies, and no such card for other mentors", () => {
     vi.mocked(useMentorshipRequests).mockReturnValue(successQuery([]));
     const { unmount } = renderWithQueryClient(

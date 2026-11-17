@@ -1,10 +1,9 @@
-import { notFound } from "next/navigation";
-
 import { AppShell } from "@/components/hoc/app-shell";
 import { MentorDetailView } from "@/components/mentors/mentor-detail-view";
+import { MentorUnavailable } from "@/components/mentors/mentor-unavailable";
 import type { MentorAvailabilitySlot } from "@/interfaces/mentor";
 import { fetchMentorAvailability } from "@/lib/api/mentor-profile";
-import { loadMentors } from "@/lib/mentors";
+import { loadMentorPage } from "@/lib/mentors";
 import { getSessionUser } from "@/lib/session";
 import { loadStartupContext } from "@/lib/startup-profile";
 import { AppArea } from "@/types/app-area";
@@ -41,9 +40,14 @@ export default async function MentorDetailPage({
 }) {
   const { id } = await params;
   const session = await getSessionUser();
-  const { mentors } = await loadMentors();
-  const mentor = mentors.find((item) => item.id === id);
-  if (!mentor) notFound();
+  const page = await loadMentorPage(id);
+  if (!page) {
+    return (
+      <AppShell active={AppArea.Mentorships} menteeHome>
+        <MentorUnavailable />
+      </AppShell>
+    );
+  }
 
   const [slots, startupResult] = await Promise.all([
     loadMentorSlots(id),
@@ -65,7 +69,8 @@ export default async function MentorDetailPage({
   return (
     <AppShell active={AppArea.Mentorships} menteeHome>
       <MentorDetailView
-        mentor={mentor}
+        mentor={page.mentor}
+        viewOnlyPrograms={page.viewOnlyPrograms}
         slots={slots}
         startup={startupResult.startup}
       />
