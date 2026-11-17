@@ -23,7 +23,7 @@ import {
 import { ProgramFileProblem, programFileProblem } from "@/lib/program-phases";
 import {
   dayRangeLabel,
-  programWeekDays,
+  weekDaysOf,
   weekDraftOf,
   weekPlanProblem,
   type WeekDraft,
@@ -149,8 +149,14 @@ export function useWeeklyProgramImport(
   const keptThrough = existing
     ? lastKeptWeek(existing, review?.keepPast ?? false)
     : null;
+  // The review's own week dates (the file's, or the coordinator's edit), else the program calendar's.
   const daysOf = (week: number) =>
-    programWeekDays(detail.program.startDate, detail.program.endDate, week);
+    weekDaysOf(
+      review?.weeks ?? [],
+      week,
+      detail.program.startDate,
+      detail.program.endDate,
+    );
   const rereadId =
     uploadedId ?? (file?.kind === DocumentKind.WeeklyProgram ? file.id : null);
   const reading = upload.isPending || read.isPending;
@@ -283,6 +289,7 @@ export function useWeeklyProgramImport(
         weeklyProgramSaveInput({
           documentId: review.documentId,
           weeks: review.weeks,
+          specialDays: review.proposal.specialDays,
           phases: review.phases,
           existing: review.proposal.existing,
           keepPast: review.keepPast,

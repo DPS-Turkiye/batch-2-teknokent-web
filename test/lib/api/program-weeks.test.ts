@@ -2,11 +2,13 @@ import type { AxiosRequestConfig } from "axios";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  alignProgramDates,
   fetchProgramThisWeek,
   fetchProgramWeekPlan,
   replaceProgramWeekPlan,
 } from "@/lib/api/program-weeks";
 import { backendRequest } from "@/lib/server/backend-client";
+import { specialDay } from "@test/fixtures/program-week";
 
 vi.mock("@/lib/server/backend-client", () => ({
   backendRequest: vi.fn(),
@@ -20,6 +22,15 @@ type RequestCase = [
 
 const cases: RequestCase[] = [
   [
+    "aligns dates as the session coordinator",
+    () => alignProgramDates("coord-1", "prog/1"),
+    {
+      method: "POST",
+      url: "/api/coordinator/programs/prog%2F1/weeks/align-dates",
+      params: { actorId: "coord-1" },
+    },
+  ],
+  [
     "reads an encoded program's week plan",
     () => fetchProgramWeekPlan("coord-1", "prog/1"),
     {
@@ -30,11 +41,11 @@ const cases: RequestCase[] = [
   ],
   [
     "replaces the week plan",
-    () => replaceProgramWeekPlan("coord-1", "prog/1", []),
+    () => replaceProgramWeekPlan("coord-1", "prog/1", [], [specialDay()]),
     {
       method: "PUT",
       url: "/api/coordinator/programs/prog%2F1/weeks",
-      data: { actorId: "coord-1", weeks: [] },
+      data: { actorId: "coord-1", weeks: [], specialDays: [specialDay()] },
     },
   ],
   [

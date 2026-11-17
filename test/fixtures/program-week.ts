@@ -1,6 +1,9 @@
 import type {
   ProgramPlanWeek,
+  ProgramSession,
+  ProgramSpecialDay,
   ProgramThisWeek,
+  ProgramWeekPlan,
 } from "@/interfaces/program-week";
 
 export function planWeek(
@@ -15,6 +18,50 @@ export function planWeek(
     activities: ["5 kullanıcıyla görüş"],
     deliverables: ["Görüşme notları"],
     inferred: false,
+    datesFromSource: false,
+    sessions: [],
+    ...overrides,
+  };
+}
+
+/** A saved plan with no special days whose dates match the program's. */
+export function weekPlan(
+  overrides: Partial<ProgramWeekPlan> = {},
+): ProgramWeekPlan {
+  return {
+    totalWeeks: 12,
+    weeks: [],
+    specialDays: [],
+    dateCheck: null,
+    ...overrides,
+  };
+}
+
+/** Monday's session of a week that meets three times, as Growth Circuit prints it. */
+export function planSession(
+  overrides: Partial<ProgramSession> = {},
+): ProgramSession {
+  return {
+    date: "2026-11-09",
+    startTime: "18:00:00",
+    endTime: "20:00:00",
+    place: "Online",
+    title: "Yapılandırılmış eğitim",
+    ...overrides,
+  };
+}
+
+/** A demo day: its own dated entry, not part of a week. */
+export function specialDay(
+  overrides: Partial<ProgramSpecialDay> = {},
+): ProgramSpecialDay {
+  return {
+    date: "2026-12-15",
+    startTime: "15:00:00",
+    endTime: null,
+    place: "KKM",
+    title: "Demo Günü",
+    details: ["Konuşmacı: Deniz Örnek"],
     ...overrides,
   };
 }
@@ -47,6 +94,7 @@ export function thisWeek(
         current: true,
       },
     ],
+    specialDays: [],
     ...overrides,
   };
 }

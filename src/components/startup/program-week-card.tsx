@@ -4,6 +4,7 @@
 import { CalendarRange } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 
+import { ProgramPlanDays } from "@/components/program-plan-days";
 import { useProgramThisWeek } from "@/hooks/use-program-this-week";
 import { dayRangeLabel, ProgramWeekCardState } from "@/lib/program-week";
 import { formatLongDate } from "@/lib/utils";
@@ -67,6 +68,10 @@ export function ProgramWeekCard({ className = "" }: { className?: string }) {
           </span>
         ) : null}
       </div>
+      <ProgramPlanDays days={week.specialDays} label={t("specialDays")} />
+      {week.plan ? (
+        <ProgramPlanDays days={week.plan.sessions} label={t("sessions")} />
+      ) : null}
       {state === ProgramWeekCardState.Ready ? (
         <>
           <div className="space-y-1">

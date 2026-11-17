@@ -2,6 +2,7 @@ import "server-only";
 
 import type {
   ProgramPlanWeekInput,
+  ProgramSpecialDay,
   ProgramThisWeek,
   ProgramWeekPlan,
 } from "@/interfaces/program-week";
@@ -23,11 +24,16 @@ export function replaceProgramWeekPlan(
   actorId: string,
   programId: string,
   weeks: ProgramPlanWeekInput[],
+  specialDays: ProgramSpecialDay[],
 ) {
   return backendRequest<ProgramWeekPlan>({
     method: HttpMethod.Put,
     url: planUrl(programId),
-    data: { actorId, weeks },
+    data: {
+      actorId,
+      weeks,
+      specialDays,
+    },
   });
 }
 
@@ -36,6 +42,14 @@ export function fetchProgramThisWeek(actorId: string) {
   return backendRequest<ProgramThisWeek>({
     method: HttpMethod.Get,
     url: "/api/programs/mine/this-week",
+    params: { actorId },
+  });
+}
+
+export function alignProgramDates(actorId: string, programId: string) {
+  return backendRequest<ProgramWeekPlan>({
+    method: HttpMethod.Post,
+    url: `${planUrl(programId)}/align-dates`,
     params: { actorId },
   });
 }

@@ -16,6 +16,7 @@ import {
   weekListLabel,
   weeklyProgramSaveInput,
 } from "@/lib/weekly-program";
+import { specialDay } from "@test/fixtures/program-week";
 import {
   programWeek,
   weeklyProgramProposal,
@@ -149,6 +150,7 @@ describe("weeklyProgramSaveInput", () => {
     const input = weeklyProgramSaveInput({
       documentId: "doc-1",
       weeks: [weekDraftOf(programWeek(1, "  Yola Çık "))],
+      specialDays: [specialDay()],
       phases: [
         { ...first, name: " Problemi Keşfet " },
         { ...second, expectedOutput: "  " },
@@ -167,8 +169,12 @@ describe("weeklyProgramSaveInput", () => {
           activities: ["Workshop: Ekip çalışması"],
           deliverables: ["Haftalık görev"],
           inferred: false,
+          startDate: null,
+          endDate: null,
+          sessions: [],
         },
       ],
+      specialDays: [specialDay()],
       phases: [
         {
           name: "Problemi Keşfet",
@@ -200,6 +206,7 @@ describe("weeklyProgramSaveInput", () => {
       weeklyProgramSaveInput({
         documentId: "doc-1",
         weeks: [],
+        specialDays: [],
         phases: [],
         existing,
         keepPast: false,

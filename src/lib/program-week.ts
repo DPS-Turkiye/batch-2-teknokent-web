@@ -1,8 +1,11 @@
 import type {
   ProgramPlanWeek,
   ProgramPlanWeekInput,
+  ProgramSession,
+  ProgramSpecialDay,
   ProgramThisWeek,
 } from "@/interfaces/program-week";
+import { shortWeekday } from "@/lib/calendar";
 import { newRowKey } from "@/lib/keyed-list";
 import { calendarDay, formatDayMonth } from "@/lib/utils";
 
@@ -21,7 +24,8 @@ export const MAX_PLAN_WEEKS = 104;
 export function programWeekCardState(week: ProgramThisWeek) {
   if (week.notStarted) return ProgramWeekCardState.NotStarted;
   if (week.ended) return ProgramWeekCardState.Ended;
-  if (!week.plan && week.phases.length === 0) return ProgramWeekCardState.Empty;
+  if (!week.plan && week.phases.length === 0 && week.specialDays.length === 0)
+    return ProgramWeekCardState.Empty;
   return ProgramWeekCardState.Ready;
 }
 
@@ -87,6 +91,11 @@ export type WeekDraft = {
   activities: string;
   deliverables: string;
   inferred: boolean;
+  /** The week's own dates; null follows the program calendar. */
+  startDate: string | null;
+  endDate: string | null;
+  /** Read from the syllabus and kept as they are; the editor shows them. */
+  sessions: ProgramSession[];
 };
 
 export function weekDraftOf(week: ProgramPlanWeek): WeekDraft {
@@ -98,6 +107,10 @@ export function weekDraftOf(week: ProgramPlanWeek): WeekDraft {
     activities: week.activities.join("\n"),
     deliverables: week.deliverables.join("\n"),
     inferred: week.inferred,
+    // A computed week sends no dates, so it keeps following the program calendar.
+    startDate: week.datesFromSource ? week.startDate : null,
+    endDate: week.datesFromSource ? week.endDate : null,
+    sessions: week.sessions,
   };
 }
 
@@ -117,6 +130,9 @@ export function weekInputOf(draft: WeekDraft): ProgramPlanWeekInput {
     activities: linesOf(draft.activities),
     deliverables: linesOf(draft.deliverables),
     inferred: draft.inferred,
+    startDate: draft.startDate,
+    endDate: draft.endDate,
+    sessions: draft.sessions,
   };
 }
 
@@ -132,6 +148,7 @@ export function nextFreeWeek(drafts: WeekDraft[], totalWeeks: number | null) {
 
 export enum WeekPlanProblem {
   MissingTitle = "MISSING_TITLE",
+  InvalidDates = "INVALID_DATES",
   RepeatedWeek = "REPEATED_WEEK",
   PastTheEnd = "PAST_THE_END",
 }
@@ -141,6 +158,15 @@ export function weekPlanProblem(
   drafts: WeekDraft[],
   totalWeeks: number | null,
 ) {
+  if (
+    drafts.some(
+      (draft) =>
+        Boolean(draft.startDate) !== Boolean(draft.endDate) ||
+        (draft.startDate && draft.endDate && draft.endDate < draft.startDate),
+    )
+  ) {
+    return WeekPlanProblem.InvalidDates;
+  }
   if (drafts.some((draft) => !draft.title.trim())) {
     return WeekPlanProblem.MissingTitle;
   }
@@ -151,11 +177,52 @@ export function weekPlanProblem(
     drafts.some(
       (draft) =>
         draft.week < 1 ||
-        draft.week > (totalWeeks ?? MAX_PLAN_WEEKS) ||
+        draft.week >
+          (draft.startDate ? MAX_PLAN_WEEKS : (totalWeeks ?? MAX_PLAN_WEEKS)) ||
         !Number.isInteger(draft.week),
     )
   ) {
     return WeekPlanProblem.PastTheEnd;
   }
   return null;
+}
+
+/** A week's days: its own dates when it has both, else the program calendar's. */
+export function weekDaysOf(
+  drafts: readonly WeekDraft[],
+  week: number,
+  programStart: string | null,
+  programEnd: string | null,
+) {
+  const draft = drafts.find((row) => row.week === week);
+  return draft?.startDate && draft.endDate
+    ? { start: draft.startDate, end: draft.endDate }
+    : programWeekDays(programStart, programEnd, week);
+}
+
+/** "18:00" from the backend's "18:00:00". */
+function clockTime(time: string) {
+  return time.slice(0, 5);
+}
+
+/** "Pzt 9 Kas · 18:00–20:00 · Online · Yapılandırılmış eğitim"; parts the syllabus leaves out are skipped. */
+export function planDayLabel(
+  day: ProgramSession | ProgramSpecialDay,
+  locale = "tr",
+) {
+  const date = calendarDay(day.date);
+  const time = day.startTime
+    ? [day.startTime, day.endTime]
+        .filter((part) => part !== null)
+        .map(clockTime)
+        .join("–")
+    : null;
+  return [
+    `${shortWeekday(date, locale)} ${formatDayMonth(date, locale)}`,
+    time,
+    day.place,
+    day.title,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 }

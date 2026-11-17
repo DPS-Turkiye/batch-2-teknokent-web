@@ -43,6 +43,7 @@ describe("weekly program server API", () => {
       documentId: "doc-1",
       weeks: [],
       phases: [],
+      specialDays: [],
       seenPhaseCount: 2,
       seenWeekCount: 5,
       keepPast: false,

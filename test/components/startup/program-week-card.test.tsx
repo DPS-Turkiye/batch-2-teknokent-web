@@ -4,7 +4,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ProgramWeekCard } from "@/components/startup/program-week-card";
 import { ClientApiError } from "@/lib/client/api";
 import { getProgramThisWeek } from "@/lib/client/program-weeks";
-import { thisWeek } from "@test/fixtures/program-week";
+import {
+  planSession,
+  planWeek,
+  specialDay,
+  thisWeek,
+} from "@test/fixtures/program-week";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/program-weeks", () => ({
@@ -110,5 +115,26 @@ describe("ProgramWeekCard", () => {
     );
     expect(await screen.findByText("To hand in")).toBeVisible();
     expect(screen.getByText("This week")).toBeVisible();
+  });
+
+  it("shows the week's dated sessions and a special day falling in it", async () => {
+    vi.mocked(getProgramThisWeek).mockResolvedValue(
+      thisWeek({
+        plan: planWeek({ sessions: [planSession({ date: "2026-10-12" })] }),
+        specialDays: [specialDay({ date: "2026-10-15", title: "Bootcamp" })],
+      }),
+    );
+    renderWithQueryClient(<ProgramWeekCard />);
+
+    expect(
+      within(
+        await screen.findByRole("list", { name: "Bu haftanın oturumları" }),
+      ).getByText("Pzt 12 Eki · 18:00–20:00 · Online · Yapılandırılmış eğitim"),
+    ).toBeVisible();
+    const days = screen.getByRole("list", { name: "Özel günler" });
+    expect(
+      within(days).getByText("Per 15 Eki · 15:00 · KKM · Bootcamp"),
+    ).toBeVisible();
+    expect(within(days).getByText("Konuşmacı: Deniz Örnek")).toBeVisible();
   });
 });

@@ -6162,6 +6162,7 @@
     "academicsLoadFailed": "Akademisyenler yüklenemedi.",
     "weekPlanLoadFailed": "Haftalık plan yüklenemedi.",
     "weekPlanSaveFailed": "Haftalık plan kaydedilemedi.",
+    "weekPlanAlignFailed": "Program tarihleri müfredata göre güncellenemedi.",
     "weeklyProgramReadFailed": "Haftalık program okunamadı.",
     "weeklyProgramSaveFailed": "Haftalık program kaydedilemedi.",
     "programThisWeekLoadFailed": "Bu haftanın planı yüklenemedi.",
@@ -6747,6 +6748,8 @@
     "signedIn": "Giriş yaptı"
   },
   "programThisWeek": {
+    "sessions": "Bu haftanın oturumları",
+    "specialDays": "Özel günler",
     "eyebrow": "Bu hafta",
     "loading": "Bu haftanın planı yükleniyor…",
     "loadFailed": "Bu haftanın planı yüklenemedi.",
@@ -6763,6 +6766,8 @@
     "empty": "Koordinatör henüz bu hafta için müfredat eklemedi."
   },
   "programWeekPlan": {
+    "sessionsOf": "{week}. haftanın oturumları",
+    "specialDays": "Özel günler",
     "title": "Haftalık plan",
     "subtitle": "Katılımcılar Süreç sayfasında yalnızca o haftanın planını görür.",
     "subtitleWeeks": "Program {total} hafta sürüyor. Katılımcılar Süreç sayfasında yalnızca o haftanın planını görür.",
@@ -6790,8 +6795,15 @@
     "problems": {
       "MISSING_TITLE": "Her haftaya bir başlık yaz.",
       "REPEATED_WEEK": "Aynı hafta birden fazla kez var.",
-      "PAST_THE_END": "Hafta numaraları 1 ile {total} arasında olmalı."
-    }
+      "PAST_THE_END": "Hafta numaraları 1 ile {total} arasında olmalı.",
+      "INVALID_DATES": "Haftanın başlangıç ve bitiş tarihlerini doğru sırayla girin."
+    },
+    "datesMismatch": "Müfredat {start} – {end} tarihlerini veriyor; program ise {programStart} – {programEnd} olarak kayıtlı.",
+    "alignDates": "Programın tarihlerini müfredata göre güncelle",
+    "datesAligned": "Program tarihleri güncellendi.",
+    "alignFailed": "Program tarihleri güncellenemedi.",
+    "startDate": "Hafta başlangıcı",
+    "endDate": "Hafta bitişi"
   },
   "weeklyProgram": {
     "manualHint": "Bu sistemde haftalık program dosyası otomatik okunmuyor; fazları burada, haftaları Haftalık plan’da elle ekle.",
@@ -6841,7 +6853,8 @@
     "weekProblems": {
       "MISSING_TITLE": "Her haftaya bir başlık yaz.",
       "REPEATED_WEEK": "Aynı hafta birden fazla kez var.",
-      "PAST_THE_END": "Hafta numaraları 1 ile {total} arasında olmalı."
+      "PAST_THE_END": "Hafta numaraları 1 ile {total} arasında olmalı.",
+      "INVALID_DATES": "Haftanın başlangıç ve bitiş tarihlerini doğru sırayla girin."
     },
     "phaseProblems": {
       "MISSING_NAME": "Her faza bir ad yaz.",

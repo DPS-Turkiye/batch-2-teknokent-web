@@ -12,6 +12,7 @@ import { readWeeklyProgram, saveWeeklyProgram } from "@/lib/api/weekly-program";
 import { HttpMethod } from "@/lib/http-method";
 import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 import { coordinatorProgramDetail } from "@test/fixtures/coordinator-programs";
+import { weekPlan } from "@test/fixtures/program-week";
 import { backendResponse, guardRefusal } from "@test/fixtures/route-handlers";
 import { appSession } from "@test/fixtures/session";
 import { weeklyProgramProposal } from "@test/fixtures/weekly-program";
@@ -36,6 +37,19 @@ const validSave = {
       activities: [],
       deliverables: ["Görev"],
       inferred: false,
+      startDate: "2026-10-27",
+      endDate: "2026-11-02",
+      sessions: [],
+    },
+  ],
+  specialDays: [
+    {
+      date: "2027-01-09",
+      startTime: null,
+      endTime: null,
+      place: null,
+      title: "Demo Day",
+      details: [],
     },
   ],
   phases: [
@@ -99,7 +113,7 @@ beforeEach(() => {
   vi.mocked(saveWeeklyProgram).mockResolvedValue(
     backendResponse<WeeklyProgramSaved>({
       program: coordinatorProgramDetail(),
-      plan: { totalWeeks: 11, weeks: [] },
+      plan: weekPlan({ totalWeeks: 11 }),
     }),
   );
 });
@@ -183,6 +197,10 @@ describe("weekly program proxy", () => {
       { ...validSave, phases: [{ name: "A", firstWeek: 1.5, lastWeek: 2 }] },
     ],
     ["no weeks, which would only wipe the plan", { ...validSave, weeks: [] }],
+    [
+      "no special days, as a page from before them sends",
+      { ...validSave, specialDays: undefined },
+    ],
     ["no count of the plan it saw", { ...validSave, seenWeekCount: undefined }],
     ["a negative count", { ...validSave, seenPhaseCount: -1 }],
     [

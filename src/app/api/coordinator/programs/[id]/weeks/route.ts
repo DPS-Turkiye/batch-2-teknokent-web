@@ -37,7 +37,12 @@ export async function PUT(request: NextRequest, { params }: Context) {
     const body = await readJsonBody(request, weekPlanSchema);
     if (!body.ok) return body.response;
     return backendResponse(
-      await replaceProgramWeekPlan(auth.session.userId, id, body.data.weeks),
+      await replaceProgramWeekPlan(
+        auth.session.userId,
+        id,
+        body.data.weeks,
+        body.data.specialDays,
+      ),
     );
   } catch (error) {
     return apiErrorResponse(error, {

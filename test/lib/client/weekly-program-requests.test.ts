@@ -29,6 +29,7 @@ vi.mock("@/lib/client/bearer", () => ({
 const input = {
   documentId: "doc-1",
   weeks: [],
+  specialDays: [],
   phases: [
     {
       name: "Problemi Keşfet",

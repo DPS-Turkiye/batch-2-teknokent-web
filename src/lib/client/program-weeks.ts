@@ -1,5 +1,6 @@
 import type {
   ProgramPlanWeekInput,
+  ProgramSpecialDay,
   ProgramThisWeek,
   ProgramWeekPlan,
 } from "@/interfaces/program-week";
@@ -18,14 +19,24 @@ export async function getProgramWeekPlan(programId: string) {
 export async function saveProgramWeekPlan(
   programId: string,
   weeks: ProgramPlanWeekInput[],
+  specialDays: ProgramSpecialDay[],
 ) {
   return requireSuccess(
-    await httpClient.put<ProgramWeekPlan>(planUrl(programId), { weeks }),
+    await httpClient.put<ProgramWeekPlan>(planUrl(programId), {
+      weeks,
+      specialDays,
+    }),
   );
 }
 
 export async function getProgramThisWeek() {
   return requireSuccess(
     await httpClient.get<ProgramThisWeek>("/api/programs/mine/this-week"),
+  );
+}
+
+export async function alignProgramDates(programId: string) {
+  return requireSuccess(
+    await httpClient.post<ProgramWeekPlan>(`${planUrl(programId)}/align-dates`),
   );
 }
