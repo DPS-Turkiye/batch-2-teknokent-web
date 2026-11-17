@@ -433,10 +433,47 @@ function PhaseDrawer({
               {curriculum.editError}
             </p>
           ) : null}
+          {curriculum.confirmingRemoval ? (
+            <div
+              role="group"
+              aria-labelledby="curriculum-remove-title"
+              className="space-y-3 rounded-[20px] bg-[#fdeeee] px-[18px] py-4"
+            >
+              <p
+                id="curriculum-remove-title"
+                className="text-[13.5px] font-semibold text-[#22262b]"
+              >
+                {t("removeRunningTitle")}
+              </p>
+              <p className="text-[12.5px] text-[#22262b]">
+                {t("removeRunningBody")}
+              </p>
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  // The footer's delete button unmounts when the question opens, so focus moves to the safe answer.
+                  ref={(node) => node?.focus()}
+                  disabled={curriculum.saving}
+                  onClick={curriculum.cancelRemoval}
+                  className={OUTLINE_BUTTON}
+                >
+                  {t("cancel")}
+                </button>
+                <button
+                  type="button"
+                  disabled={curriculum.saving}
+                  onClick={curriculum.confirmRemoval}
+                  className="rounded-full bg-[#d9464b] px-[14px] py-2 text-[12.5px] font-medium text-white disabled:bg-[#aeb4bc]"
+                >
+                  {t("confirmRemove")}
+                </button>
+              </div>
+            </div>
+          ) : null}
         </div>
 
         <div className="flex items-center justify-between border-t border-[#f0f2f4] px-7 pt-4 pb-6">
-          {!isNew && status === PhaseStatus.Planned ? (
+          {curriculum.canRemove && !curriculum.confirmingRemoval ? (
             <button
               type="button"
               disabled={curriculum.saving}

@@ -1,7 +1,7 @@
 import { fireEvent, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { usePathname } from "next/navigation";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ProgramOverviewView } from "@/components/coordinator/program-overview-view";
 import { ProgramSettingsView } from "@/components/coordinator/program-settings-view";
@@ -29,7 +29,7 @@ import {
 } from "@test/fixtures/coordinator-programs";
 import { weekPlan } from "@test/fixtures/program-week";
 import { weeklyProgramProposal } from "@test/fixtures/weekly-program";
-import { InLocale, renderWithQueryClient } from "@test/test-utils";
+import { freezeDate, InLocale, renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("next/navigation", () => ({
   usePathname: vi.fn(() => "/coordinator/programs/program-1"),
@@ -354,8 +354,8 @@ describe("coordinator program detail", () => {
       within(drawer).getByText("Demo Day (12 Ara) ile arada 2 hafta kalır"),
     ).toBeInTheDocument();
     expect(
-      within(drawer).queryByRole("button", { name: "Fazı sil" }),
-    ).toBeNull();
+      within(drawer).getByRole("button", { name: "Fazı sil" }),
+    ).toBeEnabled();
 
     await user.click(within(drawer).getByRole("button", { name: "Kaydet" }));
     expect(replaceCoordinatorProgramPhases).toHaveBeenCalledWith(
@@ -386,6 +386,133 @@ describe("coordinator program detail", () => {
       null,
     );
     vi.useRealTimers();
+  });
+
+  describe("removing a phase", () => {
+    const today = "2026-11-17T12:00:00";
+    const phases = [
+      {
+        ...phase("phase-1", "Başvuru", 0),
+        startDate: "2026-10-01",
+        endDate: "2026-10-31",
+        expectedOutput: null,
+      },
+      {
+        ...phase("phase-2", "test", 1),
+        startDate: "2026-11-12",
+        endDate: "2026-11-19",
+        expectedOutput: null,
+      },
+      {
+        ...phase("phase-3", "Demo Day", 2),
+        startDate: "2026-12-12",
+        endDate: "2026-12-12",
+        expectedOutput: null,
+      },
+    ];
+    const kept = (...ids: string[]) =>
+      phases
+        .filter((saved) => ids.includes(saved.id))
+        .map(({ id, name, startDate, endDate }) => ({
+          id,
+          name,
+          startDate,
+          endDate,
+          expectedOutput: null,
+        }));
+
+    async function openPhase(name: string) {
+      freezeDate(today);
+      const detail = coordinatorProgramDetail();
+      detail.program.phases = phases;
+      vi.mocked(getCoordinatorProgram).mockResolvedValue(detail);
+      vi.mocked(replaceCoordinatorProgramPhases).mockResolvedValue(detail);
+      const user = userEvent.setup();
+      renderWithQueryClient(<ProgramSettingsView programId="program-1" />);
+      const list = await screen.findByRole("list", { name: "Program fazları" });
+      await user.click(
+        within(list).getByRole("button", { name: `${name} fazını düzenle` }),
+      );
+      return {
+        user,
+        drawer: screen.getByRole("dialog", { name: "Fazı düzenle" }),
+      };
+    }
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("asks before deleting the running phase, then saves the list without it", async () => {
+      const { user, drawer } = await openPhase("test");
+
+      await user.click(
+        within(drawer).getByRole("button", { name: "Fazı sil" }),
+      );
+      const confirm = within(drawer).getByRole("group", {
+        name: "Bu faz şu anda devam ediyor",
+      });
+      expect(confirm).toHaveTextContent(
+        "Silersen takımların ilerleme görünümünde bu faz artık görünmez.",
+      );
+      expect(replaceCoordinatorProgramPhases).not.toHaveBeenCalled();
+      expect(
+        within(drawer).queryByRole("button", { name: "Fazı sil" }),
+      ).toBeNull();
+      expect(
+        within(confirm).getByRole("button", { name: "Vazgeç" }),
+      ).toHaveFocus();
+
+      await user.click(
+        within(confirm).getByRole("button", { name: "Evet, fazı sil" }),
+      );
+      expect(replaceCoordinatorProgramPhases).toHaveBeenCalledExactlyOnceWith(
+        "program-1",
+        kept("phase-1", "phase-3"),
+        null,
+      );
+    });
+
+    it("keeps the running phase when the coordinator steps back", async () => {
+      const { user, drawer } = await openPhase("test");
+
+      await user.click(
+        within(drawer).getByRole("button", { name: "Fazı sil" }),
+      );
+      const confirm = within(drawer).getByRole("group", {
+        name: "Bu faz şu anda devam ediyor",
+      });
+      await user.click(within(confirm).getByRole("button", { name: "Vazgeç" }));
+
+      expect(within(drawer).queryByRole("group")).toBeNull();
+      expect(
+        within(drawer).getByRole("button", { name: "Fazı sil" }),
+      ).toBeEnabled();
+      expect(replaceCoordinatorProgramPhases).not.toHaveBeenCalled();
+    });
+
+    it("does not offer to delete a finished phase", async () => {
+      const { drawer } = await openPhase("Başvuru");
+
+      expect(
+        within(drawer).queryByRole("button", { name: "Fazı sil" }),
+      ).toBeNull();
+    });
+
+    it("deletes a planned phase straight away, as before", async () => {
+      const { user, drawer } = await openPhase("Demo Day");
+
+      await user.click(
+        within(drawer).getByRole("button", { name: "Fazı sil" }),
+      );
+
+      expect(within(drawer).queryByRole("group")).toBeNull();
+      expect(replaceCoordinatorProgramPhases).toHaveBeenCalledExactlyOnceWith(
+        "program-1",
+        kept("phase-1", "phase-2"),
+        null,
+      );
+    });
   });
 
   it("shows an older syllabus file read-only, without reading it again", async () => {

@@ -9,6 +9,7 @@ import {
   outputTokens,
   phaseDateLocks,
   phaseDateRange,
+  phaseRemoval,
   phaseStatus,
   PhaseStatus,
   ProgramFileProblem,
@@ -108,6 +109,21 @@ describe("phases in Program Ayarları", () => {
     expect(phaseDateLocks(PhaseStatus.Planned)).toEqual({
       start: false,
       end: false,
+    });
+  });
+
+  it("keeps finished phases and asks before removing a running one", () => {
+    expect(phaseRemoval(PhaseStatus.Done)).toEqual({
+      allowed: false,
+      needsConfirmation: false,
+    });
+    expect(phaseRemoval(PhaseStatus.Current)).toEqual({
+      allowed: true,
+      needsConfirmation: true,
+    });
+    expect(phaseRemoval(PhaseStatus.Planned)).toEqual({
+      allowed: true,
+      needsConfirmation: false,
     });
   });
 
