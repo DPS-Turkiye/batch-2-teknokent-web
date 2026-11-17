@@ -173,6 +173,11 @@ describe("UsersView drawer › Kullanıcıyı sil", () => {
     ).not.toBeInTheDocument();
     expect(invalidate).toHaveBeenCalledWith({ queryKey: ["admin-overview"] });
     expect(invalidate).toHaveBeenCalledWith({ queryKey: ["admin"] });
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["programs"] });
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["program-detail"] });
+    expect(invalidate).toHaveBeenCalledWith({
+      queryKey: ["coordinator-programs"],
+    });
   });
 
   it("renders the dialog outside the drawer, and cancelling leaves the drawer open", async () => {
