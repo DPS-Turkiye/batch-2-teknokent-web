@@ -52,10 +52,9 @@ import {
 } from "@/lib/const/programs";
 import { normalizeMeetLink } from "@/lib/meet-link";
 import {
-  preferredSlotMachineValue,
+  chosenSlotDecisionMessage,
   preferredSlotStartsAt,
   proposedSlotsMessageLines,
-  type ParsedPreferredSlot,
   type PreferredSlot,
 } from "@/lib/mentor-availability-days";
 import {
@@ -70,6 +69,7 @@ import {
 } from "@/lib/request-detail-content";
 import { formatFileSize, formatLongDate, initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
+import { MentorReviewMode } from "@/types/mentorship";
 
 function focusTags(profile: StartupProfile | null, request: MentorshipRequest) {
   const tags = [
@@ -100,8 +100,11 @@ function needText(request: MentorshipRequest, fallback: string) {
 
 export function MentorRequestStartupDetail({
   requestId,
+  initialReview = null,
 }: {
   requestId: string;
+  /** Opens the review dialog on this step, e.g. from the mentor home's "Başka saat öner". */
+  initialReview?: MentorReviewMode | null;
 }) {
   const t = useTranslations("mentorMentorships.startup");
   const locale = useLocale();
@@ -111,7 +114,7 @@ export function MentorRequestStartupDetail({
   const openDocument = useOpenDocument();
   const decisionMutation = useMentorRequestDecision();
   const canOpenMember = useMemberProfileLinks();
-  const [reviewing, setReviewing] = useState(false);
+  const [reviewing, setReviewing] = useState(initialReview !== null);
   const [actionError, setActionError] = useState("");
 
   const requestQuery = useMentorshipRequest(requestId);
@@ -168,7 +171,7 @@ export function MentorRequestStartupDetail({
         documentsQuery.isLoading));
 
   async function acceptRequest(
-    slot: ParsedPreferredSlot | null,
+    slot: PreferredSlot | null,
     meetLink: string,
     transcribeRequested: boolean,
     requestedDocuments: string[],
@@ -176,7 +179,7 @@ export function MentorRequestStartupDetail({
     if (!request) return;
     setActionError("");
     const message = slot
-      ? `Görüşme saati: ${preferredSlotMachineValue(slot)}`
+      ? chosenSlotDecisionMessage(slot)
       : MENTOR_ACCEPT_MESSAGE;
     const normalizedLink = normalizeMeetLink(meetLink);
     const documentTitles = normalizeDocumentTitles(requestedDocuments);
@@ -551,9 +554,10 @@ export function MentorRequestStartupDetail({
           )}
         </div>
 
-        {reviewing && request ? (
+        {reviewing && request && canDecide ? (
           <MentorRequestReviewDialog
             request={request}
+            initialMode={initialReview ?? MentorReviewMode.Accept}
             isPending={decisionMutation.isPending}
             error={actionError}
             onClose={() => {

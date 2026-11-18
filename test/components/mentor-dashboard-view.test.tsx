@@ -11,6 +11,7 @@ import {
   MentorshipRequestStatus,
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
+import type { DecisionSlotOption } from "@/lib/mentor-availability-days";
 import { loadingQuery, successQuery } from "@test/mocks/query-results";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
@@ -122,9 +123,32 @@ type Decision = Dashboard["decision"];
 const submitDecision = vi.fn<Decision["submitDecision"]>();
 const selectRequest = vi.fn<Decision["selectRequest"]>();
 const closeDecision = vi.fn<Decision["closeDecision"]>();
+const selectSlot = vi.fn<Decision["selectSlot"]>();
+
+const slotOptions: DecisionSlotOption[] = [
+  {
+    key: "2026-11-24T10:00",
+    slot: { date: "2026-11-24", time: "10:00" },
+    label: "24 Kas 10:00–10:45",
+    available: true,
+  },
+  {
+    key: "2026-11-25T14:00",
+    slot: { date: "2026-11-25", time: "14:00" },
+    label: "25 Kas 14:00–14:45",
+    available: true,
+  },
+  {
+    key: "2026-11-10T09:00",
+    slot: { date: "2026-11-10", time: "09:00" },
+    label: "10 Kas 09:00–09:45",
+    available: false,
+  },
+];
 
 function decisionState(
   selectedRequest: MentorshipRequest | null = null,
+  overrides: Partial<Decision> = {},
 ): Decision {
   return {
     selectedRequest,
@@ -140,6 +164,11 @@ function decisionState(
     setDecisionMessage: vi.fn<Decision["setDecisionMessage"]>(),
     closeDecision,
     submitDecision,
+    slotOptions: [],
+    selectedSlot: null,
+    selectSlot,
+    canAccept: true,
+    ...overrides,
   };
 }
 
@@ -365,6 +394,7 @@ describe("MentorDashboardView", () => {
             "preferredSlots:2026-09-18T14:00",
           ].join("\n"),
         }),
+        { slotOptions },
       ),
     });
     renderWithQueryClient(<MentorDashboardView />);
@@ -393,6 +423,113 @@ describe("MentorDashboardView", () => {
 
     expect(submitDecision).toHaveBeenCalledWith(MentorDecisionMode.Accept);
     expect(closeDecision).toHaveBeenCalled();
+  });
+
+  it("lists the mentee's times as choices, with none picked and accept disabled", () => {
+    mockDashboard({
+      decision: decisionState(request(), { slotOptions, canAccept: false }),
+    });
+    renderWithQueryClient(<MentorDashboardView />);
+
+    const drawer = within(
+      screen.getByRole("dialog", { name: "Mentorluk talebi" }),
+    );
+    const times = drawer.getAllByRole("radio");
+    expect(times).toHaveLength(3);
+    for (const time of times) expect(time).not.toBeChecked();
+    expect(
+      drawer.getByRole("radio", { name: /10 Kas 09:00–09:45/ }),
+    ).toBeDisabled();
+    expect(drawer.getByText("Geçti")).toBeInTheDocument();
+    expect(
+      drawer.getByText(
+        "Görüşme saatini seç. Kabul ettiğinde görüşme bu saate planlanır.",
+      ),
+    ).toBeInTheDocument();
+    const accept = drawer.getByRole("button", { name: "Önce bir saat seç" });
+    expect(accept).toBeDisabled();
+    expect(accept).toHaveAccessibleDescription(
+      "Görüşme saatini seç. Kabul ettiğinde görüşme bu saate planlanır.",
+    );
+  });
+
+  it("picks a time through the hook", async () => {
+    const user = userEvent.setup();
+    mockDashboard({
+      decision: decisionState(request(), { slotOptions, canAccept: false }),
+    });
+    renderWithQueryClient(<MentorDashboardView />);
+
+    await user.click(screen.getByRole("radio", { name: "25 Kas 14:00–14:45" }));
+
+    expect(selectSlot).toHaveBeenCalledWith("2026-11-25T14:00");
+    expect(submitDecision).not.toHaveBeenCalled();
+  });
+
+  it("names the picked time on the accept button and accepts it", async () => {
+    const user = userEvent.setup();
+    submitDecision.mockResolvedValue(true);
+    const picked = slotOptions[0] ?? null;
+    mockDashboard({
+      decision: decisionState(request(), {
+        slotOptions,
+        selectedSlot: picked,
+        canAccept: true,
+      }),
+    });
+    renderWithQueryClient(<MentorDashboardView />);
+
+    expect(
+      screen.getByRole("radio", { name: "24 Kas 10:00–10:45" }),
+    ).toBeChecked();
+    await user.click(
+      screen.getByRole("button", {
+        name: "Bu saati onaylıyorum: 24 Kas 10:00–10:45",
+      }),
+    );
+
+    expect(submitDecision).toHaveBeenCalledWith(MentorDecisionMode.Accept);
+  });
+
+  it("lets the mentor accept without a time once none can be picked", () => {
+    mockDashboard({
+      decision: decisionState(request(), {
+        slotOptions: slotOptions.filter((option) => !option.available),
+        canAccept: true,
+      }),
+    });
+    renderWithQueryClient(<MentorDashboardView />);
+
+    expect(
+      screen.getByText(
+        "Bu saatlerden seçilebilecek kalmadı. Kabul edersen görüşmeyi sonra planlarsınız; istersen başka saat öner.",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Mentorluğu kabul et" }),
+    ).toBeEnabled();
+  });
+
+  it("shows why an accept was refused", () => {
+    mockDashboard({
+      decision: decisionState(request(), {
+        actionError: "Seçtiğin saat geçti. Başka bir saat seç.",
+      }),
+    });
+    renderWithQueryClient(<MentorDashboardView />);
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Seçtiğin saat geçti. Başka bir saat seç.",
+    );
+  });
+
+  it("links 'Başka saat öner' to the request's propose form", () => {
+    mockDashboard({ decision: decisionState(request(), { slotOptions }) });
+    renderWithQueryClient(<MentorDashboardView />);
+
+    expect(
+      screen.getByRole("link", { name: "Başka saat öner" }),
+    ).toHaveAttribute("href", "/mentorships/requests/request-1?review=propose");
   });
 
   it("declines the selected request", async () => {

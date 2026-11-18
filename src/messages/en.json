@@ -2875,7 +2875,13 @@
       "files": "ATTACHED FILES",
       "decline": "Decline",
       "sendMessage": "Send a message",
-      "accept": "Accept mentorship"
+      "accept": "Accept mentorship",
+      "pickSlotHint": "Pick the meeting time. When you accept, the meeting is planned for this time.",
+      "noSlotLeft": "None of these times can be picked any more. If you accept, you'll plan the meeting later; or propose another time.",
+      "slotPassed": "Passed",
+      "pickSlotFirst": "Pick a time first",
+      "confirmSlot": "I confirm this time: {slot}",
+      "proposeOther": "Propose another time"
     },
     "assignTask": {
       "open": "Assign a task",
@@ -2902,7 +2908,8 @@
     "accepted": "Mentorship request accepted.",
     "answered": "Mentorship request answered.",
     "failed": "Couldn't complete that.",
-    "answerFailed": "Couldn't answer the mentorship request."
+    "answerFailed": "Couldn't answer the mentorship request.",
+    "slotPassed": "The time you picked has passed. Pick another time."
   },
   "mentorSchedule": {
     "otherDays": "Other days",
@@ -3088,7 +3095,10 @@
       "send": "Send",
       "sendProposals": "Send proposals",
       "accepting": "Accepting…",
-      "accept": "Accept"
+      "accept": "Accept",
+      "pickSlotFirst": "Pick a time first",
+      "confirmSlot": "I confirm this time: {slot}",
+      "pickSlotHint": "Pick the meeting time or propose your own."
     },
     "meetLinkDialog": {
       "eyebrow": "Active mentorship",

@@ -4,6 +4,8 @@ import type { MentorAvailabilitySlot } from "@/interfaces/mentor";
 import {
   assignPreferredSlot,
   availabilityColumns,
+  chosenSlotDecisionMessage,
+  decisionSlotOptions,
   formatPreferredSlot,
   hasPreferredSlots,
   hasProposedSlots,
@@ -12,6 +14,7 @@ import {
   isValidPreferredSlot,
   parsePreferredSlotsFromMessage,
   parseProposedSlotsFromMessage,
+  preferredSlotRangeLabel,
   PreferredSlotsIssue,
   preferredSlotsIssue,
   preferredSlotsMessageLines,
@@ -292,5 +295,80 @@ describe("slotTimeLabel", () => {
     const at = new Date(2026, 9, 13, 14, 15).toISOString();
     expect(slotTimeLabel(at, "en")).toBe("14:15");
     expect(slotTimeLabel(at, "tr")).toBe("14:15");
+  });
+});
+
+describe("the mentor's time choice on accept", () => {
+  const message = [
+    "Tercih edilen saatler: 24 Kasım Salı · 10:00, 10 Kasım Salı · 09:00",
+    "preferredSlots:2026-11-24T10:00,2026-11-10T09:00",
+  ].join("\n");
+
+  it("names the picked time in the accept message the backend books", () => {
+    expect(
+      chosenSlotDecisionMessage({ date: "2026-11-24", time: "10:00" }),
+    ).toBe("Görüşme saati: 2026-11-24T10:00");
+  });
+
+  it("labels a slot with the meeting's length", () => {
+    expect(
+      preferredSlotRangeLabel({ date: "2026-11-24", time: "10:00" }, 45),
+    ).toBe("24 Kas 10:00–10:45");
+    expect(
+      preferredSlotRangeLabel({ date: "2026-11-24", time: "10:00" }, 45, "en"),
+    ).toBe("Nov 24 10:00 AM–10:45 AM");
+    expect(preferredSlotRangeLabel({ date: "", time: "10:00" }, 45)).toBe("");
+  });
+
+  it("lists the mentee's times in order, a passed one not pickable", () => {
+    expect(
+      decisionSlotOptions(message, 45, new Date("2026-11-18T09:00:00")),
+    ).toEqual([
+      {
+        key: "2026-11-24T10:00",
+        slot: { date: "2026-11-24", time: "10:00" },
+        label: "24 Kas 10:00–10:45",
+        available: true,
+      },
+      {
+        key: "2026-11-10T09:00",
+        slot: { date: "2026-11-10", time: "09:00" },
+        label: "10 Kas 09:00–09:45",
+        available: false,
+      },
+    ]);
+  });
+
+  it("keeps a time written only as text visible but not pickable", () => {
+    expect(
+      decisionSlotOptions(
+        "Tercih edilen saatler: 24 Kasım Salı · 10:00",
+        45,
+        new Date("2026-11-18T09:00:00"),
+      ),
+    ).toEqual([
+      {
+        key: "24 Kasım Salı · 10:00",
+        slot: { date: "", time: "10:00" },
+        label: "24 Kasım Salı · 10:00",
+        available: false,
+      },
+    ]);
+  });
+
+  it("offers nothing for a request without preferred times", () => {
+    expect(decisionSlotOptions(null, 45, new Date())).toEqual([]);
+  });
+});
+
+describe("decisionSlotOptions with a repeated time", () => {
+  it("lists each time once", () => {
+    expect(
+      decisionSlotOptions(
+        "preferredSlots:2026-11-24T10:00,2026-11-24T10:00",
+        45,
+        new Date("2026-11-18T09:00:00"),
+      ).map((option) => option.key),
+    ).toEqual(["2026-11-24T10:00"]);
   });
 });

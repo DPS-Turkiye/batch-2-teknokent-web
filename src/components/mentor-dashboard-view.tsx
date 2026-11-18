@@ -21,10 +21,13 @@ import {
 } from "@/interfaces/mentorship-request";
 import { formatMeetingShort, formatSlotDateTime } from "@/lib/format";
 import { requestExpectedOutcome } from "@/lib/meeting-context";
-import { parsePreferredSlotsFromMessage } from "@/lib/mentor-availability-days";
+import type { DecisionSlotOption } from "@/lib/mentor-availability-days";
 import { meetingDayLabel, meetingWhenLabel } from "@/lib/mentor-dashboard";
 import { mentorMeetingEvaluationHref } from "@/lib/mentor-evaluation";
-import { mentorRequestStartupHref } from "@/lib/mentorship-workspace";
+import {
+  mentorRequestProposeHref,
+  mentorRequestStartupHref,
+} from "@/lib/mentorship-workspace";
 import { initials as toInitials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
 
@@ -596,14 +599,26 @@ function ReminderCard({
 
 function RequestDrawer({
   request,
+  slotOptions,
+  selectedSlot,
+  canAccept,
+  proposeHref,
+  onSelectSlot,
   onClose,
   onDecide,
   isPending,
+  error,
 }: {
   request: MentorshipRequest;
+  slotOptions: DecisionSlotOption[];
+  selectedSlot: DecisionSlotOption | null;
+  canAccept: boolean;
+  proposeHref: string;
+  onSelectSlot: (key: string) => void;
   onClose: () => void;
   onDecide: (mode: MentorDecisionMode) => void;
   isPending: boolean;
+  error: string;
 }) {
   useEffect(() => {
     const close = (event: KeyboardEvent) => event.key === "Escape" && onClose();
@@ -624,22 +639,16 @@ function RequestDrawer({
   const context = [snapshot?.startupStage, snapshot?.startupSector].filter(
     Boolean,
   );
-  const preferredSlotLabels = parsePreferredSlotsFromMessage(
-    request.requesterMessage,
-    locale,
-  ).map((slot) => slot.label);
   const focusAreas = [
     request.supportArea,
     ...(snapshot?.startupTechnologies ?? []),
   ].filter(Boolean);
-  // requesterMessage carries the machine-written "Tercih edilen saatler:" and
-  // "preferredSlots:" lines, which read as the mentee's own words when shown raw.
   const sections = [
     [t("drawer.startup"), snapshot?.startupSummary],
     [t("drawer.need"), request.summary],
     [t("drawer.whyMe"), requestExpectedOutcome(request)],
-    [t("drawer.preferredSlots"), preferredSlotLabels.join(" · ")],
   ].filter(([, copy]) => Boolean(copy));
+  const anySlotOpen = slotOptions.some((option) => option.available);
   return (
     <div
       className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-[#22262b]/35 px-4 py-[92px]"
@@ -703,6 +712,53 @@ function RequestDrawer({
               </p>
             </div>
           ))}
+          {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+          {slotOptions.length > 0 ? (
+            <fieldset>
+              <legend className="text-[11px] font-semibold leading-[17px] text-[#858c96]">
+                {t("drawer.preferredSlots")}
+              </legend>
+              <p
+                id="request-drawer-slot-hint"
+                className="mt-1 text-xs leading-[18px] text-[#676e78]"
+              >
+                {anySlotOpen
+                  ? t("drawer.pickSlotHint")
+                  : t("drawer.noSlotLeft")}
+              </p>
+              <div className="mt-2 grid gap-2">
+                {slotOptions.map((option) => {
+                  const checked = option.key === selectedSlot?.key;
+                  return (
+                    <label
+                      key={option.key}
+                      className={`flex min-h-11 items-center gap-3 rounded-lg border px-3 text-[13px] font-medium ${
+                        checked
+                          ? "border-[#26a4ff] bg-[#f2f8fc] text-[#1677c7]"
+                          : "border-[#e4e7ea] text-[#22262b]"
+                      } ${option.available ? "cursor-pointer hover:border-[#26a4ff]" : "opacity-50"}`}
+                    >
+                      <input
+                        type="radio"
+                        name="request-drawer-slot"
+                        value={option.key}
+                        checked={checked}
+                        disabled={!option.available}
+                        onChange={() => onSelectSlot(option.key)}
+                        className="size-4 accent-[#26a4ff]"
+                      />
+                      <span className="flex-1">{option.label}</span>
+                      {option.available ? null : (
+                        <span className="text-[11px] text-[#858c96]">
+                          {t("drawer.slotPassed")}
+                        </span>
+                      )}
+                    </label>
+                  );
+                })}
+              </div>
+            </fieldset>
+          ) : null}
           {focusAreas.length ? (
             <div>
               <h4 className="text-[11px] font-semibold leading-[17px] text-[#858c96]">
@@ -734,6 +790,11 @@ function RequestDrawer({
             </div>
           ) : null}
         </div>
+        {error ? (
+          <p role="alert" className="px-7 pt-4 text-xs text-red-700">
+            {error}
+          </p>
+        ) : null}
         <footer className="flex flex-wrap items-center justify-between gap-3 px-7 pb-5 pt-4">
           <div className="flex gap-3">
             <PillButton onClick={() => onDecide(MentorDecisionMode.Decline)}>
@@ -742,14 +803,24 @@ function RequestDrawer({
             <PillButton soft href="/mentor-dashboard/messages">
               {t("drawer.sendMessage")}
             </PillButton>
+            <PillButton soft href={proposeHref}>
+              {t("drawer.proposeOther")}
+            </PillButton>
           </div>
           <button
             type="button"
-            disabled={isPending}
+            disabled={isPending || !canAccept}
+            aria-describedby={
+              anySlotOpen ? "request-drawer-slot-hint" : undefined
+            }
             onClick={() => onDecide(MentorDecisionMode.Accept)}
             className="min-h-[39px] min-w-[234px] rounded-full bg-[#26a4ff] px-4 text-[12.5px]! font-medium! leading-[19px]! text-white disabled:bg-[#c9cdd2]"
           >
-            {t("drawer.accept")}
+            {selectedSlot
+              ? t("drawer.confirmSlot", { slot: selectedSlot.label })
+              : anySlotOpen
+                ? t("drawer.pickSlotFirst")
+                : t("drawer.accept")}
           </button>
         </footer>
       </section>
@@ -1061,9 +1132,15 @@ export function MentorDashboardView() {
       {selectedRequest ? (
         <RequestDrawer
           request={selectedRequest}
+          slotOptions={decision.slotOptions}
+          selectedSlot={decision.selectedSlot}
+          canAccept={decision.canAccept}
+          proposeHref={mentorRequestProposeHref(selectedRequest.id)}
+          onSelectSlot={decision.selectSlot}
           onClose={decision.closeDecision}
           onDecide={handleDecide}
           isPending={decision.isPending}
+          error={decision.actionError}
         />
       ) : null}
     </AppShell>

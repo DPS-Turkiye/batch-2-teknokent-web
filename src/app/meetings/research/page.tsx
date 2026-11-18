@@ -15,6 +15,7 @@ import { MentorAccent } from "@/components/mentorships/mentor-accent";
 import { MentorshipsBackLink } from "@/components/mentorships/mentorships-back-link";
 import { RequestDetailsPanel } from "@/components/mentorships/request-details-panel";
 import { useAppSession } from "@/components/providers/session-provider";
+import { RescheduleMeetingButton } from "@/components/reschedule-meeting-button";
 import { useMeetingLifecycle } from "@/hooks/use-meeting-lifecycle";
 import { useMeetings } from "@/hooks/use-meetings";
 import { useMentorshipRequest } from "@/hooks/use-mentorship-requests";
@@ -34,6 +35,7 @@ import {
   meetingScheduleLabel,
   programsForOrganization,
 } from "@/lib/meeting-context";
+import { proposesReschedule } from "@/lib/meeting-proposals";
 import { needLabels } from "@/lib/mentor-request-need";
 import { buildRequestDetailContent } from "@/lib/request-detail-content";
 import { initials } from "@/lib/utils";
@@ -192,6 +194,14 @@ function MeetingDetailContent() {
                 </p>
                 {schedule ? (
                   <p className="mt-1 text-[13px] text-[#858c96]">{schedule}</p>
+                ) : null}
+                {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+                {proposesReschedule(session?.role) ? (
+                  <RescheduleMeetingButton
+                    meeting={meeting}
+                    pairLabel={counterpart}
+                    className="mt-3 inline-flex min-h-9 items-center rounded-full border border-[#d4d8dd] px-4 text-[12.5px] font-medium text-[#4a5059] hover:border-[var(--ms-accent,#26a4ff)] hover:text-[#22262b]"
+                  />
                 ) : null}
               </div>
             </div>

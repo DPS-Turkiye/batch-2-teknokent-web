@@ -7,7 +7,11 @@ import { MENTORSHIPS_TABS } from "@/lib/const";
 import { isOneOf } from "@/lib/enum";
 import { meetingCallHref as callHref } from "@/lib/meeting-context";
 import { pickUpcomingMeetings } from "@/lib/upcoming-meetings";
-import { MentorshipLinkKind, MentorshipWorkspaceTab } from "@/types/mentorship";
+import {
+  MentorReviewMode,
+  MentorshipLinkKind,
+  MentorshipWorkspaceTab,
+} from "@/types/mentorship";
 
 /** The mentee's Mentorluklarım tab from `?tab=`; without one it opens on the first tab, Mentor Havuzu. */
 export function menteeWorkspaceTab(
@@ -247,6 +251,13 @@ export function mentorshipRequestAllowsMessaging(
 
 export function mentorRequestStartupHref(id: string) {
   return `/mentorships/requests/${encodeURIComponent(id)}`;
+}
+
+export const MENTOR_REVIEW_PARAM = "review";
+
+/** The request page with the "propose other times" form already open. */
+export function mentorRequestProposeHref(id: string) {
+  return `${mentorRequestStartupHref(id)}?${MENTOR_REVIEW_PARAM}=${MentorReviewMode.Propose}`;
 }
 
 export function formatRequestSentAt(

@@ -133,6 +133,8 @@ function mockRequests(data: MentorshipRequest[]) {
 
 describe("MentorMentorshipsWorkspace", () => {
   beforeEach(() => {
+    // The fixture's preferred times (10–11 Sep) must still be ahead to be picked.
+    freezeDate("2026-09-08T09:00:00");
     mutateAsync.mockReset();
     vi.mocked(logMentorshipMeeting).mockReset();
     vi.mocked(updateMeeting).mockReset();
@@ -283,16 +285,22 @@ describe("MentorMentorshipsWorkspace", () => {
     expect(
       screen.getByText("Mentee’nin tercih ettiği saatler"),
     ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Kabul et" })).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "Önce bir saat seç" }),
+    ).toBeDisabled();
 
     await user.click(
-      screen.getByRole("button", { name: "10 Eylül Perşembe · 13:00" }),
+      screen.getByRole("button", { name: "10 Eyl 13:00–13:45" }),
     );
     await user.type(
       screen.getByPlaceholderText("https://meet.google.com/..."),
       "https://meet.google.com/abc-defg-hij",
     );
-    await user.click(screen.getByRole("button", { name: "Kabul et" }));
+    await user.click(
+      screen.getByRole("button", {
+        name: "Bu saati onaylıyorum: 10 Eyl 13:00–13:45",
+      }),
+    );
 
     expect(mutateAsync).toHaveBeenCalledWith({
       id: "req-1",
@@ -400,7 +408,9 @@ describe("MentorMentorshipsWorkspace", () => {
     expect(
       screen.getByRole("button", { name: "Propose my own time" }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Accept" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Pick a time first" }),
+    ).toBeDisabled();
   });
 
   it("shows waiting state when mentor already proposed alternative times", async () => {
@@ -500,7 +510,7 @@ describe("MentorMentorshipsWorkspace", () => {
     await user.click(screen.getByRole("tab", { name: "Talepler" }));
     await user.click(screen.getByRole("button", { name: "Talebi incele" }));
     await user.click(
-      screen.getByRole("button", { name: "10 Eylül Perşembe · 13:00" }),
+      screen.getByRole("button", { name: "10 Eyl 13:00–13:45" }),
     );
     await user.type(
       screen.getByPlaceholderText("https://meet.google.com/..."),
@@ -511,7 +521,9 @@ describe("MentorMentorshipsWorkspace", () => {
         name: /Toplantının transkriptinin çıkarılmasını istiyorum/,
       }),
     );
-    await user.click(screen.getByRole("button", { name: "Kabul et" }));
+    await user.click(
+      screen.getByRole("button", { name: /^Bu saati onaylıyorum:/ }),
+    );
 
     expect(logMentorshipMeeting).toHaveBeenCalledWith(
       "req-1",

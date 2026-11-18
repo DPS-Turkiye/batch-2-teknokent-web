@@ -5,6 +5,7 @@ import {
   MeetingProposalStatus,
   type MeetingProposal,
 } from "@/interfaces/meeting-proposal";
+import { UserRole } from "@/interfaces/session";
 
 export const PROPOSAL_DURATIONS = [30, 45, 60, 90] as const;
 export const DEFAULT_PROPOSAL_DURATION = 45;
@@ -96,4 +97,9 @@ export function canReschedule(meeting: MeetingItem, now = new Date()) {
     meeting.status === MeetingStatus.Scheduled &&
     new Date(meeting.scheduledAt).getTime() > now.getTime()
   );
+}
+
+/** The mentor and the team propose a new time; a coordinator moves a meeting with "Yeniden planla" instead. */
+export function proposesReschedule(role: UserRole | null | undefined) {
+  return role === UserRole.Mentor || role === UserRole.Mentee;
 }

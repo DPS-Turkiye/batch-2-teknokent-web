@@ -1,4 +1,5 @@
 import type { MentorAvailabilitySlot } from "@/interfaces/mentor";
+import { formatDayMonth } from "@/lib/utils";
 
 export type PreferredSlot = {
   date: string;
@@ -289,6 +290,67 @@ export function preferredSlotStartsAt(slot: PreferredSlot) {
   if (hours === undefined || minutes === undefined) return null;
   date.setHours(hours, minutes, 0, 0);
   return date.toISOString();
+}
+
+/** Saved on the request, so it stays Turkish; the backend books exactly the slot named after it. */
+export const CHOSEN_SLOT_MESSAGE_PREFIX = "Görüşme saati:";
+
+/** The accept message that names the time the mentor picked, e.g. "Görüşme saati: 2026-11-24T10:00". */
+export function chosenSlotDecisionMessage(slot: PreferredSlot) {
+  return `${CHOSEN_SLOT_MESSAGE_PREFIX} ${preferredSlotMachineValue(slot)}`;
+}
+
+/** "24 Kas 10:00–10:45": a slot with the meeting's length, as a mentor confirms it. */
+export function preferredSlotRangeLabel(
+  slot: PreferredSlot,
+  durationMinutes: number,
+  locale = "tr",
+) {
+  const startsAt = preferredSlotStartsAt(slot);
+  if (!startsAt) return "";
+  const start = new Date(startsAt);
+  const end = new Date(start.getTime() + durationMinutes * 60_000);
+  const time = new Intl.DateTimeFormat(locale, {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  return `${formatDayMonth(start, locale)} ${time.format(start)}–${time.format(end)}`;
+}
+
+export type DecisionSlotOption = {
+  key: string;
+  slot: PreferredSlot;
+  label: string;
+  /** False for a time that has passed or was only written as text, which can't be booked. */
+  available: boolean;
+};
+
+/** A dated slot that hasn't started yet; a time written only as text never is. */
+export function isUpcomingSlot(slot: PreferredSlot, now: Date) {
+  const startsAt = preferredSlotStartsAt(slot);
+  return startsAt !== null && new Date(startsAt).getTime() > now.getTime();
+}
+
+/** The mentee's preferred times as choices for the mentor's accept, in the order the mentee gave them. */
+export function decisionSlotOptions(
+  message: string | null | undefined,
+  durationMinutes: number,
+  now: Date,
+  locale = "tr",
+): DecisionSlotOption[] {
+  const options = parsePreferredSlotsFromMessage(message, locale).map(
+    (slot) => ({
+      key: slot.date ? preferredSlotKey(slot) : slot.label,
+      slot: { date: slot.date, time: slot.time },
+      label:
+        preferredSlotRangeLabel(slot, durationMinutes, locale) || slot.label,
+      available: isUpcomingSlot(slot, now),
+    }),
+  );
+  return options.filter(
+    (option, index) =>
+      options.findIndex((other) => other.key === option.key) === index,
+  );
 }
 
 /** The message as people should read it: the machine-readable slot lines are for parsing only. */
