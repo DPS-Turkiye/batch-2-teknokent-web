@@ -103,15 +103,12 @@ describe("sessionsByWeek", () => {
 });
 
 describe("checkInFailure", () => {
-  it("tells apart a code that is not valid now, a non-participant, attendance off and anything else", () => {
+  it("tells apart a code that is not valid now, a non-participant and anything else", () => {
     expect(
       checkInFailure(
         new ClientApiError("x", 409, AttendanceErrorCode.QrNotValid),
       ),
     ).toBe(CheckInFailure.NotValid);
-    expect(
-      checkInFailure(new ClientApiError("x", 409, AttendanceErrorCode.Off)),
-    ).toBe(CheckInFailure.Off);
     expect(
       checkInFailure(new ClientApiError("x", 400, "INVALID_REQUEST")),
     ).toBe(CheckInFailure.NotValid);

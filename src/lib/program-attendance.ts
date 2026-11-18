@@ -101,7 +101,6 @@ export function checkInFailure(error: unknown): CheckInFailure {
   if (error.code === AttendanceErrorCode.QrNotValid || error.status === 400) {
     return CheckInFailure.NotValid;
   }
-  if (error.code === AttendanceErrorCode.Off) return CheckInFailure.Off;
   if (error.status === 403) return CheckInFailure.NotParticipant;
   return CheckInFailure.Failed;
 }

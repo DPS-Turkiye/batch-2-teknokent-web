@@ -81,6 +81,27 @@ describe("SessionCheckInView", () => {
     ).not.toBeInTheDocument();
   });
 
+  // A program that stopped taking attendance answers with the backend's generic not-valid code: the page says
+  // nothing about attendance being off.
+  it("shows a code of a program without attendance like any dead link", async () => {
+    vi.mocked(checkInSession).mockRejectedValue(
+      new ClientApiError(
+        "Bu QR şu an geçerli değil.",
+        409,
+        AttendanceErrorCode.QrNotValid,
+      ),
+    );
+
+    renderWithQueryClient(<SessionCheckInView token={TOKEN} />);
+
+    expect(await screen.findByText("Yoklama alınamadı")).toBeInTheDocument();
+    expect(screen.getByText("Bu QR şu an geçerli değil.")).toBeInTheDocument();
+    expect(screen.queryByText(/yoklama alınmıyor/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Tekrar dene" }),
+    ).not.toBeInTheDocument();
+  });
+
   it("tells a non-participant so", async () => {
     vi.mocked(checkInSession).mockRejectedValue(
       new ClientApiError("Bu programın katılımcısı değilsin.", 403),

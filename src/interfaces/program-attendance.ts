@@ -33,6 +33,7 @@ export enum AttendanceMethod {
 export const AttendanceErrorCode = {
   /** Unknown, regenerated or expired link, or a session outside its check-in window. */
   QrNotValid: "ATTENDANCE_QR_NOT_VALID",
+  /** Only on the coordinators' endpoints; a participant's scan of such a program answers QrNotValid. */
   Off: "ATTENDANCE_OFF",
   AlreadyRecorded: "ATTENDANCE_ALREADY_RECORDED",
 } as const;
