@@ -3,6 +3,7 @@ import type {
   ProgramSpecialDay,
   ProgramThisWeek,
   ProgramWeekPlan,
+  ProgramWeeksSoFar,
 } from "@/interfaces/program-week";
 import { requireSuccess } from "@/lib/client/api";
 import { httpClient } from "@/lib/http-client";
@@ -32,6 +33,12 @@ export async function saveProgramWeekPlan(
 export async function getProgramThisWeek() {
   return requireSuccess(
     await httpClient.get<ProgramThisWeek>("/api/programs/mine/this-week"),
+  );
+}
+
+export async function getProgramWeeksSoFar() {
+  return requireSuccess(
+    await httpClient.get<ProgramWeeksSoFar>("/api/programs/mine/weeks"),
   );
 }
 

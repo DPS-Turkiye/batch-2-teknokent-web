@@ -4,6 +4,8 @@ import type {
   ProgramSpecialDay,
   ProgramThisWeek,
   ProgramWeekPlan,
+  ProgramWeekSoFar,
+  ProgramWeeksSoFar,
 } from "@/interfaces/program-week";
 
 export function planWeek(
@@ -95,6 +97,32 @@ export function thisWeek(
       },
     ],
     specialDays: [],
+    ...overrides,
+  };
+}
+
+/** Week `week` of the plan as "Geçmiş haftalar" receives it: a past week unless `current` says otherwise. */
+export function weekSoFar(
+  week: number,
+  overrides: Partial<ProgramWeekSoFar> = {},
+): ProgramWeekSoFar {
+  return {
+    plan: planWeek({ week, title: `Hafta ${week} konusu` }),
+    current: false,
+    specialDays: [],
+    ...overrides,
+  };
+}
+
+/** The weeks a program has reached, week 3 running. */
+export function weeksSoFar(
+  overrides: Partial<ProgramWeeksSoFar> = {},
+): ProgramWeeksSoFar {
+  return {
+    programId: "program-1",
+    programName: "İŞKUR Gençlik Programı",
+    currentWeek: 3,
+    weeks: [weekSoFar(1), weekSoFar(2), weekSoFar(3, { current: true })],
     ...overrides,
   };
 }

@@ -57,6 +57,25 @@ export type ProgramPlanWeekInput = Omit<
   endDate: string | null;
 };
 
+/** A week of the plan the program has reached; `current` marks the one "Bu hafta" shows. */
+export type ProgramWeekSoFar = {
+  plan: ProgramPlanWeek;
+  current: boolean;
+  /** The special days dated inside the week's days. */
+  specialDays: ProgramSpecialDay[];
+};
+
+/**
+ * "Geçmiş haftalar" on Süreç (`GET /api/programs/mine/weeks`): the saved weeks whose first day has come, in week
+ * order. A week that has not begun, and anything dated after the running week, is never sent.
+ */
+export type ProgramWeeksSoFar = {
+  programId: string;
+  programName: string;
+  currentWeek: number | null;
+  weeks: ProgramWeekSoFar[];
+};
+
 export type ProgramThisWeekPhase = {
   id: string;
   name: string;

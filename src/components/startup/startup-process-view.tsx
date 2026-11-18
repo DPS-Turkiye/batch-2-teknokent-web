@@ -4,6 +4,7 @@ import { Check, ChevronRight } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 
+import { ProgramPastWeeks } from "@/components/startup/program-past-weeks";
 import { ProgramWeekCard } from "@/components/startup/program-week-card";
 import {
   StartupPageFrame,
@@ -269,6 +270,7 @@ export function StartupProcessView() {
           <ProgramWeekCard className="lg:flex-1" />
           <WeeklyCheckIn />
         </div>
+        <ProgramPastWeeks />
         <section aria-label={t("stages")} className="space-y-3">
           {process.hasPhases ? (
             <ol className="grid auto-cols-[minmax(150px,1fr)] grid-flow-col gap-3 overflow-x-auto pb-1">

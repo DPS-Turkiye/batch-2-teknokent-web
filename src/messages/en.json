@@ -6164,6 +6164,7 @@
     "weeklyProgramReadFailed": "Couldn't read the weekly program.",
     "weeklyProgramSaveFailed": "Couldn't save the weekly program.",
     "programThisWeekLoadFailed": "Couldn't load this week's plan.",
+    "programPastWeeksLoadFailed": "Couldn't load the past weeks.",
     "sessionRefreshFailed": "Couldn't update your session.",
     "personSummaryLoadFailed": "Could not load the profile.",
     "personIdInvalid": "Choose a valid person.",
@@ -6766,12 +6767,19 @@
     "ended": "The program has ended.",
     "empty": "The coordinator hasn't added the syllabus for this week yet."
   },
+  "programPastWeeks": {
+    "title": "Past weeks",
+    "subtitle": "The topics you have covered so far. Each week appears here once it is over.",
+    "loadFailed": "Couldn't load the past weeks.",
+    "weekTitle": "Week {week} · {title}",
+    "sessions": "Sessions"
+  },
   "programWeekPlan": {
     "sessionsOf": "Week {week} sessions",
     "specialDays": "Special days",
     "title": "Weekly plan",
-    "subtitle": "Participants see only that week's plan on their Process page.",
-    "subtitleWeeks": "The program runs {total} weeks. Participants see only that week's plan on their Process page.",
+    "subtitle": "Participants see that week's plan and the past weeks' on their Process page; a later week stays hidden until it begins.",
+    "subtitleWeeks": "The program runs {total} weeks. Participants see that week's plan and the past weeks' on their Process page; a later week stays hidden until it begins.",
     "add": "Add week",
     "loading": "Loading the weekly plan…",
     "loadFailed": "Couldn't load the weekly plan.",
