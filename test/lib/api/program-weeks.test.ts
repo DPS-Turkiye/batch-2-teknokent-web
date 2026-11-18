@@ -5,6 +5,7 @@ import {
   alignProgramDates,
   fetchProgramThisWeek,
   fetchProgramWeekPlan,
+  fetchProgramWeeksSoFar,
   replaceProgramWeekPlan,
 } from "@/lib/api/program-weeks";
 import { backendRequest } from "@/lib/server/backend-client";
@@ -54,6 +55,15 @@ const cases: RequestCase[] = [
     {
       method: "GET",
       url: "/api/programs/mine/this-week",
+      params: { actorId: "member-1" },
+    },
+  ],
+  [
+    "reads the weeks the caller's own program has reached",
+    () => fetchProgramWeeksSoFar("member-1"),
+    {
+      method: "GET",
+      url: "/api/programs/mine/weeks",
       params: { actorId: "member-1" },
     },
   ],

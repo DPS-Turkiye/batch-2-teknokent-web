@@ -6171,6 +6171,7 @@
     "weeklyProgramReadFailed": "Haftalık program okunamadı.",
     "weeklyProgramSaveFailed": "Haftalık program kaydedilemedi.",
     "programThisWeekLoadFailed": "Bu haftanın planı yüklenemedi.",
+    "programPastWeeksLoadFailed": "Geçmiş haftalar yüklenemedi.",
     "sessionRefreshFailed": "Oturum bilgilerin güncellenemedi.",
     "personSummaryLoadFailed": "Profil yüklenemedi.",
     "personIdInvalid": "Geçerli bir kişi seçin.",
@@ -6773,12 +6774,19 @@
     "ended": "Program tamamlandı.",
     "empty": "Koordinatör henüz bu hafta için müfredat eklemedi."
   },
+  "programPastWeeks": {
+    "title": "Geçmiş haftalar",
+    "subtitle": "Şimdiye kadar gördüğün konular. Biten her hafta burada listelenir.",
+    "loadFailed": "Geçmiş haftalar yüklenemedi.",
+    "weekTitle": "Hafta {week} · {title}",
+    "sessions": "Oturumlar"
+  },
   "programWeekPlan": {
     "sessionsOf": "{week}. haftanın oturumları",
     "specialDays": "Özel günler",
     "title": "Haftalık plan",
-    "subtitle": "Katılımcılar Süreç sayfasında yalnızca o haftanın planını görür.",
-    "subtitleWeeks": "Program {total} hafta sürüyor. Katılımcılar Süreç sayfasında yalnızca o haftanın planını görür.",
+    "subtitle": "Katılımcılar Süreç sayfasında o haftanın ve geçmiş haftaların planını görür; sonraki haftaları, o hafta gelene kadar göremez.",
+    "subtitleWeeks": "Program {total} hafta sürüyor. Katılımcılar Süreç sayfasında o haftanın ve geçmiş haftaların planını görür; sonraki haftaları, o hafta gelene kadar göremez.",
     "add": "Hafta ekle",
     "loading": "Haftalık plan yükleniyor…",
     "loadFailed": "Haftalık plan yüklenemedi.",
