@@ -3,6 +3,7 @@ import { beforeEach, describe, vi } from "vitest";
 import { PUT as coordinatorAccessRoute } from "@/app/api/admin/coordinators/[id]/access/route";
 import { POST as addCoordinatorRoute } from "@/app/api/admin/coordinators/route";
 import { POST as interventionRoute } from "@/app/api/admin/interventions/route";
+import { POST as attendanceRoute } from "@/app/api/attendance/check-in/route";
 import { POST as passwordResetRoute } from "@/app/api/auth/password-reset/route";
 import { POST as registerRoute } from "@/app/api/auth/register/[role]/route";
 import { POST as addBotRoute } from "@/app/api/botapi/route";
@@ -10,7 +11,6 @@ import { POST as institutionCompleteRoute } from "@/app/api/institution-login/[p
 import { PUT as onboardingDraftRoute } from "@/app/api/onboarding/draft/route";
 import { POST as decideInvitationRoute } from "@/app/api/programs/[id]/invitations/decide/route";
 import { PUT as activeProgramRoute } from "@/app/api/programs/mine/active/route";
-import { POST as attendanceRoute } from "@/app/api/programs/mine/attendance/route";
 import { POST as createProgramRoute } from "@/app/api/programs/route";
 import { PUT as languageRoute } from "@/app/api/session/language/route";
 import { PATCH as accountStatusRoute } from "@/app/api/users/[id]/status/route";
@@ -211,12 +211,18 @@ const cases: BodyCase[] = [
     invalid: { "a program id of the wrong type": { programId: 1 } },
   },
   {
-    route: "POST /api/programs/mine/attendance",
+    route: "POST /api/attendance/check-in",
     send: (request) => attendanceRoute(request),
-    valid: { week: 3 },
-    backend: attendance.checkInMyAttendance,
-    expected: ["startup-1", 3],
-    invalid: { "week zero": { week: 0 }, "a week sent as text": { week: "3" } },
+    valid: { token: "Ab_-".repeat(10) },
+    backend: attendance.checkInSession,
+    expected: ["user-1", "Ab_-".repeat(10)],
+    invalid: {
+      "no token": {},
+      "an empty token": { token: "" },
+      "a token with a path in it": { token: "../../etc" },
+      "a token longer than any code": { token: "A".repeat(65) },
+      "a token sent as a number": { token: 7 },
+    },
   },
 ];
 

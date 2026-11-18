@@ -72,6 +72,17 @@ export function safeNextPath(next: string | null) {
     : null;
 }
 
+/** The page a session QR code opens: `/attend/<token>`. */
+export const ATTEND_PATH = "/attend";
+
+export function attendancePath(token: string) {
+  return `${ATTEND_PATH}/${encodeURIComponent(token)}`;
+}
+
+export function isAttendancePath(pathname: string) {
+  return pathname.startsWith(`${ATTEND_PATH}/`);
+}
+
 /** Where a signed-out visitor is sent, remembering where they were headed. */
 export function loginPathFor(pathname: string) {
   const login = isMobilePath(pathname) ? MOBILE_LOGIN : "/login";

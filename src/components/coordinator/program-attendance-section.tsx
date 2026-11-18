@@ -1,27 +1,27 @@
 // TEST UI: placeholder until the design team's screen; replace when it arrives.
 "use client";
 
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 
 import { EmptyNote, Panel, QueryNotice } from "@/components/admin/admin-ui";
 import { useProgramAttendance } from "@/hooks/use-program-attendance";
 import { SessionsExportFormat } from "@/interfaces/program-report";
-import { calendarDay, formatDayMonth } from "@/lib/utils";
 
 const linkClass =
   "inline-flex h-9 shrink-0 items-center justify-center rounded-full border border-[#e9ecef] bg-white px-3.5 text-[12.5px] font-medium text-[#22262b] aria-disabled:pointer-events-none aria-disabled:text-[#aeb4bc]";
 const inputClass =
   "h-9 rounded-xl border border-[#e4e7ea] bg-white px-3 text-[13px] text-[#22262b] outline-none focus:border-[#26a4ff]";
 
-/** Weekly attendance per participant, next to the sessions report, with the same file formats. */
+/**
+ * Attendance per participant and session (each week's lesson and workshop), next to the sessions report, with the
+ * same file formats. A coordinator marks or unmarks a current participant by clicking the cell.
+ */
 export function ProgramAttendanceSection({ programId }: { programId: string }) {
   const t = useTranslations("programReport.attendance");
-  const locale = useLocale();
   const attendance = useProgramAttendance(programId);
   const data = attendance.query.data;
   const xlsx = attendance.exportHref(SessionsExportFormat.Xlsx);
   const csv = attendance.exportHref(SessionsExportFormat.Csv);
-  const day = (value: string) => formatDayMonth(calendarDay(value), locale);
 
   return (
     <section className="space-y-4">
@@ -82,7 +82,12 @@ export function ProgramAttendanceSection({ programId }: { programId: string }) {
         />
       ) : (
         <Panel>
-          {data.weeks.length === 0 ? (
+          {data.attendanceEnabled ? null : (
+            <p className="border-b border-[#f1f3f5] px-5 py-3 text-[12.5px] text-[#676e78]">
+              {t("off")}
+            </p>
+          )}
+          {data.sessions.length === 0 ? (
             <EmptyNote>{t("noWeeks")}</EmptyNote>
           ) : data.participants.length === 0 ? (
             <EmptyNote>{t("noParticipants")}</EmptyNote>
@@ -97,15 +102,15 @@ export function ProgramAttendanceSection({ programId }: { programId: string }) {
                     <th scope="col" className="px-5 py-2 font-medium">
                       {t("team")}
                     </th>
-                    {data.weeks.map((week) => (
+                    {data.sessions.map((session) => (
                       <th
-                        key={week.number}
+                        key={`${session.week}:${session.kind}`}
                         scope="col"
                         className="px-3 py-2 text-center font-medium"
                       >
-                        {t("week", { week: week.number })}
+                        {t("week", { week: session.week })}
                         <span className="block text-[11px] font-normal whitespace-nowrap">
-                          {`${day(week.start)} – ${day(week.end)}`}
+                          {attendance.sessionLabel(session)}
                         </span>
                       </th>
                     ))}
@@ -113,14 +118,14 @@ export function ProgramAttendanceSection({ programId }: { programId: string }) {
                       scope="col"
                       className="px-5 py-2 text-right font-medium"
                     >
-                      {t("attendedWeeks")}
+                      {t("attended")}
                     </th>
                   </tr>
                 </thead>
                 <tbody>
                   {data.participants.map((person) => (
                     <tr
-                      key={`${person.email ?? ""}:${person.name}`}
+                      key={person.userId}
                       className="border-t border-[#f1f3f5]"
                     >
                       <th
@@ -132,26 +137,47 @@ export function ProgramAttendanceSection({ programId }: { programId: string }) {
                       <td className="px-5 py-2.5 text-[#676e78]">
                         {person.teamName ?? "—"}
                       </td>
-                      {person.attended.map((attended, index) => (
-                        <td
-                          key={data.weeks[index]?.number ?? index}
-                          className="px-3 py-2.5 text-center"
-                        >
+                      {data.sessions.map((session, index) => {
+                        const cell = attendance.cell(person, index);
+                        const symbol = (
                           <span
                             aria-hidden
                             className={
-                              attended ? "text-[#1f7a4d]" : "text-[#c0c5cc]"
+                              cell.attended
+                                ? "text-[#1f7a4d]"
+                                : "text-[#c0c5cc]"
                             }
                           >
-                            {attended ? "✓" : "–"}
+                            {cell.attended ? "✓" : "–"}
                           </span>
-                          <span className="sr-only">
-                            {attended ? t("present") : t("absent")}
-                          </span>
-                        </td>
-                      ))}
+                        );
+                        return (
+                          <td
+                            key={`${session.week}:${session.kind}`}
+                            className="px-3 py-1.5 text-center"
+                          >
+                            {cell.toggleLabel ? (
+                              <button
+                                type="button"
+                                title={cell.status}
+                                aria-label={cell.toggleLabel}
+                                aria-pressed={cell.attended}
+                                onClick={cell.toggle}
+                                className="size-8 rounded-lg hover:bg-[#f4f6f8] focus-visible:outline-2 focus-visible:outline-[#26a4ff]"
+                              >
+                                {symbol}
+                              </button>
+                            ) : (
+                              <span title={cell.status}>
+                                {symbol}
+                                <span className="sr-only">{cell.status}</span>
+                              </span>
+                            )}
+                          </td>
+                        );
+                      })}
                       <td className="px-5 py-2.5 text-right">
-                        {person.attendedWeeks}/{data.weeks.length}
+                        {person.attendedSessions}/{data.sessions.length}
                       </td>
                     </tr>
                   ))}
@@ -165,11 +191,14 @@ export function ProgramAttendanceSection({ programId }: { programId: string }) {
                     >
                       {t("rate")}
                     </th>
-                    {data.weeks.map((week) => (
-                      <td key={week.number} className="px-3 py-2.5 text-center">
-                        {week.rate == null
+                    {data.sessions.map((session) => (
+                      <td
+                        key={`${session.week}:${session.kind}`}
+                        className="px-3 py-2.5 text-center"
+                      >
+                        {session.rate == null
                           ? "—"
-                          : t("percent", { rate: week.rate })}
+                          : t("percent", { rate: session.rate })}
                       </td>
                     ))}
                     <td />

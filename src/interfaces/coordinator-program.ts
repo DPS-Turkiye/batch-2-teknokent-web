@@ -103,6 +103,8 @@ export type ProgramRules = {
   rosterOnly: boolean;
   /** Each mentee joins as a team of one, without creating a startup. */
   individualMentees: boolean;
+  /** Attendance is taken by session QR codes; off means no codes and no check-ins. */
+  attendanceEnabled: boolean;
 };
 
 /** One address on a roster-only program's list; `registered` once an account uses it. */
@@ -160,6 +162,7 @@ export type UpdateProgramDetailsInput = {
   eligibleEmailDomain?: string | null | undefined;
   rosterOnly?: boolean | undefined;
   individualMentees?: boolean | undefined;
+  attendanceEnabled?: boolean | undefined;
 };
 
 export type ProgramPhaseInput = {
