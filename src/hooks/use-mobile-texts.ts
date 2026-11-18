@@ -11,5 +11,9 @@ export function useMobileTexts(): MobileTexts {
   const t = useTranslations("mobile");
   const locale = useLocale();
   const topicLabel = useTopicLabel();
-  return useMemo(() => ({ t, locale, topicLabel }), [t, locale, topicLabel]);
+  const program = useTranslations("programCalendar");
+  return useMemo(
+    () => ({ t, locale, topicLabel, program }),
+    [t, locale, topicLabel, program],
+  );
 }

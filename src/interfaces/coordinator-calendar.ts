@@ -1,6 +1,10 @@
 import type { CoordinatorAgendaKind } from "@/interfaces/coordinator-overview";
+import type { ProgramCalendarPlanItem } from "@/interfaces/coordinator-program";
 
-/** `id` is the meeting's id for a MEETING and the program event's id otherwise. */
+/**
+ * `id` is the meeting's id for a MEETING, the special day's for a SPECIAL_DAY, one derived from the plan for a
+ * SESSION and the program event's otherwise. `plan` is set for a SESSION or SPECIAL_DAY.
+ */
 export type CoordinatorCalendarItem = {
   id: string;
   kind: CoordinatorAgendaKind;
@@ -21,6 +25,7 @@ export type CoordinatorCalendarItem = {
   conflict: boolean;
   /** Most meeting rooms the transcript bot records at once during a MEETING, platform-wide. */
   recordingLoad: number | null;
+  plan: ProgramCalendarPlanItem | null;
   /** Set on the client for a coordinator's proposal still waiting for both sides ("Önerilen slot"). */
   proposalId?: string;
 };
@@ -43,6 +48,8 @@ export type CoordinatorCalendar = {
     events: number;
     deadlines: number;
     unscheduledRisky: number;
+    /** Sessions and special days of the programs' weekly plans in the range. */
+    planEntries: number;
   };
   /** How many rooms the transcript bot can record at the same moment. */
   recordingCapacity: number;

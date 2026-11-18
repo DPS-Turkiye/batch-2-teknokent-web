@@ -14,7 +14,12 @@ import {
   getAvailabilityRules,
   getMentorAvailability,
 } from "@/lib/client/mentor-profile";
+import { getMemberProgramEvents } from "@/lib/client/programs";
 import { mentorshipRequest } from "@test/fixtures/mentorship-requests";
+import {
+  lessonSession,
+  workshopSession,
+} from "@test/fixtures/program-calendar";
 import { successQuery } from "@test/mocks/query-results";
 import { createTestQueryClient } from "@test/test-utils";
 
@@ -37,6 +42,7 @@ vi.mock("@/components/mentorships/regular-mentorships-tab", () => ({
 vi.mock("@/lib/client/mentorships", () => ({
   getRegularMentorships: vi.fn().mockResolvedValue([]),
 }));
+vi.mock("@/lib/client/programs", () => ({ getMemberProgramEvents: vi.fn() }));
 vi.mock("@/lib/client/meetings", () => ({
   getMeetings: vi.fn(),
   postMeeting: vi.fn(),
@@ -88,6 +94,10 @@ describe("useMentorCalendar", () => {
   beforeEach(() => {
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(NOW);
+    vi.mocked(getMemberProgramEvents).mockResolvedValue([
+      lessonSession({ startsAt: at(19, 0) }),
+      workshopSession({ startsAt: at(21, 0) }),
+    ]);
     vi.mocked(getMeetings).mockResolvedValue([
       meeting("last-week", at(16, 14)),
       meeting("this-week", at(20, 14)),
@@ -188,6 +198,36 @@ describe("useMentorCalendar", () => {
     act(() => result.current.setFilter(CalendarFilter.Program));
     expect(result.current.meetings).toEqual([]);
     expect(result.current.slots).toEqual([]);
+  });
+
+  it("puts the program's entries under their weekday for All and Program, and not for the other tabs", async () => {
+    const { result } = await renderCalendar();
+    await waitFor(() => expect(result.current.programEventCount).toBe(2));
+
+    expect(
+      result.current.programEventsByWeekday.map((day) =>
+        day.map((event) => event.id),
+      ),
+    ).toEqual([["session-lesson"], [], ["session-workshop"], [], [], [], []]);
+    expect(vi.mocked(getMemberProgramEvents).mock.calls[0]?.[0]).toEqual({
+      from: new Date(2026, 9, 19),
+      to: new Date(2026, 9, 26),
+    });
+
+    act(() => result.current.setFilter(CalendarFilter.Program));
+    expect(result.current.programEventCount).toBe(2);
+    act(() => result.current.setFilter(CalendarFilter.Mentorship));
+    expect(result.current.programEventCount).toBe(0);
+    act(() => result.current.setFilter(CalendarFilter.Availability));
+    expect(result.current.programEventCount).toBe(0);
+  });
+
+  it("reports a program calendar that could not be loaded", async () => {
+    vi.mocked(getMemberProgramEvents).mockRejectedValue(new Error("boom"));
+    const { result } = await renderCalendar();
+
+    await waitFor(() => expect(result.current.programLoadFailed).toBe(true));
+    expect(result.current.programEventCount).toBe(0);
   });
 
   it("moves between weeks and back to this one", async () => {

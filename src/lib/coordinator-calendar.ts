@@ -14,6 +14,7 @@ import {
 } from "@/interfaces/meeting-proposal";
 import { placeInLanes, type Placed } from "@/lib/calendar";
 import { formatDateRange } from "@/lib/format";
+import { isAllDay } from "@/lib/program-calendar";
 import { formatDayMonth } from "@/lib/utils";
 
 export enum CalendarView {
@@ -122,6 +123,26 @@ export function timeLabel(value: string, locale: string) {
   return clock(locale).format(new Date(value));
 }
 
+/** "Program oturumu" / "Özel gün" for an entry of a weekly plan; null for anything else. */
+export function planKindLabel(
+  item: CoordinatorCalendarItem,
+  t: CalendarTexts["t"],
+) {
+  if (item.kind === CoordinatorAgendaKind.Session) return t("sessionKind");
+  if (item.kind === CoordinatorAgendaKind.SpecialDay) {
+    return t("specialDayKind");
+  }
+  return null;
+}
+
+/** The item's clock time, or "Tüm gün" for a weekly-plan entry the plan prints without one. */
+export function itemTimeLabel(
+  item: CoordinatorCalendarItem,
+  { t, locale }: CalendarTexts,
+) {
+  return isAllDay(item) ? t("allDayShort") : timeLabel(item.startsAt, locale);
+}
+
 export function longDayLabel(date: Date, locale: string) {
   return new Intl.DateTimeFormat(locale, {
     weekday: "long",
@@ -132,15 +153,20 @@ export function longDayLabel(date: Date, locale: string) {
 
 function itemEnd(item: CoordinatorCalendarItem) {
   if (item.endsAt) return new Date(item.endsAt);
+  if (isAllDay(item)) return null;
   return item.kind === CoordinatorAgendaKind.Deadline
     ? null
     : new Date(new Date(item.startsAt).getTime() + DEFAULT_MINUTES * 60_000);
 }
 
-/** "Çar 16 Eyl · 14:00–15:00", or just the day and time for a deadline. */
+/**
+ * "Çar 16 Eyl · 14:00–15:00", just the day and time for a deadline, or the day alone for a weekly-plan entry that
+ * prints no time.
+ */
 export function slotLabel(item: CoordinatorCalendarItem, locale: string) {
   const start = new Date(item.startsAt);
   const day = `${weekdayLabel(start, locale)} ${formatDayMonth(start, locale)}`;
+  if (isAllDay(item)) return day;
   const end = itemEnd(item);
   return end
     ? `${day} · ${formatDateRange(clock(locale), start, end)}`
@@ -308,5 +334,6 @@ export function proposalItems(
       description: null,
       conflict: false,
       recordingLoad: null,
+      plan: null,
     }));
 }

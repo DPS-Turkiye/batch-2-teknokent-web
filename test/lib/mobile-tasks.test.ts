@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { ActionItemStatus } from "@/interfaces/action-item";
-import { ProgramEventKind } from "@/interfaces/coordinator-program";
+import { ProgramCalendarEntryKind } from "@/interfaces/coordinator-program";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { MobileTaskSource, MobileTaskTone } from "@/interfaces/mobile";
 import type { ProcessAssignment } from "@/interfaces/startup-process";
@@ -101,20 +101,22 @@ const TASKS = collectTasks(
         programId: "prog",
         programName: "METU Stars 2026",
         title: "Ara rapor teslimi",
-        kind: ProgramEventKind.Deadline,
+        kind: ProgramCalendarEntryKind.Deadline,
         startsAt: new Date(2026, 8, 25, 23, 59).toISOString(),
         endsAt: null,
         description: null,
+        plan: null,
       },
       {
         id: "e2",
         programId: "prog",
         programName: "METU Stars 2026",
         title: "Atölye",
-        kind: ProgramEventKind.Event,
+        kind: ProgramCalendarEntryKind.Event,
         startsAt: new Date(2026, 8, 24, 10, 0).toISOString(),
         endsAt: null,
         description: null,
+        plan: null,
       },
     ],
     feedbackMeetings: [RATING_MEETING],

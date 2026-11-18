@@ -1743,7 +1743,8 @@
     "nextWeek": "Next week",
     "loadFailed": "Couldn't load the calendar: {error}",
     "loading": "Loading calendar…",
-    "noProgram": "No program events yet.",
+    "noProgram": "No program session or event this week.",
+    "programLoadFailed": "The program calendar could not be loaded; program sessions may be missing.",
     "filters": {
       "all": "All",
       "mentorship": "Mentorship",
@@ -2941,6 +2942,8 @@
     "createAt": "Create a meeting on day {day} at {time}",
     "noProgram": "You're not in any program.",
     "programList": "You're in {count, plural, one {# program} other {# programs}}: {names}",
+    "programRow": "Program",
+    "programLoadFailed": "The program calendar could not be loaded; program sessions may be missing.",
     "createFailed": "Couldn't create the meeting.",
     "fallback": {
       "mentorship": "Mentorship",
@@ -3721,7 +3724,9 @@
       "MEETING": "Meeting",
       "EVENT": "Event",
       "DEADLINE": "Deadline",
-      "ACTION": "Action"
+      "ACTION": "Action",
+      "SESSION": "Program session",
+      "SPECIAL_DAY": "Special day"
     },
     "allDay": "During the day",
     "metrics": {
@@ -3784,6 +3789,10 @@
     "meetingKind": "Mentorship meeting",
     "eventKind": "Event",
     "deadlineKind": "Deadline",
+    "sessionKind": "Program session",
+    "specialDayKind": "Special day",
+    "allDayShort": "All day",
+    "planEntries": "Weekly plan",
     "conflict": "Conflict",
     "proposedSlot": "Proposed slot",
     "mentorFallback": "Mentor",
@@ -5635,7 +5644,8 @@
       "kinds": {
         "meeting": "Mentorship meeting",
         "event": "Program event",
-        "deadline": "Deadline"
+        "deadline": "Deadline",
+        "session": "Program session"
       },
       "startsIn": {
         "now": "now",
@@ -5669,6 +5679,7 @@
       "monthWeekdays": ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"],
       "legendMeeting": "Meeting",
       "legendEvent": "Event",
+      "legendSession": "Session",
       "backToToday": "Back to today"
     },
     "tasks": {
@@ -6908,9 +6919,9 @@
     "replaceTitle": "This program already has a plan",
     "replaceBody": "{phases, plural, one {# phase} other {# phases}} and {weeks, plural, one {# week} other {# weeks}} are saved. Saving replaces them with the plan read from the file.",
     "keepPast": "Keep past weeks and completed phases",
-    "keepPastHint": "Weeks 1–{week} and finished phases stay as they are; the plan changes from week {next}.",
+    "keepPastHint": "Saved weeks 1–{week} and finished phases stay as they are; past weeks with nothing saved come from the file. The plan changes from week {next}.",
     "keepPastNothing": "The program is in its first week; there are no past weeks to keep.",
-    "keepPastEnded": "The program has ended; every week and finished phase stays as it is.",
+    "keepPastEnded": "The program has ended; saved weeks and finished phases stay as they are, and anything not saved comes from the file.",
     "confirm": "I confirm replacing the saved plan",
     "discard": "Discard",
     "save": "Save plan",
@@ -7085,5 +7096,20 @@
     "failed": "Your attendance could not be recorded",
     "retry": "Try again",
     "home": "Back to the home page"
+  },
+  "programCalendar": {
+    "kinds": {
+      "session": "Program session",
+      "specialDay": "Special day",
+      "event": "Program event",
+      "deadline": "Deadline"
+    },
+    "allDay": "All day",
+    "speaker": "Speaker: {name}",
+    "week": "Week {week} · {title}",
+    "place": "Place: {place}",
+    "program": "Program: {name}",
+    "close": "Close",
+    "openDetail": "Open {title}"
   }
 }

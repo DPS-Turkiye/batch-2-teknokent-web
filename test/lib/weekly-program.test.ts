@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import type { WeeklyProgramPhaseInput } from "@/interfaces/weekly-program";
+import type {
+  WeeklyProgramExisting,
+  WeeklyProgramPhaseInput,
+} from "@/interfaces/weekly-program";
 import { ClientApiError } from "@/lib/client/api";
 import { weekDraftOf } from "@/lib/program-week";
 import {
@@ -122,8 +125,11 @@ describe("lastKeptWeek", () => {
     expect(lastKeptWeek(existing, true)).toBe(3);
   });
 
-  it("keeps nothing when not asked, before the start, or in the first week", () => {
+  it("keeps nothing when not asked, before the start, in the first week, or with nothing saved", () => {
     expect(lastKeptWeek(existing, false)).toBeNull();
+    expect(
+      lastKeptWeek({ ...existing, phaseCount: 0, weekCount: 0 }, true),
+    ).toBeNull();
     expect(lastKeptWeek({ ...existing, currentWeek: null }, true)).toBeNull();
     expect(lastKeptWeek({ ...existing, currentWeek: 1 }, true)).toBeNull();
   });
@@ -191,8 +197,33 @@ describe("weeklyProgramSaveInput", () => {
       ],
       seenPhaseCount: 0,
       seenWeekCount: 0,
-      keepPast: true,
+      keepPast: false,
     });
+  });
+
+  it("keeps the past only when there is a saved plan to keep", () => {
+    const input = (existing: WeeklyProgramExisting, keepPast: boolean) =>
+      weeklyProgramSaveInput({
+        documentId: "doc-1",
+        weeks: [],
+        specialDays: [],
+        phases: [],
+        existing,
+        keepPast,
+      }).keepPast;
+
+    expect(input({ phaseCount: 0, weekCount: 0, currentWeek: 4 }, true)).toBe(
+      false,
+    );
+    expect(input({ phaseCount: 0, weekCount: 7, currentWeek: 4 }, true)).toBe(
+      true,
+    );
+    expect(input({ phaseCount: 3, weekCount: 0, currentWeek: 4 }, true)).toBe(
+      true,
+    );
+    expect(input({ phaseCount: 3, weekCount: 7, currentWeek: 4 }, false)).toBe(
+      false,
+    );
   });
 
   it("sends back the plan the read counted, which must be confirmed when there is one", () => {

@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 
 import { REGULAR_MENTORSHIPS_QUERY_KEY } from "@/components/mentorships/regular-mentorships-tab";
 import { useSession } from "@/components/providers/session-provider";
+import { useMemberProgramEvents } from "@/hooks/use-member-program-events";
 import { useMentorAvailabilitySettings } from "@/hooks/use-mentor-profile";
 import {
   mentorshipRequestsQueryKey,
@@ -46,6 +47,7 @@ import { getRegularMentorships } from "@/lib/client/mentorships";
 import { programsMentorHasJoined } from "@/lib/meeting-targets";
 import { exceptionLabel, exceptionsInRange } from "@/lib/mentor-availability";
 import { weeklyAvailabilityRows } from "@/lib/mentor-profile-overview";
+import { programEventRange, programEventsByDay } from "@/lib/program-calendar";
 
 /** The grid runs 09:00–18:00, matching the design. */
 export const CALENDAR_HOURS = Array.from({ length: 10 }, (_, i) => 9 + i);
@@ -69,6 +71,8 @@ export function useMentorCalendar() {
   }, [weekOffset]);
 
   const days = useMemo(() => weekDays(weekStart, WEEK_DAY_COUNT), [weekStart]);
+  const programRange = useMemo(() => programEventRange(days), [days]);
+  const programEventsQuery = useMemberProgramEvents(programRange);
 
   const meetingsQuery = useQuery({
     queryKey: ["meetings"],
@@ -167,8 +171,7 @@ export function useMentorCalendar() {
     return end;
   }, [weekStart]);
 
-  // No program events exist in the data model yet, so that tab is empty by
-  // definition rather than by filtering.
+  // The Program tab shows the program's own entries only.
   const meetings = useMemo<MeetingItem[]>(() => {
     if (filter === CalendarFilter.Program) return [];
     if (filter === CalendarFilter.Availability) return [];
@@ -177,6 +180,14 @@ export function useMentorCalendar() {
       return at >= weekStart && at < weekEnd;
     });
   }, [meetingsQuery.data, filter, weekStart, weekEnd]);
+
+  const programEventsByWeekday = useMemo(
+    () =>
+      filter === CalendarFilter.All || filter === CalendarFilter.Program
+        ? programEventsByDay(programEventsQuery.data ?? [], days)
+        : days.map(() => []),
+    [programEventsQuery.data, filter, days],
+  );
 
   const slots = useMemo<MentorAvailabilitySlot[]>(
     () =>
@@ -273,6 +284,10 @@ export function useMentorCalendar() {
     nextWeek: () => setWeekOffset((current) => current + 1),
     previousWeek: () => setWeekOffset((current) => current - 1),
     programs,
+    /** Each shown day's program entries: events, special days, and sessions of weeks that have begun. */
+    programEventsByWeekday,
+    programEventCount: programEventsByWeekday.flat().length,
+    programLoadFailed: programEventsQuery.isError,
     removeRule: (ruleId: string) => removeRule.mutateAsync(ruleId),
     rules,
     ruleError: createRule.error ?? removeRule.error,

@@ -101,6 +101,7 @@ function awaitingEntry(
     length: t("calendar.minutes", { minutes: input.minutes }),
     title: input.startupName,
     detail: t("calendar.awaitingDetail", { topic: input.topic }),
+    notes: null,
     meeting: null,
     event: null,
     startup: { name: input.startupName, initials: initials(input.startupName) },

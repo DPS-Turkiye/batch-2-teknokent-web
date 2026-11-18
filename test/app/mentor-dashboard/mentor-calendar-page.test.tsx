@@ -10,6 +10,7 @@ import { CalendarFilter } from "@/lib/calendar";
 import { weeklyAvailabilityRows } from "@/lib/mentor-profile-overview";
 import tr from "@/messages/tr.json";
 import { program } from "@test/fixtures/program";
+import { demoDay, lessonSession } from "@test/fixtures/program-calendar";
 import { InLocale } from "@test/test-utils";
 
 vi.mock("@/components/reschedule-meeting-button", () => ({
@@ -111,6 +112,9 @@ function mockCalendar(overrides: Partial<MentorCalendar> = {}) {
     rules,
     weekExceptionLabels: [],
     programs: [program({ id: "p1", name: "METU Stars 2026" })],
+    programEventsByWeekday: WEEK.map(() => []),
+    programEventCount: 0,
+    programLoadFailed: false,
     mentorships: [],
     regularMentorships: [],
     freeSlotCount: 3,
@@ -235,6 +239,59 @@ describe("MentorCalendarPage", () => {
     expect(
       screen.getByText(/1 programa katılıyorsunuz: METU Stars 2026/),
     ).toBeInTheDocument();
+  });
+
+  it("shows the program's sessions in a row of their own and opens one with its speaker", async () => {
+    const user = userEvent.setup();
+    const lesson = lessonSession({
+      startsAt: new Date(2026, 8, 14).toISOString(),
+    });
+    const demo = demoDay({
+      startsAt: new Date(2026, 8, 16, 13, 0).toISOString(),
+    });
+    mockCalendar({
+      programEventsByWeekday: [[lesson], [], [demo], [], []],
+      programEventCount: 2,
+    });
+    render(<MentorCalendarPage />);
+
+    const demoButton = within(grid()).getByRole("button", {
+      name: "Özel gün: DEMO DAY detayını aç",
+    });
+    expect(demoButton).toHaveTextContent("DEMO DAY13:00");
+    expect(
+      within(grid()).getByRole("button", {
+        name: "Program oturumu: Değer Önerisi ve Market Fit detayını aç",
+      }),
+    ).toHaveTextContent("Tüm gün");
+    await user.click(
+      within(grid()).getByRole("button", {
+        name: "Program oturumu: Değer Önerisi ve Market Fit detayını aç",
+      }),
+    );
+
+    const dialog = screen.getByRole("dialog");
+    expect(within(dialog).getByText("Program oturumu")).toBeInTheDocument();
+    expect(within(dialog).getByText("Konuşmacı: Sarper")).toBeInTheDocument();
+    expect(within(dialog).getByText("Program: Build")).toBeInTheDocument();
+  });
+
+  it("leaves the program row out of a week without program entries", () => {
+    mockCalendar();
+    render(<MentorCalendarPage />);
+
+    expect(
+      within(grid()).queryByText(tr.mentorCalendar.programRow),
+    ).not.toBeInTheDocument();
+  });
+
+  it("says when the program calendar could not be loaded", () => {
+    mockCalendar({ programLoadFailed: true });
+    render(<MentorCalendarPage />);
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      tr.mentorCalendar.programLoadFailed,
+    );
   });
 
   it("browses between weeks", async () => {

@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useSession } from "@/components/providers/session-provider";
 import { MEETING_PROPOSALS_QUERY_KEY } from "@/hooks/use-meeting-proposals";
 import { useMeetings } from "@/hooks/use-meetings";
+import { useMemberProgramEvents } from "@/hooks/use-member-program-events";
 import { mentorshipRequestsQueryKey } from "@/hooks/use-mentorship-requests";
 import { useMobileTexts } from "@/hooks/use-mobile-texts";
 import { ORGANIZATION_MEMBERS_QUERY_KEY } from "@/hooks/use-organization-members";
@@ -16,12 +17,12 @@ import { monthLabel } from "@/lib/calendar";
 import { getMyMeetingProposals } from "@/lib/client/meeting-proposals";
 import { getMentorRequests } from "@/lib/client/mentor-requests";
 import { getOrganizationMembersById } from "@/lib/client/organization-members";
-import { getMemberProgramEvents } from "@/lib/client/programs";
 import { mobileChatHref } from "@/lib/mobile";
 import {
   agendaDays,
   agendaEntries,
   canJoin,
+  entryKindLabel,
   entryTimeHint,
   entryTimeLine,
   eventRangeFor,
@@ -42,8 +43,6 @@ import {
 
 const NOW_REFRESH_MS = 60_000;
 
-export const MEMBER_PROGRAM_EVENTS_QUERY_KEY = "member-program-events";
-
 export function useMobileCalendar() {
   const linkedMeetingId = useSearchParams().get("meeting");
   const [now, setNow] = useState(() => new Date());
@@ -63,10 +62,7 @@ export function useMobileCalendar() {
   const isMentor = session?.role === UserRole.Mentor;
   const range = useMemo(() => eventRangeFor(month), [month]);
   const meetings = useMeetings();
-  const events = useQuery({
-    queryKey: [MEMBER_PROGRAM_EVENTS_QUERY_KEY, range],
-    queryFn: () => getMemberProgramEvents(range),
-  });
+  const events = useMemberProgramEvents(range);
   // Mentors see meetings by startup and topic; without the requests they fall back to the agenda.
   const requests = useQuery({
     queryKey: mentorshipRequestsQueryKey(UserRole.Mentor),
@@ -135,9 +131,7 @@ export function useMobileCalendar() {
     detail: open
       ? {
           entry: open,
-          kindLabel: open.awaitingApproval
-            ? texts.t("calendar.awaitingApproval")
-            : texts.t(`calendar.kinds.${open.kind}`),
+          kindLabel: entryKindLabel(open, texts),
           timeLine: entryTimeLine(open, texts),
           timeHint: entryTimeHint(open, now, texts.t),
           link: open.meeting?.meetLink

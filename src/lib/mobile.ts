@@ -7,6 +7,7 @@ import {
 } from "@/interfaces/mobile";
 import { UserRole } from "@/interfaces/session";
 import { isEnumValue } from "@/lib/enum";
+import type { ProgramCalendarT } from "@/lib/program-calendar";
 
 /** The phone screens' translator and language, for the labels built in lib/mobile-*. */
 export type MobileTexts = {
@@ -14,6 +15,8 @@ export type MobileTexts = {
   locale: string;
   /** A saved request topic in the page's language (useTopicLabel). */
   topicLabel: (value: string) => string;
+  /** The weekly plan's labels (kind, speaker, week), shared with the desktop calendars. */
+  program: ProgramCalendarT;
 };
 
 /** "14:00" */

@@ -32,18 +32,21 @@ import {
   GRID_START_HOUR,
   isRecordingFull,
   itemsOnDay,
+  itemTimeLabel,
   longDayLabel,
   mentorshipHref,
   placeDayItems,
+  planKindLabel,
   recordingNote,
   sameDay,
   slotLabel,
-  timeLabel,
   weekdayLabel,
   type CalendarTexts,
   type EventDraft,
 } from "@/lib/coordinator-calendar";
 import { coordinatorMessageHref } from "@/lib/coordinator-mentorships";
+import { occurrenceKeys } from "@/lib/keyed-list";
+import { isAllDay, programEntryLines } from "@/lib/program-calendar";
 import { initials } from "@/lib/utils";
 
 const ROW = 56;
@@ -233,16 +236,24 @@ function MeetingDots() {
   );
 }
 
+// TEST UI: placeholder until the design team's screen; replace when it arrives.
+// The weekly plan's sessions and special days, which the design does not cover yet.
+const SESSION_DOT = "bg-[#2f8f83]";
+const SPECIAL_DAY_DOT = "bg-[#7a5af5]";
+
+function dotColor(kind: CoordinatorAgendaKind) {
+  if (kind === CoordinatorAgendaKind.Deadline) return "bg-[#b7791f]";
+  if (kind === CoordinatorAgendaKind.Session) return SESSION_DOT;
+  if (kind === CoordinatorAgendaKind.SpecialDay) return SPECIAL_DAY_DOT;
+  return "bg-[#22262b]";
+}
+
 function KindDot({ item }: { item: CoordinatorCalendarItem }) {
   if (item.kind === CoordinatorAgendaKind.Meeting) return <MeetingDots />;
   return (
     <span
       aria-hidden
-      className={`size-2 shrink-0 rounded-full ${
-        item.kind === CoordinatorAgendaKind.Deadline
-          ? "bg-[#b7791f]"
-          : "bg-[#22262b]"
-      }`}
+      className={`size-2 shrink-0 rounded-full ${dotColor(item.kind)}`}
     />
   );
 }
@@ -260,6 +271,14 @@ function Legend() {
       <li className="flex items-center gap-1.5">
         <span className="size-2 rounded-full bg-[#b7791f]" />{" "}
         {t("deadlineKind")}
+      </li>
+      <li className="flex items-center gap-1.5">
+        <span className={`size-2 rounded-full ${SESSION_DOT}`} />{" "}
+        {t("sessionKind")}
+      </li>
+      <li className="flex items-center gap-1.5">
+        <span className={`size-2 rounded-full ${SPECIAL_DAY_DOT}`} />{" "}
+        {t("specialDayKind")}
       </li>
       <li className="flex items-center gap-1.5">
         <span className="size-2 rounded-full bg-[#d9464b]" /> {t("conflict")}
@@ -283,6 +302,12 @@ function itemTone(item: CoordinatorCalendarItem) {
   if (item.kind === CoordinatorAgendaKind.Deadline) {
     return "border-[#fff1d6] bg-[#fff6e5] text-[#b7791f]";
   }
+  if (item.kind === CoordinatorAgendaKind.Session) {
+    return "border-[#bfe3dd] bg-[#eef8f6] text-[#1f6f65]";
+  }
+  if (item.kind === CoordinatorAgendaKind.SpecialDay) {
+    return "border-[#d9d0fb] bg-[#f4f1fe] text-[#5b3fd1]";
+  }
   return "border-[#e9ecef] bg-white text-[#22262b]";
 }
 
@@ -295,8 +320,10 @@ function itemDetail(
   item: CoordinatorCalendarItem,
   { t, locale }: CalendarTexts,
 ) {
-  const time = timeLabel(item.startsAt, locale);
+  const time = itemTimeLabel(item, { t, locale });
   if (item.proposalId) return `${time} · ${t("proposedSlot")}`;
+  const planKind = planKindLabel(item, t);
+  if (planKind) return `${time} · ${planKind}`;
   if (item.kind === CoordinatorAgendaKind.Meeting) {
     return item.topic ? `${time} · ${item.topic}` : time;
   }
@@ -496,7 +523,7 @@ function MonthGrid({
                     >
                       <KindDot item={item} />
                       <span className="truncate">
-                        {timeLabel(item.startsAt, locale)} {itemName(item, t)}
+                        {itemTimeLabel(item, { t, locale })} {itemName(item, t)}
                       </span>
                     </button>
                   </li>
@@ -556,7 +583,7 @@ function ListView({
                   className="grid w-full grid-cols-[64px_16px_1fr_auto] items-center gap-2 py-2.5 text-left"
                 >
                   <span className="text-[12.5px] text-[#858c96]">
-                    {timeLabel(item.startsAt, locale)}
+                    {itemTimeLabel(item, { t, locale })}
                   </span>
                   <KindDot item={item} />
                   <span className="min-w-0">
@@ -599,8 +626,12 @@ function ItemCard({
   onClose: () => void;
 }) {
   const { t, locale } = useCalendarTexts();
+  const tProgram = useTranslations("programCalendar");
   const meeting = item.kind === CoordinatorAgendaKind.Meeting;
   const recording = meeting ? recordingNote(item, capacity, t) : null;
+  const planKind = planKindLabel(item, t);
+  const planLines = item.plan ? programEntryLines(item, tProgram) : [];
+  const planLineKeys = occurrenceKeys(planLines);
   const facts = [
     item.topic ? t("topic", { topic: item.topic }) : null,
     item.sequence ? t("sequence", { n: item.sequence }) : null,
@@ -640,6 +671,17 @@ function ItemCard({
       </div>
       <ul className="mt-4 space-y-1.5 text-[12.5px] text-[#22262b]">
         <li>{slotLabel(item, locale)}</li>
+        {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+        {planKind ? (
+          <li className="text-[#676e78]">
+            {isAllDay(item) ? `${planKind} · ${t("allDayShort")}` : planKind}
+          </li>
+        ) : null}
+        {planLines.map((line, index) => (
+          <li key={planLineKeys[index]} className="text-[#676e78]">
+            {line}
+          </li>
+        ))}
         {item.proposalId ? (
           <li>{t("awaitingApproval")}</li>
         ) : meeting ? (
@@ -791,6 +833,11 @@ function Summary({
       label: t("deadlineKind"),
       value: data.summary.deadlines,
       dot: <span className="size-2 rounded-full bg-[#b7791f]" />,
+    },
+    {
+      label: t("planEntries"),
+      value: data.summary.planEntries,
+      dot: <span className={`size-2 rounded-full ${SESSION_DOT}`} />,
     },
     {
       label: t("unscheduled"),
