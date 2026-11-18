@@ -208,6 +208,63 @@ describe("useWeeklyProgramImport", () => {
     expect(result.current.keepPast).toBe(false);
   });
 
+  it("saves the whole file on a first upload in the middle of the program", async () => {
+    vi.mocked(readWeeklyProgram).mockResolvedValue(
+      weeklyProgramProposal({
+        existing: { phaseCount: 0, weekCount: 0, currentWeek: 4 },
+      }),
+    );
+    const detail = coordinatorProgramDetail();
+    vi.mocked(saveWeeklyProgram).mockResolvedValue({
+      program: detail,
+      plan: weekPlan({ totalWeeks: 11 }),
+    });
+    vi.mocked(uploadDocument).mockResolvedValue({
+      id: "doc-new",
+      kind: DocumentKind.WeeklyProgram,
+      originalFilename: "haftalik.pdf",
+      sizeBytes: 1,
+    });
+    const { result } = render(detail);
+
+    act(() => result.current.chooseFile(new File(["x"], "haftalik.pdf")));
+    await waitFor(() => expect(result.current.reviewing).toBe(true));
+
+    expect(result.current.mustConfirm).toBe(false);
+    expect(result.current.keepPast).toBe(false);
+    expect(result.current.lastKeptWeek).toBeNull();
+    act(() => result.current.save());
+    await waitFor(() => expect(saveWeeklyProgram).toHaveBeenCalledTimes(1));
+    expect(vi.mocked(saveWeeklyProgram).mock.lastCall?.[1]).toMatchObject({
+      weeks: expect.arrayContaining([expect.objectContaining({ week: 1 })]),
+      seenPhaseCount: 0,
+      seenWeekCount: 0,
+      keepPast: false,
+    });
+  });
+
+  it("keeps the saved past by default when a running program already has a plan", async () => {
+    vi.mocked(readWeeklyProgram).mockResolvedValue(
+      weeklyProgramProposal({
+        existing: { phaseCount: 3, weekCount: 7, currentWeek: 4 },
+      }),
+    );
+    vi.mocked(uploadDocument).mockResolvedValue({
+      id: "doc-new",
+      kind: DocumentKind.WeeklyProgram,
+      originalFilename: "haftalik.pdf",
+      sizeBytes: 1,
+    });
+    const { result } = render();
+
+    act(() => result.current.chooseFile(new File(["x"], "haftalik.pdf")));
+    await waitFor(() => expect(result.current.reviewing).toBe(true));
+
+    expect(result.current.mustConfirm).toBe(true);
+    expect(result.current.keepPast).toBe(true);
+    expect(result.current.lastKeptWeek).toBe(3);
+  });
+
   it("reads the just uploaded file again when the first read failed", async () => {
     vi.mocked(uploadDocument).mockResolvedValue({
       id: "doc-new",

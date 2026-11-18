@@ -58,8 +58,11 @@ function reviewOf(documentId: string, proposal: WeeklyProgramProposal): Review {
     proposal,
     weeks: proposal.weeks.map(weekDraftOf),
     phases: phaseRangeDraftsOf(proposal.phases),
-    // A running program keeps what already happened unless the coordinator says otherwise.
-    keepPast: proposal.existing.currentWeek !== null,
+    // A running program keeps what it already saved unless the coordinator says otherwise. With nothing saved
+    // there is nothing to keep, and the choice is not even shown, so the whole file is saved.
+    keepPast:
+      replacesExistingPlan(proposal.existing) &&
+      proposal.existing.currentWeek !== null,
     confirmed: false,
   };
 }

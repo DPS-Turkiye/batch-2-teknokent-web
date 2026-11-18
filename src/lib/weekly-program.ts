@@ -108,12 +108,20 @@ export function phaseRangeProblem(
   return null;
 }
 
-/** The last week a save leaves as it is, or null when the whole plan is replaced. */
+/**
+ * The last week whose saved version a save leaves as it is, or null when the whole plan is replaced. Only saved
+ * weeks are kept: a past week the saved plan lacks still comes from the file.
+ */
 export function lastKeptWeek(
   existing: WeeklyProgramExisting,
   keepPast: boolean,
 ) {
-  if (!keepPast || existing.currentWeek === null || existing.currentWeek < 2) {
+  if (
+    !keepPast ||
+    !replacesExistingPlan(existing) ||
+    existing.currentWeek === null ||
+    existing.currentWeek < 2
+  ) {
     return null;
   }
   return existing.currentWeek - 1;
@@ -158,7 +166,8 @@ export function weeklyProgramSaveInput({
     })),
     seenPhaseCount: existing.phaseCount,
     seenWeekCount: existing.weekCount,
-    keepPast,
+    // With no saved plan there is nothing to keep; the whole file is saved.
+    keepPast: keepPast && replacesExistingPlan(existing),
   };
 }
 
