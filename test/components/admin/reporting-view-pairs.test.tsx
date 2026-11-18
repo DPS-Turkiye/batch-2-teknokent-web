@@ -349,7 +349,9 @@ describe("ProgramReporting pairs and KPIs", () => {
     expect(
       view.getByRole("link", { name: "Koordinatöre git" }),
     ).toHaveAttribute("href", "/admin/users?user=coord-1");
-    expect(view.getByRole("link", { name: "Mentorluğa git" })).toHaveAttribute(
+    expect(
+      view.getByRole("link", { name: "Müdahale gerekenleri gör" }),
+    ).toHaveAttribute(
       "href",
       "/admin/mentorships/interventions?program=ODT%C3%9C%20Stars%202026",
     );

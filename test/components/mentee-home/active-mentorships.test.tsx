@@ -42,8 +42,20 @@ describe("ActiveMentorships", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Planlı görüşme yok")).toBeInTheDocument();
     expect(
-      screen.getByRole("link", { name: "Mentorluğa git: Selin Kaya" }),
-    ).toHaveAttribute("href", "/mentorships?tab=active");
+      screen.getByRole("link", { name: "Görüşmeyi aç: Nihan Öztürk" }),
+    ).toHaveAttribute("href", `/meetings/research?id=${nextMeeting.id}`);
+    expect(
+      screen.getByRole("link", {
+        name: "Talebi gör: Selin Kaya",
+      }),
+    ).toHaveAttribute("href", "/mentor-request/status?id=r-1");
+    expect(screen.getByText("Görüşmeyi aç")).toBeInTheDocument();
+    expect(screen.getAllByText("Talebi gör")).toHaveLength(2);
+    expect(screen.getByRole("link", { name: "Tümü (3)" })).toHaveAttribute(
+      "href",
+      "/mentorships?tab=active",
+    );
+    expect(screen.queryByText(/Mentorluğa git/)).not.toBeInTheDocument();
   });
 
   it("says it is loading, then shows the empty state", () => {

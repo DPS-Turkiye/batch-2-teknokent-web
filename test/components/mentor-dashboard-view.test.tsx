@@ -256,6 +256,15 @@ describe("MentorDashboardView", () => {
     expect(screen.getByText("Bugün aksiyon bekleyen")).toBeInTheDocument();
     expect(screen.getByText("Yaklaşan görüşmeler")).toBeInTheDocument();
     expect(screen.getByText("Startup çalışmaları")).toBeInTheDocument();
+    const startupLink = screen.getByRole("link", {
+      name: "Startup’ı gör: Atlas AI",
+    });
+    expect(startupLink).toHaveAttribute(
+      "href",
+      "/mentorships/requests/request-2",
+    );
+    expect(startupLink).toHaveTextContent("Startup’ı gör");
+    expect(screen.queryByText(/Mentorluğa git/)).not.toBeInTheDocument();
     expect(screen.getByText("Mentorluk talepleri")).toBeInTheDocument();
     expect(
       screen.getByText("Değerlendirme bekleyen görüşmeler"),
