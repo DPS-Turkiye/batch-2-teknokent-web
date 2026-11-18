@@ -1,5 +1,5 @@
 import {
-  ProgramEventKind,
+  ProgramCalendarEntryKind,
   type MemberProgramEvent,
 } from "@/interfaces/coordinator-program";
 import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
@@ -11,12 +11,20 @@ import {
 } from "@/lib/calendar";
 import { mobileClock, mobileLongDay, type MobileTexts } from "@/lib/mobile";
 import { meetingTitle } from "@/lib/mobile-home";
+import {
+  isAllDay,
+  programEntryKindLabel,
+  programEntryLines,
+  programEntryTime,
+} from "@/lib/program-calendar";
 import { relativeDayLabel } from "@/lib/utils";
 
 export enum MobileAgendaKind {
   Meeting = "meeting",
   Event = "event",
   Deadline = "deadline",
+  /** A session of the program's weekly plan (a lesson, a workshop, a visit). */
+  Session = "session",
 }
 
 export type MobileAgendaEntry = {
@@ -30,6 +38,8 @@ export type MobileAgendaEntry = {
   detail: string;
   meeting: MeetingItem | null;
   event: MemberProgramEvent | null;
+  /** The detail sheet's description: a program entry's own text, or the plan's speaker, week and place. */
+  notes: string | null;
   startup: { name: string; initials: string } | null;
   /** A time the mentor has been offered but not yet approved; not a booked meeting. */
   awaitingApproval?: boolean;
@@ -99,6 +109,7 @@ function meetingEntry(
     length: t("calendar.minutes", { minutes: meeting.durationMinutes }),
     title: meetingTitle(meeting, t),
     detail: meeting.meetLink ? `${people} · ${t("meeting.online")}` : people,
+    notes: meeting.agenda ?? null,
     meeting,
     event: null,
     startup: null,
@@ -107,10 +118,10 @@ function meetingEntry(
 
 function programEntry(
   event: MemberProgramEvent,
-  { t, locale }: MobileTexts,
+  { t, locale, program }: MobileTexts,
 ): MobileAgendaEntry {
   const startsAt = new Date(event.startsAt);
-  if (event.kind === ProgramEventKind.Deadline) {
+  if (event.kind === ProgramCalendarEntryKind.Deadline) {
     return {
       id: `event:${event.id}`,
       kind: MobileAgendaKind.Deadline,
@@ -119,7 +130,10 @@ function programEntry(
       time: mobileClock(startsAt, locale),
       length: t("calendar.kinds.deadline"),
       title: event.title,
-      detail: t("calendar.deadlineDetail", { program: event.programName }),
+      detail: t("calendar.deadlineDetail", {
+        program: event.programName ?? "",
+      }),
+      notes: event.description,
       meeting: null,
       event,
       startup: null,
@@ -129,6 +143,30 @@ function programEntry(
   const minutes = Math.round(
     (endsAt.getTime() - startsAt.getTime()) / MINUTE_MS,
   );
+  if (event.plan) {
+    const lines = programEntryLines(event, program);
+    const allDay = isAllDay(event);
+    return {
+      id: `event:${event.id}`,
+      kind:
+        event.kind === ProgramCalendarEntryKind.Session
+          ? MobileAgendaKind.Session
+          : MobileAgendaKind.Event,
+      startsAt,
+      // An all-day entry lasts its whole day, so it is not over (or skipped as "next") at midnight.
+      endsAt: allDay ? addDays(startOfDay(startsAt), 1) : endsAt,
+      time: programEntryTime(event, locale, program),
+      length: !allDay && minutes > 0 ? t("calendar.minutes", { minutes }) : "",
+      title: event.title,
+      detail: [programEntryKindLabel(event.kind, program), lines[0]]
+        .filter(Boolean)
+        .join(" · "),
+      notes: lines.length > 0 ? lines.join("\n") : null,
+      meeting: null,
+      event,
+      startup: null,
+    };
+  }
   const place = event.description?.split("\n")[0]?.trim();
   return {
     id: `event:${event.id}`,
@@ -141,6 +179,7 @@ function programEntry(
     detail: place
       ? `${t("calendar.kinds.event")} · ${place}`
       : t("calendar.kinds.event"),
+    notes: event.description,
     meeting: null,
     event,
     startup: null,
@@ -265,6 +304,9 @@ export function canJoin(entry: MobileAgendaEntry, now: Date) {
 /** "Perşembe 24 Eylül · 14:00–15:00" */
 export function entryTimeLine(entry: MobileAgendaEntry, texts: MobileTexts) {
   const { locale } = texts;
+  if (entry.event && isAllDay(entry.event)) {
+    return `${mobileLongDay(entry.startsAt, texts)} · ${entry.time}`;
+  }
   const range =
     entry.endsAt > entry.startsAt
       ? `${mobileClock(entry.startsAt, locale)}–${mobileClock(entry.endsAt, locale)}`
@@ -288,6 +330,14 @@ export function entryTimeHint(
           ? t("calendar.when.past")
           : t("calendar.startsIn.days", { days: offset });
   return entry.length ? `${entry.length} · ${when}` : when;
+}
+
+/** "Program oturumu" for a weekly-plan entry, else the agenda kind's name. */
+export function entryKindLabel(entry: MobileAgendaEntry, texts: MobileTexts) {
+  if (entry.awaitingApproval) return texts.t("calendar.awaitingApproval");
+  return entry.event?.plan
+    ? programEntryKindLabel(entry.event.kind, texts.program)
+    : texts.t(`calendar.kinds.${entry.kind}`);
 }
 
 /** "Google Meet" for a Meet link, otherwise the link's host. */

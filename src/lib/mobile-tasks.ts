@@ -1,6 +1,6 @@
 import { ActionItemStatus, type ActionItem } from "@/interfaces/action-item";
 import {
-  ProgramEventKind,
+  ProgramCalendarEntryKind,
   type MemberProgramEvent,
 } from "@/interfaces/coordinator-program";
 import type { MeetingItem } from "@/interfaces/meeting";
@@ -154,7 +154,7 @@ export function programDeadlineTask(
       dueAt: new Date(event.startsAt),
       assignedBy: null,
       assignedOn: null,
-      chips: [event.programName],
+      chips: event.programName ? [event.programName] : [],
       completed: false,
       requestId: null,
       chatHref: null,
@@ -222,7 +222,7 @@ export function collectTasks(
     ...input.deadlines
       .filter(
         (event) =>
-          event.kind === ProgramEventKind.Deadline &&
+          event.kind === ProgramCalendarEntryKind.Deadline &&
           new Date(event.startsAt) >= startOfDay(today),
       )
       .map((event) => programDeadlineTask(event, today, texts)),

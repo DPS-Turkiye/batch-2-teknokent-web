@@ -1744,7 +1744,8 @@
     "nextWeek": "Next week",
     "loadFailed": "Couldn't load the calendar: {error}",
     "loading": "Loading calendar…",
-    "noProgram": "No program events yet.",
+    "noProgram": "No program session or event this week.",
+    "programLoadFailed": "The program calendar could not be loaded; program sessions may be missing.",
     "filters": {
       "all": "All",
       "mentorship": "Mentorship",
@@ -2942,6 +2943,8 @@
     "createAt": "Create a meeting on day {day} at {time}",
     "noProgram": "You're not in any program.",
     "programList": "You're in {count, plural, one {# program} other {# programs}}: {names}",
+    "programRow": "Program",
+    "programLoadFailed": "The program calendar could not be loaded; program sessions may be missing.",
     "createFailed": "Couldn't create the meeting.",
     "fallback": {
       "mentorship": "Mentorship",
@@ -3722,7 +3725,9 @@
       "MEETING": "Meeting",
       "EVENT": "Event",
       "DEADLINE": "Deadline",
-      "ACTION": "Action"
+      "ACTION": "Action",
+      "SESSION": "Program session",
+      "SPECIAL_DAY": "Special day"
     },
     "allDay": "During the day",
     "metrics": {
@@ -3785,6 +3790,10 @@
     "meetingKind": "Mentorship meeting",
     "eventKind": "Event",
     "deadlineKind": "Deadline",
+    "sessionKind": "Program session",
+    "specialDayKind": "Special day",
+    "allDayShort": "All day",
+    "planEntries": "Weekly plan",
     "conflict": "Conflict",
     "proposedSlot": "Proposed slot",
     "mentorFallback": "Mentor",
@@ -5598,7 +5607,8 @@
       "kinds": {
         "meeting": "Mentorship meeting",
         "event": "Program event",
-        "deadline": "Deadline"
+        "deadline": "Deadline",
+        "session": "Program session"
       },
       "startsIn": {
         "now": "now",
@@ -5632,6 +5642,7 @@
       "monthWeekdays": ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"],
       "legendMeeting": "Meeting",
       "legendEvent": "Event",
+      "legendSession": "Session",
       "backToToday": "Back to today"
     },
     "tasks": {
@@ -7031,5 +7042,20 @@
     },
     "footer": "menton · METU",
     "metaTitle": "menton · METU"
+  },
+  "programCalendar": {
+    "kinds": {
+      "session": "Program session",
+      "specialDay": "Special day",
+      "event": "Program event",
+      "deadline": "Deadline"
+    },
+    "allDay": "All day",
+    "speaker": "Speaker: {name}",
+    "week": "Week {week} · {title}",
+    "place": "Place: {place}",
+    "program": "Program: {name}",
+    "close": "Close",
+    "openDetail": "Open {title}"
   }
 }

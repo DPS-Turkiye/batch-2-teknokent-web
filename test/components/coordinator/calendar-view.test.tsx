@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { CoordinatorCalendarView } from "@/components/coordinator/calendar-view";
+import { CoordinatorAgendaKind } from "@/interfaces/coordinator-overview";
 import { ProgramEventKind } from "@/interfaces/coordinator-program";
 import { getCoordinatorCalendar } from "@/lib/client/coordinator-calendar";
 import {
@@ -21,6 +22,7 @@ import {
 } from "@test/fixtures/coordinator-calendar";
 import { coordinatorProgram } from "@test/fixtures/coordinator-programs";
 import { meetingProposal } from "@test/fixtures/meeting-proposals";
+import { planItem } from "@test/fixtures/program-calendar";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/coordinator-calendar", () => ({
@@ -138,6 +140,60 @@ describe("CoordinatorCalendarView", () => {
       "href",
       "/coordinator/messages?program=program-1&mentor=mentor-1",
     );
+  });
+
+  it("shows the weekly plan's lesson apart from events and opens it with its speaker and week", async () => {
+    const lesson = calendarMeeting({
+      id: "session-1",
+      kind: CoordinatorAgendaKind.Session,
+      title: "Değer Önerisi ve Market Fit",
+      startsAt: at(0, 0),
+      endsAt: null,
+      mentorshipId: null,
+      mentorId: null,
+      mentorName: null,
+      organizationId: null,
+      organizationName: null,
+      topic: null,
+      sequence: null,
+      meetLink: null,
+      recordingLoad: null,
+      plan: planItem({ speaker: "Sarper" }),
+    });
+    const base = coordinatorCalendar();
+    vi.mocked(getCoordinatorCalendar).mockResolvedValue(
+      coordinatorCalendar({
+        items: [lesson, ...base.items],
+        summary: { ...base.summary, planEntries: 1 },
+      }),
+    );
+    const user = userEvent.setup();
+    renderWithQueryClient(<CoordinatorCalendarView />);
+
+    const chip = await screen.findByRole("button", {
+      name: "Değer Önerisi ve Market Fit Pzt 14 Eyl",
+    });
+    expect(
+      within(chip).getByText("Tüm gün · Program oturumu"),
+    ).toBeInTheDocument();
+    const counts = screen.getByRole("article", { name: "Bu hafta" });
+    expect(
+      within(counts).getByText("Haftalık plan").closest("div"),
+    ).toHaveTextContent("Haftalık plan1");
+
+    await user.click(chip);
+
+    const card = screen.getByRole("article", { name: "Kayıt detayı" });
+    expect(
+      within(card).getByText("Program oturumu · Tüm gün"),
+    ).toBeInTheDocument();
+    expect(within(card).getByText("Konuşmacı: Sarper")).toBeInTheDocument();
+    expect(
+      within(card).getByText("4. hafta · Sorunu Doğrula"),
+    ).toBeInTheDocument();
+    expect(
+      within(card).queryByRole("link", { name: "Mesaj" }),
+    ).not.toBeInTheDocument();
   });
 
   it("warns when the recording bot is full at a meeting's time", async () => {

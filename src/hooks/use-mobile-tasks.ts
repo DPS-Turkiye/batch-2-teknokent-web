@@ -11,8 +11,8 @@ import {
 import { useDismissedHomeTasks } from "@/hooks/use-dismissed-home-tasks";
 import { useMeetings } from "@/hooks/use-meetings";
 import { useMeetingsAwaitingFeedback } from "@/hooks/use-meetings-awaiting-feedback";
+import { useMemberProgramEvents } from "@/hooks/use-member-program-events";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
-import { MEMBER_PROGRAM_EVENTS_QUERY_KEY } from "@/hooks/use-mobile-calendar";
 import { useMobileTexts } from "@/hooks/use-mobile-texts";
 import { STARTUP_PROCESS_QUERY_KEY } from "@/hooks/use-startup-process";
 import { ActionItemStatus } from "@/interfaces/action-item";
@@ -20,7 +20,6 @@ import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { MobileTaskSource, type MobileTask } from "@/interfaces/mobile";
 import { UserRole } from "@/interfaces/session";
 import { changeActionItemStatus } from "@/lib/client/action-items";
-import { getMemberProgramEvents } from "@/lib/client/programs";
 import { getStartupProcess } from "@/lib/client/startup-process";
 import { homeTaskId } from "@/lib/mentee-home";
 import {
@@ -73,10 +72,7 @@ export function useMobileTasks() {
     queryFn: getStartupProcess,
     retry: false,
   });
-  const deadlines = useQuery({
-    queryKey: [MEMBER_PROGRAM_EVENTS_QUERY_KEY, range],
-    queryFn: () => getMemberProgramEvents(range),
-  });
+  const deadlines = useMemberProgramEvents(range);
   // Home hides a rating the mentee dismissed on the web, so this list does too.
   const { session } = useSession();
   const { dismissedTaskIds } = useDismissedHomeTasks(session?.userId);

@@ -17,5 +17,6 @@ export function mobileTexts(language: TestLocale = "tr"): MobileTexts {
       const area = label("supportArea", value);
       return area !== value ? area : label("mentorTopic", value);
     },
+    program: translatorIn(language, "programCalendar"),
   };
 }
