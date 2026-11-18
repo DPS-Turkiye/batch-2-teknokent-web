@@ -1,4 +1,5 @@
 import { ActionItemStatus } from "@/interfaces/action-item";
+import type { ProgramThisWeek } from "@/interfaces/program-week";
 import { UserRole } from "@/interfaces/session";
 import {
   StartupStageState,
@@ -14,6 +15,12 @@ export enum ChipTone {
   Gray = "gray",
   Green = "green",
 }
+
+export const STAGE_STATE_TONES: Record<StartupStageState, ChipTone> = {
+  [StartupStageState.Current]: ChipTone.Amber,
+  [StartupStageState.Completed]: ChipTone.Green,
+  [StartupStageState.Upcoming]: ChipTone.Gray,
+};
 
 export const ASSIGNMENT_STATUS_TONES: Record<ActionItemStatus, ChipTone> = {
   [ActionItemStatus.Open]: ChipTone.Amber,
@@ -143,4 +150,34 @@ export function currentPhase(process: StartupProcess): ProcessPhase | null {
   return (
     process.phases.find((phase) => phase.id === process.currentPhaseId) ?? null
   );
+}
+
+export type SoftwareDevelopmentCard = {
+  state: StartupStageState;
+  /** The program's start and end; null unless both are set. */
+  dates: { startsOn: string; endsOn: string } | null;
+};
+
+/**
+ * "Yazılım geliştirme" on Süreç: the team builds its software for the whole program, so the card follows the
+ * program's dates rather than a phase. It reads the same before/after flags as "Bu hafta" so the two never
+ * disagree. Null outside a program.
+ */
+export function softwareDevelopmentCard(
+  week: ProgramThisWeek | null,
+): SoftwareDevelopmentCard | null {
+  if (!week) return null;
+  const state = week.ended
+    ? StartupStageState.Completed
+    : week.notStarted
+      ? StartupStageState.Upcoming
+      : StartupStageState.Current;
+  const { programStart, programEnd } = week;
+  return {
+    state,
+    dates:
+      programStart && programEnd
+        ? { startsOn: programStart, endsOn: programEnd }
+        : null,
+  };
 }

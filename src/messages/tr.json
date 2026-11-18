@@ -2237,7 +2237,17 @@
     "markingDone": "Teslim ediliyor…",
     "markedDone": "Ödev teslim edildi.",
     "markDoneFailed": "Ödev teslim edilemedi.",
-    "uploadOptional": "Dosya ekle"
+    "uploadOptional": "Dosya ekle",
+    "softwareDevelopment": {
+      "title": "Yazılım geliştirme",
+      "body": "Program boyunca ürününü/yazılımını geliştir. İlerlemeni mentorunla görüşmelerinde takip edin.",
+      "state": {
+        "CURRENT": "Devam ediyor",
+        "COMPLETED": "Tamamlandı",
+        "UPCOMING": "Henüz başlamadı"
+      },
+      "link": "Mentorluklarım →"
+    }
   },
   "personalProfile": {
     "comingSoon": "Bu bölüm yakında eklenecek.",

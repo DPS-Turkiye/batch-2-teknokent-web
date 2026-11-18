@@ -2235,7 +2235,17 @@
     "markingDone": "Handing in…",
     "markedDone": "Assignment handed in.",
     "markDoneFailed": "Could not hand in the assignment.",
-    "uploadOptional": "Add a file"
+    "uploadOptional": "Add a file",
+    "softwareDevelopment": {
+      "title": "Software development",
+      "body": "Keep building your product/software throughout the program. Follow your progress with your mentor in your meetings.",
+      "state": {
+        "CURRENT": "In progress",
+        "COMPLETED": "Done",
+        "UPCOMING": "Not started yet"
+      },
+      "link": "My mentorships →"
+    }
   },
   "personalProfile": {
     "comingSoon": "This section is coming soon.",
