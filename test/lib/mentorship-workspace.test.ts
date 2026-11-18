@@ -6,7 +6,7 @@ import {
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
 import {
-  activeMentorshipHref,
+  activeMentorshipLink,
   assistantMeetingHref,
   formatRequestSentAt,
   isMeetingEnded,
@@ -26,7 +26,7 @@ import {
   requestHasOpenMeeting,
   requestProgressPercent,
 } from "@/lib/mentorship-workspace";
-import { MentorshipWorkspaceTab } from "@/types/mentorship";
+import { MentorshipLinkKind, MentorshipWorkspaceTab } from "@/types/mentorship";
 
 const request: MentorshipRequest = {
   id: "req-1",
@@ -222,15 +222,22 @@ describe("mentorship workspace helpers", () => {
       mentorMessage: "Takvimden oluşturuldu",
     };
 
-    expect(activeMentorshipHref(calendarRequest, meeting, true)).toBe(
-      "/meetings/research?id=meeting-cal",
-    );
-    expect(activeMentorshipHref(request, meeting, false)).toBe(
-      "/meetings/research?id=meeting-cal",
-    );
-    expect(activeMentorshipHref(request, null, true)).toBe(
-      mentorRequestStartupHref(request.id),
-    );
+    expect(activeMentorshipLink(calendarRequest, meeting, true)).toEqual({
+      kind: MentorshipLinkKind.Meeting,
+      href: "/meetings/research?id=meeting-cal",
+    });
+    expect(activeMentorshipLink(request, meeting, false)).toEqual({
+      kind: MentorshipLinkKind.Meeting,
+      href: "/meetings/research?id=meeting-cal",
+    });
+    expect(activeMentorshipLink(request, null, true)).toEqual({
+      kind: MentorshipLinkKind.Request,
+      href: mentorRequestStartupHref(request.id),
+    });
+    expect(activeMentorshipLink(request, null, false)).toEqual({
+      kind: MentorshipLinkKind.Request,
+      href: "/mentor-request/status?id=req-1",
+    });
   });
 
   it("opens the mentor messages inbox for a request", () => {

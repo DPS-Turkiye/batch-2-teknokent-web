@@ -425,6 +425,7 @@ function StartupCard({
         </span>
         <Link
           href={href}
+          aria-label={t("startups.openLabel", { name })}
           className="text-[12.5px]! font-medium! leading-[18px]! text-[#26a4ff]"
         >
           {t("startups.open")}

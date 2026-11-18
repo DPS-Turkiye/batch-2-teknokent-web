@@ -110,6 +110,11 @@ function mockMeetings(data: MeetingItem[]) {
   vi.mocked(useMeetings).mockReturnValue(successQuery(data));
 }
 
+/** Every link's target on the page, for links named by a formatted date. */
+function linkHrefs() {
+  return screen.getAllByRole("link").map((link) => link.getAttribute("href"));
+}
+
 describe("MentorshipsPage", () => {
   beforeEach(() => {
     navigation.search = "tab=active";
@@ -197,9 +202,25 @@ describe("MentorshipsPage", () => {
 
     renderWithQueryClient(<MentorshipsPage />);
 
+    await waitFor(() => {
+      expect(linkHrefs()).toContain("/meetings/research?id=meeting-req-42");
+    });
     expect(
-      await screen.findByRole("link", { name: "Mentorluğa git →" }),
-    ).toHaveAttribute("href", "/meetings/research?id=meeting-req-42");
+      screen.queryByRole("link", { name: /^Talebi gör/ }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("links a mentorship without a meeting to its request", async () => {
+    mockPage("active", [request({ id: "req-7", mentorName: "Leyla Aksoy" })]);
+    mockMeetings([]);
+
+    renderWithQueryClient(<MentorshipsPage />);
+
+    const link = await screen.findByRole("link", {
+      name: "Talebi gör: Leyla Aksoy",
+    });
+    expect(link).toHaveAttribute("href", "/mentor-request/status?id=req-7");
+    expect(link).toHaveTextContent("Talebi gör");
   });
 
   it("links calendar-origin active cards to the meeting context page", async () => {
@@ -215,9 +236,9 @@ describe("MentorshipsPage", () => {
 
     renderWithQueryClient(<MentorshipsPage />);
 
-    expect(
-      await screen.findByRole("link", { name: "Mentorluğa git →" }),
-    ).toHaveAttribute("href", "/meetings/research?id=meeting-cal");
+    await waitFor(() => {
+      expect(linkHrefs()).toContain("/meetings/research?id=meeting-cal");
+    });
   });
 
   it("shows the meeting link on the Aktif tab for the whole startup", async () => {
@@ -378,7 +399,6 @@ describe("MentorshipsPage", () => {
     renderWithQueryClient(<MentorshipsPage />);
 
     expect(await screen.findByText("Nihan Öztürk")).toBeInTheDocument();
-    expect(screen.getByText("Mentorluğa git →")).toBeInTheDocument();
     expect(
       screen.queryByText("Yakın zamanda tamamlanan"),
     ).not.toBeInTheDocument();

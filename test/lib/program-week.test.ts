@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   nextFreeWeek,
+  pastWeeks,
   planDayLabel,
   programTotalWeeks,
   programWeekCardState,
@@ -21,6 +22,7 @@ import {
   planWeek,
   specialDay,
   thisWeek,
+  weekSoFar,
 } from "@test/fixtures/program-week";
 
 function draft(week: number, title = `Hafta ${week}`): WeekDraft {
@@ -73,6 +75,22 @@ describe("the Bu hafta card state", () => {
         ?.name,
     ).toBe("Fikir doğrulama");
     expect(weekPhase(thisWeek({ phases: [] }))).toBeNull();
+  });
+});
+
+describe("the past weeks list", () => {
+  it("leaves out the running week and puts the newest past week first", () => {
+    const weeks = pastWeeks([
+      weekSoFar(1),
+      weekSoFar(3, { current: true }),
+      weekSoFar(2),
+    ]);
+
+    expect(weeks.map((week) => week.plan.week)).toEqual([2, 1]);
+  });
+
+  it("is empty when only the running week has begun", () => {
+    expect(pastWeeks([weekSoFar(1, { current: true })])).toEqual([]);
   });
 });
 

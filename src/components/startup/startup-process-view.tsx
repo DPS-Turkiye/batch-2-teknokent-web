@@ -1,15 +1,18 @@
 "use client";
 
-import { Check, ChevronRight } from "lucide-react";
+import { Check, ChevronRight, Code } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
+import Link from "next/link";
 
+import { ProgramPastWeeks } from "@/components/startup/program-past-weeks";
 import { ProgramWeekCard } from "@/components/startup/program-week-card";
 import {
   StartupPageFrame,
   startupPrimaryActionClass,
 } from "@/components/startup/startup-page-frame";
 import { WeeklyCheckIn } from "@/components/startup/weekly-check-in";
+import { useSoftwareDevelopmentCard } from "@/hooks/use-software-development-card";
 import { useStartupProcess } from "@/hooks/use-startup-process";
 import { ActionItemStatus } from "@/interfaces/action-item";
 import {
@@ -23,6 +26,7 @@ import {
   ChipTone,
   formatRoundRange,
   formatStageRange,
+  STAGE_STATE_TONES,
   type PhaseCard,
 } from "@/lib/startup-process";
 import { calendarDay, formatDayMonth } from "@/lib/utils";
@@ -232,6 +236,54 @@ function AssignmentRow({
   );
 }
 
+// TEST UI: placeholder until the design team's screen; replace when it arrives.
+function SoftwareDevelopmentCard() {
+  const t = useTranslations("startupProcess.softwareDevelopment");
+  const locale = useLocale();
+  const card = useSoftwareDevelopmentCard();
+  if (!card) return null;
+  const completed = card.state === StartupStageState.Completed;
+  return (
+    <section
+      aria-labelledby="startup-software-development"
+      className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[#e4e7ea] bg-white px-5 py-4"
+    >
+      <div className="flex min-w-0 flex-1 items-start gap-3">
+        <span className="grid size-9 shrink-0 place-items-center rounded-full bg-[#fff4ec] text-[#e86f22]">
+          <Code aria-hidden className="size-[18px]" />
+        </span>
+        <div className="min-w-0 space-y-1">
+          <h2 id="startup-software-development" className={cardTitleClass}>
+            {t("title")}
+          </h2>
+          <p className="text-[12.5px] leading-[19px] text-[#676e78]">
+            {t("body")}
+          </p>
+          {card.dates ? (
+            <p className="text-xs leading-[18px] text-[#858c96]">
+              {formatStageRange(card.dates.startsOn, card.dates.endsOn, locale)}
+            </p>
+          ) : null}
+        </div>
+      </div>
+      <div className="flex flex-wrap items-center gap-2.5">
+        <span
+          className={`flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11.5px] font-medium leading-[17px] ${CHIP_TONES[STAGE_STATE_TONES[card.state]]}`}
+        >
+          {completed ? <Check aria-hidden className="size-3.5" /> : null}
+          {t(`state.${card.state}`)}
+        </span>
+        <Link
+          href={card.mentorshipsHref}
+          className="text-[12.5px] font-medium leading-[19px] text-[#9e4400] hover:underline"
+        >
+          {t("link")}
+        </Link>
+      </div>
+    </section>
+  );
+}
+
 export function StartupProcessView() {
   const t = useTranslations("startupProcess");
   const locale = useLocale();
@@ -269,6 +321,8 @@ export function StartupProcessView() {
           <ProgramWeekCard className="lg:flex-1" />
           <WeeklyCheckIn />
         </div>
+        <ProgramPastWeeks />
+        <SoftwareDevelopmentCard />
         <section aria-label={t("stages")} className="space-y-3">
           {process.hasPhases ? (
             <ol className="grid auto-cols-[minmax(150px,1fr)] grid-flow-col gap-3 overflow-x-auto pb-1">

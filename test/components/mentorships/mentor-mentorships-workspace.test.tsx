@@ -199,6 +199,11 @@ describe("MentorMentorshipsWorkspace", () => {
       screen.queryByRole("tab", { name: "Mentor Havuzu" }),
     ).not.toBeInTheDocument();
     expect(await screen.findByText("Döngü")).toBeInTheDocument();
+    // The meeting time is the card's link; no second "go to" link beside the name.
+    expect(
+      screen.queryByRole("link", { name: /^Talebi gör/ }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/Mentorluğa git/)).not.toBeInTheDocument();
     expect(screen.queryByText("istenilen belgeler")).not.toBeInTheDocument();
     expect(screen.queryByText("Toplantı Transkripti")).not.toBeInTheDocument();
 
@@ -425,6 +430,20 @@ describe("MentorMentorshipsWorkspace", () => {
     expect(
       screen.queryByRole("button", { name: "Talebi incele" }),
     ).not.toBeInTheDocument();
+  });
+
+  it("links an active mentorship without a meeting to its request", async () => {
+    mockPage("active", [
+      request({ id: "active-2", status: MentorshipRequestStatus.Accepted }),
+    ]);
+
+    renderWithQueryClient(<MentorMentorshipsWorkspace />);
+
+    const link = await screen.findByRole("link", {
+      name: "Talebi gör: Döngü",
+    });
+    expect(link).toHaveAttribute("href", "/mentorships/requests/active-2");
+    expect(link).toHaveTextContent("Talebi gör");
   });
 
   it("lets the mentor add a meet link later from Aktif", async () => {

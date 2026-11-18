@@ -7,7 +7,11 @@ import { MENTORSHIPS_TABS } from "@/lib/const";
 import { isOneOf } from "@/lib/enum";
 import { meetingCallHref as callHref } from "@/lib/meeting-context";
 import { pickUpcomingMeetings } from "@/lib/upcoming-meetings";
-import { MentorReviewMode, MentorshipWorkspaceTab } from "@/types/mentorship";
+import {
+  MentorReviewMode,
+  MentorshipLinkKind,
+  MentorshipWorkspaceTab,
+} from "@/types/mentorship";
 
 /** The mentee's Mentorluklarım tab from `?tab=`; without one it opens on the first tab, Mentor Havuzu. */
 export function menteeWorkspaceTab(
@@ -115,17 +119,28 @@ export function menteeRequestDetailHref(id: string) {
   return `/mentor-request/detail?id=${encodeURIComponent(id)}`;
 }
 
-export function activeMentorshipHref(
+/** The request behind a mentorship, from the viewer's side. */
+export function mentorshipRequestPageHref(
+  request: MentorshipRequest,
+  viewerIsMentor: boolean,
+) {
+  return viewerIsMentor
+    ? mentorRequestStartupHref(request.id)
+    : menteeRequestStatusHref(request.id);
+}
+
+/** An active mentorship opens its meeting once one exists, and its request until then. */
+export function activeMentorshipLink(
   request: MentorshipRequest,
   meeting: MeetingItem | null | undefined,
   viewerIsMentor: boolean,
 ) {
-  if (meeting) {
-    return meetingCallHref(meeting.id);
-  }
-  return viewerIsMentor
-    ? mentorRequestStartupHref(request.id)
-    : menteeRequestStatusHref(request.id);
+  return meeting
+    ? { kind: MentorshipLinkKind.Meeting, href: meetingCallHref(meeting.id) }
+    : {
+        kind: MentorshipLinkKind.Request,
+        href: mentorshipRequestPageHref(request, viewerIsMentor),
+      };
 }
 
 export function meetingAboutHref(meetingId: string) {

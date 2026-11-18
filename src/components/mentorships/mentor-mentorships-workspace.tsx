@@ -47,7 +47,6 @@ import {
   type PreferredSlot,
 } from "@/lib/mentor-availability-days";
 import {
-  activeMentorshipHref,
   assistantMeetingHref,
   endedMeetingsForRequest,
   formatRequestSentAt,
@@ -55,6 +54,7 @@ import {
   meetingCallHref,
   mentorRequestStartupHref,
   mentorshipPeriodLabel,
+  mentorshipRequestPageHref,
   mentorshipTopics,
   mentorWorkspaceName,
   mentorWorkspacePerson,
@@ -519,12 +519,21 @@ function ActiveTab({
                         {mentorWorkspacePerson(request) || request.supportArea}
                       </p>
                     </div>
-                    <Link
-                      href={activeMentorshipHref(request, meeting, true)}
-                      className="shrink-0 text-[13px] font-medium text-[#26a4ff]"
-                    >
-                      {t("active.open")}
-                    </Link>
+                    {/* With a meeting, the meeting time below is the card's link. */}
+                    {meeting ? null : (
+                      <Link
+                        href={mentorshipRequestPageHref(request, true)}
+                        aria-label={t("active.viewRequestLabel", {
+                          name: mentorWorkspaceName(
+                            request,
+                            t("startupFallback"),
+                          ),
+                        })}
+                        className="shrink-0 text-[13px] font-medium text-[#26a4ff]"
+                      >
+                        {t("active.viewRequest")}
+                      </Link>
+                    )}
                   </div>
                   <span className="mt-2.5 inline-flex rounded-[14px] bg-[#e6f1f8] px-3 py-[7px] text-xs font-medium text-[#26a4ff]">
                     {request.supportArea}

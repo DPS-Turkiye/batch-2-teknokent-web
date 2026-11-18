@@ -4,6 +4,7 @@ import type {
   ProgramSession,
   ProgramSpecialDay,
   ProgramThisWeek,
+  ProgramWeekSoFar,
 } from "@/interfaces/program-week";
 import { shortWeekday } from "@/lib/calendar";
 import { newRowKey } from "@/lib/keyed-list";
@@ -32,6 +33,13 @@ export function programWeekCardState(week: ProgramThisWeek) {
 /** The phase running today, else the first one that falls in the week. */
 export function weekPhase(week: ProgramThisWeek) {
   return week.phases.find((phase) => phase.current) ?? week.phases[0] ?? null;
+}
+
+/** "Geçmiş haftalar": the weeks reached so far without the running one ("Bu hafta" shows it), newest first. */
+export function pastWeeks(weeks: readonly ProgramWeekSoFar[]) {
+  return weeks
+    .filter((week) => !week.current)
+    .toSorted((left, right) => right.plan.week - left.plan.week);
 }
 
 /** "12 Eki – 18 Eki"; null without both days. */

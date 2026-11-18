@@ -26,13 +26,13 @@ import { UserRole } from "@/interfaces/session";
 import { MENTORSHIPS_TABS } from "@/lib/const";
 import { formatMeetingShort } from "@/lib/format";
 import {
-  activeMentorshipHref,
   meetingAboutHref,
   meetingCallHref,
   menteeRequestDetailHref,
   menteeRequestOwnerLabel,
   menteeRequestStatusHref,
   menteeWorkspaceTab,
+  mentorshipRequestPageHref,
   pickRequestMeeting,
   requestProgressPercent,
 } from "@/lib/mentorship-workspace";
@@ -274,12 +274,18 @@ function ActiveTab({ meetings }: { meetings: MeetingItem[] }) {
                         {owner ? ` · ${owner}` : ""}
                       </p>
                     </div>
-                    <Link
-                      href={activeMentorshipHref(request, meeting, false)}
-                      className="shrink-0 text-[13px] font-medium text-[#e86f22]"
-                    >
-                      {t("goTo")}
-                    </Link>
+                    {/* With a meeting, the meeting time below is the card's link. */}
+                    {meeting ? null : (
+                      <Link
+                        href={mentorshipRequestPageHref(request, false)}
+                        aria-label={t("viewRequestLabel", {
+                          name: request.mentorName,
+                        })}
+                        className="shrink-0 text-[13px] font-medium text-[#e86f22]"
+                      >
+                        {t("viewRequest")}
+                      </Link>
+                    )}
                   </div>
                   <span className="mt-2.5 inline-flex rounded-[14px] bg-[#fdebdd] px-3 py-[7px] text-xs font-medium text-[#e86f22]">
                     {request.supportArea}

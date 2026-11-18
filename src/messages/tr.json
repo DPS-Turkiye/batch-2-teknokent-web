@@ -1165,8 +1165,10 @@
     },
     "active": {
       "title": "Aktif Mentorluklar",
-      "goTo": "Mentorluğa git",
-      "goToLabel": "Mentorluğa git: {name}",
+      "openMeeting": "Görüşmeyi aç",
+      "openMeetingLabel": "Görüşmeyi aç: {name}",
+      "viewRequest": "Talebi gör",
+      "viewRequestLabel": "Talebi gör: {name}",
       "empty": "Henüz aktif mentorluk yok.",
       "openActions": "{count} açık aksiyon",
       "nextMeeting": "Sonraki görüşme · {date}",
@@ -1654,7 +1656,8 @@
     "requestPages": "Talepler sayfaları",
     "activeTitle": "Aktif mentorluklar",
     "activeEmpty": "Aktif Mentörlüğünüz Bulunmamaktadır",
-    "goTo": "Mentorluğa git →",
+    "viewRequest": "Talebi gör",
+    "viewRequestLabel": "Talebi gör: {name}",
     "firstMeeting": "İlk görüşme",
     "meeting": "Görüşme",
     "notPlanned": "Henüz planlanmadı",
@@ -2234,7 +2237,17 @@
     "markingDone": "Teslim ediliyor…",
     "markedDone": "Ödev teslim edildi.",
     "markDoneFailed": "Ödev teslim edilemedi.",
-    "uploadOptional": "Dosya ekle"
+    "uploadOptional": "Dosya ekle",
+    "softwareDevelopment": {
+      "title": "Yazılım geliştirme",
+      "body": "Program boyunca ürününü/yazılımını geliştir. İlerlemeni mentorunla görüşmelerinde takip edin.",
+      "state": {
+        "CURRENT": "Devam ediyor",
+        "COMPLETED": "Tamamlandı",
+        "UPCOMING": "Henüz başlamadı"
+      },
+      "link": "Mentorluklarım →"
+    }
   },
   "personalProfile": {
     "comingSoon": "Bu bölüm yakında eklenecek.",
@@ -2809,7 +2822,8 @@
       "empty": "Aktif mentorluk yok.",
       "progress": "Mentorluk ilerlemesi",
       "noWork": "Henüz iş yok",
-      "open": "Mentorluğa git →",
+      "open": "Startup’ı gör",
+      "openLabel": "Startup’ı gör: {name}",
       "tasks": "Atanan işler",
       "newTask": "Yeni iş ata",
       "noTasks": "Bu mentorlukta atanmış iş yok.",
@@ -3039,7 +3053,8 @@
     "active": {
       "title": "Aktif mentorluklar",
       "empty": "Aktif Mentörlüğünüz Bulunmamaktadır",
-      "open": "Mentorluğa git →",
+      "viewRequest": "Talebi gör",
+      "viewRequestLabel": "Talebi gör: {name}",
       "firstMeeting": "İlk görüşme",
       "meeting": "Görüşme",
       "notPlanned": "Henüz planlanmadı",
@@ -5354,7 +5369,7 @@
       "flag": "Bayrak",
       "staleFlag": "14+ gün görüşme yok",
       "goToCoordinator": "Koordinatöre git",
-      "goToMentorship": "Mentorluğa git"
+      "goToInterventions": "Müdahale gerekenleri gör"
     },
     "flags": {
       "title": "Otomatik bayraklar",
@@ -6176,6 +6191,7 @@
     "weeklyProgramReadFailed": "Haftalık program okunamadı.",
     "weeklyProgramSaveFailed": "Haftalık program kaydedilemedi.",
     "programThisWeekLoadFailed": "Bu haftanın planı yüklenemedi.",
+    "programPastWeeksLoadFailed": "Geçmiş haftalar yüklenemedi.",
     "sessionRefreshFailed": "Oturum bilgilerin güncellenemedi.",
     "personSummaryLoadFailed": "Profil yüklenemedi.",
     "personIdInvalid": "Geçerli bir kişi seçin.",
@@ -6778,12 +6794,19 @@
     "ended": "Program tamamlandı.",
     "empty": "Koordinatör henüz bu hafta için müfredat eklemedi."
   },
+  "programPastWeeks": {
+    "title": "Geçmiş haftalar",
+    "subtitle": "Şimdiye kadar gördüğün konular. Biten her hafta burada listelenir.",
+    "loadFailed": "Geçmiş haftalar yüklenemedi.",
+    "weekTitle": "Hafta {week} · {title}",
+    "sessions": "Oturumlar"
+  },
   "programWeekPlan": {
     "sessionsOf": "{week}. haftanın oturumları",
     "specialDays": "Özel günler",
     "title": "Haftalık plan",
-    "subtitle": "Katılımcılar Süreç sayfasında yalnızca o haftanın planını görür.",
-    "subtitleWeeks": "Program {total} hafta sürüyor. Katılımcılar Süreç sayfasında yalnızca o haftanın planını görür.",
+    "subtitle": "Katılımcılar Süreç sayfasında o haftanın ve geçmiş haftaların planını görür; sonraki haftaları, o hafta gelene kadar göremez.",
+    "subtitleWeeks": "Program {total} hafta sürüyor. Katılımcılar Süreç sayfasında o haftanın ve geçmiş haftaların planını görür; sonraki haftaları, o hafta gelene kadar göremez.",
     "add": "Hafta ekle",
     "loading": "Haftalık plan yükleniyor…",
     "loadFailed": "Haftalık plan yüklenemedi.",
