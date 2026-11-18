@@ -690,7 +690,9 @@ describe("coordinator program detail", () => {
       }),
     ).toBeChecked();
     expect(
-      within(review).getByText(/Hafta 1–3 ve bitmiş fazlar/),
+      within(review).getByText(
+        /Hafta 1–3 için kayıtlı haftalar ve bitmiş fazlar olduğu gibi kalır; kaydı olmayan geçmiş haftalar dosyadan alınır/,
+      ),
     ).toBeVisible();
 
     await user.click(
@@ -746,7 +748,9 @@ describe("coordinator program detail", () => {
       name: "Dosyadan okunan plan",
     });
     expect(
-      within(review).getByText(/Program bitti; tüm haftalar/),
+      within(review).getByText(
+        /Program bitti; kayıtlı haftalar ve bitmiş fazlar/,
+      ),
     ).toBeVisible();
     expect(within(review).queryByText(/Hafta 1–11/)).not.toBeInTheDocument();
   });
