@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { useActionItemsForRequests } from "@/hooks/use-action-items";
 import { useMeetings } from "@/hooks/use-meetings";
+import { useMemberProgramEvents } from "@/hooks/use-member-program-events";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
 import { STARTUP_PROCESS_QUERY_KEY } from "@/hooks/use-startup-process";
 import type { MeetingItem } from "@/interfaces/meeting";
@@ -22,27 +23,32 @@ import { ClientApiError } from "@/lib/client/api";
 import { getStartupProcess } from "@/lib/client/startup-process";
 import { formatDateRange } from "@/lib/format";
 import {
+  allDayProgramEvents,
   CalendarEntryKind,
   deliverableEntries,
   entriesOnDay,
   filterEntries,
   isOpenDeliverable,
   meetingEntries,
+  programEntries,
   upcomingEntries,
   weekSummary,
 } from "@/lib/mentee-calendar";
+import { programEventRange, programEventsByDay } from "@/lib/program-calendar";
 
 const UPCOMING_LIMIT = 3;
 const PREP_LIMIT = 3;
 const NOW_REFRESH_MS = 60_000;
 
 /**
- * The mentee's week: mentorship meetings, and deliverables from mentorship
- * action items and Süreç assignments. It only reads — meetings are requested
- * from the mentor-request flow, not from here.
+ * The mentee's week: mentorship meetings, the program's entries (events, special
+ * days, and the weekly plan's sessions once their week has begun), and
+ * deliverables from mentorship action items and Süreç assignments. It only
+ * reads — meetings are requested from the mentor-request flow, not from here.
  */
 export function useMenteeCalendar(importedMeetings: MeetingItem[] = []) {
   const texts = { t: useTranslations("calendar"), locale: useLocale() };
+  const tProgram = useTranslations("programCalendar");
   const meetingsQuery = useMeetings();
   const requestsQuery = useMentorshipRequests(UserRole.Mentee);
   // A mentee outside a startup has no process; the calendar just shows no Süreç deliverables.
@@ -73,6 +79,8 @@ export function useMenteeCalendar(importedMeetings: MeetingItem[] = []) {
 
   const weekStart = useMemo(() => startOfWeek(cursor), [cursor]);
   const days = useMemo(() => weekDays(weekStart, WEEK_DAY_COUNT), [weekStart]);
+  const programRange = useMemo(() => programEventRange(days), [days]);
+  const programQuery = useMemberProgramEvents(programRange);
 
   const meetings = useMemo(() => {
     const byId = new Map<string, MeetingItem>();
@@ -87,6 +95,7 @@ export function useMenteeCalendar(importedMeetings: MeetingItem[] = []) {
 
   const entries = [
     ...meetingEntries(meetings, texts),
+    ...programEntries(programQuery.data ?? [], tProgram),
     ...deliverableEntries(
       [
         ...actionItems.byRequest.flat(),
@@ -158,8 +167,21 @@ export function useMenteeCalendar(importedMeetings: MeetingItem[] = []) {
       setCursor(current);
       setNow(current);
     },
-    entriesByDay: days.map((day) => entriesOnDay(visible, day)),
+    entriesByDay: days.map((day) =>
+      entriesOnDay(
+        visible.filter((entry) => !entry.allDay),
+        day,
+      ),
+    ),
+    allDayByDay: programEventsByDay(allDayProgramEvents(visible), days),
+    /** The Program tab on a week without any program entry; the grid gives way to a short note. */
+    noProgramThisWeek:
+      filter === CalendarFilter.Program &&
+      !programQuery.isLoading &&
+      !programQuery.isError &&
+      visible.length === 0,
     summary: weekSummary(weekEntries, texts),
+    // Program entries come for the shown week only; a week not yet begun has no sessions to show anyway.
     upcoming: upcomingEntries(entries, now, UPCOMING_LIMIT),
     prep: nextMeeting ? { meeting: nextMeeting, items: prepItems } : null,
     isLoading: meetingsQuery.isLoading,
@@ -168,6 +190,7 @@ export function useMenteeCalendar(importedMeetings: MeetingItem[] = []) {
       actionItems.isLoading ||
       processQuery.isLoading,
     sidebarError: actionItems.isError || processFailed,
+    programLoadFailed: programQuery.isError,
     loadError: meetingsQuery.error,
   };
 }

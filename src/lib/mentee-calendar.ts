@@ -1,6 +1,7 @@
 import type { useTranslations } from "next-intl";
 
 import { ActionItemStatus } from "@/interfaces/action-item";
+import type { MemberProgramEvent } from "@/interfaces/coordinator-program";
 import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import {
   CalendarFilter,
@@ -8,6 +9,12 @@ import {
   shortWeekday,
   timeLabel,
 } from "@/lib/calendar";
+import {
+  isAllDay,
+  programEntryKindLabel,
+  programEntryLines,
+  type ProgramCalendarT,
+} from "@/lib/program-calendar";
 import { calendarDay } from "@/lib/utils";
 
 export enum CalendarEntryKind {
@@ -60,7 +67,10 @@ export type CalendarEntry = {
   detail: string;
   startsAt: Date;
   durationMinutes: number;
+  /** A program entry the plan prints without a time; it shows its day only. */
+  allDay: boolean;
   meeting: MeetingItem | null;
+  programEvent: MemberProgramEvent | null;
 };
 
 export function isOpenDeliverable(item: Deliverable) {
@@ -83,7 +93,9 @@ export function meetingEntries(
         : t("mentorshipOnly"),
       startsAt: new Date(meeting.scheduledAt),
       durationMinutes: meeting.durationMinutes,
+      allDay: false,
       meeting,
+      programEvent: null,
     }));
 }
 
@@ -107,10 +119,49 @@ export function deliverableEntries(
       detail: t("deliverableDetail"),
       startsAt,
       durationMinutes: 0,
+      allDay: false,
       meeting: null,
+      programEvent: null,
     });
   }
   return [...byId.values()];
+}
+
+/**
+ * The program's events, deadlines, special days and the sessions of weeks that have begun, as the grid draws them:
+ * labelled by kind ("Program oturumu") with the title under it.
+ */
+export function programEntries(
+  events: MemberProgramEvent[],
+  program: ProgramCalendarT,
+): CalendarEntry[] {
+  return events.map((event) => {
+    const startsAt = new Date(event.startsAt);
+    const minutes = event.endsAt
+      ? Math.round(
+          (new Date(event.endsAt).getTime() - startsAt.getTime()) / 60_000,
+        )
+      : 0;
+    return {
+      id: `program:${event.id}`,
+      kind: CalendarEntryKind.Program,
+      gridLabel: programEntryKindLabel(event.kind, program),
+      title: event.title,
+      detail: programEntryLines(event, program)[0] ?? event.programName ?? "",
+      startsAt,
+      durationMinutes: Math.max(minutes, 0),
+      allDay: isAllDay(event),
+      meeting: null,
+      programEvent: event,
+    };
+  });
+}
+
+/** The all-day program entries, which sit in a row above the hour grid rather than at a made-up hour in it. */
+export function allDayProgramEvents(entries: CalendarEntry[]) {
+  return entries.flatMap((entry) =>
+    entry.allDay && entry.programEvent ? [entry.programEvent] : [],
+  );
 }
 
 export function filterEntries(
@@ -211,21 +262,30 @@ export function weekSummary(entries: CalendarEntry[], { t }: CalendarTexts) {
   return t("summary", { parts: parts.join(" · ") });
 }
 
+/** An all-day entry is still ahead until its day is over; anything else until it starts. */
+function stillAhead(entry: CalendarEntry, now: Date) {
+  if (!entry.allDay) return entry.startsAt >= now;
+  const dayAfter = new Date(entry.startsAt);
+  dayAfter.setHours(0, 0, 0, 0);
+  dayAfter.setDate(dayAfter.getDate() + 1);
+  return dayAfter > now;
+}
+
 export function upcomingEntries(
   entries: CalendarEntry[],
   now: Date,
   limit: number,
 ) {
   return entries
-    .filter((entry) => entry.startsAt >= now)
+    .filter((entry) => stillAhead(entry, now))
     .sort(byStart)
     .slice(0, limit);
 }
 
-/** "Çar 28 · 10:00", or "Per 29" for a deliverable, which has no time. */
+/** "Çar 28 · 10:00", or "Per 29" for a deliverable or an all-day program entry, which have no time. */
 export function entryWhenLabel(entry: CalendarEntry, locale: string) {
   const day = `${shortWeekday(entry.startsAt, locale)} ${entry.startsAt.getDate()}`;
-  return entry.kind === CalendarEntryKind.Deliverable
+  return entry.kind === CalendarEntryKind.Deliverable || entry.allDay
     ? day
     : `${day} · ${timeLabel(entry.startsAt.toISOString(), locale)}`;
 }

@@ -4,6 +4,8 @@ import { ChevronLeft, ChevronRight, FileText, X } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 
+import { ProgramDayRow } from "@/components/calendar/program-day-row";
+import { ProgramEntryDialog } from "@/components/calendar/program-entry-dialog";
 import { AppShell } from "@/components/hoc/app-shell";
 import {
   CreateMeetingDialog,
@@ -13,6 +15,7 @@ import { RegularMentorshipWeekChecksPanel } from "@/components/mentor-dashboard/
 import { useAppSession } from "@/components/providers/session-provider";
 import { RescheduleMeetingButton } from "@/components/reschedule-meeting-button";
 import { CALENDAR_HOURS, useMentorCalendar } from "@/hooks/use-mentor-calendar";
+import type { MemberProgramEvent } from "@/interfaces/coordinator-program";
 import type { MeetingItem } from "@/interfaces/meeting";
 import {
   CalendarFilter,
@@ -166,6 +169,8 @@ export default function MentorCalendarPage() {
   const calendar = useMentorCalendar();
   const session = useAppSession();
   const [openMeeting, setOpenMeeting] = useState<MeetingItem | null>(null);
+  const [openProgramEvent, setOpenProgramEvent] =
+    useState<MemberProgramEvent | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [createStartAt, setCreateStartAt] = useState<Date | null>(null);
   const [createError, setCreateError] = useState<Error | null>(null);
@@ -176,7 +181,7 @@ export default function MentorCalendarPage() {
   const rangeEnd = days[days.length - 1];
   const range =
     rangeStart && rangeEnd ? weekRangeLabel(rangeStart, rangeEnd, locale) : "";
-  const programEventCount =
+  const programCount =
     calendar.filter === CalendarFilter.Program ? calendar.programs.length : 0;
 
   function openCreateDialog(startAt: Date | null = null) {
@@ -300,6 +305,16 @@ export default function MentorCalendarPage() {
                     <b className="text-[13px] font-medium">{day.getDate()}</b>
                   </div>
                 ))}
+                {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+                {calendar.programEventCount > 0 ? (
+                  <ProgramDayRow
+                    label={t("programRow")}
+                    days={days}
+                    eventsByDay={calendar.programEventsByWeekday}
+                    onSelect={setOpenProgramEvent}
+                    embedded
+                  />
+                ) : null}
                 {CALENDAR_HOURS.map((hour) => (
                   <div className="contents" key={hour}>
                     <div className="pr-2 text-right text-[#858c96]">
@@ -375,12 +390,17 @@ export default function MentorCalendarPage() {
                 ))}
               </div>
             )}
+            {calendar.programLoadFailed ? (
+              <p role="alert" className="mt-3 text-xs text-[#b94f12]">
+                {t("programLoadFailed")}
+              </p>
+            ) : null}
             {calendar.filter === CalendarFilter.Program ? (
               <p className="mt-4 min-w-[720px] text-xs text-[#676e78]">
-                {programEventCount === 0
+                {programCount === 0
                   ? t("noProgram")
                   : t("programList", {
-                      count: programEventCount,
+                      count: programCount,
                       names: calendar.programs
                         .map((program) => program.name)
                         .join(", "),
@@ -519,6 +539,12 @@ export default function MentorCalendarPage() {
           error={createError ?? calendar.meetingError}
           onClose={closeCreateDialog}
           onSubmit={submitMeeting}
+        />
+      ) : null}
+      {openProgramEvent ? (
+        <ProgramEntryDialog
+          event={openProgramEvent}
+          onClose={() => setOpenProgramEvent(null)}
         />
       ) : null}
     </AppShell>

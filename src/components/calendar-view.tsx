@@ -13,11 +13,13 @@ import {
   UpcomingCard,
 } from "@/components/calendar/mentee-calendar-sidebar";
 import { MenteeWeekGrid } from "@/components/calendar/mentee-week-grid";
+import { ProgramEntryDialog } from "@/components/calendar/program-entry-dialog";
 import { AppShell } from "@/components/hoc/app-shell";
 import { useCalendarImport } from "@/hooks/use-calendar-import";
 import { useMenteeCalendar } from "@/hooks/use-mentee-calendar";
+import type { MemberProgramEvent } from "@/interfaces/coordinator-program";
 import type { MeetingItem } from "@/interfaces/meeting";
-import { CalendarFilter, MENTEE_CALENDAR_FILTERS } from "@/lib/calendar";
+import { MENTEE_CALENDAR_FILTERS } from "@/lib/calendar";
 import { relayGoogleOAuthTokenFromUrl } from "@/lib/google-calendar";
 import { AppArea } from "@/types/app-area";
 
@@ -34,6 +36,8 @@ export function CalendarView() {
   const [selectedMeeting, setSelectedMeeting] = useState<MeetingItem | null>(
     null,
   );
+  const [selectedProgramEvent, setSelectedProgramEvent] =
+    useState<MemberProgramEvent | null>(null);
 
   useEffect(() => {
     relayGoogleOAuthTokenFromUrl();
@@ -136,7 +140,7 @@ export function CalendarView() {
               <p className="py-10 text-center text-xs text-[#676e78]">
                 {t("loading")}
               </p>
-            ) : calendar.filter === CalendarFilter.Program ? (
+            ) : calendar.noProgramThisWeek ? (
               <p className="rounded-xl bg-[#f3f4f6] p-4 text-center text-xs text-[#676e78]">
                 {t("noProgram")}
               </p>
@@ -145,10 +149,17 @@ export function CalendarView() {
                 days={calendar.days}
                 hours={calendar.hours}
                 entriesByDay={calendar.entriesByDay}
+                allDayByDay={calendar.allDayByDay}
                 today={calendar.now}
                 onSelectMeeting={setSelectedMeeting}
+                onSelectProgramEvent={setSelectedProgramEvent}
               />
             )}
+            {calendar.programLoadFailed ? (
+              <p role="alert" className="mt-3 text-xs text-[#b94f12]">
+                {t("programLoadFailed")}
+              </p>
+            ) : null}
           </section>
 
           <aside className="w-full space-y-4 lg:w-[400px] lg:shrink-0">
@@ -184,6 +195,12 @@ export function CalendarView() {
         <MeetingDetailModal
           meeting={selectedMeeting}
           onClose={() => setSelectedMeeting(null)}
+        />
+      ) : null}
+      {selectedProgramEvent ? (
+        <ProgramEntryDialog
+          event={selectedProgramEvent}
+          onClose={() => setSelectedProgramEvent(null)}
         />
       ) : null}
     </AppShell>

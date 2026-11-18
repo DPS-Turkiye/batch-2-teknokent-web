@@ -1746,7 +1746,8 @@
     "nextWeek": "Sonraki hafta",
     "loadFailed": "Takvim yüklenemedi: {error}",
     "loading": "Takvim yükleniyor…",
-    "noProgram": "Program etkinlikleri henüz tanımlı değil.",
+    "noProgram": "Bu hafta bir program oturumu veya etkinliği yok.",
+    "programLoadFailed": "Program takvimi yüklenemedi; program oturumları eksik olabilir.",
     "filters": {
       "all": "Tümü",
       "mentorship": "Mentorluk",
@@ -2944,6 +2945,8 @@
     "createAt": "{day} {time} için toplantı oluştur",
     "noProgram": "Katıldığınız bir program yok.",
     "programList": "{count} programa katılıyorsunuz: {names}",
+    "programRow": "Program",
+    "programLoadFailed": "Program takvimi yüklenemedi; program oturumları eksik olabilir.",
     "createFailed": "Toplantı oluşturulamadı.",
     "fallback": {
       "mentorship": "Mentorluk",
@@ -3724,7 +3727,9 @@
       "MEETING": "Görüşme",
       "EVENT": "Etkinlik",
       "DEADLINE": "Deadline",
-      "ACTION": "Aksiyon"
+      "ACTION": "Aksiyon",
+      "SESSION": "Program oturumu",
+      "SPECIAL_DAY": "Özel gün"
     },
     "allDay": "Gün içinde",
     "metrics": {
@@ -3787,6 +3792,10 @@
     "meetingKind": "Mentorluk görüşmesi",
     "eventKind": "Etkinlik",
     "deadlineKind": "Deadline",
+    "sessionKind": "Program oturumu",
+    "specialDayKind": "Özel gün",
+    "allDayShort": "Tüm gün",
+    "planEntries": "Haftalık plan",
     "conflict": "Çakışma",
     "proposedSlot": "Önerilen slot",
     "mentorFallback": "Mentor",
@@ -5600,7 +5609,8 @@
       "kinds": {
         "meeting": "Mentorluk görüşmesi",
         "event": "Program etkinliği",
-        "deadline": "Son tarih"
+        "deadline": "Son tarih",
+        "session": "Program oturumu"
       },
       "startsIn": {
         "now": "şimdi",
@@ -5634,6 +5644,7 @@
       "monthWeekdays": ["Pt", "Sa", "Ça", "Pe", "Cu", "Ct", "Pz"],
       "legendMeeting": "Görüşme",
       "legendEvent": "Etkinlik",
+      "legendSession": "Oturum",
       "backToToday": "Bugüne dön"
     },
     "tasks": {
@@ -7033,5 +7044,20 @@
     },
     "footer": "menton · ODTÜ",
     "metaTitle": "menton · ODTÜ"
+  },
+  "programCalendar": {
+    "kinds": {
+      "session": "Program oturumu",
+      "specialDay": "Özel gün",
+      "event": "Program etkinliği",
+      "deadline": "Son tarih"
+    },
+    "allDay": "Tüm gün",
+    "speaker": "Konuşmacı: {name}",
+    "week": "{week}. hafta · {title}",
+    "place": "Yer: {place}",
+    "program": "Program: {name}",
+    "close": "Kapat",
+    "openDetail": "{title} detayını aç"
   }
 }

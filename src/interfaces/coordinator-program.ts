@@ -71,8 +71,45 @@ export type ProgramEvent = {
   description: string | null;
 };
 
-/** An event as a startup or mentor of the program sees it. */
-export type MemberProgramEvent = ProgramEvent & { programName: string };
+/**
+ * What a program entry in a member's calendar is: the program's own event or deadline, a session of its weekly plan
+ * (a lesson, a workshop, a visit) or a special day of the plan (a bootcamp, a demo day).
+ */
+export enum ProgramCalendarEntryKind {
+  Event = "EVENT",
+  Deadline = "DEADLINE",
+  Session = "SESSION",
+  SpecialDay = "SPECIAL_DAY",
+}
+
+/**
+ * A calendar entry's weekly-plan details: a session has `week` and `weekTitle`, a special day has neither. `speaker`
+ * is the week's "Konuşmacı" line, on the lesson only; `allDay` when the plan prints no time.
+ */
+export type ProgramCalendarPlanItem = {
+  week: number | null;
+  weekTitle: string | null;
+  place: string | null;
+  speaker: string | null;
+  details: string[];
+  allDay: boolean;
+};
+
+/**
+ * A program entry as a startup or mentor of the program sees it (`GET /api/programs/events`). The backend sends a
+ * session only once its week has begun; `plan` is set for a session or special day.
+ */
+export type MemberProgramEvent = {
+  id: string;
+  programId: string;
+  programName: string | null;
+  title: string;
+  kind: ProgramCalendarEntryKind;
+  startsAt: string;
+  endsAt: string | null;
+  description: string | null;
+  plan: ProgramCalendarPlanItem | null;
+};
 
 export type CreateProgramEventInput = {
   title: string;

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  ProgramEventKind,
+  ProgramCalendarEntryKind,
   type MemberProgramEvent,
 } from "@/interfaces/coordinator-program";
 import { MeetingStatus } from "@/interfaces/meeting";
@@ -10,6 +10,7 @@ import {
   agendaEntries,
   canJoin,
   dayHeading,
+  entryKindLabel,
   entryTimeHint,
   entryTimeLine,
   eventRangeFor,
@@ -20,7 +21,13 @@ import {
   nextEntryLabel,
   weekStrip,
 } from "@/lib/mobile-calendar";
+import { itemAt } from "@test/fixtures/list-assertions";
 import { menteeMeetingFixture } from "@test/fixtures/mentee-home";
+import {
+  demoDay,
+  lessonSession,
+  workshopSession,
+} from "@test/fixtures/program-calendar";
 import { mobileTexts } from "@test/mobile-texts";
 
 // Wednesday 23 September 2026, 14:00.
@@ -34,10 +41,11 @@ function programEvent(
     programId: "p1",
     programName: "METU Stars 2026",
     title: "Ürün-Pazar Uyumu Atölyesi",
-    kind: ProgramEventKind.Event,
+    kind: ProgramCalendarEntryKind.Event,
     startsAt: new Date(2026, 8, 23, 16, 0).toISOString(),
     endsAt: new Date(2026, 8, 23, 17, 30).toISOString(),
     description: "Teknokent B-104",
+    plan: null,
     ...overrides,
   };
 }
@@ -55,7 +63,7 @@ const MEETING = menteeMeetingFixture({
 const DEADLINE = programEvent({
   id: "d1",
   title: "Ara rapor teslimi",
-  kind: ProgramEventKind.Deadline,
+  kind: ProgramCalendarEntryKind.Deadline,
   startsAt: new Date(2026, 8, 25, 23, 59).toISOString(),
   endsAt: null,
   description: null,
@@ -88,6 +96,57 @@ describe("agendaEntries", () => {
       "Nihan Öztürk ↔ Atlas AI · Online",
       "METU Stars 2026 · son tarih",
     ]);
+  });
+});
+
+describe("agendaEntries for the weekly plan", () => {
+  it("shows a session as Program oturumu, all day, with its speaker and week in the sheet", () => {
+    const [entry] = agendaEntries([], [lessonSession()], mobileTexts());
+
+    expect(entry).toMatchObject({
+      kind: MobileAgendaKind.Session,
+      time: "Tüm gün",
+      length: "",
+      title: "Değer Önerisi ve Market Fit",
+      detail: "Program oturumu · Konuşmacı: Sarper",
+      notes: "Konuşmacı: Sarper\n4. hafta · Sorunu Doğrula",
+    });
+  });
+
+  it("shows a special day as an event at its time with its place and details", () => {
+    const [entry] = agendaEntries([], [demoDay()], mobileTexts());
+
+    expect(entry).toMatchObject({
+      kind: MobileAgendaKind.Event,
+      time: "13:00",
+      detail: "Özel gün · Yer: KKM",
+      notes: "Yer: KKM\nProgram final etkinliği.",
+    });
+  });
+
+  it("keeps an all-day session open for its whole day and names its kind in the sheet", () => {
+    const entry = itemAt(
+      agendaEntries([], [lessonSession()], mobileTexts()),
+      0,
+    );
+
+    expect(entry.endsAt).toEqual(new Date(2026, 10, 17));
+    expect(entryTimeLine(entry, mobileTexts())).toBe(
+      "Pazartesi 16 Kasım · Tüm gün",
+    );
+    expect(entryKindLabel(entry, mobileTexts())).toBe("Program oturumu");
+    const demo = itemAt(agendaEntries([], [demoDay()], mobileTexts()), 0);
+    expect(entryKindLabel(demo, mobileTexts())).toBe("Özel gün");
+    expect(entryKindLabel(itemAt(ENTRIES, 1), mobileTexts())).toBe(
+      "Mentorluk görüşmesi",
+    );
+  });
+
+  it("names a session in English", () => {
+    const [entry] = agendaEntries([], [workshopSession()], mobileTexts("en"));
+
+    expect(entry?.time).toBe("All day");
+    expect(entry?.detail).toBe("Program session · Week 4 · Sorunu Doğrula");
   });
 });
 

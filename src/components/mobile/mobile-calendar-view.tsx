@@ -27,12 +27,14 @@ const BAR_CLASS: Record<MobileAgendaKind, string> = {
   [MobileAgendaKind.Meeting]: "bg-gradient-to-b from-[#26a4ff] to-[#ff6a3d]",
   [MobileAgendaKind.Event]: "bg-[#aeb4bc]",
   [MobileAgendaKind.Deadline]: "bg-[#b7791f]",
+  [MobileAgendaKind.Session]: "bg-[#2f8f83]",
 };
 
 const DOT_CLASS: Record<MobileAgendaKind, string> = {
   [MobileAgendaKind.Meeting]: "bg-[#26a4ff]",
   [MobileAgendaKind.Event]: "bg-[#aeb4bc]",
   [MobileAgendaKind.Deadline]: "bg-[#b7791f]",
+  [MobileAgendaKind.Session]: "bg-[#2f8f83]",
 };
 
 function Dots({ kinds }: { kinds: MobileAgendaKind[] }) {
@@ -273,13 +275,13 @@ function MenteeRows({ detail }: { detail: EntryDetail }) {
         </InfoRow>
       ) : null}
       <LinkRow detail={detail} />
-      {meeting?.agenda || entry.event?.description ? (
+      {entry.notes ? (
         <InfoRow icon="/mobile/icon-agenda.svg">
           <p className="text-[15px] font-medium text-[#22262b]">
             {meeting ? t("calendar.agenda") : t("calendar.description")}
           </p>
           <p className="text-[13px] whitespace-pre-line text-[#858c96]">
-            {meeting?.agenda ?? entry.event?.description}
+            {entry.notes}
           </p>
         </InfoRow>
       ) : null}
@@ -503,6 +505,10 @@ function MonthSheet({ calendar }: { calendar: Calendar }) {
           </span>
           <span className="flex items-center gap-1.5">
             <Dots kinds={[MobileAgendaKind.Event]} /> {t("legendEvent")}
+          </span>
+          {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+          <span className="flex items-center gap-1.5">
+            <Dots kinds={[MobileAgendaKind.Session]} /> {t("legendSession")}
           </span>
         </span>
         <button

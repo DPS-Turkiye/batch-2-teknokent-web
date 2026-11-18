@@ -31,6 +31,7 @@ export function calendarMeeting(
     description: null,
     conflict: false,
     recordingLoad: 1,
+    plan: null,
     ...overrides,
   };
 }
@@ -93,7 +94,13 @@ export function coordinatorCalendar(
         meetingIds: ["nova", "vega"],
       },
     ],
-    summary: { meetings: 3, events: 1, deadlines: 0, unscheduledRisky: 2 },
+    summary: {
+      meetings: 3,
+      events: 1,
+      deadlines: 0,
+      unscheduledRisky: 2,
+      planEntries: 0,
+    },
     recordingCapacity: 2,
     ...overrides,
   };

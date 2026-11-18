@@ -11,8 +11,10 @@ import {
   eventInput,
   fullRecordingCount,
   isoDay,
+  itemTimeLabel,
   mentorshipHref,
   placeDayItems,
+  planKindLabel,
   proposalItems,
   rangeLabel,
   recordingNote,
@@ -30,6 +32,7 @@ import {
 } from "@test/fixtures/coordinator-calendar";
 import { itemAt } from "@test/fixtures/list-assertions";
 import { meetingProposal } from "@test/fixtures/meeting-proposals";
+import { planItem } from "@test/fixtures/program-calendar";
 import { translatorIn } from "@test/translators";
 
 const WEDNESDAY = new Date(2026, 8, 16, 15, 0);
@@ -117,6 +120,24 @@ describe("coordinator calendar", () => {
         "tr",
       ),
     ).toBe("Per 17 Eyl · 23:59");
+    const lesson = calendarMeeting({
+      kind: CoordinatorAgendaKind.Session,
+      startsAt: new Date(2026, 8, 14).toISOString(),
+      endsAt: null,
+      plan: planItem({ speaker: "Sarper" }),
+    });
+    expect(slotLabel(lesson, "tr")).toBe("Pzt 14 Eyl");
+    expect(itemTimeLabel(lesson, texts("tr"))).toBe("Tüm gün");
+    expect(itemTimeLabel(calendarMeeting(), texts("tr"))).toBe("14:00");
+    expect(planKindLabel(lesson, texts("tr").t)).toBe("Program oturumu");
+    expect(
+      planKindLabel(
+        calendarMeeting({ kind: CoordinatorAgendaKind.SpecialDay }),
+        texts("en").t,
+      ),
+    ).toBe("Special day");
+    expect(planKindLabel(calendarMeeting(), texts("tr").t)).toBeNull();
+    expect(itemAt(placeDayItems([lesson]), 0).top).toBe(0);
     const calendar = coordinatorCalendar();
     const conflict = itemAt(calendar.conflicts, 0);
     expect(conflictSummary(conflict, calendar.items, texts("tr"))).toEqual({

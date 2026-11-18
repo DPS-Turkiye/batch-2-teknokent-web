@@ -5,6 +5,10 @@ export enum CoordinatorAgendaKind {
   Event = "EVENT",
   Deadline = "DEADLINE",
   Action = "ACTION",
+  /** A session of a program's weekly plan; only the Takvim lists these. */
+  Session = "SESSION",
+  /** A special day of a program's weekly plan; only the Takvim lists these. */
+  SpecialDay = "SPECIAL_DAY",
 }
 
 export type CoordinatorAgendaItem = {

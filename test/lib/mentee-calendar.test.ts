@@ -4,6 +4,7 @@ import { ActionItemStatus } from "@/interfaces/action-item";
 import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import { CalendarFilter } from "@/lib/calendar";
 import {
+  allDayProgramEvents,
   CalendarEntryKind,
   DAY_HEADER_HEIGHT,
   deliverableEntries,
@@ -16,11 +17,17 @@ import {
   prepHeading,
   PrepStatus,
   prepStatus,
+  programEntries,
   upcomingEntries,
   weekSummary,
   type CalendarTexts,
 } from "@/lib/mentee-calendar";
 import { expectLength, itemAt } from "@test/fixtures/list-assertions";
+import {
+  lessonSession,
+  memberProgramEvent,
+  workshopSession,
+} from "@test/fixtures/program-calendar";
 import { translatorIn } from "@test/translators";
 
 function calendarTexts(locale: "tr" | "en"): CalendarTexts {
@@ -30,6 +37,7 @@ function calendarTexts(locale: "tr" | "en"): CalendarTexts {
   };
 }
 const texts = calendarTexts("tr");
+const program = translatorIn("tr", "programCalendar");
 
 function meeting(overrides: Partial<MeetingItem> = {}): MeetingItem {
   return {
@@ -168,6 +176,74 @@ describe("mentee calendar entries", () => {
     expect(weekSummary(entries, texts)).toBe(
       "Bu hafta 1 mentorluk görüşmesi · 1 teslim",
     );
+  });
+
+  it("turns program entries into grid entries labelled by kind, opening on the entry", () => {
+    const lesson = lessonSession();
+    const [session, event] = programEntries(
+      [lesson, memberProgramEvent()],
+      program,
+    );
+
+    expect(session).toEqual({
+      id: "program:session-lesson",
+      kind: CalendarEntryKind.Program,
+      gridLabel: "Program oturumu",
+      title: "Değer Önerisi ve Market Fit",
+      detail: "Konuşmacı: Sarper",
+      startsAt: new Date(2026, 10, 16),
+      durationMinutes: 0,
+      allDay: true,
+      meeting: null,
+      programEvent: lesson,
+    });
+    expect(event?.gridLabel).toBe("Program etkinliği");
+    expect(event?.durationMinutes).toBe(90);
+    expect(event?.detail).toBe("Build");
+    expect(event?.allDay).toBe(false);
+  });
+
+  it("counts program entries in the summary and dates an all-day one by its day alone", () => {
+    const entries = [
+      ...meetingEntries([meeting()], texts),
+      ...programEntries([lessonSession(), workshopSession()], program),
+    ];
+
+    expect(weekSummary(entries, texts)).toBe(
+      "Bu hafta 1 mentorluk görüşmesi · 2 program etkinliği · 0 teslim",
+    );
+    expect(
+      entryWhenLabel(
+        itemAt(programEntries([lessonSession()], program), 0),
+        "tr",
+      ),
+    ).toBe("Pzt 16");
+    expect(
+      entryWhenLabel(
+        itemAt(programEntries([memberProgramEvent()], program), 0),
+        "tr",
+      ),
+    ).toBe("Çar 18 · 16:00");
+  });
+
+  it("keeps an all-day program entry ahead until its day is over and sets it apart from the hour grid", () => {
+    const entries = programEntries(
+      [lessonSession(), memberProgramEvent()],
+      program,
+    );
+    const lessonDayNoon = new Date(2026, 10, 16, 12, 0);
+
+    expect(
+      upcomingEntries(entries, lessonDayNoon, 3).map((entry) => entry.id),
+    ).toEqual(["program:session-lesson", "program:event-1"]);
+    expect(
+      upcomingEntries(entries, new Date(2026, 10, 17, 0, 0), 3).map(
+        (entry) => entry.id,
+      ),
+    ).toEqual(["program:event-1"]);
+    expect(allDayProgramEvents(entries).map((event) => event.id)).toEqual([
+      "session-lesson",
+    ]);
   });
 
   it("lists what is still ahead, soonest first", () => {

@@ -8,8 +8,13 @@ import { ActionItemStatus } from "@/interfaces/action-item";
 import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { getActionItems } from "@/lib/client/action-items";
+import { getMemberProgramEvents } from "@/lib/client/programs";
 import { getStartupProcess } from "@/lib/client/startup-process";
 import { menteeRequestFixture } from "@test/fixtures/mentee-home";
+import {
+  lessonSession,
+  workshopSession,
+} from "@test/fixtures/program-calendar";
 import { startupProcess } from "@test/fixtures/startup-process";
 import { successQuery } from "@test/mocks/query-results";
 import { renderWithQueryClient } from "@test/test-utils";
@@ -48,6 +53,7 @@ vi.mock("@/lib/client/action-items", () => {
   };
 });
 vi.mock("@/lib/client/startup-process", () => ({ getStartupProcess: vi.fn() }));
+vi.mock("@/lib/client/programs", () => ({ getMemberProgramEvents: vi.fn() }));
 vi.mock("@/components/hoc/app-shell", () => ({
   AppShell: ({ children }: { children: React.ReactNode }) => (
     <div>{children}</div>
@@ -99,6 +105,7 @@ beforeEach(() => {
   );
   vi.mocked(getActionItems).mockResolvedValue([]);
   vi.mocked(getStartupProcess).mockResolvedValue(startupProcess());
+  vi.mocked(getMemberProgramEvents).mockResolvedValue([]);
 });
 
 afterEach(() => {
@@ -151,8 +158,92 @@ describe("CalendarView", () => {
     await user.click(screen.getByRole("button", { name: "Program" }));
 
     expect(
-      screen.getByText("Program etkinlikleri henüz tanımlı değil."),
+      await screen.findByText(
+        "Bu hafta bir program oturumu veya etkinliği yok.",
+      ),
     ).toBeInTheDocument();
+  });
+
+  it("puts the week's lesson and workshop on the grid and opens the lesson with its speaker", async () => {
+    vi.setSystemTime(new Date(2026, 10, 18, 9, 0));
+    const user = userEvent.setup();
+    mockUseMeetings.mockReturnValue(meetingsResult());
+    vi.mocked(getMemberProgramEvents).mockResolvedValue([
+      lessonSession(),
+      workshopSession(),
+    ]);
+
+    renderWithQueryClient(<CalendarView />);
+
+    const lesson = await screen.findByRole("button", {
+      name: "Program oturumu: Değer Önerisi ve Market Fit detayını aç",
+    });
+    expect(
+      screen.getByRole("button", {
+        name: "Program oturumu: Workshop: Burcu Tarhan detayını aç",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Bu hafta 0 mentorluk görüşmesi · 2 program etkinliği · 0 teslim",
+      ),
+    ).toBeInTheDocument();
+    expect(vi.mocked(getMemberProgramEvents).mock.calls[0]?.[0]).toEqual({
+      from: new Date(2026, 10, 16),
+      to: new Date(2026, 10, 23),
+    });
+
+    expect(
+      within(screen.getByRole("list", { name: "Tüm gün · Pzt 16" })).getByRole(
+        "button",
+      ),
+    ).toBe(lesson);
+
+    await user.click(lesson);
+
+    const dialog = screen.getByRole("dialog");
+    expect(within(dialog).getByText("Konuşmacı: Sarper")).toBeInTheDocument();
+    expect(
+      within(dialog).getByText("4. hafta · Sorunu Doğrula"),
+    ).toBeInTheDocument();
+    expect(
+      within(dialog).getByText("16 Kasım 2026 Pazartesi · Tüm gün"),
+    ).toBeInTheDocument();
+    await user.click(within(dialog).getByRole("button", { name: "Kapat" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("keeps program entries to the Program tab and out of Mentorluk", async () => {
+    vi.setSystemTime(new Date(2026, 10, 18, 9, 0));
+    const user = userEvent.setup();
+    mockUseMeetings.mockReturnValue(meetingsResult());
+    vi.mocked(getMemberProgramEvents).mockResolvedValue([lessonSession()]);
+
+    renderWithQueryClient(<CalendarView />);
+    await user.click(screen.getByRole("button", { name: "Program" }));
+    expect(
+      await screen.findByRole("button", {
+        name: /Değer Önerisi ve Market Fit detayını aç/,
+      }),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Mentorluk" }));
+    expect(
+      screen.queryByRole("button", {
+        name: /Değer Önerisi ve Market Fit detayını aç/,
+      }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("says when the program calendar could not be loaded", async () => {
+    mockUseMeetings.mockReturnValue(meetingsResult());
+    vi.mocked(getMemberProgramEvents).mockRejectedValue(new Error("boom"));
+
+    renderWithQueryClient(<CalendarView />);
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Program takvimi yüklenemedi; program oturumları eksik olabilir.",
+    );
   });
 
   it("puts a meeting on the Monday–Sunday grid under its mentor's name and moves between weeks", async () => {
