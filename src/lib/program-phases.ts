@@ -108,6 +108,17 @@ export function phaseDateLocks(status: PhaseStatus) {
   };
 }
 
+/**
+ * A finished phase stays as a record. A running one may go, but only after the coordinator confirms, because teams
+ * see it as their current phase. Linked assignments and rounds are kept; the backend only clears their phase link.
+ */
+export function phaseRemoval(status: PhaseStatus) {
+  return {
+    allowed: status !== PhaseStatus.Done,
+    needsConfirmation: status === PhaseStatus.Current,
+  };
+}
+
 /** Days from one day to another; positive when `to` is later. */
 export function dayShift(from: string, to: string) {
   return Math.round((Date.parse(to) - Date.parse(from)) / DAY_MS);

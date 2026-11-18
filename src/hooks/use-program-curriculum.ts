@@ -20,6 +20,7 @@ import {
 import {
   dayShift,
   phaseDateLocks,
+  phaseRemoval,
   phaseStatus,
   PhaseStatus,
   reorderPhases,
@@ -45,6 +46,7 @@ export function useProgramCurriculum(
   const listed = savedPhases(detail);
   const [editing, setEditing] = useState<Editing | null>(null);
   const [editError, setEditError] = useState<string | null>(null);
+  const [confirmingRemoval, setConfirmingRemoval] = useState(false);
 
   const fail = (fallback: string) => (failure: Error) =>
     showToast({
@@ -58,6 +60,7 @@ export function useProgramCurriculum(
     onSuccess: (next) => {
       cache.put(next);
       setEditing(null);
+      setConfirmingRemoval(false);
       showToast({ message: t("saved"), tone: ToastTone.Success });
     },
     onError: fail(t("saveFailed")),
@@ -74,6 +77,18 @@ export function useProgramCurriculum(
     : null;
   const next =
     editing?.index != null ? listed[editing.index + 1] : listed.at(-1);
+  const removal = before ? phaseRemoval(statusOf(before)) : null;
+  const canRemove = removal?.allowed ?? false;
+  // A phase that finishes while the question is open (past midnight) can no longer be removed.
+  const asking = confirmingRemoval && canRemove;
+  // By key, not position, so a list refreshed while the drawer is open cannot lose a different phase.
+  const remove = (phase: PhaseDraft) =>
+    commit(listed.filter((saved) => saved.key !== phase.key));
+  const open = (target: Editing) => {
+    setEditError(null);
+    setConfirmingRemoval(false);
+    setEditing(target);
+  };
 
   return {
     today,
@@ -126,16 +141,15 @@ export function useProgramCurriculum(
     teamCount: detail.program.teamCount,
     editError,
     openPhase: (index: number) => {
-      setEditError(null);
       const phase = listed[index];
       if (!phase) return;
-      setEditing({ index, draft: { ...phase } });
+      open({ index, draft: { ...phase } });
     },
-    openNew: () => {
-      setEditError(null);
-      setEditing({ index: null, draft: emptyPhase() });
+    openNew: () => open({ index: null, draft: emptyPhase() }),
+    close: () => {
+      setConfirmingRemoval(false);
+      setEditing(null);
     },
-    close: () => setEditing(null),
     update: (patch: Partial<PhaseDraft>) => {
       setEditError(null);
       setEditing((current) =>
@@ -155,10 +169,23 @@ export function useProgramCurriculum(
             ),
       );
     },
+    /** Only a saved phase that has not finished can be removed. */
+    canRemove,
+    /** The drawer is asking whether to remove the running phase. */
+    confirmingRemoval: asking,
+    /** A running phase only asks here; confirmRemoval then deletes it. */
     removeEditing: () => {
-      if (editing?.index == null) return;
-      commit(listed.filter((_, index) => index !== editing.index));
+      if (!editing || !canRemove) return;
+      if (removal?.needsConfirmation) {
+        setConfirmingRemoval(true);
+        return;
+      }
+      remove(editing.draft);
     },
+    confirmRemoval: () => {
+      if (editing && asking) remove(editing.draft);
+    },
+    cancelRemoval: () => setConfirmingRemoval(false),
     saving: save.isPending,
   };
 }
