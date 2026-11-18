@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { MeetingStatus } from "@/interfaces/meeting";
 import { MeetingProposalStatus } from "@/interfaces/meeting-proposal";
+import { UserRole } from "@/interfaces/session";
 import {
   canReschedule,
   defaultProposalStart,
@@ -9,6 +10,7 @@ import {
   lastDeclined,
   openProposal,
   proposalWhenLabel,
+  proposesReschedule,
   StepState,
   type ProposalTexts,
 } from "@/lib/meeting-proposals";
@@ -96,5 +98,15 @@ describe("meeting proposal helpers", () => {
     expect(
       canReschedule({ ...upcoming, status: MeetingStatus.Completed }, now),
     ).toBe(false);
+  });
+});
+
+describe("proposesReschedule", () => {
+  it("lets the mentor and the team propose a new time, not a coordinator", () => {
+    expect(proposesReschedule(UserRole.Mentor)).toBe(true);
+    expect(proposesReschedule(UserRole.Mentee)).toBe(true);
+    expect(proposesReschedule(UserRole.Coordinator)).toBe(false);
+    expect(proposesReschedule(UserRole.Admin)).toBe(false);
+    expect(proposesReschedule(null)).toBe(false);
   });
 });

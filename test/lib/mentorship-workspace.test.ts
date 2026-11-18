@@ -17,6 +17,7 @@ import {
   menteeRequestStatusHref,
   menteeWorkspaceTab,
   mentorRequestMessagesHref,
+  mentorRequestProposeHref,
   mentorRequestStartupHref,
   mentorshipRequestAllowsMessaging,
   pickRequestMeeting,
@@ -261,5 +262,13 @@ describe("menteeWorkspaceTab", () => {
     );
     expect(menteeWorkspaceTab("regular")).toBe(MentorshipWorkspaceTab.Regular);
     expect(menteeWorkspaceTab("history")).toBe(MentorshipWorkspaceTab.History);
+  });
+});
+
+describe("mentorRequestProposeHref", () => {
+  it("opens the request page on the propose form", () => {
+    expect(mentorRequestProposeHref("req 1")).toBe(
+      "/mentorships/requests/req%201?review=propose",
+    );
   });
 });

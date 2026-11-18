@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import MeetingFeedbackPage from "@/app/meetings/research/feedback/page";
 import MeetingDetailPage from "@/app/meetings/research/page";
@@ -12,7 +12,7 @@ import {
 import { MeetingStatus } from "@/interfaces/meeting";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
-import { renderWithQueryClient } from "@test/test-utils";
+import { freezeDate, renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/components/hoc/app-shell", () => ({
   AppShell: ({ children }: { children: React.ReactNode }) => (
@@ -139,7 +139,32 @@ beforeEach(() => {
   vi.mocked(useMeetingFeedback).mockReturnValue(feedbackForm());
 });
 
+afterEach(() => {
+  vi.useRealTimers();
+});
+
 describe("meeting lifecycle pages", () => {
+  it("lets a participant propose a new time for a planned, upcoming meeting", async () => {
+    freezeDate("2026-08-30T09:00:00");
+    const user = userEvent.setup();
+    renderWithQueryClient(<MeetingDetailPage />);
+
+    await user.click(screen.getByRole("button", { name: "Yeni saat öner" }));
+
+    expect(
+      screen.getByText(/diğer taraf onaylayınca görüşme yeni saate taşınır/),
+    ).toBeInTheDocument();
+  });
+
+  it("offers no new time once the meeting has passed", () => {
+    freezeDate("2026-09-02T09:00:00");
+    renderWithQueryClient(<MeetingDetailPage />);
+
+    expect(
+      screen.queryByRole("button", { name: "Yeni saat öner" }),
+    ).not.toBeInTheDocument();
+  });
+
   it("shows request context and meet link on the call page", () => {
     renderWithQueryClient(<MeetingDetailPage />);
 

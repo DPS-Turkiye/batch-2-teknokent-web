@@ -41,10 +41,9 @@ import { formatMeetingShort } from "@/lib/format";
 import { normalizeMeetLink } from "@/lib/meet-link";
 import { requestExpectedOutcome } from "@/lib/meeting-context";
 import {
-  preferredSlotMachineValue,
+  chosenSlotDecisionMessage,
   preferredSlotStartsAt,
   proposedSlotsMessageLines,
-  type ParsedPreferredSlot,
   type PreferredSlot,
 } from "@/lib/mentor-availability-days";
 import {
@@ -85,14 +84,14 @@ export function MentorMentorshipsWorkspace() {
 
   async function acceptRequest(
     request: MentorshipRequest,
-    slot: ParsedPreferredSlot | null,
+    slot: PreferredSlot | null,
     meetLink: string,
     transcribeRequested: boolean,
     requestedDocuments: string[],
   ) {
     setActionError("");
     const message = slot
-      ? `Görüşme saati: ${preferredSlotMachineValue(slot)}`
+      ? chosenSlotDecisionMessage(slot)
       : MENTOR_ACCEPT_MESSAGE;
     const normalizedLink = normalizeMeetLink(meetLink);
     const documents = normalizeDocumentTitles(requestedDocuments);

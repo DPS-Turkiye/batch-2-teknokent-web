@@ -2863,7 +2863,13 @@
       "files": "EKLENEN DOSYALAR",
       "decline": "Reddet",
       "sendMessage": "Mesaj gönder",
-      "accept": "Mentorluğu kabul et"
+      "accept": "Mentorluğu kabul et",
+      "pickSlotHint": "Görüşme saatini seç. Kabul ettiğinde görüşme bu saate planlanır.",
+      "noSlotLeft": "Bu saatlerden seçilebilecek kalmadı. Kabul edersen görüşmeyi sonra planlarsınız; istersen başka saat öner.",
+      "slotPassed": "Geçti",
+      "pickSlotFirst": "Önce bir saat seç",
+      "confirmSlot": "Bu saati onaylıyorum: {slot}",
+      "proposeOther": "Başka saat öner"
     },
     "assignTask": {
       "open": "Yeni iş ata",
@@ -2890,7 +2896,8 @@
     "accepted": "Mentorluk talebi kabul edildi.",
     "answered": "Mentorluk talebi yanıtlandı.",
     "failed": "İşlem tamamlanamadı.",
-    "answerFailed": "Mentorluk talebi yanıtlanamadı."
+    "answerFailed": "Mentorluk talebi yanıtlanamadı.",
+    "slotPassed": "Seçtiğin saat geçti. Başka bir saat seç."
   },
   "mentorSchedule": {
     "otherDays": "Diğer günler",
@@ -3075,7 +3082,10 @@
       "send": "Gönder",
       "sendProposals": "Önerileri gönder",
       "accepting": "Kabul ediliyor…",
-      "accept": "Kabul et"
+      "accept": "Kabul et",
+      "pickSlotFirst": "Önce bir saat seç",
+      "confirmSlot": "Bu saati onaylıyorum: {slot}",
+      "pickSlotHint": "Görüşme saatini seç ya da kendi saatini öner."
     },
     "meetLinkDialog": {
       "eyebrow": "Aktif mentorluk",

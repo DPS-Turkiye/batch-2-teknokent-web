@@ -5,3 +5,10 @@ export enum MentorshipWorkspaceTab {
   History = "history",
   Regular = "regular",
 }
+
+/** The step a mentor is on in the request review dialog; `Propose` is also the `?review=` link value. */
+export enum MentorReviewMode {
+  Accept = "accept",
+  Propose = "propose",
+  AskInfo = "info",
+}

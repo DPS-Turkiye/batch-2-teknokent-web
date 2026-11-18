@@ -1,11 +1,15 @@
-import { screen } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { MentorRequestStartupDetail } from "@/components/mentorships/mentor-request-startup-detail";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
+import { MentorReviewMode } from "@/types/mentorship";
 import { menteeRequestFixture } from "@test/fixtures/mentee-home";
-import { InLocale, renderWithQueryClient } from "@test/test-utils";
+import { freezeDate, InLocale, renderWithQueryClient } from "@test/test-utils";
+
+const decide = vi.hoisted(() => vi.fn());
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 vi.mock("@/components/hoc/app-shell", () => ({
@@ -21,7 +25,7 @@ vi.mock("@/hooks/use-startup-documents", () => ({
   useOpenDocument: () => vi.fn(),
 }));
 vi.mock("@/hooks/use-mentorship-requests", () => ({
-  useMentorRequestDecision: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useMentorRequestDecision: () => ({ mutateAsync: decide, isPending: false }),
   useMentorshipRequest: () => ({
     // No organization, so the team's profile, members and files are not fetched.
     data: menteeRequestFixture({
@@ -71,4 +75,57 @@ describe("MentorRequestStartupDetail", () => {
 it("shows the program captured on the request in its program field", () => {
   renderWithQueryClient(<MentorRequestStartupDetail requestId="req-1" />);
   expect(screen.getByText("QA Recorded Program")).toBeInTheDocument();
+});
+
+describe("MentorRequestStartupDetail opened to propose times", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    decide.mockReset();
+  });
+
+  it("opens the review on the propose form when linked from the mentor home", () => {
+    renderWithQueryClient(
+      <MentorRequestStartupDetail
+        requestId="req-1"
+        initialReview={MentorReviewMode.Propose}
+      />,
+    );
+
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Mentee saatlerine dön" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Önerileri gönder" }),
+    ).toBeDisabled();
+  });
+
+  it("still sends a counter-proposal with the mentor's own time", async () => {
+    freezeDate("2026-11-18T09:00:00");
+    decide.mockResolvedValue({});
+    const user = userEvent.setup();
+    renderWithQueryClient(
+      <MentorRequestStartupDetail
+        requestId="req-1"
+        initialReview={MentorReviewMode.Propose}
+      />,
+    );
+
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "1. öneri günü" }),
+      "2026-11-20",
+    );
+    fireEvent.change(screen.getByLabelText("1. öneri saati"), {
+      target: { value: "14:00" },
+    });
+    await user.click(screen.getByRole("button", { name: "Önerileri gönder" }));
+
+    expect(decide).toHaveBeenCalledWith({
+      id: "req-1",
+      status: MentorshipRequestStatus.CounterProposed,
+      message:
+        "Mentörün önerdiği saatler: 20 Kasım Cuma · 14:00\nproposedSlots:2026-11-20T14:00",
+      requestedDocuments: [],
+    });
+  });
 });

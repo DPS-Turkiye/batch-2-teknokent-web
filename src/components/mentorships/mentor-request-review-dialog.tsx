@@ -15,16 +15,15 @@ import {
 } from "@/components/mentorships/document-request-title-editor";
 import { RequestDetailsPanel } from "@/components/mentorships/request-details-panel";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
+import { MENTORSHIP_MEETING_DURATION_MINUTES } from "@/lib/const";
 import {
+  decisionSlotOptions,
   emptyPreferredSlot,
   hasProposedSlots,
   isHalfOrFullHour,
   isValidPreferredSlot,
   MAX_PROPOSED_SLOT_COUNT,
-  parsePreferredSlotsFromMessage,
-  preferredSlotKey,
   upcomingPreferenceDays,
-  type ParsedPreferredSlot,
   type PreferredSlot,
 } from "@/lib/mentor-availability-days";
 import {
@@ -32,8 +31,7 @@ import {
   mentorWorkspaceName,
   mentorWorkspacePerson,
 } from "@/lib/mentorship-workspace";
-
-type ReviewMode = "accept" | "propose" | "info";
+import { MentorReviewMode } from "@/types/mentorship";
 
 // Sent as the mentor's question, so it stays Turkish like other saved texts.
 const DOCUMENTS_ONLY_QUESTION =
@@ -41,6 +39,7 @@ const DOCUMENTS_ONLY_QUESTION =
 
 export function MentorRequestReviewDialog({
   request,
+  initialMode = MentorReviewMode.Accept,
   isPending,
   error,
   onClose,
@@ -49,11 +48,12 @@ export function MentorRequestReviewDialog({
   onAskInfo,
 }: {
   request: MentorshipRequest;
+  initialMode?: MentorReviewMode;
   isPending: boolean;
   error: string;
   onClose: () => void;
   onAccept: (
-    slot: ParsedPreferredSlot | null,
+    slot: PreferredSlot | null,
     meetLink: string,
     transcribeRequested: boolean,
     requestedDocuments: string[],
@@ -64,12 +64,14 @@ export function MentorRequestReviewDialog({
   const t = useTranslations("mentorMentorships.review");
   const tName = useTranslations("mentorMentorships");
   const locale = useLocale();
-  const slots = parsePreferredSlotsFromMessage(
+  const slots = decisionSlotOptions(
     request.requesterMessage,
+    MENTORSHIP_MEETING_DURATION_MINUTES,
+    new Date(),
     locale,
   );
   const dayOptions = upcomingPreferenceDays(new Date(), 14, locale);
-  const [mode, setMode] = useState<ReviewMode>("accept");
+  const [mode, setMode] = useState(initialMode);
   const [selectedKey, setSelectedKey] = useState("");
   const [meetLink, setMeetLink] = useState("");
   const [transcribeRequested, setTranscribeRequested] = useState(false);
@@ -82,10 +84,12 @@ export function MentorRequestReviewDialog({
     emptyPreferredSlot(),
   ]);
   const selected = slots.find(
-    (slot) => (preferredSlotKey(slot) || slot.label) === selectedKey,
+    (slot) => slot.available && slot.key === selectedKey,
   );
   const person = mentorWorkspacePerson(request);
-  const canAccept = slots.length === 0 || Boolean(selected);
+  const anySlotOpen = slots.some((slot) => slot.available);
+  // Same rule as the mentor home: a time that can still be booked must be picked, never assumed.
+  const canAccept = !anySlotOpen || Boolean(selected);
   const canPropose = hasProposedSlots(proposedSlots);
   const canAskInfo =
     question.trim() !== "" ||
@@ -148,18 +152,21 @@ export function MentorRequestReviewDialog({
             <p className="mt-2 text-sm text-[#676e78]">{t("noPreferred")}</p>
           ) : (
             <div className="mt-3 grid gap-2">
+              <p className="text-xs text-[#858c96]">{t("pickSlotHint")}</p>
               {slots.map((slot) => {
-                const key = preferredSlotKey(slot) || slot.label;
-                const selectedSlot = mode === "accept" && key === selectedKey;
+                const selectedSlot =
+                  mode === MentorReviewMode.Accept && slot.key === selectedKey;
                 return (
                   <button
-                    key={key}
+                    key={slot.key}
                     type="button"
                     aria-pressed={selectedSlot}
-                    disabled={mode !== "accept"}
+                    disabled={
+                      mode !== MentorReviewMode.Accept || !slot.available
+                    }
                     onClick={() => {
-                      setMode("accept");
-                      setSelectedKey(key);
+                      setMode(MentorReviewMode.Accept);
+                      setSelectedKey(slot.key);
                     }}
                     className={`min-h-11 rounded-lg border px-4 text-left text-sm font-medium ${
                       selectedSlot
@@ -185,14 +192,22 @@ export function MentorRequestReviewDialog({
             </div>
             <button
               type="button"
-              onClick={() => setMode(mode === "propose" ? "accept" : "propose")}
+              onClick={() =>
+                setMode(
+                  mode === MentorReviewMode.Propose
+                    ? MentorReviewMode.Accept
+                    : MentorReviewMode.Propose,
+                )
+              }
               className="shrink-0 text-[13px] font-medium text-[var(--ms-accent,#e86f22)]"
             >
-              {mode === "propose" ? t("backToMentee") : t("proposeOwn")}
+              {mode === MentorReviewMode.Propose
+                ? t("backToMentee")
+                : t("proposeOwn")}
             </button>
           </div>
 
-          {mode === "propose" ? (
+          {mode === MentorReviewMode.Propose ? (
             <div className="mt-4 grid gap-2">
               {proposedSlots.map((slot, index) => (
                 <div
@@ -252,7 +267,7 @@ export function MentorRequestReviewDialog({
           ) : null}
         </div>
 
-        {mode === "accept" ? (
+        {mode === MentorReviewMode.Accept ? (
           <>
             <label className="mt-5 block">
               <span className="text-base font-medium text-[#22262b]">
@@ -274,7 +289,7 @@ export function MentorRequestReviewDialog({
           </>
         ) : null}
 
-        {mode === "info" ? (
+        {mode === MentorReviewMode.AskInfo ? (
           <label className="mt-5 block">
             <span className="text-base font-medium text-[#22262b]">
               {t("askTitle")}
@@ -308,11 +323,17 @@ export function MentorRequestReviewDialog({
           </SecondaryButton>
           <SecondaryButton onClick={onClose}>{t("cancel")}</SecondaryButton>
           <SecondaryButton
-            onClick={() => setMode(mode === "info" ? "accept" : "info")}
+            onClick={() =>
+              setMode(
+                mode === MentorReviewMode.AskInfo
+                  ? MentorReviewMode.Accept
+                  : MentorReviewMode.AskInfo,
+              )
+            }
           >
-            {mode === "info" ? t("back") : t("askInfo")}
+            {mode === MentorReviewMode.AskInfo ? t("back") : t("askInfo")}
           </SecondaryButton>
-          {mode === "info" ? (
+          {mode === MentorReviewMode.AskInfo ? (
             <PrimaryButton
               disabled={isPending || !canAskInfo}
               onClick={() =>
@@ -324,7 +345,7 @@ export function MentorRequestReviewDialog({
             >
               {isPending ? t("sending") : t("send")}
             </PrimaryButton>
-          ) : mode === "propose" ? (
+          ) : mode === MentorReviewMode.Propose ? (
             <PrimaryButton
               disabled={isPending || !canPropose}
               onClick={() =>
@@ -341,14 +362,20 @@ export function MentorRequestReviewDialog({
               disabled={isPending || !canAccept}
               onClick={() =>
                 onAccept(
-                  selected ?? null,
+                  selected?.slot ?? null,
                   meetLink,
                   transcribeRequested,
                   documentTitles,
                 )
               }
             >
-              {isPending ? t("accepting") : t("accept")}
+              {isPending
+                ? t("accepting")
+                : selected
+                  ? t("confirmSlot", { slot: selected.label })
+                  : anySlotOpen
+                    ? t("pickSlotFirst")
+                    : t("accept")}
             </PrimaryButton>
           )}
         </div>
