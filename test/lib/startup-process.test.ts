@@ -17,8 +17,11 @@ import {
   formatStageRange,
   phaseCards,
   roundForPhase,
+  softwareDevelopmentCard,
+  STAGE_STATE_TONES,
   unphasedAssignments,
 } from "@/lib/startup-process";
+import { thisWeek } from "@test/fixtures/program-week";
 import { processPhase, startupProcess } from "@test/fixtures/startup-process";
 
 function assignment(
@@ -198,5 +201,50 @@ describe("unphasedAssignments and currentPhase", () => {
     expect(unphasedAssignments(process.assignments)).toEqual([loose]);
     expect(currentPhase(process)).toBe(mvp);
     expect(currentPhase(startupProcess({ phases: [problem] }))).toBeNull();
+  });
+});
+
+describe("softwareDevelopmentCard", () => {
+  it("runs over the program's dates while the program is on", () => {
+    expect(softwareDevelopmentCard(thisWeek())).toEqual({
+      state: StartupStageState.Current,
+      dates: { startsOn: "2026-10-05", endsOn: "2026-12-27" },
+    });
+  });
+
+  it("is done once the program has ended", () => {
+    expect(
+      softwareDevelopmentCard(thisWeek({ week: null, ended: true }))?.state,
+    ).toBe(StartupStageState.Completed);
+  });
+
+  it("is upcoming before the program starts", () => {
+    expect(
+      softwareDevelopmentCard(thisWeek({ week: null, notStarted: true }))
+        ?.state,
+    ).toBe(StartupStageState.Upcoming);
+  });
+
+  it("has no dates unless the program has both a start and an end", () => {
+    expect(
+      softwareDevelopmentCard(
+        thisWeek({ week: null, programStart: null, programEnd: null }),
+      ),
+    ).toEqual({ state: StartupStageState.Current, dates: null });
+    expect(
+      softwareDevelopmentCard(thisWeek({ programEnd: null }))?.dates,
+    ).toBeNull();
+  });
+
+  it("is not shown outside a program", () => {
+    expect(softwareDevelopmentCard(null)).toBeNull();
+  });
+
+  it("gives each state the chip tone the Ödev rows use", () => {
+    expect(STAGE_STATE_TONES).toEqual({
+      [StartupStageState.Current]: ChipTone.Amber,
+      [StartupStageState.Completed]: ChipTone.Green,
+      [StartupStageState.Upcoming]: ChipTone.Gray,
+    });
   });
 });

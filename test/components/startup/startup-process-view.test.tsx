@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { StartupProcessView } from "@/components/startup/startup-process-view";
+import { useSoftwareDevelopmentCard } from "@/hooks/use-software-development-card";
 import { useStartupProcess } from "@/hooks/use-startup-process";
 import { ActionItemStatus } from "@/interfaces/action-item";
 import { UserRole } from "@/interfaces/session";
@@ -11,6 +12,7 @@ import {
   StartupStageState,
   type ProcessAssignment,
 } from "@/interfaces/startup-process";
+import { MENTORSHIPS_ACTIVE_HREF } from "@/lib/const";
 import { expectLength } from "@test/fixtures/list-assertions";
 import { processPhase } from "@test/fixtures/startup-process";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
@@ -26,6 +28,21 @@ vi.mock("@/components/startup/startup-page-frame", () => ({
 vi.mock("@/hooks/use-startup-process", () => ({
   useStartupProcess: vi.fn(),
 }));
+
+vi.mock("@/hooks/use-software-development-card", () => ({
+  useSoftwareDevelopmentCard: vi.fn(),
+}));
+
+type SoftwareCard = NonNullable<ReturnType<typeof useSoftwareDevelopmentCard>>;
+
+function softwareCard(overrides: Partial<SoftwareCard> = {}): SoftwareCard {
+  return {
+    state: StartupStageState.Current,
+    dates: { startsOn: "2026-10-05", endsOn: "2026-12-27" },
+    mentorshipsHref: MENTORSHIPS_ACTIVE_HREF,
+    ...overrides,
+  };
+}
 
 const uploadAssignment = vi.fn();
 const markDone = vi.fn();
@@ -123,6 +140,77 @@ describe("StartupProcessView", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(useStartupProcess).mockReturnValue(state());
+    vi.mocked(useSoftwareDevelopmentCard).mockReturnValue(null);
+  });
+
+  describe("Yazılım geliştirme", () => {
+    function softwareSection() {
+      return screen.getByRole("region", { name: "Yazılım geliştirme" });
+    }
+
+    it("runs over the program's dates while the program is on, linking to the mentorships", () => {
+      vi.mocked(useSoftwareDevelopmentCard).mockReturnValue(softwareCard());
+      renderWithQueryClient(<StartupProcessView />);
+
+      const card = within(softwareSection());
+      expect(
+        card.getByText(
+          "Program boyunca ürününü/yazılımını geliştir. İlerlemeni mentorunla görüşmelerinde takip edin.",
+        ),
+      ).toBeVisible();
+      expect(card.getByText("5 Eki – 27 Ara 2026")).toBeVisible();
+      expect(card.getByText("Devam ediyor")).toBeVisible();
+      expect(
+        card.getByRole("link", { name: "Mentorluklarım →" }),
+      ).toHaveAttribute("href", "/mentorships?tab=active");
+    });
+
+    it("is done once the program has ended", () => {
+      vi.mocked(useSoftwareDevelopmentCard).mockReturnValue(
+        softwareCard({ state: StartupStageState.Completed }),
+      );
+      renderWithQueryClient(<StartupProcessView />);
+
+      expect(within(softwareSection()).getByText("Tamamlandı")).toBeVisible();
+    });
+
+    it("is shown without dates when the program has none", () => {
+      vi.mocked(useSoftwareDevelopmentCard).mockReturnValue(
+        softwareCard({ dates: null }),
+      );
+      renderWithQueryClient(<StartupProcessView />);
+
+      const card = within(softwareSection());
+      expect(card.queryByText(/2026/)).not.toBeInTheDocument();
+      expect(card.getByText("Devam ediyor")).toBeVisible();
+    });
+
+    it("is not shown to a team in no program", () => {
+      renderWithQueryClient(<StartupProcessView />);
+
+      expect(
+        screen.queryByRole("region", { name: "Yazılım geliştirme" }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("reads in English", () => {
+      vi.mocked(useSoftwareDevelopmentCard).mockReturnValue(
+        softwareCard({ state: StartupStageState.Upcoming }),
+      );
+      renderWithQueryClient(
+        <InLocale locale="en">
+          <StartupProcessView />
+        </InLocale>,
+      );
+
+      const card = within(
+        screen.getByRole("region", { name: "Software development" }),
+      );
+      expect(card.getByText("Not started yet")).toBeVisible();
+      expect(
+        card.getByRole("link", { name: "My mentorships →" }),
+      ).toBeVisible();
+    });
   });
 
   it("reads in English", () => {
