@@ -22,6 +22,11 @@ import {
   readWeeklyProgram,
   saveWeeklyProgram,
 } from "@/lib/client/weekly-program";
+import { weekDraftOf } from "@/lib/program-week";
+import {
+  phaseRangeDraftsOf,
+  weeklyProgramSaveInput,
+} from "@/lib/weekly-program";
 import type { ToastInput } from "@/stores/toast-store";
 import { aiFeatures } from "@test/fixtures/ai-features";
 import { coordinatorProgramDetail } from "@test/fixtures/coordinator-programs";
@@ -209,11 +214,10 @@ describe("useWeeklyProgramImport", () => {
   });
 
   it("saves the whole file on a first upload in the middle of the program", async () => {
-    vi.mocked(readWeeklyProgram).mockResolvedValue(
-      weeklyProgramProposal({
-        existing: { phaseCount: 0, weekCount: 0, currentWeek: 4 },
-      }),
-    );
+    const proposal = weeklyProgramProposal({
+      existing: { phaseCount: 0, weekCount: 0, currentWeek: 4 },
+    });
+    vi.mocked(readWeeklyProgram).mockResolvedValue(proposal);
     const detail = coordinatorProgramDetail();
     vi.mocked(saveWeeklyProgram).mockResolvedValue({
       program: detail,
@@ -235,12 +239,20 @@ describe("useWeeklyProgramImport", () => {
     expect(result.current.lastKeptWeek).toBeNull();
     act(() => result.current.save());
     await waitFor(() => expect(saveWeeklyProgram).toHaveBeenCalledTimes(1));
-    expect(vi.mocked(saveWeeklyProgram).mock.lastCall?.[1]).toMatchObject({
-      weeks: expect.arrayContaining([expect.objectContaining({ week: 1 })]),
-      seenPhaseCount: 0,
-      seenWeekCount: 0,
-      keepPast: false,
-    });
+    expect(saveWeeklyProgram).toHaveBeenCalledWith(
+      "program-1",
+      weeklyProgramSaveInput({
+        documentId: "doc-new",
+        weeks: proposal.weeks.map(weekDraftOf),
+        specialDays: proposal.specialDays,
+        phases: phaseRangeDraftsOf(proposal.phases),
+        existing: proposal.existing,
+        keepPast: false,
+      }),
+    );
+    expect(vi.mocked(saveWeeklyProgram).mock.lastCall?.[1].weeks).toHaveLength(
+      proposal.weeks.length,
+    );
   });
 
   it("keeps the saved past by default when a running program already has a plan", async () => {
