@@ -621,7 +621,7 @@ function PairDetail({
           href={`/admin/mentorships/interventions?program=${encodeURIComponent(program?.name ?? "")}`}
           className="rounded-full border border-[#e9ecef] px-4 py-2 text-[13px] font-medium text-[#22262b]"
         >
-          {t("goToMentorship")}
+          {t("goToInterventions")}
         </Link>
       </div>
     </section>

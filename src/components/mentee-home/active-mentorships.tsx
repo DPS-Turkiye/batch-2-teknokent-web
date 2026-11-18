@@ -8,8 +8,9 @@ import { SectionPlaceholder } from "@/components/mentee-home/section-placeholder
 import type { MeetingItem } from "@/interfaces/meeting";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 import { activeMentorshipFooter } from "@/lib/mentee-home";
+import { activeMentorshipLink } from "@/lib/mentorship-workspace";
 import { initials } from "@/lib/utils";
-import { MentorshipWorkspaceTab } from "@/types/mentorship";
+import { MentorshipLinkKind, MentorshipWorkspaceTab } from "@/types/mentorship";
 
 const MENTORSHIP_LIMIT = 3;
 
@@ -31,13 +32,22 @@ export function ActiveMentorships({
       aria-labelledby="home-active-title"
       className="flex flex-col gap-3"
     >
-      <SectionHeader id="home-active-title" title={t("active.title")} />
+      <SectionHeader
+        id="home-active-title"
+        title={t("active.title")}
+        href={`/mentorships?tab=${MentorshipWorkspaceTab.Active}`}
+        linkText={t("all", { count: requests.length })}
+        chevron
+      />
       {requests.slice(0, MENTORSHIP_LIMIT).map((request) => {
+        const nextMeeting = nextMeetingByRequest[request.id] ?? null;
         const footer = activeMentorshipFooter(
           openActionCountByRequest[request.id] ?? 0,
-          nextMeetingByRequest[request.id] ?? null,
+          nextMeeting,
           { t, locale },
         );
+        const link = activeMentorshipLink(request, nextMeeting, false);
+        const opensMeeting = link.kind === MentorshipLinkKind.Meeting;
         return (
           <article
             key={request.id}
@@ -69,11 +79,16 @@ export function ActiveMentorships({
                 </span>
               )}
               <Link
-                href={`/mentorships?tab=${MentorshipWorkspaceTab.Active}`}
-                aria-label={t("active.goToLabel", { name: request.mentorName })}
+                href={link.href}
+                aria-label={t(
+                  opensMeeting
+                    ? "active.openMeetingLabel"
+                    : "active.viewRequestLabel",
+                  { name: request.mentorName },
+                )}
                 className="inline-flex shrink-0 items-center gap-1 text-[12.5px] font-semibold leading-[18.75px] text-[#565e68] hover:text-[#22262b]"
               >
-                {t("active.goTo")}
+                {t(opensMeeting ? "active.openMeeting" : "active.viewRequest")}
                 <Image
                   src="/mentee-dashboard/home/chevron.svg"
                   alt=""

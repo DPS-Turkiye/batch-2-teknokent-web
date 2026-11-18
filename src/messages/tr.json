@@ -1165,8 +1165,10 @@
     },
     "active": {
       "title": "Aktif Mentorluklar",
-      "goTo": "Mentorluğa git",
-      "goToLabel": "Mentorluğa git: {name}",
+      "openMeeting": "Görüşmeyi aç",
+      "openMeetingLabel": "Görüşmeyi aç: {name}",
+      "viewRequest": "Talebi gör",
+      "viewRequestLabel": "Talebi gör: {name}",
       "empty": "Henüz aktif mentorluk yok.",
       "openActions": "{count} açık aksiyon",
       "nextMeeting": "Sonraki görüşme · {date}",
@@ -1654,7 +1656,8 @@
     "requestPages": "Talepler sayfaları",
     "activeTitle": "Aktif mentorluklar",
     "activeEmpty": "Aktif Mentörlüğünüz Bulunmamaktadır",
-    "goTo": "Mentorluğa git →",
+    "viewRequest": "Talebi gör",
+    "viewRequestLabel": "Talebi gör: {name}",
     "firstMeeting": "İlk görüşme",
     "meeting": "Görüşme",
     "notPlanned": "Henüz planlanmadı",
@@ -2809,7 +2812,8 @@
       "empty": "Aktif mentorluk yok.",
       "progress": "Mentorluk ilerlemesi",
       "noWork": "Henüz iş yok",
-      "open": "Mentorluğa git →",
+      "open": "Startup’ı gör",
+      "openLabel": "Startup’ı gör: {name}",
       "tasks": "Atanan işler",
       "newTask": "Yeni iş ata",
       "noTasks": "Bu mentorlukta atanmış iş yok.",
@@ -3032,7 +3036,8 @@
     "active": {
       "title": "Aktif mentorluklar",
       "empty": "Aktif Mentörlüğünüz Bulunmamaktadır",
-      "open": "Mentorluğa git →",
+      "viewRequest": "Talebi gör",
+      "viewRequestLabel": "Talebi gör: {name}",
       "firstMeeting": "İlk görüşme",
       "meeting": "Görüşme",
       "notPlanned": "Henüz planlanmadı",
@@ -5344,7 +5349,7 @@
       "flag": "Bayrak",
       "staleFlag": "14+ gün görüşme yok",
       "goToCoordinator": "Koordinatöre git",
-      "goToMentorship": "Mentorluğa git"
+      "goToInterventions": "Müdahale gerekenleri gör"
     },
     "flags": {
       "title": "Otomatik bayraklar",

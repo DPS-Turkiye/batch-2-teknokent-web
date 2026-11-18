@@ -1163,8 +1163,10 @@
     },
     "active": {
       "title": "Active mentorships",
-      "goTo": "Go to mentorship",
-      "goToLabel": "Go to mentorship: {name}",
+      "openMeeting": "Open the meeting",
+      "openMeetingLabel": "Open the meeting: {name}",
+      "viewRequest": "View the request",
+      "viewRequestLabel": "View the request: {name}",
       "empty": "No active mentorships yet.",
       "openActions": "{count, plural, one {# open action} other {# open actions}}",
       "nextMeeting": "Next meeting · {date}",
@@ -1652,7 +1654,8 @@
     "requestPages": "Request pages",
     "activeTitle": "Active mentorships",
     "activeEmpty": "You have no active mentorships",
-    "goTo": "Go to mentorship →",
+    "viewRequest": "View the request",
+    "viewRequestLabel": "View the request: {name}",
     "firstMeeting": "First meeting",
     "meeting": "Meeting",
     "notPlanned": "Not scheduled yet",
@@ -2807,7 +2810,8 @@
       "empty": "No active mentorships.",
       "progress": "Mentorship progress",
       "noWork": "No tasks yet",
-      "open": "Go to mentorship →",
+      "open": "View the startup",
+      "openLabel": "View the startup: {name}",
       "tasks": "Assigned tasks",
       "newTask": "Assign a task",
       "noTasks": "No tasks assigned in this mentorship.",
@@ -3030,7 +3034,8 @@
     "active": {
       "title": "Active mentorships",
       "empty": "You have no active mentorships",
-      "open": "Go to mentorship →",
+      "viewRequest": "View the request",
+      "viewRequestLabel": "View the request: {name}",
       "firstMeeting": "First meeting",
       "meeting": "Meeting",
       "notPlanned": "Not scheduled yet",
@@ -5342,7 +5347,7 @@
       "flag": "Flag",
       "staleFlag": "no meeting for 14+ days",
       "goToCoordinator": "Go to the coordinator",
-      "goToMentorship": "Go to the mentorship"
+      "goToInterventions": "See who needs intervention"
     },
     "flags": {
       "title": "Automatic flags",
