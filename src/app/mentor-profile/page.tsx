@@ -6,6 +6,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { ListPagination } from "@/components/common/list-pagination";
 import { AppShell } from "@/components/hoc/app-shell";
+import { MentorProgramLabels } from "@/components/mentor-labels/mentor-program-labels";
 import { StudentProfileCard } from "@/components/mentor-onboarding/steps/student-profile-card";
 import { AvailabilityDialog } from "@/components/mentor-profile/availability-dialog";
 import { EducationListEditor } from "@/components/mentors/education-list-editor";
@@ -363,6 +364,8 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
             </button>
           </div>
         </header>
+
+        <MentorProgramLabels mentorId={profile.id} own />
         {form.saveError ? (
           <p role="alert" className="-mt-2 text-[12px] text-[#a65a15]">
             {form.saveError}

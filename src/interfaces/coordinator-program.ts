@@ -142,6 +142,8 @@ export type ProgramRules = {
   individualMentees: boolean;
   /** Attendance is taken by session QR codes; off means no codes and no check-ins. */
   attendanceEnabled: boolean;
+  /** Mentors carry the program's labels; off hides them everywhere but keeps them. */
+  mentorLabelsEnabled: boolean;
 };
 
 /** One address on a roster-only program's list; `registered` once an account uses it. */
@@ -200,6 +202,7 @@ export type UpdateProgramDetailsInput = {
   rosterOnly?: boolean | undefined;
   individualMentees?: boolean | undefined;
   attendanceEnabled?: boolean | undefined;
+  mentorLabelsEnabled?: boolean | undefined;
 };
 
 export type ProgramPhaseInput = {

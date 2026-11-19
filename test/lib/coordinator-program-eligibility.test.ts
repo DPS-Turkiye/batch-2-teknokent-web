@@ -55,6 +55,9 @@ describe("detailsInput attendance", () => {
     const draft = settingsDraftOf(coordinatorProgramDetail());
 
     expect(detailsInput(draft)).toMatchObject({ attendanceEnabled: true });
+    expect(detailsInput({ ...draft, mentorLabelsEnabled: true })).toMatchObject(
+      { mentorLabelsEnabled: true },
+    );
     expect(detailsInput({ ...draft, attendanceEnabled: false })).toMatchObject({
       attendanceEnabled: false,
     });
