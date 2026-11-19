@@ -70,6 +70,7 @@ export function coordinatorProgramDetail(
       eligibleEmailDomain: null,
       rosterOnly: false,
       individualMentees: false,
+      attendanceEnabled: true,
     },
     health: {
       healthy: 48,

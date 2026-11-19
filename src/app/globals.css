@@ -489,3 +489,20 @@ button:not(:disabled),
 [role="button"]:not([aria-disabled="true"]) {
   cursor: pointer;
 }
+
+/* "Yazdır" on a session QR code prints only the code's panel, not the page behind the dialog. The show rules repeat
+   the :has() selector so they outrank the hide rule. */
+@media print {
+  body:has([data-print-area]) * {
+    visibility: hidden;
+  }
+  body:has([data-print-area]) [data-print-area],
+  body:has([data-print-area]) [data-print-area] * {
+    visibility: visible;
+  }
+  body:has([data-print-area]) [data-print-area] {
+    position: fixed;
+    inset: 0;
+    margin: auto;
+  }
+}

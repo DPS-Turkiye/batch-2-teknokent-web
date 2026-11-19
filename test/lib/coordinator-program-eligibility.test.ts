@@ -49,3 +49,14 @@ describe("detailsInput eligibility", () => {
     });
   });
 });
+
+describe("detailsInput attendance", () => {
+  it("sends the program's attendance switch as set", () => {
+    const draft = settingsDraftOf(coordinatorProgramDetail());
+
+    expect(detailsInput(draft)).toMatchObject({ attendanceEnabled: true });
+    expect(detailsInput({ ...draft, attendanceEnabled: false })).toMatchObject({
+      attendanceEnabled: false,
+    });
+  });
+});

@@ -313,6 +313,18 @@ function SettingsBody({
               }
             />
           </Row>
+          {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+          <Row>
+            <Toggle
+              title={tRule("attendance")}
+              hint={tRule("attendanceHint")}
+              checked={draft.attendanceEnabled}
+              disabled={locked}
+              onChange={(value) =>
+                settings.update({ attendanceEnabled: value })
+              }
+            />
+          </Row>
         </Section>
 
         {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}

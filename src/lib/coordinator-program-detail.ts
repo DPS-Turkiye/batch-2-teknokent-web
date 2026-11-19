@@ -485,6 +485,7 @@ export function detailsInput(
     eligibleEmailDomain: draft.eligibleEmailDomain?.trim() ?? "",
     rosterOnly: draft.rosterOnly,
     individualMentees: draft.individualMentees,
+    attendanceEnabled: draft.attendanceEnabled,
   };
 }
 

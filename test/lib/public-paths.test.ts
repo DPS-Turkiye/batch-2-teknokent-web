@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { isPublicPath, safeNextPath } from "@/lib/public-paths";
+import {
+  attendancePath,
+  isAttendancePath,
+  isPublicPath,
+  safeNextPath,
+} from "@/lib/public-paths";
 
 describe("safeNextPath", () => {
   it("keeps an in-app path", () => {
@@ -33,5 +38,16 @@ describe("isPublicPath", () => {
     expect(isPublicPath("/auth/otg/start")).toBe(true);
     expect(isPublicPath("/auth/otg/callback")).toBe(true);
     expect(isPublicPath("/auth/otg/other")).toBe(false);
+  });
+});
+
+describe("attendance links", () => {
+  it("puts a code's token under /attend and recognizes only that page", () => {
+    expect(attendancePath("Ab_-9")).toBe("/attend/Ab_-9");
+    expect(attendancePath("a/b")).toBe("/attend/a%2Fb");
+    expect(isAttendancePath("/attend/Ab_-9")).toBe(true);
+    expect(isAttendancePath("/attend")).toBe(false);
+    expect(isAttendancePath("/attendance/x")).toBe(false);
+    expect(isPublicPath("/attend/Ab_-9")).toBe(false);
   });
 });

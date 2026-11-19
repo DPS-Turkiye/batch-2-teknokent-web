@@ -1652,11 +1652,10 @@
     },
     "counterProposed": "Mentör saat önerdi — birini seç",
     "acceptedWaiting": "Onaylandı — görüşme saati kaydı bekleniyor",
-    "viewRequest": "Talebi gör →",
+    "viewRequest": "Talebi gör",
     "requestPages": "Talepler sayfaları",
     "activeTitle": "Aktif mentorluklar",
     "activeEmpty": "Aktif Mentörlüğünüz Bulunmamaktadır",
-    "viewRequest": "Talebi gör",
     "viewRequestLabel": "Talebi gör: {name}",
     "firstMeeting": "İlk görüşme",
     "meeting": "Görüşme",
@@ -4196,7 +4195,9 @@
     "noteRequired": "Görüşme notu zorunlu",
     "noteRequiredHint": "Görüşme sonrası not girilmezse aksiyon oluşur",
     "autoMatch": "Otomatik eşleşme önerileri",
-    "autoMatchHint": "Uzmanlık, müsaitlik ve yüke göre öneri listesi oluşturulur"
+    "autoMatchHint": "Uzmanlık, müsaitlik ve yüke göre öneri listesi oluşturulur",
+    "attendance": "Yoklama al",
+    "attendanceHint": "Açıkken her haftanın eğitimi ve workshop'u için QR kodla yoklama alınır. Kapalıyken QR kod ve yoklama olmaz; eski kayıtlar raporda kalır."
   },
   "programSettings": {
     "trainingNote": "Öğrenciler videoyu izleyip 10 soruluk sınavdan en az 8 doğru yapınca Akran Mentoru rozetini kazanır. Programın koordinatörleri ve yöneticiler düzenler.",
@@ -4647,25 +4648,61 @@
       "downloadXlsx": "Excel (.xlsx) indir",
       "downloadCsv": "CSV indir"
     },
+    "attendanceQr": {
+      "title": "Yoklama QR kodları",
+      "hint": "Her haftanın eğitimi ve workshop'u için bir QR kod. Katılımcılar oturum günü, başlangıçtan 30 dakika önce ile bitişten 1 saat sonrası arasında okutabilir; saati olmayan oturumda gün boyu.",
+      "off": "Bu programda yoklama alınmıyor.",
+      "empty": "Programın planında yoklama alınacak bir oturum yok.",
+      "week": "Hafta {week}",
+      "weekColumn": "Hafta",
+      "lesson": "Eğitim",
+      "workshop": "Workshop",
+      "legacyWeek": "Haftalık (eski)",
+      "noWorkshop": "Bu hafta workshop yok",
+      "show": "QR göster",
+      "showFor": "QR göster: Hafta {week}, {kind}",
+      "checkedIn": "{count} kişi katıldı",
+      "dialogTitle": "Hafta {week} · {kind}",
+      "link": "Bağlantı",
+      "print": "Yazdır",
+      "regenerate": "Yenile",
+      "close": "Kapat",
+      "opens": "Yoklama {from} – {to} arasında açık",
+      "regenerateConfirm": "Yeni bir QR kod oluşturulsun mu? Eski kod ve bağlantı hemen geçersiz olur.",
+      "regenerateNo": "Vazgeç",
+      "regenerated": "Yeni QR kod oluşturuldu; eski kod artık geçersiz.",
+      "qrLabel": "{title} için yoklama QR kodu",
+      "loading": "QR kod hazırlanıyor…",
+      "failed": "QR kod alınamadı."
+    },
     "attendance": {
-      "title": "Haftalık katılım",
-      "hint": "Katılımcıların Süreç'ten işaretlediği haftalar. Tarih seçmezseniz programın başından bugüne kadar.",
+      "title": "Yoklama",
+      "hint": "Her haftanın eğitim ve workshop oturumunda QR kodla alınan yoklama. QR'ı okutamayan bir katılımcıyı hücresine tıklayarak işaretleyebilirsiniz. Tarih seçmezseniz programın başından bugüne kadar.",
       "from": "Başlangıç",
       "to": "Bitiş",
       "wholeProgram": "Tüm program",
       "downloadXlsx": "Excel indir",
       "downloadCsv": "CSV indir",
       "rangeInvalid": "Geçerli bir tarih aralığı seçin.",
-      "noWeeks": "Bu aralıkta başlamış bir program haftası yok.",
+      "noWeeks": "Bu aralıkta yapılmış bir oturum yok.",
       "noParticipants": "Bu programda henüz katılımcı yok.",
       "name": "Ad Soyad",
       "team": "Takım",
       "week": "H{week}",
-      "attendedWeeks": "Katıldığı",
       "present": "Katıldı",
       "absent": "Katılmadı",
-      "rate": "Haftalık katılım oranı",
-      "percent": "%{rate}"
+      "rate": "Katılım oranı",
+      "percent": "%{rate}",
+      "attended": "Katıldığı",
+      "lesson": "Eğitim",
+      "workshop": "Workshop",
+      "legacyWeek": "Haftalık (eski)",
+      "methodQr": "QR ile katıldı",
+      "methodManual": "Koordinatör işaretledi",
+      "methodSelf": "Haftalık işaret (eski)",
+      "off": "Bu programda yoklama kapalı; Program Ayarları'ndan açabilirsiniz. Eski kayıtlar aşağıda.",
+      "markFailed": "Katılım güncellenemedi.",
+      "markToggle": "{name}, {session}: katıldı"
     }
   },
   "programDetail": {
@@ -5421,18 +5458,18 @@
       "accountsDetail": "bu pencerede oluşturulan kullanıcı"
     }
   },
-  "weeklyCheckIn": {
-    "title": "Haftalık katılım",
+  "weeklyAttendance": {
+    "title": "Bu haftaki yoklaman",
     "week": "Hafta {week}",
     "weekOf": "Hafta {week}/{total}",
-    "hint": "Bu haftaki program çalışmalarına katıldıysan işaretle.",
-    "action": "Bu hafta katıldım",
-    "saving": "Kaydediliyor…",
-    "checkedIn": "Bu haftaki katılımın kaydedildi.",
-    "checkedInAt": "Bu haftaki katılımın kaydedildi ({time}).",
-    "done": "Katılımın kaydedildi.",
-    "failed": "Katılım kaydedilemedi.",
-    "notStarted": "Program henüz başlamadı; ilk hafta başlayınca katılımını işaretleyebilirsin.",
+    "hint": "Yoklama, oturumda gösterilen QR kodu telefonunla okutarak alınır.",
+    "lesson": "Eğitim",
+    "workshop": "Workshop",
+    "legacyWeek": "Haftalık (eski)",
+    "present": "Katıldın",
+    "absent": "Kayıt yok",
+    "noSessions": "Bu hafta yoklama alınan bir oturum yok.",
+    "notStarted": "Program henüz başlamadı.",
     "ended": "Program sona erdi.",
     "unscheduled": "Programın haftaları henüz planlanmadı."
   },
@@ -6209,7 +6246,10 @@
     "personIdInvalid": "Geçerli bir kişi seçin.",
     "aiFeaturesLoadFailed": "Yapay zekâ ayarları yüklenemedi.",
     "programAssignmentsLoadFailed": "Ödevler yüklenemedi.",
-    "programAssignmentCreateFailed": "Ödev gönderilemedi."
+    "programAssignmentCreateFailed": "Ödev gönderilemedi.",
+    "attendanceQrFailed": "QR kod hazırlanamadı.",
+    "attendanceMarkFailed": "Katılım güncellenemedi.",
+    "attendanceQrNotValid": "Bu QR şu an geçerli değil."
   },
   "startupStart": {
     "title": "Startup'ım",
@@ -7045,6 +7085,20 @@
     },
     "footer": "menton · ODTÜ",
     "metaTitle": "menton · ODTÜ"
+  },
+  "attendCheckIn": {
+    "title": "Yoklama",
+    "checking": "Yoklaman kaydediliyor…",
+    "recorded": "Yoklaman alındı",
+    "alreadyRecorded": "Bu oturumun yoklaması zaten alınmış",
+    "lesson": "Eğitim",
+    "workshop": "Workshop",
+    "legacyWeek": "Haftalık (eski)",
+    "session": "Hafta {week} · {kind}",
+    "notRecorded": "Yoklama alınamadı",
+    "failed": "Yoklaman kaydedilemedi",
+    "retry": "Tekrar dene",
+    "home": "Ana sayfaya dön"
   },
   "programCalendar": {
     "kinds": {
