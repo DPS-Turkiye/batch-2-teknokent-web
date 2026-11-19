@@ -48,6 +48,7 @@ const overview: AdminOverview = {
   requests: [],
   bottlenecks: [],
   meetingsLast8Weeks: 0,
+  acceptedRequests: [],
 };
 
 vi.mock("@/hooks/use-admin-overview", () => ({

@@ -175,6 +175,7 @@ function overview(overrides: Partial<AdminOverview> = {}): AdminOverview {
       }),
     ],
     meetingsLast8Weeks: 4,
+    acceptedRequests: [],
     ...overrides,
   };
 }

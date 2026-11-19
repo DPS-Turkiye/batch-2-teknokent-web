@@ -22,6 +22,7 @@ const emptyOverview: AdminOverview = {
   requests: [],
   bottlenecks: [],
   meetingsLast8Weeks: 0,
+  acceptedRequests: [],
 };
 
 describe("AdminPage", () => {

@@ -109,7 +109,7 @@ export type AdminMentorship = {
   goalTotal?: number;
   /** The program it was made in; null for one made before programs were recorded. */
   programId?: string | null;
-  /** An accepted request shows up only in a Program raporu, as an active pair; its `id` is then the request's. */
+  /** `AcceptedRequest` in `acceptedRequests`, where the `id` is the request's. */
   source: MentorshipSource;
 };
 
@@ -158,6 +158,11 @@ export type AdminOverview = {
   bottlenecks: AdminBottleneck[];
   meetingsLast8Weeks: number;
   meetings?: AdminMeetingMark[];
+  /**
+   * Teams working with a mentor through an accepted request, which made no mentorship row: one active pair per team,
+   * mentor and program, its `id` the request's. Kept apart from `mentorships`, whose ids the admin screens act on.
+   */
+  acceptedRequests: AdminMentorship[];
 };
 
 type NamelessTeam<T extends { organizationName: string }> = Omit<
@@ -171,9 +176,10 @@ type NamelessTeam<T extends { organizationName: string }> = Omit<
  */
 export type AdminOverviewResponse = Omit<
   AdminOverview,
-  "mentorships" | "requests" | "bottlenecks"
+  "mentorships" | "acceptedRequests" | "requests" | "bottlenecks"
 > & {
   mentorships: NamelessTeam<AdminMentorship>[];
+  acceptedRequests: NamelessTeam<AdminMentorship>[];
   requests: NamelessTeam<AdminRequest>[];
   bottlenecks: NamelessTeam<AdminBottleneck>[];
 };

@@ -100,13 +100,16 @@ export function ratingsFromDay(range: ReportRange, weeks: Date[]) {
   return range === ReportRange.WholeProgram || !first ? null : isoDay(first);
 }
 
-/** The program's active mentorships, counted in the program they were made in. */
+/**
+ * The program's active mentorships, counted in the program they were made in, and the teams working with a mentor
+ * there through an accepted request.
+ */
 export function pairsIn(
   data: AdminOverview,
   program: AdminProgram,
   now = new Date(),
 ): ReportPair[] {
-  return data.mentorships
+  return [...data.mentorships, ...data.acceptedRequests]
     .filter(
       (item) =>
         item.status === MentorshipStatus.Active &&

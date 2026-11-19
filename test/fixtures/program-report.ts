@@ -52,6 +52,7 @@ export function reportOverview(overrides: Partial<AdminOverview> = {}) {
     requests: [],
     bottlenecks: [],
     meetingsLast8Weeks: 0,
+    acceptedRequests: [],
     meetings: [],
     ...overrides,
   } satisfies AdminOverview;
