@@ -21,25 +21,20 @@ const TONE = OnboardingTone.Mentee;
 const inputClass = `${onboardingInputClass} ${ONBOARDING_TONES[TONE].focus}`;
 
 const FILE_CARDS: {
-  kind: StartupDocumentKind;
+  kind:
+    typeof StartupDocumentKind.Canvas | typeof StartupDocumentKind.PitchDeck;
   title: string;
   subtitle: "canvasSubtitle" | "pitchSubtitle";
-  accept: string;
-  helpText: "canvasHelp" | "pitchHelp";
 }[] = [
   {
     kind: StartupDocumentKind.Canvas,
     title: "Business Model Canvas",
     subtitle: "canvasSubtitle",
-    accept: ".pdf,.docx",
-    helpText: "canvasHelp",
   },
   {
     kind: StartupDocumentKind.PitchDeck,
     title: "Pitch Deck",
     subtitle: "pitchSubtitle",
-    accept: ".pdf,.pptx",
-    helpText: "pitchHelp",
   },
 ];
 
@@ -60,8 +55,7 @@ export function DocumentsStep({ wizard }: { wizard: StartupDraftForm }) {
             label={copy("pickFile", { title: card.title })}
             file={draft.documents[card.kind] ?? null}
             onChange={(file) => setDocument(card.kind, file)}
-            accept={card.accept}
-            helpText={copy(card.helpText)}
+            kind={card.kind}
             storedName={stored.byKind(card.kind)?.originalFilename ?? null}
           />
         </OnboardingCard>
@@ -81,8 +75,7 @@ export function DocumentsStep({ wizard }: { wizard: StartupDraftForm }) {
           label={copy("mvpPick")}
           file={draft.documents[StartupDocumentKind.Mvp] ?? null}
           onChange={(file) => setDocument(StartupDocumentKind.Mvp, file)}
-          accept=".pdf,.docx,.pptx"
-          helpText={copy("mvpHelp")}
+          kind={StartupDocumentKind.Mvp}
           storedName={
             stored.byKind(StartupDocumentKind.Mvp)?.originalFilename ?? null
           }

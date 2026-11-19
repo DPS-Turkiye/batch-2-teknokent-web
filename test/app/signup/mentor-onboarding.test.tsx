@@ -7,6 +7,7 @@ import { SignupFlow } from "@/components/signup/signup-flow";
 import { Edition } from "@/interfaces/edition";
 import { ClientApiError } from "@/lib/client/api";
 import { fetchAccountStatus } from "@/lib/client/auth";
+import { uploadDocument } from "@/lib/client/documents";
 import {
   updateAvailabilitySettings,
   updateMentorProfile,
@@ -156,6 +157,30 @@ describe("Signup role routing", () => {
 });
 
 describe("Mentor onboarding flow", () => {
+  it("says why a CV is refused at the upload screen instead of dropping it", async () => {
+    const user = userEvent.setup({ applyAccept: false });
+    render(<MentorOnboardingFlow fullName="Nihan Öztürk" />);
+    const input = screen.getByLabelText("CV dosyası seç");
+
+    expect(screen.getByText("PDF veya DOCX · en fazla 25 MB")).toBeVisible();
+
+    await user.upload(
+      input,
+      new File(["cv"], "cv.pages", { type: "application/x-iwork-pages" }),
+    );
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Bu dosya türü desteklenmiyor. PDF veya DOCX yükleyin.",
+    );
+
+    const large = new File(["cv"], "cv.pdf", { type: "application/pdf" });
+    Object.defineProperty(large, "size", { value: 26 * 1024 * 1024 });
+    await user.upload(input, large);
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Dosya çok büyük (en fazla 25 MB).",
+    );
+    expect(uploadDocument).not.toHaveBeenCalled();
+  });
+
   it("lists the four steps in the rail", () => {
     render(<MentorOnboardingFlow fullName="Nihan Öztürk" />);
 

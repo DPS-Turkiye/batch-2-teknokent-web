@@ -126,7 +126,7 @@ export function PersonalProfileStep({ wizard }: { wizard: SignupWizard }) {
           label={copy("cvPick")}
           file={personal.cv}
           onChange={cv.choose}
-          accept=".pdf,.docx"
+          kind={DocumentKind.Cv}
           storedName={storedCv?.originalFilename ?? null}
         />
         {cv.canRead ? null : (

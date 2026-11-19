@@ -26,6 +26,7 @@ import {
   SUPPORT_AREA_OPTIONS,
   TAGLINE_MAX_LENGTH,
 } from "@/interfaces/signup";
+import { DocumentKind } from "@/interfaces/startup-document";
 import { initials } from "@/lib/utils";
 
 const TONE = OnboardingTone.Mentee;
@@ -68,6 +69,7 @@ export function StartupFields({ form }: { form: StartupDraftForm }) {
             placeholder={copy("logoPlaceholder")}
             file={startup.logo}
             onChange={(file) => updateStartup("logo", file)}
+            kind={DocumentKind.Logo}
           />
           <OnboardingField
             id="signup-startup-name"
