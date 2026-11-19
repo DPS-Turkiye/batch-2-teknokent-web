@@ -1,7 +1,7 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import { useState } from "react";
+import { useId, useState } from "react";
 
 import type { UploadedFile } from "@/interfaces/signup";
 import {
@@ -22,6 +22,8 @@ export function useUploadCheck(kind: OnboardingUploadKind) {
   const t = useTranslations("uploadCheck");
   const locale = useLocale();
   const [problem, setProblem] = useState<UploadProblem | null>(null);
+  const hintId = useId();
+  const errorId = useId();
   const rule = ONBOARDING_UPLOAD_RULES[kind];
   const types = uploadTypesLabel(rule, locale);
   const max = formatFileSize(rule.maxBytes);
@@ -48,10 +50,17 @@ export function useUploadCheck(kind: OnboardingUploadKind) {
     return { name: selected.name, size: selected.size, file: selected };
   }
 
+  const error = problem ? problemText(problem) : null;
   return {
     accept: uploadAccept(rule),
     hint: t("hint", { types, max }),
-    error: problem ? problemText(problem) : null,
+    hintId,
+    error,
+    errorId,
+    /** For the visible control that opens the picker: points it at the refusal while one shows. */
+    errorDescribedBy: error ? errorId : undefined,
     take,
+    /** Drops a refusal that no longer applies, such as after the chosen file is removed. */
+    clear: () => setProblem(null),
   };
 }

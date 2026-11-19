@@ -434,7 +434,7 @@
   "uploadCheck": {
     "hint": "{types} · en fazla {max}",
     "wrongType": "Bu dosya türü desteklenmiyor. {types} yükleyin.",
-    "videoAsLink": "Video dosyası yüklenemiyor. Videonu YouTube veya Google Drive’a yükleyip bağlantısını yukarıdaki Bağlantı alanına ekle. Buraya {types} yükleyebilirsin.",
+    "videoAsLink": "Video dosyası yüklenemiyor. Videonuzu YouTube veya Google Drive’a yükleyip bağlantısını Bağlantı alanına ekleyin. Buraya {types} yükleyebilirsiniz.",
     "tooLarge": "Dosya çok büyük (en fazla {max}).",
     "empty": "Bu dosya boş. Başka bir dosya seçin."
   },

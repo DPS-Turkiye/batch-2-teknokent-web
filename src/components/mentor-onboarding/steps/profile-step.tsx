@@ -50,6 +50,7 @@ function UploadPhase({ wizard }: { wizard: MentorOnboarding }) {
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
+          aria-describedby={upload.errorDescribedBy}
           className="flex w-full flex-col items-center justify-center gap-3 rounded-xl border border-[#e4e7ea] py-3 hover:bg-[#f8f9fa]"
         >
           <span className="flex flex-col items-center gap-5">
@@ -86,7 +87,11 @@ function UploadPhase({ wizard }: { wizard: MentorOnboarding }) {
           }}
         />
         {upload.error ? (
-          <p role="alert" className="pb-1 text-center text-xs text-[#b42318]">
+          <p
+            id={upload.errorId}
+            role="alert"
+            className="pb-1 text-center text-xs text-[#b42318]"
+          >
             {upload.error}
           </p>
         ) : null}

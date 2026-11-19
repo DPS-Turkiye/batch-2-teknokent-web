@@ -236,6 +236,11 @@ export function OnboardingFileField({
     if (picked) onChange(picked);
   }
 
+  function removeFile() {
+    upload.clear();
+    onChange(null);
+  }
+
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
     takeFile(event.target.files?.[0]);
     event.target.value = "";
@@ -270,10 +275,9 @@ export function OnboardingFileField({
             </span>
             <button
               type="button"
-              onClick={() =>
-                file ? onChange(null) : inputRef.current?.click()
-              }
+              onClick={() => (file ? removeFile() : inputRef.current?.click())}
               className="text-xs font-medium leading-[18px] text-[#676e78] hover:underline"
+              aria-describedby={upload.errorDescribedBy}
               aria-label={
                 file
                   ? copy("removeFile", { name: shownName })
@@ -288,6 +292,7 @@ export function OnboardingFileField({
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
+          aria-describedby={upload.errorDescribedBy}
           onDragOver={(event) => {
             event.preventDefault();
             setDragging(true);
@@ -328,7 +333,11 @@ export function OnboardingFileField({
         onChange={handleChange}
       />
       {upload.error ? (
-        <p role="alert" className="text-[11.5px] text-[#b42318]">
+        <p
+          id={upload.errorId}
+          role="alert"
+          className="text-[11.5px] text-[#b42318]"
+        >
           {upload.error}
         </p>
       ) : null}
@@ -457,6 +466,9 @@ export function OnboardingImagePicker({
         type="button"
         onClick={() => inputRef.current?.click()}
         aria-label={file ? copy("change", { label }) : copy("pick", { label })}
+        aria-describedby={
+          upload.error ? `${upload.hintId} ${upload.errorId}` : upload.hintId
+        }
         className="relative"
         style={{ width: size, height: size }}
       >
@@ -495,11 +507,18 @@ export function OnboardingImagePicker({
         onChange={handleChange}
       />
       {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
-      <p className="max-w-36 text-[10.5px] leading-[15px] text-[#858c96]">
+      <p
+        id={upload.hintId}
+        className="max-w-36 text-[11px] leading-4 text-[#676e78]"
+      >
         {upload.hint}
       </p>
       {upload.error ? (
-        <p role="alert" className="max-w-36 text-[11px] text-[#b42318]">
+        <p
+          id={upload.errorId}
+          role="alert"
+          className="max-w-36 text-[11px] text-[#b42318]"
+        >
           {upload.error}
         </p>
       ) : null}

@@ -70,7 +70,7 @@ describe("useUploadCheck", () => {
     });
 
     expect(result.current.error).toBe(
-      "Video dosyası yüklenemiyor. Videonu YouTube veya Google Drive’a yükleyip bağlantısını yukarıdaki Bağlantı alanına ekle. Buraya PDF, DOCX veya PPTX yükleyebilirsin.",
+      "Video dosyası yüklenemiyor. Videonuzu YouTube veya Google Drive’a yükleyip bağlantısını Bağlantı alanına ekleyin. Buraya PDF, DOCX veya PPTX yükleyebilirsiniz.",
     );
   });
 

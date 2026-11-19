@@ -99,6 +99,45 @@ describe("OnboardingFileField", () => {
     );
   });
 
+  it("ties the refusal to the drop area for screen readers", async () => {
+    renderMvpField();
+
+    await user().upload(
+      screen.getByLabelText("MVP / Prototip dosyası seç"),
+      new File(["x"], "mvp.zip", { type: "application/zip" }),
+    );
+
+    expect(
+      screen.getByRole("button", { name: /Dosyayı sürükleyip bırak/ }),
+    ).toHaveAccessibleDescription(
+      "Bu dosya türü desteklenmiyor. PDF, DOCX veya PPTX yükleyin.",
+    );
+  });
+
+  it("drops a stale refusal when the chosen file is removed", async () => {
+    const onChange = vi.fn<(file: UploadedFile | null) => void>();
+    const props = {
+      label: "CV dosyası seç",
+      onChange,
+      kind: DocumentKind.Cv,
+    } as const;
+    const { rerender } = render(<OnboardingFileField {...props} file={null} />);
+    await user().upload(
+      screen.getByLabelText("CV dosyası seç"),
+      new File(["x"], "cv.avi", { type: "video/x-msvideo" }),
+    );
+    rerender(
+      <OnboardingFileField {...props} file={{ name: "cv.pdf", size: 10 }} />,
+    );
+
+    await user().click(
+      screen.getByRole("button", { name: "cv.pdf dosyasını kaldır" }),
+    );
+
+    expect(onChange).toHaveBeenCalledWith(null);
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
   it("takes an accepted file", async () => {
     const onChange = renderMvpField();
     const file = new File(["deck"], "mvp.pptx", {
@@ -134,12 +173,12 @@ describe("OnboardingImagePicker", () => {
     return onChange;
   }
 
-  it("shows the image formats and size", () => {
+  it("shows the image formats and size, and describes the picker with them", () => {
     renderLogo();
 
     expect(
-      screen.getByText("PNG, JPG veya WEBP · en fazla 5 MB"),
-    ).toBeInTheDocument();
+      screen.getByRole("button", { name: "Startup logosu seç" }),
+    ).toHaveAccessibleDescription("PNG, JPG veya WEBP · en fazla 5 MB");
   });
 
   it("refuses a GIF logo", async () => {

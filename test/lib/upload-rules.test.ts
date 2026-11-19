@@ -37,6 +37,15 @@ describe("ONBOARDING_UPLOAD_RULES", () => {
     expect(ONBOARDING_UPLOAD_RULES[DocumentKind.Logo].maxBytes).toBe(5 * MB);
     expect(ONBOARDING_UPLOAD_RULES[DocumentKind.Avatar].maxBytes).toBe(5 * MB);
   });
+
+  it("takes the same image formats for a mentor photo as for a logo", () => {
+    const avatar = ONBOARDING_UPLOAD_RULES[DocumentKind.Avatar];
+
+    expect(uploadProblem(picked("me.jpg", "image/jpeg"), avatar)).toBeNull();
+    expect(uploadProblem(picked("me.heic", "image/heic"), avatar)).toBe(
+      UploadProblem.WrongType,
+    );
+  });
 });
 
 describe("uploadProblem", () => {
@@ -47,6 +56,14 @@ describe("uploadProblem", () => {
 
   it("reads the extension case-insensitively", () => {
     expect(uploadProblem(picked("CV.PDF", "APPLICATION/PDF"), cv)).toBeNull();
+  });
+
+  it("reads the extension after the last dot, as the backend does", () => {
+    expect(uploadProblem(picked("my.cv.final.PDF", PDF), cv)).toBeNull();
+    expect(uploadProblem(picked("cv.pdf.exe", ""), cv)).toBe(
+      UploadProblem.WrongType,
+    );
+    expect(uploadProblem(picked("cv.", ""), cv)).toBe(UploadProblem.WrongType);
   });
 
   it("accepts a file the browser sent without a type, as the backend does", () => {

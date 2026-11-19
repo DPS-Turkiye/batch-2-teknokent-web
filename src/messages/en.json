@@ -432,7 +432,7 @@
   "uploadCheck": {
     "hint": "{types} · up to {max}",
     "wrongType": "This file type isn’t supported. Please upload {types}.",
-    "videoAsLink": "Video files can’t be uploaded. Upload the video to YouTube or Google Drive and add its link in the Link field above. Here you can upload {types}.",
+    "videoAsLink": "Video files can’t be uploaded. Upload the video to YouTube or Google Drive and add its link in the Link field. Here you can upload {types}.",
     "tooLarge": "The file is too large (up to {max}).",
     "empty": "This file is empty. Please choose another file."
   },
