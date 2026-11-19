@@ -11,7 +11,7 @@ import {
   StartupPageFrame,
   startupPrimaryActionClass,
 } from "@/components/startup/startup-page-frame";
-import { WeeklyCheckIn } from "@/components/startup/weekly-check-in";
+import { WeeklyAttendance } from "@/components/startup/weekly-attendance";
 import { useSoftwareDevelopmentCard } from "@/hooks/use-software-development-card";
 import { useStartupProcess } from "@/hooks/use-startup-process";
 import { ActionItemStatus } from "@/interfaces/action-item";
@@ -319,7 +319,7 @@ export function StartupProcessView() {
           className="flex flex-col gap-4 lg:flex-row lg:items-start"
         >
           <ProgramWeekCard className="lg:flex-1" />
-          <WeeklyCheckIn />
+          <WeeklyAttendance />
         </div>
         <ProgramPastWeeks />
         <SoftwareDevelopmentCard />

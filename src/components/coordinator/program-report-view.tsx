@@ -6,6 +6,7 @@ import Link from "next/link";
 
 import { QueryNotice } from "@/components/admin/admin-ui";
 import { ProgramReporting } from "@/components/admin/reporting-view";
+import { AttendanceQrSection } from "@/components/coordinator/attendance-qr-section";
 import { ProgramAttendanceSection } from "@/components/coordinator/program-attendance-section";
 import { ProgramGlyph } from "@/components/coordinator/program-glyph";
 import { ProgramSessionsSection } from "@/components/coordinator/program-sessions-section";
@@ -56,6 +57,11 @@ export function ProgramReportView({ programId }: { programId: string }) {
       <ProgramReporting data={data} fixedProgram />
 
       <ProgramSessionsSection programId={programId} />
+
+      <AttendanceQrSection
+        programId={programId}
+        archived={program?.status === ProgramStatus.Completed}
+      />
 
       <ProgramAttendanceSection programId={programId} />
     </div>

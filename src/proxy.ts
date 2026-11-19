@@ -17,6 +17,7 @@ import {
 import { OTG_FAILURE_PARAM, otgLoginFailure } from "@/lib/otg-login";
 import {
   currentSessionUser,
+  isAttendancePath,
   isPublicPath,
   loginPathFor,
   safeNextPath,
@@ -35,10 +36,13 @@ type SessionRead = { signedIn: boolean; user?: AppSession };
  * phone login can still say why OTG sign-in did not start; nothing else from the query is passed on.
  */
 function phoneLoginPath(searchParams: URLSearchParams) {
+  const query = new URLSearchParams();
   const failure = otgLoginFailure(searchParams.get(OTG_FAILURE_PARAM));
-  return failure
-    ? `${MOBILE_LOGIN}?${new URLSearchParams({ [OTG_FAILURE_PARAM]: failure })}`
-    : MOBILE_LOGIN;
+  if (failure) query.set(OTG_FAILURE_PARAM, failure);
+  // A scanned attendance QR code has to land back on its link after the phone login; no other page rides along.
+  const next = safeNextPath(searchParams.get("next"));
+  if (next && isAttendancePath(next)) query.set("next", next);
+  return query.size > 0 ? `${MOBILE_LOGIN}?${query}` : MOBILE_LOGIN;
 }
 
 /**

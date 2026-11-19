@@ -221,6 +221,34 @@ describe("proxy on a phone", () => {
     expect(location(response)).toBe("http://localhost:3000/m/login?otg=hata");
   });
 
+  // A scanned attendance code sends a signed-out phone to sign in; the phone login must send it back to the code.
+  it("keeps an attendance link as next when it sends a signed-out phone to the phone login", async () => {
+    const scanned = await request("/attend/Ab_-9", undefined, IPHONE);
+    expect(location(scanned)).toBe(
+      "http://localhost:3000/login?next=%2Fattend%2FAb_-9",
+    );
+
+    const login = await request(
+      "/login?next=%2Fattend%2FAb_-9",
+      undefined,
+      IPHONE,
+    );
+    expect(location(login)).toBe(
+      "http://localhost:3000/m/login?next=%2Fattend%2FAb_-9",
+    );
+  });
+
+  it("carries no other next to the phone login", async () => {
+    for (const path of [
+      "/login?next=%2Fdashboard",
+      "/login?next=%2F%2Fevil.example%2Fattend%2Fx",
+      "/login?next=%2Fattendance",
+    ]) {
+      const response = await request(path, undefined, IPHONE);
+      expect(location(response)).toBe("http://localhost:3000/m/login");
+    }
+  });
+
   // Only an allowlisted value under the one known key is carried; nothing else from the query goes through.
   it("passes nothing else from the query on to the phone login", async () => {
     for (const path of [
