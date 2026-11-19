@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { WeekVisibility } from "@/interfaces/program-week";
 import {
   nextFreeWeek,
   pastWeeks,
@@ -8,6 +9,8 @@ import {
   programWeekCardState,
   ProgramWeekCardState,
   programWeekDays,
+  savedVisibilities,
+  upcomingWeeks,
   weekDaysOf,
   weekDraftOf,
   weekInputOf,
@@ -41,6 +44,17 @@ function draft(week: number, title = `Hafta ${week}`): WeekDraft {
 }
 
 describe("the Bu hafta card state", () => {
+  it("is hidden when the coordinator hid the running week, unless the program has not started or has ended", () => {
+    expect(
+      programWeekCardState(
+        thisWeek({ planHidden: true, plan: null, phases: [] }),
+      ),
+    ).toBe(ProgramWeekCardState.Hidden);
+    expect(
+      programWeekCardState(thisWeek({ planHidden: true, ended: true })),
+    ).toBe(ProgramWeekCardState.Ended);
+  });
+
   it("is ready with a plan or a phase, empty with neither, and says when the program hasn't started or has ended", () => {
     expect(programWeekCardState(thisWeek())).toBe(ProgramWeekCardState.Ready);
     expect(programWeekCardState(thisWeek({ plan: null }))).toBe(
@@ -91,6 +105,34 @@ describe("the past weeks list", () => {
 
   it("is empty when only the running week has begun", () => {
     expect(pastWeeks([weekSoFar(1, { current: true })])).toEqual([]);
+  });
+
+  it("leaves a week opened early to the upcoming list, soonest first", () => {
+    const weeks = [
+      weekSoFar(1),
+      weekSoFar(2, { current: true }),
+      weekSoFar(5, { upcoming: true }),
+      weekSoFar(4, { upcoming: true }),
+    ];
+
+    expect(pastWeeks(weeks).map((week) => week.plan.week)).toEqual([1]);
+    expect(upcomingWeeks(weeks).map((week) => week.plan.week)).toEqual([4, 5]);
+    expect(upcomingWeeks([weekSoFar(1)])).toEqual([]);
+  });
+});
+
+describe("a saved week's mentee visibility", () => {
+  it("is read by week number, a week without a setting counting as automatic", () => {
+    const visibilities = savedVisibilities([
+      planWeek({ week: 1, menteeVisibility: WeekVisibility.Hidden }),
+      planWeek({ week: 2, menteeVisibility: WeekVisibility.Shown }),
+      planWeek({ week: 3, menteeVisibility: null }),
+    ]);
+
+    expect(visibilities.get(1)).toBe(WeekVisibility.Hidden);
+    expect(visibilities.get(2)).toBe(WeekVisibility.Shown);
+    expect(visibilities.get(3)).toBe(WeekVisibility.Auto);
+    expect(visibilities.has(4)).toBe(false);
   });
 });
 

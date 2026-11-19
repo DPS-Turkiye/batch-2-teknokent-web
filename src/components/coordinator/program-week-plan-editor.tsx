@@ -4,6 +4,7 @@
 import { Plus, Trash2 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 
+import { WeekVisibilityControl } from "@/components/coordinator/week-visibility-control";
 import { ProgramPlanDays } from "@/components/program-plan-days";
 import type { useProgramWeekPlan } from "@/hooks/use-program-week-plan";
 import { dayRangeLabel, type WeekDraft } from "@/lib/program-week";
@@ -192,6 +193,15 @@ function WeekRow({
             {t("inferred")}
           </span>
         ) : null}
+        {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+        <WeekVisibilityControl
+          week={week.week}
+          visibility={plan.visibilityOf(week.week)}
+          canSet={plan.canSetVisibility(week.week)}
+          pending={plan.isSettingVisibility}
+          locked={locked}
+          onChange={(next) => plan.setVisibility(week.week, next)}
+        />
         <button
           type="button"
           disabled={locked}

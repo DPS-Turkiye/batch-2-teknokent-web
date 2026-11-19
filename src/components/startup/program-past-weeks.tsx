@@ -46,7 +46,7 @@ export function ProgramPastWeeks() {
         <ul className="space-y-2">
           {past.weeks.map((week) => (
             <li key={week.plan.week}>
-              <PastWeekCard week={week} />
+              <PlanWeekCard week={week} />
             </li>
           ))}
         </ul>
@@ -55,7 +55,8 @@ export function ProgramPastWeeks() {
   );
 }
 
-function PastWeekCard({ week }: { week: ProgramWeekSoFar }) {
+/** One week as a collapsed card with what was planned for it; used by "Geçmiş" and "Yaklaşan haftalar". */
+export function PlanWeekCard({ week }: { week: ProgramWeekSoFar }) {
   const t = useTranslations("programPastWeeks");
   const tWeek = useTranslations("programThisWeek");
   const locale = useLocale();

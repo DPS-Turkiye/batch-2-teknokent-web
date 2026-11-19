@@ -1,12 +1,14 @@
 import type { AxiosRequestConfig } from "axios";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { WeekVisibility } from "@/interfaces/program-week";
 import {
   alignProgramDates,
   fetchProgramThisWeek,
   fetchProgramWeekPlan,
   fetchProgramWeeksSoFar,
   replaceProgramWeekPlan,
+  setProgramWeekVisibility,
 } from "@/lib/api/program-weeks";
 import { backendRequest } from "@/lib/server/backend-client";
 import { specialDay } from "@test/fixtures/program-week";
@@ -22,6 +24,16 @@ type RequestCase = [
 ];
 
 const cases: RequestCase[] = [
+  [
+    "sets one saved week's mentee visibility as the session coordinator",
+    () =>
+      setProgramWeekVisibility("coord-1", "prog/1", 3, WeekVisibility.Shown),
+    {
+      method: "PUT",
+      url: "/api/coordinator/programs/prog%2F1/weeks/3/visibility",
+      data: { actorId: "coord-1", visibility: WeekVisibility.Shown },
+    },
+  ],
   [
     "aligns dates as the session coordinator",
     () => alignProgramDates("coord-1", "prog/1"),

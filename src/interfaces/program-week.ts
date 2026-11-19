@@ -1,3 +1,13 @@
+/**
+ * Who sees a saved week of the plan besides its coordinators: the program's mentees and accepted mentors once the week
+ * begins (`Auto`), now (`Shown`), or never (`Hidden`). Mirrors the backend's WeekVisibility.
+ */
+export enum WeekVisibility {
+  Auto = "AUTO",
+  Shown = "SHOWN",
+  Hidden = "HIDDEN",
+}
+
 /** A session of a week on its own day, as the syllabus prints it. Times are "HH:mm" or "HH:mm:ss". */
 export type ProgramSession = {
   date: string;
@@ -26,7 +36,8 @@ export type ProgramDateCheck = {
 /**
  * A week of a program's plan as the coordinator saved it (or the AI proposed it). Its dates are the ones the
  * syllabus prints (`datesFromSource`), else the program calendar's; null while neither exists. `inferred` marks a week the AI spread out
- * from a longer phase instead of reading it from a week-by-week syllabus.
+ * from a longer phase instead of reading it from a week-by-week syllabus. `menteeVisibility` is the coordinator's
+ * setting, sent only in the coordinator's saved plan (null in a read proposal and in what participants get).
  */
 export type ProgramPlanWeek = {
   week: number;
@@ -39,6 +50,7 @@ export type ProgramPlanWeek = {
   inferred: boolean;
   datesFromSource: boolean;
   sessions: ProgramSession[];
+  menteeVisibility: WeekVisibility | null;
 };
 
 export type ProgramWeekPlan = {
@@ -50,24 +62,29 @@ export type ProgramWeekPlan = {
 
 export type ProgramPlanWeekInput = Omit<
   ProgramPlanWeek,
-  "startDate" | "endDate" | "datesFromSource"
+  "startDate" | "endDate" | "datesFromSource" | "menteeVisibility"
 > & {
   /** The week's own dates (both or neither); null follows the program calendar. */
   startDate: string | null;
   endDate: string | null;
 };
 
-/** A week of the plan the program has reached; `current` marks the one "Bu hafta" shows. */
+/**
+ * A week of the plan a participant may see; `current` marks the one "Bu hafta" shows, `upcoming` one the coordinator
+ * opened before it begins ("Yaklaşan haftalar").
+ */
 export type ProgramWeekSoFar = {
   plan: ProgramPlanWeek;
   current: boolean;
+  upcoming: boolean;
   /** The special days dated inside the week's days. */
   specialDays: ProgramSpecialDay[];
 };
 
 /**
- * "Geçmiş haftalar" on Süreç (`GET /api/programs/mine/weeks`): the saved weeks whose first day has come, in week
- * order. A week that has not begun, and anything dated after the running week, is never sent.
+ * "Geçmiş haftalar" and "Yaklaşan haftalar" on Süreç (`GET /api/programs/mine/weeks`): the saved weeks whose first
+ * day has come and those the coordinator opened early, in week order. A hidden week is never sent, nor one that has
+ * not begun unless opened early.
  */
 export type ProgramWeeksSoFar = {
   programId: string;
@@ -90,6 +107,7 @@ export type ProgramThisWeekPhase = {
 /**
  * "Bu hafta" on Süreç (`GET /api/programs/mine/this-week`). `week` is null before the start, after the end, or
  * without a start date. `hasSyllabus` is false while the coordinator has saved neither phases nor weeks.
+ * `planHidden` is true when the coordinator hid the running week: `plan` and `phases` are then empty.
  */
 export type ProgramThisWeek = {
   programId: string;
@@ -107,4 +125,5 @@ export type ProgramThisWeek = {
   phases: ProgramThisWeekPhase[];
   /** Special days in the shown week, or today's. */
   specialDays: ProgramSpecialDay[];
+  planHidden: boolean;
 };

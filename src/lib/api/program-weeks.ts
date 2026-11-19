@@ -1,11 +1,13 @@
 import "server-only";
 
 import type {
+  ProgramPlanWeek,
   ProgramPlanWeekInput,
   ProgramSpecialDay,
   ProgramThisWeek,
   ProgramWeekPlan,
   ProgramWeeksSoFar,
+  WeekVisibility,
 } from "@/interfaces/program-week";
 import { HttpMethod } from "@/lib/http-method";
 import { backendRequest } from "@/lib/server/backend-client";
@@ -35,6 +37,20 @@ export function replaceProgramWeekPlan(
       weeks,
       specialDays,
     },
+  });
+}
+
+/** Who besides the coordinators sees saved week `week`; the backend checks the actor may edit the plan. */
+export function setProgramWeekVisibility(
+  actorId: string,
+  programId: string,
+  week: number,
+  visibility: WeekVisibility,
+) {
+  return backendRequest<ProgramPlanWeek>({
+    method: HttpMethod.Put,
+    url: `${planUrl(programId)}/${encodeURIComponent(String(week))}/visibility`,
+    data: { actorId, visibility },
   });
 }
 

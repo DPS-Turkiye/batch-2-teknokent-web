@@ -6249,7 +6249,8 @@
     "programAssignmentCreateFailed": "Ödev gönderilemedi.",
     "attendanceQrFailed": "QR kod hazırlanamadı.",
     "attendanceMarkFailed": "Katılım güncellenemedi.",
-    "attendanceQrNotValid": "Bu QR şu an geçerli değil."
+    "attendanceQrNotValid": "Bu QR şu an geçerli değil.",
+    "weekVisibilitySaveFailed": "Haftanın görünürlüğü kaydedilemedi."
   },
   "startupStart": {
     "title": "Startup'ım",
@@ -6844,7 +6845,8 @@
     "expectedOutput": "Beklenen çıktı: {output}",
     "notStarted": "Program {date} tarihinde başlıyor.",
     "ended": "Program tamamlandı.",
-    "empty": "Koordinatör henüz bu hafta için müfredat eklemedi."
+    "empty": "Koordinatör henüz bu hafta için müfredat eklemedi.",
+    "planHidden": "Bu haftanın programı henüz paylaşılmadı."
   },
   "programPastWeeks": {
     "title": "Geçmiş haftalar",
@@ -6853,12 +6855,16 @@
     "weekTitle": "Hafta {week} · {title}",
     "sessions": "Oturumlar"
   },
+  "programUpcomingWeeks": {
+    "title": "Yaklaşan haftalar",
+    "subtitle": "Koordinatörün önceden paylaştığı haftalar."
+  },
   "programWeekPlan": {
     "sessionsOf": "{week}. haftanın oturumları",
     "specialDays": "Özel günler",
     "title": "Haftalık plan",
-    "subtitle": "Katılımcılar Süreç sayfasında o haftanın ve geçmiş haftaların planını görür; sonraki haftaları, o hafta gelene kadar göremez.",
-    "subtitleWeeks": "Program {total} hafta sürüyor. Katılımcılar Süreç sayfasında o haftanın ve geçmiş haftaların planını görür; sonraki haftaları, o hafta gelene kadar göremez.",
+    "subtitle": "Katılımcılar Süreç sayfasında o haftanın ve geçmiş haftaların planını görür; sonraki haftaları, o hafta gelene kadar göremez. Her haftanın “Mentee görünürlüğü” ile bir haftayı önceden gösterebilir ya da gizleyebilirsin.",
+    "subtitleWeeks": "Program {total} hafta sürüyor. Katılımcılar Süreç sayfasında o haftanın ve geçmiş haftaların planını görür; sonraki haftaları, o hafta gelene kadar göremez. Her haftanın “Mentee görünürlüğü” ile bir haftayı önceden gösterebilir ya da gizleyebilirsin.",
     "add": "Hafta ekle",
     "loading": "Haftalık plan yükleniyor…",
     "loadFailed": "Haftalık plan yüklenemedi.",
@@ -6891,7 +6897,24 @@
     "datesAligned": "Program tarihleri güncellendi.",
     "alignFailed": "Program tarihleri güncellenemedi.",
     "startDate": "Hafta başlangıcı",
-    "endDate": "Hafta bitişi"
+    "endDate": "Hafta bitişi",
+    "visibility": {
+      "label": "Mentee görünürlüğü",
+      "labelOf": "Hafta {week} için mentee görünürlüğü",
+      "options": {
+        "AUTO": "Otomatik (haftası gelince)",
+        "SHOWN": "Şimdi göster",
+        "HIDDEN": "Gizle"
+      },
+      "badge": {
+        "AUTO": "Otomatik",
+        "SHOWN": "Mentee'ler görüyor",
+        "HIDDEN": "Gizli"
+      },
+      "saveFirst": "Görünürlüğü değiştirmek için önce planı kaydet.",
+      "saved": "Haftanın görünürlüğü güncellendi.",
+      "saveFailed": "Haftanın görünürlüğü kaydedilemedi."
+    }
   },
   "weeklyProgram": {
     "manualHint": "Bu sistemde haftalık program dosyası otomatik okunmuyor; fazları burada, haftaları Haftalık plan’da elle ekle.",

@@ -1,9 +1,11 @@
 import type {
+  ProgramPlanWeek,
   ProgramPlanWeekInput,
   ProgramSpecialDay,
   ProgramThisWeek,
   ProgramWeekPlan,
   ProgramWeeksSoFar,
+  WeekVisibility,
 } from "@/interfaces/program-week";
 import { requireSuccess } from "@/lib/client/api";
 import { httpClient } from "@/lib/http-client";
@@ -27,6 +29,19 @@ export async function saveProgramWeekPlan(
       weeks,
       specialDays,
     }),
+  );
+}
+
+export async function setProgramWeekVisibility(
+  programId: string,
+  week: number,
+  visibility: WeekVisibility,
+) {
+  return requireSuccess(
+    await httpClient.put<ProgramPlanWeek>(
+      `${planUrl(programId)}/${encodeURIComponent(String(week))}/visibility`,
+      { visibility },
+    ),
   );
 }
 

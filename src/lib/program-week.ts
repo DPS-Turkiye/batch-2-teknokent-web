@@ -1,10 +1,11 @@
-import type {
-  ProgramPlanWeek,
-  ProgramPlanWeekInput,
-  ProgramSession,
-  ProgramSpecialDay,
-  ProgramThisWeek,
-  ProgramWeekSoFar,
+import {
+  WeekVisibility,
+  type ProgramPlanWeek,
+  type ProgramPlanWeekInput,
+  type ProgramSession,
+  type ProgramSpecialDay,
+  type ProgramThisWeek,
+  type ProgramWeekSoFar,
 } from "@/interfaces/program-week";
 import { shortWeekday } from "@/lib/calendar";
 import { newRowKey } from "@/lib/keyed-list";
@@ -15,6 +16,8 @@ export enum ProgramWeekCardState {
   NotStarted = "NOT_STARTED",
   Ended = "ENDED",
   Empty = "EMPTY",
+  /** The coordinator hid the running week: its number and dates show, its plan does not. */
+  Hidden = "HIDDEN",
   Ready = "READY",
 }
 
@@ -25,6 +28,7 @@ export const MAX_PLAN_WEEKS = 104;
 export function programWeekCardState(week: ProgramThisWeek) {
   if (week.notStarted) return ProgramWeekCardState.NotStarted;
   if (week.ended) return ProgramWeekCardState.Ended;
+  if (week.planHidden) return ProgramWeekCardState.Hidden;
   if (!week.plan && week.phases.length === 0 && week.specialDays.length === 0)
     return ProgramWeekCardState.Empty;
   return ProgramWeekCardState.Ready;
@@ -38,8 +42,25 @@ export function weekPhase(week: ProgramThisWeek) {
 /** "Geçmiş haftalar": the weeks reached so far without the running one ("Bu hafta" shows it), newest first. */
 export function pastWeeks(weeks: readonly ProgramWeekSoFar[]) {
   return weeks
-    .filter((week) => !week.current)
+    .filter((week) => !week.current && !week.upcoming)
     .toSorted((left, right) => right.plan.week - left.plan.week);
+}
+
+/** "Yaklaşan haftalar": the weeks the coordinator opened before they begin, soonest first. */
+export function upcomingWeeks(weeks: readonly ProgramWeekSoFar[]) {
+  return weeks
+    .filter((week) => week.upcoming)
+    .toSorted((left, right) => left.plan.week - right.plan.week);
+}
+
+/** Each saved week's visibility by week number; a week the plan has not saved yet has none. */
+export function savedVisibilities(weeks: readonly ProgramPlanWeek[]) {
+  return new Map(
+    weeks.map((week) => [
+      week.week,
+      week.menteeVisibility ?? WeekVisibility.Auto,
+    ]),
+  );
 }
 
 /** "12 Eki – 18 Eki"; null without both days. */
