@@ -93,6 +93,7 @@ const overview: AdminOverview = {
   requests: [],
   bottlenecks: [],
   meetingsLast8Weeks: 0,
+  acceptedRequests: [],
 };
 
 /** Opens the mentor's drawer on its Programs tab. */

@@ -83,6 +83,7 @@ function overview(overrides: Partial<AdminOverview> = {}): AdminOverview {
     requests: [],
     bottlenecks: [],
     meetingsLast8Weeks: 0,
+    acceptedRequests: [],
     ...overrides,
   };
 }

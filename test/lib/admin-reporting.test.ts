@@ -7,7 +7,10 @@ import {
   type AdminOverview,
   type AdminUser,
 } from "@/interfaces/admin-overview";
-import { MentorshipStatus } from "@/interfaces/coordinator-mentorship";
+import {
+  MentorshipSource,
+  MentorshipStatus,
+} from "@/interfaces/coordinator-mentorship";
 import { MeetingStatus } from "@/interfaces/meeting";
 import { ProgramStatus, ProgramType } from "@/interfaces/program";
 import { UserAccountStatus, UserRole } from "@/interfaces/session";
@@ -122,6 +125,7 @@ function overview(overrides: Partial<AdminOverview> = {}): AdminOverview {
     requests: [],
     bottlenecks: [],
     meetingsLast8Weeks: 0,
+    acceptedRequests: [],
     ...overrides,
   };
 }
@@ -263,6 +267,36 @@ describe("pairsIn", () => {
     expect(pairsIn(data, program, NOW).map((pair) => pair.id)).toEqual([
       "made-here",
     ]);
+  });
+
+  it("adds the teams working with a mentor here through an accepted request", () => {
+    const fromRequest = adminMentorship({
+      id: "request-1",
+      organizationId: "org-2",
+      daysSinceMeeting: 3,
+      programId: "program-1",
+      source: MentorshipSource.AcceptedRequest,
+    });
+    const data = overview({
+      mentorships: [adminMentorship({ id: "match", programId: "program-1" })],
+      acceptedRequests: [
+        fromRequest,
+        adminMentorship({
+          id: "request-elsewhere",
+          programId: "program-9",
+          source: MentorshipSource.AcceptedRequest,
+        }),
+      ],
+    });
+
+    const pairs = pairsIn(data, program, NOW);
+
+    expect(pairs.map((pair) => pair.id)).toEqual(["match", "request-1"]);
+    expect(pairs[1]).toMatchObject({
+      source: MentorshipSource.AcceptedRequest,
+      stale: false,
+      goalTotal: 0,
+    });
   });
 });
 

@@ -69,6 +69,7 @@ function overview(mentorships: AdminMentorship[]): AdminOverview {
     requests: [],
     bottlenecks: [],
     meetingsLast8Weeks: 0,
+    acceptedRequests: [],
   };
 }
 

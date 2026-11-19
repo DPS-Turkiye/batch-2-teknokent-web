@@ -48,6 +48,7 @@ const overview: AdminOverview = {
   requests: [],
   bottlenecks: [],
   meetingsLast8Weeks: 0,
+  acceptedRequests: [],
 };
 
 // The Mentorlar and Takımlar tabs exist on the Teknokent edition.

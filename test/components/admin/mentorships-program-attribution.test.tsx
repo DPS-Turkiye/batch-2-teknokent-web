@@ -63,6 +63,7 @@ const overview: AdminOverview = {
   requests: [],
   bottlenecks: [],
   meetingsLast8Weeks: 0,
+  acceptedRequests: [],
 };
 
 // Program names also fill the scope <select>, so skip the <option>s.

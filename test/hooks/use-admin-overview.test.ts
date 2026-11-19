@@ -12,6 +12,21 @@ function overview(): AdminOverviewResponse {
     programs: [],
     users: [],
     meetingsLast8Weeks: 0,
+    acceptedRequests: [
+      {
+        id: "r1",
+        mentorId: "mentor-3",
+        mentorName: "Nihan Öztürk",
+        organizationId: "personal-2",
+        organizationName: null,
+        status: MentorshipStatus.Active,
+        startDate: "2026-11-10",
+        endDate: null,
+        progressPercent: 0,
+        daysSinceMeeting: null,
+        source: MentorshipSource.AcceptedRequest,
+      },
+    ],
     mentorships: [
       {
         id: "m1",
@@ -52,5 +67,8 @@ describe("labelPersonalTeams", () => {
       "Akran mentorluğu",
       "Flexvision",
     ]);
+    expect(
+      labelled.acceptedRequests.map((row) => row.organizationName),
+    ).toEqual(["Akran mentorluğu"]);
   });
 });

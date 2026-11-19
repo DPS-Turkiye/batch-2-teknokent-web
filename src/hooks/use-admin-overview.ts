@@ -23,6 +23,7 @@ export function labelPersonalTeams(
   return {
     ...overview,
     mentorships: overview.mentorships.map(named),
+    acceptedRequests: overview.acceptedRequests.map(named),
     requests: overview.requests.map(named),
     bottlenecks: overview.bottlenecks.map(named),
   };
