@@ -6,7 +6,10 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import { Avatar } from "@/components/common/avatar";
+import { MentorLabelChips } from "@/components/mentor-labels/mentor-label-chips";
+import { MentorLabelFilter } from "@/components/mentor-labels/mentor-label-filter";
 import { useIndividualProgram } from "@/hooks/use-individual-program";
+import { useMentorLabelFilter } from "@/hooks/use-mentor-labels";
 import { useMentors } from "@/hooks/use-mentors";
 import type { MentorProfile } from "@/interfaces/mentor";
 import {
@@ -52,10 +55,12 @@ export function MentorsDirectory({
   );
   const [moreFilters, setMoreFilters] = useState(false);
 
-  const visible = useMemo(
+  const filtered = useMemo(
     () => applyMentorDirectory(mentors, filters),
     [filters, mentors],
   );
+  const labels = useMentorLabelFilter(filtered, (mentor) => mentor.id);
+  const visible = labels.visible;
   const specialties = useMemo(() => uniqueSpecialties(mentors), [mentors]);
   const stages = useMemo(() => uniqueStartupStages(mentors), [mentors]);
   const availabilityOptions = useMemo(
@@ -150,6 +155,13 @@ export function MentorsDirectory({
               {t("more")}
             </button>
           )}
+          {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+          <MentorLabelFilter
+            options={labels.options}
+            selected={labels.selected}
+            onToggle={labels.toggle}
+            onClear={labels.clear}
+          />
           <label className="ml-auto flex items-center gap-2 text-xs font-medium text-[#515861]">
             {t("sortBy")}
             <select
@@ -188,7 +200,8 @@ export function MentorsDirectory({
           {filters.query.trim() ||
           filters.specialty ||
           filters.startupStage ||
-          filters.availability
+          filters.availability ||
+          labels.selected.length > 0
             ? t("noMatch")
             : t("empty")}
         </p>
@@ -208,6 +221,11 @@ export function MentorsDirectory({
                   <span className="mt-0.5 block truncate text-sm text-[#676e78]">
                     {mentorExpertiseLabel(mentor)}
                   </span>
+                  {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+                  <MentorLabelChips
+                    labels={labels.labelsOf(mentor.id)}
+                    className="mt-1.5"
+                  />
                 </span>
                 <ChevronRight
                   className="size-5 shrink-0 text-[#c5c9ce]"

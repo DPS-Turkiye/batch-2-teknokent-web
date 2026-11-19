@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { MentorProgramLabels } from "@/components/mentor-labels/mentor-program-labels";
 import { MentorRequestDialog } from "@/components/mentors/mentor-request-dialog";
 import { MentorStudentProfile } from "@/components/mentors/mentor-student-profile";
 import { useAppSession } from "@/components/providers/session-provider";
@@ -171,6 +172,8 @@ export function MentorDetailView({
         </h2>
         <p className="text-[13px] leading-5 text-[#676e78]">{why}</p>
       </section>
+
+      <MentorProgramLabels mentorId={mentor.id} className="mt-5" />
 
       <div className="mt-5 grid items-start gap-[18px] lg:grid-cols-[minmax(0,1fr)_390px]">
         <div className="space-y-3.5">

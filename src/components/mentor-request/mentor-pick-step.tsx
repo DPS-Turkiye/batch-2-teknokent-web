@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { Avatar } from "@/components/common/avatar";
 import { Badge } from "@/components/common/badge";
+import { MenteeMentorLabels } from "@/components/mentor-labels/mentee-mentor-labels";
 import { useOptionLabel } from "@/hooks/use-option-label";
 import type { MentorProfile } from "@/interfaces/mentor";
 import { mentorProfileHref } from "@/lib/mentor-profile-request";
@@ -101,6 +102,7 @@ export function MentorPickStep({
                       .filter(Boolean)
                       .join(" · ")}
                   </p>
+                  <MenteeMentorLabels mentorId={item.id} className="mt-2" />
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {item.specialties.map((tag) => (
                       <Badge key={tag}>{optionLabel("mentorTopic", tag)}</Badge>

@@ -1,11 +1,13 @@
-import { render, screen } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MentorPickStep } from "@/components/mentor-request/mentor-pick-step";
+import { MentorLabelColor } from "@/interfaces/mentor-label";
+import { getMentorLabelDirectory } from "@/lib/client/mentor-labels";
 import type { MentorPickFilterId } from "@/lib/mentor-request-pick";
 import { mentorProfile } from "@test/fixtures/mentors";
-import { InLocale } from "@test/test-utils";
+import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 const nihan = {
   ...mentorProfile,
@@ -17,9 +19,52 @@ const nihan = {
   specialties: ["Strateji", "İş Modeli"],
 };
 
+vi.mock("@/lib/client/mentor-labels", () => ({
+  getMentorLabelDirectory: vi.fn(),
+}));
+
 describe("MentorPickStep", () => {
+  beforeEach(() => {
+    vi.mocked(getMentorLabelDirectory).mockResolvedValue({
+      programId: null,
+      labels: [],
+      mentors: [],
+    });
+  });
+
+  it("shows the mentor's program labels under the title, above Neden önerildi?", async () => {
+    vi.mocked(getMentorLabelDirectory).mockResolvedValue({
+      programId: "program-1",
+      labels: [
+        { id: "fintech", name: "Fintech", color: MentorLabelColor.Green },
+      ],
+      mentors: [{ mentorId: nihan.id, labelIds: ["fintech"] }],
+    });
+    renderWithQueryClient(
+      <MentorPickStep
+        filter="recommended"
+        listedMentors={[
+          { ...nihan, recommendationReasons: ["Strateji deneyimi"] },
+        ]}
+        mentorId=""
+        onFilterChange={vi.fn()}
+      />,
+    );
+
+    const chips = await screen.findByRole("list", { name: "Etiketler" });
+    expect(within(chips).getByText("Fintech")).toBeInTheDocument();
+    const title = screen.getByText("Ürün Yöneticisi · ODTÜ TEKNOKENT");
+    const why = screen.getByText("Neden önerildi?");
+    expect(
+      title.compareDocumentPosition(chips) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      chips.compareDocumentPosition(why) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
   it("reads in English", () => {
-    render(
+    renderWithQueryClient(
       <InLocale locale="en">
         <MentorPickStep
           filter="recommended"
@@ -43,7 +88,7 @@ describe("MentorPickStep", () => {
   });
 
   it("marks Önerilen as the default tab", () => {
-    render(
+    renderWithQueryClient(
       <MentorPickStep
         filter="recommended"
         listedMentors={[nihan]}
@@ -77,7 +122,7 @@ describe("MentorPickStep", () => {
   it("switches the active tab", async () => {
     const onFilterChange = vi.fn<(filter: MentorPickFilterId) => void>();
     const user = userEvent.setup();
-    render(
+    renderWithQueryClient(
       <MentorPickStep
         filter="recommended"
         listedMentors={[nihan]}

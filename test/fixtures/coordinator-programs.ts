@@ -71,6 +71,7 @@ export function coordinatorProgramDetail(
       rosterOnly: false,
       individualMentees: false,
       attendanceEnabled: true,
+      mentorLabelsEnabled: false,
     },
     health: {
       healthy: 48,

@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import MentorProfilePage from "@/app/mentor-profile/page";
 import { useMentorCv } from "@/hooks/use-mentor-cv";
+import { useMentorProgramLabels } from "@/hooks/use-mentor-labels";
 import {
   useAvailabilitySettingsForm,
   useMentorProfile,
@@ -18,6 +19,7 @@ import {
   WEEKDAY_ORDER,
   type MentorProfile,
 } from "@/interfaces/mentor";
+import { MentorLabelColor } from "@/interfaces/mentor-label";
 import { ProgramStatus } from "@/interfaces/program";
 import { withKey, withKeys } from "@/lib/keyed-list";
 import {
@@ -51,6 +53,18 @@ vi.mock("@/hooks/use-mentor-profile", () => ({
 vi.mock("@/hooks/use-mentor-profile-overview", () => ({
   useMentorProfileOverview: vi.fn(),
 }));
+
+vi.mock("@/hooks/use-mentor-labels", () => ({
+  useMentorProgramLabels: vi.fn(),
+}));
+
+const NO_LABELS: ReturnType<typeof useMentorProgramLabels> = {
+  visible: false,
+  programs: [],
+  showPicker: false,
+  current: null,
+  pick: vi.fn(),
+};
 
 const fillFromStored = vi.fn();
 const openStored = vi.fn();
@@ -265,12 +279,16 @@ function mockAll(
     form?: Partial<ProfileForm>;
     overview?: Partial<ProfileOverview>;
     availabilityForm?: Partial<AvailabilityForm>;
+    labels?: ReturnType<typeof useMentorProgramLabels>;
   } = {},
 ) {
   vi.mocked(useMentorProfile).mockReturnValue(
     overrides.profileQuery ?? successQuery(profile()),
   );
   vi.mocked(useMentorProfileForm).mockReturnValue(profileForm(overrides.form));
+  vi.mocked(useMentorProgramLabels).mockReturnValue(
+    overrides.labels ?? NO_LABELS,
+  );
   vi.mocked(useMentorProfileOverview).mockReturnValue({
     ...overview,
     ...overrides.overview,
@@ -386,6 +404,34 @@ describe("MentorProfilePage", () => {
     ).toBeInTheDocument();
     expect(dialog.getByText("WEEKLY AVAILABILITY")).toBeInTheDocument();
     expect(dialog.getByText("Concurrent mentorship limit")).toBeInTheDocument();
+  });
+
+  it("shows the mentor's own labels, view only, and none when there are none", () => {
+    const growth = {
+      programId: "growth",
+      programName: "Growth",
+      labels: [{ id: "sales", name: "Satış", color: MentorLabelColor.Orange }],
+    };
+    mockAll({
+      labels: {
+        ...NO_LABELS,
+        visible: true,
+        programs: [growth],
+        current: growth,
+      },
+    });
+    const { unmount } = render(<MentorProfilePage />);
+
+    const section = screen.getByRole("region", { name: "Etiketler" });
+    expect(within(section).getByText("Satış")).toBeInTheDocument();
+    expect(within(section).getByText("Growth")).toBeInTheDocument();
+    expect(within(section).queryByRole("button")).toBeNull();
+    expect(useMentorProgramLabels).toHaveBeenCalledWith(profile().id);
+    unmount();
+
+    mockAll();
+    render(<MentorProfilePage />);
+    expect(screen.queryByRole("region", { name: "Etiketler" })).toBeNull();
   });
 
   it("introduces the mentor with their programs and availability", () => {
