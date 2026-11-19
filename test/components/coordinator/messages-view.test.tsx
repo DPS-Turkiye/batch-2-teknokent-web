@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { CoordinatorMessagesView } from "@/components/coordinator/messages-view";
 import { CoordinatorConversationCounterpart } from "@/interfaces/coordinator-conversation";
+import { MentorshipSource } from "@/interfaces/coordinator-mentorship";
 import {
   ProgramMentorInvitedBy,
   ProgramMentorStatus,
@@ -127,6 +128,16 @@ describe("CoordinatorMessagesView", () => {
   });
 
   it("opens a thread with its related mentorship and sends a reply", async () => {
+    vi.mocked(getCoordinatorMentorships).mockResolvedValue([
+      coordinatorMentorship(),
+      coordinatorMentorship({
+        id: null,
+        source: MentorshipSource.AcceptedRequest,
+        requestId: "request-1",
+        organizationId: "org-2",
+        organizationName: "Kavun",
+      }),
+    ]);
     vi.mocked(sendCoordinatorMessage).mockResolvedValue(
       coordinatorMessage({ id: "message-2", mine: true, body: "Harika" }),
     );
@@ -150,6 +161,9 @@ describe("CoordinatorMessagesView", () => {
       "href",
       "/coordinator/mentorships?mentorship=mentorship-1",
     );
+    // A pair working through an accepted request has no mentorship to open.
+    expect(within(related).getByText("↔ Kavun")).toBeInTheDocument();
+    expect(within(related).getAllByRole("link")).toHaveLength(1);
 
     const send = screen.getByRole("button", { name: "Gönder" });
     expect(send).toBeDisabled();

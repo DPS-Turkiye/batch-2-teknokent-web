@@ -3877,6 +3877,7 @@
     "intervene": "Intervene",
     "review": "Review",
     "interveneLabel": "Intervene: {pair}",
+    "fromAcceptedRequest": "Accepted request",
     "reviewLabel": "Review {pair}",
     "daysAgo": "{days, plural, one {# day} other {# days}} ago",
     "awaitingMatch": "Waiting for match approval",

@@ -37,6 +37,8 @@ export function useCoordinatorMentorships(programId: string | null) {
   return useQuery({
     queryKey: [...COORDINATOR_MENTORSHIPS_QUERY_KEY, programId],
     queryFn: () => getCoordinatorMentorships(programId),
+    // A mentor accepting a request on their side adds a row here; opening the page shows it without waiting 30s.
+    refetchOnMount: "always",
   });
 }
 

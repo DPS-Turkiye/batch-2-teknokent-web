@@ -34,7 +34,11 @@ import {
 import type { CoordinatorMentorship } from "@/interfaces/coordinator-mentorship";
 import type { CoordinatorProgram } from "@/interfaces/coordinator-program";
 import { mentorshipHref } from "@/lib/coordinator-calendar";
-import { HEALTH_TONES, nextMeetingLabel } from "@/lib/coordinator-mentorships";
+import {
+  HEALTH_TONES,
+  mentorshipRowKey,
+  nextMeetingLabel,
+} from "@/lib/coordinator-mentorships";
 import {
   conversationTime,
   isUnread,
@@ -395,7 +399,7 @@ function RelatedPanel({
           <ul className="space-y-3">
             {related.map((row) => (
               <li
-                key={row.id}
+                key={mentorshipRowKey(row)}
                 className="rounded-2xl border border-[#e9ecef] p-4"
               >
                 <div className="flex items-start justify-between gap-2">
@@ -414,13 +418,15 @@ function RelatedPanel({
                         when: nextMeetingLabel(row, { t: tRow, locale }),
                       })}
                 </p>
-                <Link
-                  href={mentorshipHref(row.id)}
-                  className="mt-2 inline-flex items-center gap-1 text-[12.5px] text-[#676e78]"
-                >
-                  {t("openMentorship")}{" "}
-                  <ArrowRight aria-hidden className="size-3.5" />
-                </Link>
+                {row.id ? (
+                  <Link
+                    href={mentorshipHref(row.id)}
+                    className="mt-2 inline-flex items-center gap-1 text-[12.5px] text-[#676e78]"
+                  >
+                    {t("openMentorship")}{" "}
+                    <ArrowRight aria-hidden className="size-3.5" />
+                  </Link>
+                ) : null}
               </li>
             ))}
           </ul>

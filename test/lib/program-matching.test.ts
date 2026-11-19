@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { MentorshipStatus } from "@/interfaces/coordinator-mentorship";
+import {
+  MentorshipSource,
+  MentorshipStatus,
+} from "@/interfaces/coordinator-mentorship";
 import {
   MatchNeedSource,
   type MatchCandidate,
@@ -69,10 +72,35 @@ describe("program matching helpers", () => {
       status: MentorshipStatus.Active,
       startDate: "2026-09-27",
       endDate: null,
+      source: MentorshipSource.Mentorship,
+      requestId: null,
     };
     const overview = { waiting: [], active: [match], past: [] };
 
     expect(findMatch(overview, "terra", "nihan")?.mentorshipId).toBe("m-new");
     expect(findMatch(overview, "terra", "kerem")).toBeNull();
+  });
+
+  it("does not take a pair working through an accepted request for the new mentorship", () => {
+    const fromRequest = {
+      mentorshipId: null,
+      organizationId: "terra",
+      teamName: "Terra",
+      mentorId: "nihan",
+      mentorName: "Nihan Öztürk",
+      status: MentorshipStatus.Active,
+      startDate: "2026-09-20",
+      endDate: null,
+      source: MentorshipSource.AcceptedRequest,
+      requestId: "request-1",
+    };
+
+    expect(
+      findMatch(
+        { waiting: [], active: [fromRequest], past: [] },
+        "terra",
+        "nihan",
+      ),
+    ).toBeNull();
   });
 });

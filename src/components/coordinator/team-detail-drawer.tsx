@@ -19,7 +19,9 @@ import { useProgramTeamDetail } from "@/hooks/use-program-team-detail";
 import { mentorshipHref } from "@/lib/coordinator-calendar";
 import {
   coordinatorTeamMessageHref,
+  firstOpenableMentorshipId,
   HEALTH_TONES,
+  mentorshipRowKey,
 } from "@/lib/coordinator-mentorships";
 import { formatDateTime, formatShortDate, initials } from "@/lib/utils";
 
@@ -41,7 +43,9 @@ export function TeamDetailDrawer({
   const query = useProgramTeamDetail(programId, organizationId);
   const team = query.data;
   const messageHref = coordinatorTeamMessageHref(programId, organizationId);
-  const mentorship = team?.mentorships[0] ?? null;
+  const mentorshipId = team
+    ? firstOpenableMentorshipId(team.mentorships)
+    : null;
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -190,7 +194,10 @@ export function TeamDetailDrawer({
                 ) : (
                   <ul className="space-y-3">
                     {team.mentorships.map((row) => (
-                      <li key={row.id} className="rounded-2xl bg-[#f7f8f9] p-4">
+                      <li
+                        key={mentorshipRowKey(row)}
+                        className="rounded-2xl bg-[#f7f8f9] p-4"
+                      >
                         <div className="flex items-start justify-between gap-3">
                           <div>
                             <p className="text-[14px] font-medium text-[#22262b]">
@@ -223,9 +230,9 @@ export function TeamDetailDrawer({
         </div>
 
         <footer className="flex items-center justify-between border-t border-[#eef0f2] px-7 py-4">
-          {mentorship ? (
+          {mentorshipId ? (
             <Link
-              href={mentorshipHref(mentorship.id)}
+              href={mentorshipHref(mentorshipId)}
               className="text-[13px] font-medium text-[#22262b]"
             >
               {t("openMentorship")}

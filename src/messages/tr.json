@@ -3879,6 +3879,7 @@
     "intervene": "Müdahale",
     "review": "İncele",
     "interveneLabel": "{pair} müdahale et",
+    "fromAcceptedRequest": "Kabul edilen talep",
     "reviewLabel": "{pair} incele",
     "daysAgo": "{days} gün önce",
     "awaitingMatch": "Eşleşme onayı bekleniyor",

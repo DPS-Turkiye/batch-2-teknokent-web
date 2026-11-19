@@ -1,9 +1,14 @@
-import { screen, within } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ProgramMatchingView } from "@/components/coordinator/program-matching-view";
-import { MentorshipStatus } from "@/interfaces/coordinator-mentorship";
+import {
+  MentorshipSource,
+  MentorshipStatus,
+} from "@/interfaces/coordinator-mentorship";
 import {
   MatchNeedSource,
   type MatchCandidate,
@@ -81,6 +86,8 @@ const overview: MatchingOverview = {
       status: MentorshipStatus.Active,
       startDate: "2026-09-01",
       endDate: null,
+      source: MentorshipSource.Mentorship,
+      requestId: null,
     },
   ],
   past: [],
@@ -228,6 +235,8 @@ describe("ProgramMatchingView", () => {
           status: MentorshipStatus.Active,
           startDate: "2026-09-27",
           endDate: null,
+          source: MentorshipSource.Mentorship,
+          requestId: null,
         },
       ],
     });
@@ -287,5 +296,26 @@ describe("ProgramMatchingView", () => {
     expect(
       within(steps).getByText("Nihan Öztürk, Mert Aydın (yetkili)"),
     ).toBeInTheDocument();
+  });
+  it("refetches when the page is opened again, though the app keeps data fresh for 30 seconds", async () => {
+    // The app-wide client: a mentor accepting a team's request elsewhere must still show up on the next visit.
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false, staleTime: 30_000 } },
+    });
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <QueryClientProvider client={client}>{children}</QueryClientProvider>
+    );
+    const view = (
+      <ProgramMatchingView programId="program-1" initialTeamId="lumen" />
+    );
+    const first = render(view, { wrapper });
+    expect(
+      await screen.findByText(/Takım henüz ihtiyaç belirtmedi/),
+    ).toBeInTheDocument();
+    first.unmount();
+
+    render(view, { wrapper });
+
+    await waitFor(() => expect(getMatching).toHaveBeenCalledTimes(2));
   });
 });

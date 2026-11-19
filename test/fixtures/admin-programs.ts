@@ -3,7 +3,10 @@ import type {
   AdminProgram,
   AdminStartup,
 } from "@/interfaces/admin-overview";
-import { MentorshipStatus } from "@/interfaces/coordinator-mentorship";
+import {
+  MentorshipSource,
+  MentorshipStatus,
+} from "@/interfaces/coordinator-mentorship";
 import { ProgramStatus, ProgramType } from "@/interfaces/program";
 
 /** A startup as the admin overview lists it inside a program. */
@@ -56,6 +59,7 @@ export function adminMentorship(
     endDate: null,
     progressPercent: 0,
     daysSinceMeeting: null,
+    source: MentorshipSource.Mentorship,
     ...overrides,
   };
 }
