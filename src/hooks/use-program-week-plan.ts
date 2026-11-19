@@ -6,19 +6,25 @@ import { useMemo, useState } from "react";
 
 import { coordinatorProgramQueryKey } from "@/hooks/use-coordinator-program";
 import { COORDINATOR_PROGRAMS_QUERY_KEY } from "@/hooks/use-coordinator-programs";
+import type {
+  ProgramWeekPlan,
+  WeekVisibility,
+} from "@/interfaces/program-week";
 import { ToastTone } from "@/interfaces/toast";
 import {
   alignProgramDates,
   getProgramWeekPlan,
   saveProgramWeekPlan,
+  setProgramWeekVisibility,
 } from "@/lib/client/program-weeks";
 import { newRowKey } from "@/lib/keyed-list";
 import {
   MAX_PLAN_WEEKS,
   nextFreeWeek,
   programTotalWeeks,
+  savedVisibilities,
+  savedWeekDraftOf,
   weekDaysOf,
-  weekDraftOf,
   weekInputOf,
   weekPlanProblem,
   type WeekDraft,
@@ -52,11 +58,48 @@ export function useProgramWeekPlan(
     programTotalWeeks(program.startDate, program.endDate);
   // Built once per answer, so the rows keep their keys until the coordinator edits them.
   const loaded = useMemo(
-    () => (query.data?.weeks ?? []).map(weekDraftOf),
+    () => (query.data?.weeks ?? []).map(savedWeekDraftOf),
     [query.data?.weeks],
   );
   const weeks = draft ?? loaded;
   const dateCheck = query.data?.dateCheck ?? null;
+  const saved = useMemo(
+    () => savedVisibilities(query.data?.weeks ?? []),
+    [query.data?.weeks],
+  );
+
+  const visibility = useMutation({
+    mutationFn: (change: { week: number; visibility: WeekVisibility }) =>
+      setProgramWeekVisibility(programId, change.week, change.visibility),
+    onSuccess: (week) => {
+      // Saved rows are keyed by week number (savedWeekDraftOf), so patching the answer keeps each row, and the focus.
+      client.setQueryData<ProgramWeekPlan>(
+        programWeekPlanQueryKey(programId),
+        (plan) =>
+          plan && {
+            ...plan,
+            weeks: plan.weeks.map((item) =>
+              item.week === week.week
+                ? { ...item, menteeVisibility: week.menteeVisibility }
+                : item,
+            ),
+          },
+      );
+      showToast({ message: t("visibility.saved"), tone: ToastTone.Success });
+    },
+    onError: (failure) =>
+      showToast({
+        message: errorMessage(failure, t("visibility.saveFailed")),
+        tone: ToastTone.Error,
+      }),
+  });
+  /** The setting of saved week `number`, the one being saved showing at once; null for a week not saved yet. */
+  function visibilityOf(number: number) {
+    const pending = visibility.isPending ? visibility.variables : undefined;
+    if (pending?.week === number && saved.has(number))
+      return pending.visibility;
+    return saved.get(number) ?? null;
+  }
 
   const save = useMutation({
     mutationFn: (next: WeekDraft[]) =>
@@ -127,6 +170,15 @@ export function useProgramWeekPlan(
     isAligning: align.isPending,
     daysOf: (number: number) =>
       weekDaysOf(weeks, number, program.startDate, program.endDate),
+    visibilityOf,
+    /**
+     * The setting applies to a saved week number, so it waits while the plan has unsaved edits (a week renumbered or
+     * added in the draft has no saved setting yet).
+     */
+    canSetVisibility: (number: number) => draft === null && saved.has(number),
+    isSettingVisibility: visibility.isPending,
+    setVisibility: (number: number, next: WeekVisibility) =>
+      visibility.mutate({ week: number, visibility: next }),
     isLoading: query.isLoading,
     loadError: query.error,
     dirty: draft !== null,

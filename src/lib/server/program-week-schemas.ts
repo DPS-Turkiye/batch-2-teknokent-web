@@ -1,6 +1,12 @@
 import { z } from "zod";
 
-import { stringOrNullSchema } from "@/lib/server/request-body";
+import { WeekVisibility } from "@/interfaces/program-week";
+import { MAX_PLAN_WEEKS } from "@/lib/program-week";
+import {
+  invalidRequest,
+  stringOrNullSchema,
+  type JsonBody,
+} from "@/lib/server/request-body";
 
 /** Each line is trimmed and blank ones are dropped. */
 const linesSchema = z
@@ -70,3 +76,22 @@ export const weeklyProgramSaveSchema = z.object({
   seenWeekCount: z.number().int().min(0),
   keepPast: z.boolean(),
 });
+
+export const weekVisibilitySchema = z.object({
+  visibility: z.enum(WeekVisibility),
+});
+
+// Digits only, within the backend's 1–104 weeks: Number() would also take "1e2", "0x10" or " 5 ".
+const planWeekSchema = z
+  .string()
+  .regex(/^[1-9]\d{0,2}$/)
+  .transform(Number)
+  .pipe(z.number().int().min(1).max(MAX_PLAN_WEEKS));
+
+/** A route's `[week]` segment as a week number, or a 400 before the backend is called. */
+export async function readPlanWeek(week: string): Promise<JsonBody<number>> {
+  const parsed = planWeekSchema.safeParse(week);
+  return parsed.success
+    ? { ok: true, data: parsed.data }
+    : { ok: false, response: await invalidRequest("invalidRequestFields") };
+}

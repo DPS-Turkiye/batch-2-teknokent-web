@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { ProgramPastWeeks } from "@/components/startup/program-past-weeks";
+import { ProgramUpcomingWeeks } from "@/components/startup/program-upcoming-weeks";
 import { ProgramWeekCard } from "@/components/startup/program-week-card";
 import {
   StartupPageFrame,
@@ -321,6 +322,7 @@ export function StartupProcessView() {
           <ProgramWeekCard className="lg:flex-1" />
           <WeeklyAttendance />
         </div>
+        <ProgramUpcomingWeeks />
         <ProgramPastWeeks />
         <SoftwareDevelopmentCard />
         <section aria-label={t("stages")} className="space-y-3">

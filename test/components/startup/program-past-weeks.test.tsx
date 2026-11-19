@@ -98,6 +98,28 @@ describe("ProgramPastWeeks", () => {
     expect(screen.getByRole("heading", { name: "Yapılacaklar" })).toBeVisible();
   });
 
+  it("leaves out a week the coordinator opened early", async () => {
+    vi.mocked(getProgramWeeksSoFar).mockResolvedValue(
+      weeksSoFar({
+        weeks: [
+          firstWeek,
+          weekSoFar(3, { current: true }),
+          weekSoFar(5, { upcoming: true }),
+        ],
+      }),
+    );
+    renderWithQueryClient(<ProgramPastWeeks />);
+
+    const section = await screen.findByRole("region", {
+      name: "Geçmiş haftalar",
+    });
+    expect(
+      within(section)
+        .getAllByText(/^Hafta \d · /)
+        .map((title) => title.textContent),
+    ).toEqual(["Hafta 1 · Tanışma"]);
+  });
+
   it("shows nothing when only the running week has begun", async () => {
     vi.mocked(getProgramWeeksSoFar).mockResolvedValue(
       weeksSoFar({ currentWeek: 1, weeks: [weekSoFar(1, { current: true })] }),

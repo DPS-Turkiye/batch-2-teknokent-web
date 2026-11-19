@@ -6310,7 +6310,8 @@
     "programAssignmentCreateFailed": "Could not send the assignment.",
     "attendanceQrFailed": "The QR code could not be prepared.",
     "attendanceMarkFailed": "Attendance could not be updated.",
-    "attendanceQrNotValid": "This QR code is not valid right now."
+    "attendanceQrNotValid": "This QR code is not valid right now.",
+    "weekVisibilitySaveFailed": "Couldn't save the week's visibility."
   },
   "startupStart": {
     "title": "My startup",
@@ -6905,12 +6906,19 @@
     "expectedOutput": "Expected output: {output}",
     "notStarted": "The program starts on {date}.",
     "ended": "The program has ended.",
-    "empty": "The coordinator hasn't added the syllabus for this week yet."
+    "empty": "The coordinator hasn't added the syllabus for this week yet.",
+    "planHidden": "This week's plan hasn't been shared yet."
   },
   "programPastWeeks": {
     "title": "Past weeks",
     "subtitle": "The topics you have covered so far. Each week appears here once it is over.",
-    "loadFailed": "Couldn't load the past weeks.",
+    "loadFailed": "Couldn't load the past weeks."
+  },
+  "programUpcomingWeeks": {
+    "title": "Upcoming weeks",
+    "subtitle": "Weeks your coordinator has shared ahead of time."
+  },
+  "programPlanWeekCard": {
     "weekTitle": "Week {week} · {title}",
     "sessions": "Sessions"
   },
@@ -6918,8 +6926,8 @@
     "sessionsOf": "Week {week} sessions",
     "specialDays": "Special days",
     "title": "Weekly plan",
-    "subtitle": "Participants see that week's plan and the past weeks' on their Process page; a later week stays hidden until it begins.",
-    "subtitleWeeks": "The program runs {total} weeks. Participants see that week's plan and the past weeks' on their Process page; a later week stays hidden until it begins.",
+    "subtitle": "Participants see the current and past weeks' plans on Süreç, and a later week only once it arrives. Use each week's “Mentee visibility” to show a week early or hide it.",
+    "subtitleWeeks": "The program runs for {total} weeks. Participants see the current and past weeks' plans on Süreç, and a later week only once it arrives. Use each week's “Mentee visibility” to show a week early or hide it.",
     "add": "Add week",
     "loading": "Loading the weekly plan…",
     "loadFailed": "Couldn't load the weekly plan.",
@@ -6952,7 +6960,24 @@
     "datesAligned": "Program dates updated.",
     "alignFailed": "The program dates could not be updated.",
     "startDate": "Week start",
-    "endDate": "Week end"
+    "endDate": "Week end",
+    "visibility": {
+      "label": "Mentee visibility",
+      "labelOf": "Mentee visibility for week {week}",
+      "options": {
+        "AUTO": "Automatic (when the week arrives)",
+        "SHOWN": "Show now",
+        "HIDDEN": "Hide"
+      },
+      "badge": {
+        "AUTO": "Automatic",
+        "SHOWN": "Mentees see it",
+        "HIDDEN": "Hidden"
+      },
+      "saveFirst": "Save the plan first to change visibility.",
+      "saved": "The week's visibility was updated.",
+      "saveFailed": "Couldn't save the week's visibility."
+    }
   },
   "weeklyProgram": {
     "manualHint": "Automatic weekly program reading is disabled here; add phases here and weeks in the Weekly plan manually.",

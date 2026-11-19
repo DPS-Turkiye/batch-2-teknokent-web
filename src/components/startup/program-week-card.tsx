@@ -119,9 +119,13 @@ export function ProgramWeekCard({ className = "" }: { className?: string }) {
                 })
               : state === ProgramWeekCardState.Ended
                 ? t("ended")
-                : t("empty")}
+                : state === ProgramWeekCardState.Hidden
+                  ? t("planHidden")
+                  : t("empty")}
           </p>
-          {state === ProgramWeekCardState.Empty && meta.length > 0 ? (
+          {(state === ProgramWeekCardState.Empty ||
+            state === ProgramWeekCardState.Hidden) &&
+          meta.length > 0 ? (
             <p className="text-[12px] text-[#858c96]">{meta.join(" · ")}</p>
           ) : null}
         </>

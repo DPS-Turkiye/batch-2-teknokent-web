@@ -22,6 +22,7 @@ export function planWeek(
     inferred: false,
     datesFromSource: false,
     sessions: [],
+    menteeVisibility: null,
     ...overrides,
   };
 }
@@ -97,6 +98,7 @@ export function thisWeek(
       },
     ],
     specialDays: [],
+    planHidden: false,
     ...overrides,
   };
 }
@@ -109,6 +111,7 @@ export function weekSoFar(
   return {
     plan: planWeek({ week, title: `Hafta ${week} konusu` }),
     current: false,
+    upcoming: false,
     specialDays: [],
     ...overrides,
   };

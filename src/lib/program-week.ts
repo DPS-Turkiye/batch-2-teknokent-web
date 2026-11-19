@@ -5,6 +5,7 @@ import type {
   ProgramSpecialDay,
   ProgramThisWeek,
   ProgramWeekSoFar,
+  WeekVisibility,
 } from "@/interfaces/program-week";
 import { shortWeekday } from "@/lib/calendar";
 import { newRowKey } from "@/lib/keyed-list";
@@ -15,6 +16,8 @@ export enum ProgramWeekCardState {
   NotStarted = "NOT_STARTED",
   Ended = "ENDED",
   Empty = "EMPTY",
+  /** The coordinator hid the running week: its number and dates show, its plan does not. */
+  Hidden = "HIDDEN",
   Ready = "READY",
 }
 
@@ -25,6 +28,7 @@ export const MAX_PLAN_WEEKS = 104;
 export function programWeekCardState(week: ProgramThisWeek) {
   if (week.notStarted) return ProgramWeekCardState.NotStarted;
   if (week.ended) return ProgramWeekCardState.Ended;
+  if (week.planHidden) return ProgramWeekCardState.Hidden;
   if (!week.plan && week.phases.length === 0 && week.specialDays.length === 0)
     return ProgramWeekCardState.Empty;
   return ProgramWeekCardState.Ready;
@@ -38,10 +42,29 @@ export function weekPhase(week: ProgramThisWeek) {
 /** "Geçmiş haftalar": the weeks reached so far without the running one ("Bu hafta" shows it), newest first. */
 export function pastWeeks(weeks: readonly ProgramWeekSoFar[]) {
   return weeks
-    .filter((week) => !week.current)
+    .filter((week) => !week.current && !week.upcoming)
     .toSorted((left, right) => right.plan.week - left.plan.week);
 }
 
+/** "Yaklaşan haftalar": the weeks the coordinator opened before they begin, soonest first. */
+export function upcomingWeeks(weeks: readonly ProgramWeekSoFar[]) {
+  return weeks
+    .filter((week) => week.upcoming)
+    .toSorted((left, right) => left.plan.week - right.plan.week);
+}
+
+/**
+ * Each saved week's visibility by week number. Only the coordinator's saved plan carries one; a week without it (not
+ * saved yet) is left out, so it cannot be set.
+ */
+export function savedVisibilities(weeks: readonly ProgramPlanWeek[]) {
+  const visibilities = new Map<number, WeekVisibility>();
+  for (const week of weeks) {
+    if (week.menteeVisibility)
+      visibilities.set(week.week, week.menteeVisibility);
+  }
+  return visibilities;
+}
 /** "12 Eki – 18 Eki"; null without both days. */
 export function dayRangeLabel(
   start: string | null,
@@ -120,6 +143,14 @@ export function weekDraftOf(week: ProgramPlanWeek): WeekDraft {
     endDate: week.datesFromSource ? week.endDate : null,
     sessions: week.sessions,
   };
+}
+
+/**
+ * A saved week as an editor row, keyed by its number (unique in a saved plan) rather than a fresh key, so a new answer
+ * for the same plan keeps each row's DOM and focus.
+ */
+export function savedWeekDraftOf(week: ProgramPlanWeek): WeekDraft {
+  return { ...weekDraftOf(week), key: `saved-week-${week.week}` };
 }
 
 function linesOf(text: string) {

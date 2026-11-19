@@ -21,6 +21,32 @@ beforeEach(() => {
 });
 
 describe("ProgramWeekCard", () => {
+  it("keeps the counter and days of a hidden week and says its plan is not shared yet", async () => {
+    vi.mocked(getProgramThisWeek).mockResolvedValue(
+      thisWeek({
+        planHidden: true,
+        plan: null,
+        phases: [],
+        specialDays: [specialDay({ date: "2026-10-14", title: "Bootcamp" })],
+      }),
+    );
+    renderWithQueryClient(<ProgramWeekCard />);
+
+    const card = await screen.findByRole("region", {
+      name: "İŞKUR Gençlik Programı",
+    });
+    expect(within(card).getByText("Hafta 2 / 12")).toBeVisible();
+    expect(
+      within(card).getByText("Bu haftanın programı henüz paylaşılmadı."),
+    ).toBeVisible();
+    expect(within(card).getByText("Hafta 2 · 12 Eki – 18 Eki")).toBeVisible();
+    expect(
+      within(card).getByRole("list", { name: "Özel günler" }),
+    ).toHaveTextContent("Bootcamp");
+    expect(within(card).queryByText("Fikir doğrulama")).toBeNull();
+    expect(within(card).queryByRole("heading", { name: "Konular" })).toBeNull();
+  });
+
   it("shows the week number, phase, days and only this week's planned content", async () => {
     renderWithQueryClient(<ProgramWeekCard />);
 

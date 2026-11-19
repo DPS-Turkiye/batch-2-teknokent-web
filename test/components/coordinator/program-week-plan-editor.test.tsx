@@ -5,9 +5,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ProgramWeekPlanEditor } from "@/components/coordinator/program-week-plan-editor";
 import { useProgramWeekPlan } from "@/hooks/use-program-week-plan";
 import {
+  WeekVisibility,
+  type ProgramPlanWeek,
+} from "@/interfaces/program-week";
+import {
   alignProgramDates,
   getProgramWeekPlan,
   saveProgramWeekPlan,
+  setProgramWeekVisibility,
 } from "@/lib/client/program-weeks";
 import { itemAt } from "@test/fixtures/list-assertions";
 import {
@@ -22,6 +27,7 @@ vi.mock("@/lib/client/program-weeks", () => ({
   alignProgramDates: vi.fn(),
   getProgramWeekPlan: vi.fn(),
   saveProgramWeekPlan: vi.fn(),
+  setProgramWeekVisibility: vi.fn(),
 }));
 
 // Four weeks: 5–11, 12–18, 19–25 and 26–28 October.
@@ -34,7 +40,12 @@ function Harness({ locked = false }: { locked?: boolean }) {
 beforeEach(() => {
   vi.mocked(getProgramWeekPlan)
     .mockReset()
-    .mockResolvedValue(weekPlan({ totalWeeks: 4, weeks: [planWeek()] }));
+    .mockResolvedValue(
+      weekPlan({
+        totalWeeks: 4,
+        weeks: [planWeek({ menteeVisibility: WeekVisibility.Auto })],
+      }),
+    );
   vi.mocked(saveProgramWeekPlan)
     .mockReset()
     .mockImplementation(async (_id, weeks) =>
@@ -45,6 +56,7 @@ beforeEach(() => {
           startDate: null,
           endDate: null,
           datesFromSource: false,
+          menteeVisibility: WeekVisibility.Auto,
         })),
       }),
     );
@@ -59,6 +71,126 @@ function weekRows() {
 function weekRow(index: number) {
   return itemAt(weekRows(), index);
 }
+
+describe("ProgramWeekPlanEditor mentee visibility", () => {
+  const select = () =>
+    screen.getByRole("combobox", { name: "Hafta 2 için mentee görünürlüğü" });
+
+  it("shows each saved week's setting and saves a change at once, keeping the focus on the menu", async () => {
+    vi.mocked(setProgramWeekVisibility)
+      .mockReset()
+      .mockResolvedValue(planWeek({ menteeVisibility: WeekVisibility.Shown }));
+    const user = userEvent.setup();
+    renderWithQueryClient(<Harness />);
+    await screen.findByDisplayValue("Kullanıcı görüşmeleri");
+    expect(screen.getByText("Otomatik")).toBeVisible();
+    expect(select()).toHaveValue(WeekVisibility.Auto);
+    const menu = select();
+
+    await user.selectOptions(menu, "Şimdi göster");
+
+    expect(await screen.findByText("Mentee'ler görüyor")).toBeVisible();
+    expect(setProgramWeekVisibility).toHaveBeenCalledWith(
+      "program-1",
+      2,
+      WeekVisibility.Shown,
+    );
+    expect(select()).toBe(menu);
+    expect(select()).toHaveValue(WeekVisibility.Shown);
+    expect(
+      screen.queryByRole("button", { name: "Haftalık planı kaydet" }),
+    ).toBeNull();
+    expect(saveProgramWeekPlan).not.toHaveBeenCalled();
+  });
+
+  it("marks a hidden week and offers every choice", async () => {
+    vi.mocked(getProgramWeekPlan).mockResolvedValue(
+      weekPlan({
+        totalWeeks: 4,
+        weeks: [planWeek({ menteeVisibility: WeekVisibility.Hidden })],
+      }),
+    );
+    renderWithQueryClient(<Harness />);
+    await screen.findByDisplayValue("Kullanıcı görüşmeleri");
+
+    expect(screen.getByText("Gizli")).toBeVisible();
+    expect(
+      within(select())
+        .getAllByRole("option")
+        .map((option) => option.textContent),
+    ).toEqual(["Otomatik (haftası gelince)", "Şimdi göster", "Gizle"]);
+  });
+
+  it("waits for the plan to be saved while it has unsaved edits or the week is new", async () => {
+    const user = userEvent.setup();
+    renderWithQueryClient(<Harness />);
+    await screen.findByDisplayValue("Kullanıcı görüşmeleri");
+
+    await user.click(screen.getByRole("button", { name: "Hafta ekle" }));
+
+    // Still focusable, so the reason is read out; a change does nothing.
+    expect(select()).toBeEnabled();
+    expect(select()).toHaveAttribute("aria-disabled", "true");
+    expect(select()).toHaveAccessibleDescription(
+      "Görünürlüğü değiştirmek için önce planı kaydet.",
+    );
+    const newWeek = screen.getByRole("combobox", {
+      name: "Hafta 1 için mentee görünürlüğü",
+    });
+    expect(newWeek).toHaveAttribute("aria-disabled", "true");
+    await user.selectOptions(select(), "Gizle");
+    expect(select()).toHaveValue(WeekVisibility.Auto);
+    expect(
+      screen.getAllByText("Görünürlüğü değiştirmek için önce planı kaydet."),
+    ).toHaveLength(1);
+    expect(setProgramWeekVisibility).not.toHaveBeenCalled();
+  });
+
+  it("is read-only without a hint for an archived program", async () => {
+    renderWithQueryClient(<Harness locked />);
+    await screen.findByDisplayValue("Kullanıcı görüşmeleri");
+
+    expect(select()).toBeDisabled();
+    expect(
+      screen.queryByText("Görünürlüğü değiştirmek için önce planı kaydet."),
+    ).toBeNull();
+  });
+
+  it("shows the chosen setting while it saves, keeping the menu usable and ignoring another change", async () => {
+    vi.mocked(setProgramWeekVisibility)
+      .mockReset()
+      .mockReturnValue(Promise.withResolvers<ProgramPlanWeek>().promise);
+    const user = userEvent.setup();
+    renderWithQueryClient(<Harness />);
+    await screen.findByDisplayValue("Kullanıcı görüşmeleri");
+
+    await user.selectOptions(select(), "Gizle");
+
+    expect(await screen.findByText("Gizli")).toBeVisible();
+    expect(select()).toHaveValue(WeekVisibility.Hidden);
+    expect(select()).toBeEnabled();
+    expect(select()).toHaveAttribute("aria-busy", "true");
+    await user.selectOptions(select(), "Şimdi göster");
+    expect(setProgramWeekVisibility).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps the saved setting when the change fails", async () => {
+    vi.mocked(setProgramWeekVisibility)
+      .mockReset()
+      .mockRejectedValue(new Error("Sunucu hatası"));
+    const user = userEvent.setup();
+    renderWithQueryClient(<Harness />);
+    await screen.findByDisplayValue("Kullanıcı görüşmeleri");
+
+    await user.selectOptions(select(), "Gizle");
+
+    await vi.waitFor(() => {
+      expect(setProgramWeekVisibility).toHaveBeenCalledTimes(1);
+    });
+    expect(await screen.findByText("Otomatik")).toBeVisible();
+    expect(select()).toHaveValue(WeekVisibility.Auto);
+  });
+});
 
 describe("ProgramWeekPlanEditor", () => {
   it("shows the saved weeks with their days, and no save button until something changes", async () => {
