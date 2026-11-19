@@ -60,6 +60,10 @@ describe("week visibility proxy", () => {
     );
 
     expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      week: 3,
+      menteeVisibility: WeekVisibility.Shown,
+    });
     expect(setProgramWeekVisibility).toHaveBeenCalledWith(
       "coordinator-1",
       "program-1",
@@ -97,6 +101,19 @@ describe("week visibility proxy", () => {
     ["a lower-case visibility", { visibility: "shown" }],
   ])("refuses %s without calling the backend", async (_name, body) => {
     expect((await PUT(put(body), contextFor("3"))).status).toBe(400);
+    expect(setProgramWeekVisibility).not.toHaveBeenCalled();
+  });
+
+  it("refuses malformed JSON without calling the backend", async () => {
+    const request = new NextRequest(
+      new URL(
+        "/api/coordinator/programs/program-1/weeks/3/visibility",
+        "http://localhost",
+      ),
+      { method: HttpMethod.Put, body: "{not json" },
+    );
+
+    expect((await PUT(request, contextFor("3"))).status).toBe(400);
     expect(setProgramWeekVisibility).not.toHaveBeenCalled();
   });
 

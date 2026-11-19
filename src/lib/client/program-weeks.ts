@@ -39,7 +39,7 @@ export async function setProgramWeekVisibility(
 ) {
   return requireSuccess(
     await httpClient.put<ProgramPlanWeek>(
-      `${planUrl(programId)}/${encodeURIComponent(String(week))}/visibility`,
+      `${planUrl(programId)}/${week}/visibility`,
       { visibility },
     ),
   );

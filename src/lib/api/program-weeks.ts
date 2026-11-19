@@ -49,7 +49,7 @@ export function setProgramWeekVisibility(
 ) {
   return backendRequest<ProgramPlanWeek>({
     method: HttpMethod.Put,
-    url: `${planUrl(programId)}/${encodeURIComponent(String(week))}/visibility`,
+    url: `${planUrl(programId)}/${week}/visibility`,
     data: { actorId, visibility },
   });
 }

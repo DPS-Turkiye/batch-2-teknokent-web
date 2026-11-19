@@ -6849,13 +6849,15 @@
   "programPastWeeks": {
     "title": "Past weeks",
     "subtitle": "The topics you have covered so far. Each week appears here once it is over.",
-    "loadFailed": "Couldn't load the past weeks.",
-    "weekTitle": "Week {week} · {title}",
-    "sessions": "Sessions"
+    "loadFailed": "Couldn't load the past weeks."
   },
   "programUpcomingWeeks": {
     "title": "Upcoming weeks",
     "subtitle": "Weeks your coordinator has shared ahead of time."
+  },
+  "programPlanWeekCard": {
+    "weekTitle": "Week {week} · {title}",
+    "sessions": "Sessions"
   },
   "programWeekPlan": {
     "sessionsOf": "Week {week} sessions",

@@ -3,7 +3,6 @@
 // TEST UI: placeholder until the design team's screen; replace when it arrives.
 import { Eye, EyeOff } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useId } from "react";
 
 import { WeekVisibility } from "@/interfaces/program-week";
 import { isEnumValue } from "@/lib/enum";
@@ -15,8 +14,9 @@ const BADGE: Record<WeekVisibility, string> = {
 };
 
 /**
- * "Mentee görünürlüğü" on a weekly plan row: a badge with the week's setting and a menu to change it. Saved at once,
- * apart from the plan's own Kaydet; `canSet` is false for a week not saved yet or while the plan has unsaved edits.
+ * "Mentee görünürlüğü" on a weekly plan row: a badge with the week's setting and a menu to change it, saved at once
+ * apart from the plan's own Kaydet. While `canSet` is false (a week not saved yet, or unsaved edits in the plan) the
+ * menu stays focusable but inert, so `hintId`'s reason is read; a save in flight ignores further changes.
  */
 export function WeekVisibilityControl({
   week,
@@ -24,6 +24,7 @@ export function WeekVisibilityControl({
   canSet,
   pending,
   locked,
+  hintId,
   onChange,
 }: {
   week: number;
@@ -31,11 +32,11 @@ export function WeekVisibilityControl({
   canSet: boolean;
   pending: boolean;
   locked: boolean;
+  hintId: string;
   onChange: (visibility: WeekVisibility) => void;
 }) {
   const t = useTranslations("programWeekPlan.visibility");
-  const hintId = useId();
-  const showHint = !locked && !canSet;
+  const inert = !canSet || pending;
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -55,25 +56,24 @@ export function WeekVisibilityControl({
         {t("label")}
         <select
           value={visibility ?? WeekVisibility.Auto}
-          disabled={locked || !canSet || pending}
+          disabled={locked}
+          aria-disabled={!locked && !canSet ? true : undefined}
+          aria-busy={pending || undefined}
           aria-label={t("labelOf", { week })}
-          aria-describedby={showHint ? hintId : undefined}
+          aria-describedby={!locked && !canSet ? hintId : undefined}
           onChange={(event) => {
             const next = event.target.value;
-            if (isEnumValue(WeekVisibility, next)) onChange(next);
+            if (!inert && isEnumValue(WeekVisibility, next)) onChange(next);
           }}
-          className="rounded-lg border border-[#e4e7ea] bg-white px-2 py-1 text-[12.5px] text-[#22262b] disabled:bg-[#f7f8fa] disabled:text-[#aeb4bc]"
+          className="rounded-lg border border-[#e4e7ea] bg-white px-2 py-1 text-[12.5px] text-[#22262b] disabled:bg-[#f7f8fa] disabled:text-[#aeb4bc] aria-disabled:text-[#aeb4bc]"
         >
-          <option value={WeekVisibility.Auto}>{t("options.AUTO")}</option>
-          <option value={WeekVisibility.Shown}>{t("options.SHOWN")}</option>
-          <option value={WeekVisibility.Hidden}>{t("options.HIDDEN")}</option>
+          {Object.values(WeekVisibility).map((option) => (
+            <option key={option} value={option}>
+              {t(`options.${option}`)}
+            </option>
+          ))}
         </select>
       </label>
-      {showHint ? (
-        <span id={hintId} className="text-[11.5px] text-[#858c96]">
-          {t("saveFirst")}
-        </span>
-      ) : null}
     </div>
   );
 }

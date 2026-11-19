@@ -6851,13 +6851,15 @@
   "programPastWeeks": {
     "title": "Geçmiş haftalar",
     "subtitle": "Şimdiye kadar gördüğün konular. Biten her hafta burada listelenir.",
-    "loadFailed": "Geçmiş haftalar yüklenemedi.",
-    "weekTitle": "Hafta {week} · {title}",
-    "sessions": "Oturumlar"
+    "loadFailed": "Geçmiş haftalar yüklenemedi."
   },
   "programUpcomingWeeks": {
     "title": "Yaklaşan haftalar",
     "subtitle": "Koordinatörün önceden paylaştığı haftalar."
+  },
+  "programPlanWeekCard": {
+    "weekTitle": "Hafta {week} · {title}",
+    "sessions": "Oturumlar"
   },
   "programWeekPlan": {
     "sessionsOf": "{week}. haftanın oturumları",

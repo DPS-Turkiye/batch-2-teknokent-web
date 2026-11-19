@@ -4,7 +4,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ProgramWeekPlanEditor } from "@/components/coordinator/program-week-plan-editor";
 import { useProgramWeekPlan } from "@/hooks/use-program-week-plan";
-import { WeekVisibility } from "@/interfaces/program-week";
+import {
+  WeekVisibility,
+  type ProgramPlanWeek,
+} from "@/interfaces/program-week";
 import {
   alignProgramDates,
   getProgramWeekPlan,
@@ -37,7 +40,12 @@ function Harness({ locked = false }: { locked?: boolean }) {
 beforeEach(() => {
   vi.mocked(getProgramWeekPlan)
     .mockReset()
-    .mockResolvedValue(weekPlan({ totalWeeks: 4, weeks: [planWeek()] }));
+    .mockResolvedValue(
+      weekPlan({
+        totalWeeks: 4,
+        weeks: [planWeek({ menteeVisibility: WeekVisibility.Auto })],
+      }),
+    );
   vi.mocked(saveProgramWeekPlan)
     .mockReset()
     .mockImplementation(async (_id, weeks) =>
@@ -48,7 +56,7 @@ beforeEach(() => {
           startDate: null,
           endDate: null,
           datesFromSource: false,
-          menteeVisibility: null,
+          menteeVisibility: WeekVisibility.Auto,
         })),
       }),
     );
@@ -120,13 +128,21 @@ describe("ProgramWeekPlanEditor mentee visibility", () => {
 
     await user.click(screen.getByRole("button", { name: "Hafta ekle" }));
 
-    expect(select()).toBeDisabled();
+    // Still focusable, so the reason is read out; a change does nothing.
+    expect(select()).toBeEnabled();
+    expect(select()).toHaveAttribute("aria-disabled", "true");
     expect(select()).toHaveAccessibleDescription(
       "Görünürlüğü değiştirmek için önce planı kaydet.",
     );
+    const newWeek = screen.getByRole("combobox", {
+      name: "Hafta 1 için mentee görünürlüğü",
+    });
+    expect(newWeek).toHaveAttribute("aria-disabled", "true");
+    await user.selectOptions(select(), "Gizle");
+    expect(select()).toHaveValue(WeekVisibility.Auto);
     expect(
-      screen.getByRole("combobox", { name: "Hafta 1 için mentee görünürlüğü" }),
-    ).toBeDisabled();
+      screen.getAllByText("Görünürlüğü değiştirmek için önce planı kaydet."),
+    ).toHaveLength(1);
     expect(setProgramWeekVisibility).not.toHaveBeenCalled();
   });
 
@@ -138,6 +154,24 @@ describe("ProgramWeekPlanEditor mentee visibility", () => {
     expect(
       screen.queryByText("Görünürlüğü değiştirmek için önce planı kaydet."),
     ).toBeNull();
+  });
+
+  it("shows the chosen setting while it saves, keeping the menu usable and ignoring another change", async () => {
+    vi.mocked(setProgramWeekVisibility)
+      .mockReset()
+      .mockReturnValue(Promise.withResolvers<ProgramPlanWeek>().promise);
+    const user = userEvent.setup();
+    renderWithQueryClient(<Harness />);
+    await screen.findByDisplayValue("Kullanıcı görüşmeleri");
+
+    await user.selectOptions(select(), "Gizle");
+
+    expect(await screen.findByText("Gizli")).toBeVisible();
+    expect(select()).toHaveValue(WeekVisibility.Hidden);
+    expect(select()).toBeEnabled();
+    expect(select()).toHaveAttribute("aria-busy", "true");
+    await user.selectOptions(select(), "Şimdi göster");
+    expect(setProgramWeekVisibility).toHaveBeenCalledTimes(1);
   });
 
   it("keeps the saved setting when the change fails", async () => {

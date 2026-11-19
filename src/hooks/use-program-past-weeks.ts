@@ -10,6 +10,7 @@ import { pastWeeks, upcomingWeeks } from "@/lib/program-week";
 
 export const PROGRAM_PAST_WEEKS_QUERY_KEY = ["program", "past-weeks"] as const;
 
+// `pick` is a module-level function (pastWeeks, upcomingWeeks), so it never changes the memo below.
 function useProgramWeeksSoFar(
   pick: (weeks: readonly ProgramWeekSoFar[]) => ProgramWeekSoFar[],
 ) {

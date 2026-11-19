@@ -122,7 +122,7 @@ describe("the past weeks list", () => {
 });
 
 describe("a saved week's mentee visibility", () => {
-  it("is read by week number, a week without a setting counting as automatic", () => {
+  it("is read by week number, leaving out a week that carries none (not saved)", () => {
     const visibilities = savedVisibilities([
       planWeek({ week: 1, menteeVisibility: WeekVisibility.Hidden }),
       planWeek({ week: 2, menteeVisibility: WeekVisibility.Shown }),
@@ -131,8 +131,8 @@ describe("a saved week's mentee visibility", () => {
 
     expect(visibilities.get(1)).toBe(WeekVisibility.Hidden);
     expect(visibilities.get(2)).toBe(WeekVisibility.Shown);
-    expect(visibilities.get(3)).toBe(WeekVisibility.Auto);
-    expect(visibilities.has(4)).toBe(false);
+    expect(visibilities.has(3)).toBe(false);
+    expect(visibilities.size).toBe(2);
   });
 });
 

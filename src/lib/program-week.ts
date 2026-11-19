@@ -1,11 +1,11 @@
-import {
+import type {
+  ProgramPlanWeek,
+  ProgramPlanWeekInput,
+  ProgramSession,
+  ProgramSpecialDay,
+  ProgramThisWeek,
+  ProgramWeekSoFar,
   WeekVisibility,
-  type ProgramPlanWeek,
-  type ProgramPlanWeekInput,
-  type ProgramSession,
-  type ProgramSpecialDay,
-  type ProgramThisWeek,
-  type ProgramWeekSoFar,
 } from "@/interfaces/program-week";
 import { shortWeekday } from "@/lib/calendar";
 import { newRowKey } from "@/lib/keyed-list";
@@ -53,16 +53,18 @@ export function upcomingWeeks(weeks: readonly ProgramWeekSoFar[]) {
     .toSorted((left, right) => left.plan.week - right.plan.week);
 }
 
-/** Each saved week's visibility by week number; a week the plan has not saved yet has none. */
+/**
+ * Each saved week's visibility by week number. Only the coordinator's saved plan carries one; a week without it (not
+ * saved yet) is left out, so it cannot be set.
+ */
 export function savedVisibilities(weeks: readonly ProgramPlanWeek[]) {
-  return new Map(
-    weeks.map((week) => [
-      week.week,
-      week.menteeVisibility ?? WeekVisibility.Auto,
-    ]),
-  );
+  const visibilities = new Map<number, WeekVisibility>();
+  for (const week of weeks) {
+    if (week.menteeVisibility)
+      visibilities.set(week.week, week.menteeVisibility);
+  }
+  return visibilities;
 }
-
 /** "12 Eki – 18 Eki"; null without both days. */
 export function dayRangeLabel(
   start: string | null,
@@ -141,6 +143,14 @@ export function weekDraftOf(week: ProgramPlanWeek): WeekDraft {
     endDate: week.datesFromSource ? week.endDate : null,
     sessions: week.sessions,
   };
+}
+
+/**
+ * A saved week as an editor row, keyed by its number (unique in a saved plan) rather than a fresh key, so a new answer
+ * for the same plan keeps each row's DOM and focus.
+ */
+export function savedWeekDraftOf(week: ProgramPlanWeek): WeekDraft {
+  return { ...weekDraftOf(week), key: `saved-week-${week.week}` };
 }
 
 function linesOf(text: string) {

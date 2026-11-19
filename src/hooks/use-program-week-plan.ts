@@ -6,7 +6,10 @@ import { useMemo, useState } from "react";
 
 import { coordinatorProgramQueryKey } from "@/hooks/use-coordinator-program";
 import { COORDINATOR_PROGRAMS_QUERY_KEY } from "@/hooks/use-coordinator-programs";
-import type { WeekVisibility } from "@/interfaces/program-week";
+import type {
+  ProgramWeekPlan,
+  WeekVisibility,
+} from "@/interfaces/program-week";
 import { ToastTone } from "@/interfaces/toast";
 import {
   alignProgramDates,
@@ -20,8 +23,8 @@ import {
   nextFreeWeek,
   programTotalWeeks,
   savedVisibilities,
+  savedWeekDraftOf,
   weekDaysOf,
-  weekDraftOf,
   weekInputOf,
   weekPlanProblem,
   type WeekDraft,
@@ -55,38 +58,33 @@ export function useProgramWeekPlan(
     programTotalWeeks(program.startDate, program.endDate);
   // Built once per answer, so the rows keep their keys until the coordinator edits them.
   const loaded = useMemo(
-    () => (query.data?.weeks ?? []).map(weekDraftOf),
+    () => (query.data?.weeks ?? []).map(savedWeekDraftOf),
     [query.data?.weeks],
   );
   const weeks = draft ?? loaded;
   const dateCheck = query.data?.dateCheck ?? null;
-  // Changes made since the plan was loaded. Kept beside the answer rather than written into it, which would rebuild
-  // every row (new keys) and drop the focus from the control just used. A new answer replaces them.
-  const [visibilityChanges, setVisibilityChanges] = useState<{
-    loadedAt: number;
-    byWeek: ReadonlyMap<number, WeekVisibility>;
-  }>({ loadedAt: 0, byWeek: new Map() });
-  const visibilities = useMemo(() => {
-    const merged = savedVisibilities(query.data?.weeks ?? []);
-    if (visibilityChanges.loadedAt === query.dataUpdatedAt) {
-      visibilityChanges.byWeek.forEach((visibility, week) =>
-        merged.set(week, visibility),
-      );
-    }
-    return merged;
-  }, [query.data?.weeks, query.dataUpdatedAt, visibilityChanges]);
+  const saved = useMemo(
+    () => savedVisibilities(query.data?.weeks ?? []),
+    [query.data?.weeks],
+  );
 
   const visibility = useMutation({
     mutationFn: (change: { week: number; visibility: WeekVisibility }) =>
       setProgramWeekVisibility(programId, change.week, change.visibility),
-    onSuccess: (saved, change) => {
-      setVisibilityChanges((current) => {
-        const byWeek = new Map(
-          current.loadedAt === query.dataUpdatedAt ? current.byWeek : [],
-        );
-        byWeek.set(change.week, saved.menteeVisibility ?? change.visibility);
-        return { loadedAt: query.dataUpdatedAt, byWeek };
-      });
+    onSuccess: (week) => {
+      // Saved rows are keyed by week number (savedWeekDraftOf), so patching the answer keeps each row, and the focus.
+      client.setQueryData<ProgramWeekPlan>(
+        programWeekPlanQueryKey(programId),
+        (plan) =>
+          plan && {
+            ...plan,
+            weeks: plan.weeks.map((item) =>
+              item.week === week.week
+                ? { ...item, menteeVisibility: week.menteeVisibility }
+                : item,
+            ),
+          },
+      );
       showToast({ message: t("visibility.saved"), tone: ToastTone.Success });
     },
     onError: (failure) =>
@@ -95,9 +93,12 @@ export function useProgramWeekPlan(
         tone: ToastTone.Error,
       }),
   });
-  /** The saved setting of week `number`; null for a week the plan has not saved yet. */
+  /** The setting of saved week `number`, the one being saved showing at once; null for a week not saved yet. */
   function visibilityOf(number: number) {
-    return visibilities.get(number) ?? null;
+    const pending = visibility.isPending ? visibility.variables : undefined;
+    if (pending?.week === number && saved.has(number))
+      return pending.visibility;
+    return saved.get(number) ?? null;
   }
 
   const save = useMutation({
@@ -174,8 +175,7 @@ export function useProgramWeekPlan(
      * The setting applies to a saved week number, so it waits while the plan has unsaved edits (a week renumbered or
      * added in the draft has no saved setting yet).
      */
-    canSetVisibility: (number: number) =>
-      draft === null && visibilities.has(number),
+    canSetVisibility: (number: number) => draft === null && saved.has(number),
     isSettingVisibility: visibility.isPending,
     setVisibility: (number: number, next: WeekVisibility) =>
       visibility.mutate({ week: number, visibility: next }),

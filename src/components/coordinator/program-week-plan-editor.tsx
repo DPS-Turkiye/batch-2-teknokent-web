@@ -3,6 +3,7 @@
 // TEST UI: placeholder until the design team's screen; replace when it arrives.
 import { Plus, Trash2 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
+import { useId } from "react";
 
 import { WeekVisibilityControl } from "@/components/coordinator/week-visibility-control";
 import { ProgramPlanDays } from "@/components/program-plan-days";
@@ -31,6 +32,7 @@ export function ProgramWeekPlanEditor({
   locked: boolean;
 }) {
   const t = useTranslations("programWeekPlan");
+  const visibilityHintId = useId();
 
   return (
     <section
@@ -102,6 +104,7 @@ export function ProgramWeekPlanEditor({
               index={index}
               plan={plan}
               locked={locked || plan.isSaving}
+              visibilityHintId={visibilityHintId}
             />
           ))}
         </ol>
@@ -127,7 +130,14 @@ export function ProgramWeekPlanEditor({
         </p>
       ) : null}
       {plan.dirty && !locked ? (
-        <div className="flex flex-wrap justify-end gap-2">
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+          <p
+            id={visibilityHintId}
+            className="mr-auto text-[12px] text-[#858c96]"
+          >
+            {t("visibility.saveFirst")}
+          </p>
           <button
             type="button"
             onClick={plan.discard}
@@ -155,11 +165,13 @@ function WeekRow({
   index,
   plan,
   locked,
+  visibilityHintId,
 }: {
   week: WeekDraft;
   index: number;
   plan: WeekPlan;
   locked: boolean;
+  visibilityHintId: string;
 }) {
   const t = useTranslations("programWeekPlan");
   const locale = useLocale();
@@ -200,6 +212,7 @@ function WeekRow({
           canSet={plan.canSetVisibility(week.week)}
           pending={plan.isSettingVisibility}
           locked={locked}
+          hintId={visibilityHintId}
           onChange={(next) => plan.setVisibility(week.week, next)}
         />
         <button

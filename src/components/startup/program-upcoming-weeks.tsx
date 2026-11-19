@@ -5,7 +5,7 @@ import { CalendarClock } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useId } from "react";
 
-import { PlanWeekCard } from "@/components/startup/program-past-weeks";
+import { PlanWeekCard } from "@/components/startup/program-plan-week-card";
 import { useProgramUpcomingWeeks } from "@/hooks/use-program-past-weeks";
 
 /**
