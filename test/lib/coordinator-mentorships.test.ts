@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   CoordinatorMentorshipHealth,
+  MentorshipSource,
   MentorshipStatus,
 } from "@/interfaces/coordinator-mentorship";
 import {
@@ -10,14 +11,17 @@ import {
   cadenceAlert,
   coordinatorMessageHref,
   filterMentorships,
+  firstOpenableMentorshipId,
   goalPercent,
   healthFilterOptions,
   lastMeetingLabel,
   mentorLoadLabel,
   MentorshipHealthFilter,
+  mentorshipRowKey,
   MentorshipSort,
   nextMeetingLabel,
   notesSummary,
+  pairKey,
   sortMentorships,
   topicOptions,
   type MentorshipTexts,
@@ -180,5 +184,27 @@ describe("coordinator mentorships", () => {
     expect(coordinatorMessageHref("program-1", "mentor-1")).toBe(
       "/coordinator/messages?program=program-1&mentor=mentor-1",
     );
+  });
+
+  it("keys a row from an accepted request by the request and opens only a real mentorship", () => {
+    const fromRequest = coordinatorMentorship({
+      id: null,
+      source: MentorshipSource.AcceptedRequest,
+      requestId: "request-1",
+    });
+
+    expect(pairKey({ mentorshipId: "mentorship-1", requestId: null })).toBe(
+      "mentorship-1",
+    );
+    expect(pairKey({ mentorshipId: null, requestId: "request-1" })).toBe(
+      "request:request-1",
+    );
+    expect(mentorshipRowKey(fromRequest)).toBe("request:request-1");
+    expect(mentorshipRowKey(kavun)).toBe("mentorship-2");
+    expect(firstOpenableMentorshipId([fromRequest, kavun])).toBe(
+      "mentorship-2",
+    );
+    expect(firstOpenableMentorshipId([fromRequest])).toBeNull();
+    expect(firstOpenableMentorshipId([])).toBeNull();
   });
 });

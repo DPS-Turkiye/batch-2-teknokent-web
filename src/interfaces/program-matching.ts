@@ -1,4 +1,7 @@
-import type { MentorshipStatus } from "@/interfaces/coordinator-mentorship";
+import type {
+  MentorshipSource,
+  MentorshipStatus,
+} from "@/interfaces/coordinator-mentorship";
 
 /** Where a waiting team's "İhtiyaç" comes from: their open request, their startup profile, or nothing yet. */
 export enum MatchNeedSource {
@@ -19,8 +22,9 @@ export type WaitingTeam = {
   needText: string | null;
 };
 
+/** A team and its mentor. One working through an accepted request has no mentorship: `mentorshipId` is null. */
 export type ProgramMatch = {
-  mentorshipId: string;
+  mentorshipId: string | null;
   organizationId: string;
   teamName: string;
   mentorId: string;
@@ -28,6 +32,8 @@ export type ProgramMatch = {
   status: MentorshipStatus;
   startDate: string;
   endDate: string | null;
+  source: MentorshipSource;
+  requestId: string | null;
 };
 
 export type MatchingOverview = {

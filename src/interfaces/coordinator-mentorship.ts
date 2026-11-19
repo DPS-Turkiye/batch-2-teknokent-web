@@ -16,9 +16,19 @@ export enum CoordinatorMentorshipHealth {
   Risky = "RISKY",
 }
 
-/** One row of the Mentorluklar table (`GET /api/coordinator/mentorships`). */
+/** Where a coordinator's mentorship row comes from (backend `MentorshipSource`). */
+export enum MentorshipSource {
+  Mentorship = "MENTORSHIP",
+  /** Accepting a request books a meeting but makes no mentorship row. */
+  AcceptedRequest = "ACCEPTED_REQUEST",
+}
+
+/**
+ * One row of the Mentorluklar table (`GET /api/coordinator/mentorships`). A row from an accepted request has no
+ * mentorship: `id` is null and `requestId` names the request, so the drawer and reminders are not offered for it.
+ */
 export type CoordinatorMentorship = {
-  id: string;
+  id: string | null;
   programId: string;
   programName: string;
   mentorId: string;
@@ -36,6 +46,8 @@ export type CoordinatorMentorship = {
   openActions: number;
   overdueActions: number;
   missingNotes: number;
+  source: MentorshipSource;
+  requestId: string | null;
 };
 
 export type CoordinatorMentorshipMeeting = {

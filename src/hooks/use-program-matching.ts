@@ -59,6 +59,8 @@ export function useProgramMatching(programId: string, initialTeamId?: string) {
   const overview = useQuery({
     queryKey: matchingQueryKey(programId),
     queryFn: () => getMatching(programId),
+    // A mentor accepting a team's request takes the team off the waiting list from the other side.
+    refetchOnMount: "always",
   });
   const waiting = overview.data?.waiting ?? [];
   const team =

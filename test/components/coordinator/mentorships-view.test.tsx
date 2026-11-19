@@ -1,9 +1,14 @@
-import { screen, within } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { CoordinatorMentorshipsView } from "@/components/coordinator/mentorships-view";
-import { CoordinatorMentorshipHealth } from "@/interfaces/coordinator-mentorship";
+import {
+  CoordinatorMentorshipHealth,
+  MentorshipSource,
+} from "@/interfaces/coordinator-mentorship";
 import { ProgramType } from "@/interfaces/program";
 import {
   getCoordinatorMentorship,
@@ -111,6 +116,34 @@ describe("CoordinatorMentorshipsView", () => {
     expect(
       screen.getByRole("button", { name: "Ayşe Demir ↔ Kavun incele" }),
     ).toHaveTextContent("İncele");
+  });
+
+  it("lists a team working through an accepted request without a drawer to open", async () => {
+    vi.mocked(getCoordinatorMentorships).mockResolvedValue([
+      lumen,
+      coordinatorMentorship({
+        id: null,
+        source: MentorshipSource.AcceptedRequest,
+        requestId: "request-1",
+        mentorName: "Nihan Öztürk",
+        organizationName: "Channel Wise",
+        health: CoordinatorMentorshipHealth.Healthy,
+      }),
+    ]);
+    renderWithQueryClient(
+      <CoordinatorMentorshipsView initialSelectedId={null} />,
+    );
+
+    expect(
+      await screen.findByText("Nihan Öztürk ↔ Channel Wise"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Kabul edilen talep")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Nihan Öztürk ↔ Channel Wise/ }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Ayşe Demir ↔ Lumen müdahale et" }),
+    ).toBeInTheDocument();
   });
 
   it("reads in English, drawer included", async () => {
@@ -259,5 +292,28 @@ describe("CoordinatorMentorshipsView", () => {
     expect(
       screen.queryByRole("button", { name: /Daha fazla yükle/ }),
     ).not.toBeInTheDocument();
+  });
+  it("refetches when the page is opened again, though the app keeps data fresh for 30 seconds", async () => {
+    // The app-wide client: a mentor accepting a request elsewhere must still show up on the next visit.
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false, staleTime: 30_000 } },
+    });
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <QueryClientProvider client={client}>{children}</QueryClientProvider>
+    );
+    const first = render(
+      <CoordinatorMentorshipsView initialSelectedId={null} />,
+      { wrapper },
+    );
+    expect(await screen.findByText("Ayşe Demir ↔ Lumen")).toBeInTheDocument();
+    first.unmount();
+
+    render(<CoordinatorMentorshipsView initialSelectedId={null} />, {
+      wrapper,
+    });
+
+    await waitFor(() =>
+      expect(getCoordinatorMentorships).toHaveBeenCalledTimes(2),
+    );
   });
 });
