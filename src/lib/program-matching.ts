@@ -3,6 +3,7 @@ import type { useTranslations } from "next-intl";
 import type {
   MatchCandidate,
   MatchingOverview,
+  ProgramMatch,
   WaitingTeam,
 } from "@/interfaces/program-matching";
 
@@ -93,8 +94,10 @@ export function findMatch(
 ) {
   return (
     overview.active.find(
-      (match) =>
-        match.organizationId === organizationId && match.mentorId === mentorId,
+      (match): match is ProgramMatch & { mentorshipId: string } =>
+        match.mentorshipId !== null &&
+        match.organizationId === organizationId &&
+        match.mentorId === mentorId,
     ) ?? null
   );
 }

@@ -1,5 +1,6 @@
 import {
   CoordinatorMentorshipHealth,
+  MentorshipSource,
   MentorshipStatus,
   type CoordinatorMentorship,
   type CoordinatorMentorshipDetail,
@@ -30,6 +31,8 @@ export function coordinatorMentorship(
     openActions: 2,
     overdueActions: 1,
     missingNotes: 0,
+    source: MentorshipSource.Mentorship,
+    requestId: null,
     ...overrides,
   };
 }

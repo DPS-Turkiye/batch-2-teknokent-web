@@ -1,4 +1,7 @@
-import type { MentorshipStatus } from "@/interfaces/coordinator-mentorship";
+import type {
+  MentorshipSource,
+  MentorshipStatus,
+} from "@/interfaces/coordinator-mentorship";
 import type { MeetingStatus } from "@/interfaces/meeting";
 import type { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import type {
@@ -106,6 +109,8 @@ export type AdminMentorship = {
   goalTotal?: number;
   /** The program it was made in; null for one made before programs were recorded. */
   programId?: string | null;
+  /** An accepted request shows up only in a Program raporu, as an active pair; its `id` is then the request's. */
+  source: MentorshipSource;
 };
 
 export type AdminMeetingMark = {

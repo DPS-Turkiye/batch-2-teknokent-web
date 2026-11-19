@@ -30,6 +30,7 @@ import type {
   ProgramMatch,
   WaitingTeam,
 } from "@/interfaces/program-matching";
+import { pairKey } from "@/lib/coordinator-mentorships";
 import { ProgramTab } from "@/lib/coordinator-program-detail";
 import {
   INTRO_MEETING_MINUTES,
@@ -602,7 +603,7 @@ function MatchList({
     <ul className="divide-y divide-[#f0f2f4] rounded-[28px] border border-[#e9ecef] bg-white">
       {matches.map((match) => (
         <li
-          key={match.mentorshipId}
+          key={pairKey(match)}
           className="flex flex-wrap items-center gap-3 px-6 py-4 text-[14px]"
         >
           <span className="min-w-0 flex-1 text-[#22262b]">

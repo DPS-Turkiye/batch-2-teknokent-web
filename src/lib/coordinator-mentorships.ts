@@ -174,6 +174,24 @@ export function actionsLabel(
     : t("openCount", { open: row.openActions });
 }
 
+/** A stable key for a pair: its mentorship, or for a team working through an accepted request, that request. */
+export function pairKey(pair: {
+  mentorshipId: string | null;
+  requestId: string | null;
+}) {
+  return pair.mentorshipId ?? `request:${pair.requestId ?? ""}`;
+}
+
+/** A Mentorluklar row's key (see {@link pairKey}). */
+export function mentorshipRowKey(row: CoordinatorMentorship) {
+  return pairKey({ mentorshipId: row.id, requestId: row.requestId });
+}
+
+/** The first row that has a mentorship to open; a row from an accepted request has none. */
+export function firstOpenableMentorshipId(rows: CoordinatorMentorship[]) {
+  return rows.find((row) => row.id !== null)?.id ?? null;
+}
+
 export function needsIntervention(row: CoordinatorMentorship) {
   return row.health === CoordinatorMentorshipHealth.Risky;
 }

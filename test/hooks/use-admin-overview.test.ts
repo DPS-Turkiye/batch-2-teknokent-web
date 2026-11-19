@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import { labelPersonalTeams } from "@/hooks/use-admin-overview";
 import type { AdminOverviewResponse } from "@/interfaces/admin-overview";
-import { MentorshipStatus } from "@/interfaces/coordinator-mentorship";
+import {
+  MentorshipSource,
+  MentorshipStatus,
+} from "@/interfaces/coordinator-mentorship";
 
 function overview(): AdminOverviewResponse {
   return {
@@ -21,6 +24,7 @@ function overview(): AdminOverviewResponse {
         endDate: null,
         progressPercent: 0,
         daysSinceMeeting: null,
+        source: MentorshipSource.Mentorship,
       },
       {
         id: "m2",
@@ -33,6 +37,7 @@ function overview(): AdminOverviewResponse {
         endDate: null,
         progressPercent: 0,
         daysSinceMeeting: null,
+        source: MentorshipSource.Mentorship,
       },
     ],
     requests: [],

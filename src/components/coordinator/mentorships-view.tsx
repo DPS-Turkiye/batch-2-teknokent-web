@@ -27,6 +27,7 @@ import {
   ALL_TOPICS,
   HEALTH_TONES,
   lastMeetingLabel,
+  mentorshipRowKey,
   MentorshipSort,
   needsIntervention,
   nextMeetingLabel,
@@ -132,10 +133,10 @@ export function CoordinatorMentorshipsView({
             <ul>
               {list.visible.map((row) => (
                 <MentorshipRow
-                  key={row.id}
+                  key={mentorshipRowKey(row)}
                   row={row}
                   type={list.typeOf(row.programId)}
-                  onOpen={() => list.open(row.id)}
+                  onOpen={list.open}
                 />
               ))}
             </ul>
@@ -172,7 +173,7 @@ function MentorshipRow({
 }: {
   row: CoordinatorMentorship;
   type: ProgramType | null;
-  onOpen: () => void;
+  onOpen: (mentorshipId: string) => void;
 }) {
   const t = useTranslations("coordinatorMentorships");
   const locale = useLocale();
@@ -239,23 +240,52 @@ function MentorshipRow({
         {actionsLabel(row, t)}
       </span>
       <span className="flex justify-end">
-        <button
-          type="button"
-          onClick={onOpen}
-          aria-label={
-            intervene
-              ? t("interveneLabel", { pair })
-              : t("reviewLabel", { pair })
-          }
-          className={
-            intervene
-              ? "inline-flex h-9 items-center rounded-full bg-[#22262b] px-4 text-[12.5px] font-medium text-white"
-              : "inline-flex h-9 items-center rounded-full border border-[#e9ecef] bg-white px-4 text-[12.5px] font-medium text-[#22262b]"
-          }
-        >
-          {intervene ? t("intervene") : t("review")}
-        </button>
+        {row.id === null ? (
+          <>
+            {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+            <span className="text-right text-[12.5px] text-[#676e78]">
+              {t("fromAcceptedRequest")}
+            </span>
+          </>
+        ) : (
+          <OpenButton
+            mentorshipId={row.id}
+            intervene={intervene}
+            pair={pair}
+            onOpen={onOpen}
+          />
+        )}
       </span>
     </li>
+  );
+}
+
+function OpenButton({
+  mentorshipId,
+  intervene,
+  pair,
+  onOpen,
+}: {
+  mentorshipId: string;
+  intervene: boolean;
+  pair: string;
+  onOpen: (mentorshipId: string) => void;
+}) {
+  const t = useTranslations("coordinatorMentorships");
+  return (
+    <button
+      type="button"
+      onClick={() => onOpen(mentorshipId)}
+      aria-label={
+        intervene ? t("interveneLabel", { pair }) : t("reviewLabel", { pair })
+      }
+      className={
+        intervene
+          ? "inline-flex h-9 items-center rounded-full bg-[#22262b] px-4 text-[12.5px] font-medium text-white"
+          : "inline-flex h-9 items-center rounded-full border border-[#e9ecef] bg-white px-4 text-[12.5px] font-medium text-[#22262b]"
+      }
+    >
+      {intervene ? t("intervene") : t("review")}
+    </button>
   );
 }
