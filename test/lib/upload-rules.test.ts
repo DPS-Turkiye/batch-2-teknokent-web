@@ -6,6 +6,7 @@ import {
   uploadAccept,
   uploadProblem,
   uploadTypesLabel,
+  type OnboardingUploadKind,
 } from "@/lib/upload-rules";
 import { UploadProblem } from "@/types/upload";
 
@@ -26,13 +27,14 @@ function picked(name: string, type: string, size = 1000) {
 
 describe("ONBOARDING_UPLOAD_RULES", () => {
   it("uses the backend's DocumentKind limits: 25 MB for documents, 5 MB for images", () => {
+    const documents: OnboardingUploadKind[] = [
+      DocumentKind.Cv,
+      DocumentKind.Canvas,
+      DocumentKind.PitchDeck,
+      DocumentKind.Mvp,
+    ];
     expect(
-      [
-        DocumentKind.Cv,
-        DocumentKind.Canvas,
-        DocumentKind.PitchDeck,
-        DocumentKind.Mvp,
-      ].map((kind) => ONBOARDING_UPLOAD_RULES[kind].maxBytes),
+      documents.map((kind) => ONBOARDING_UPLOAD_RULES[kind].maxBytes),
     ).toEqual([25 * MB, 25 * MB, 25 * MB, 25 * MB]);
     expect(ONBOARDING_UPLOAD_RULES[DocumentKind.Logo].maxBytes).toBe(5 * MB);
     expect(ONBOARDING_UPLOAD_RULES[DocumentKind.Avatar].maxBytes).toBe(5 * MB);
