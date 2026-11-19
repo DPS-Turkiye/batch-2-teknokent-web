@@ -375,17 +375,14 @@
   },
   "signupDocuments": {
     "canvasSubtitle": "İş modelini tek sayfada özetleyen doküman.",
-    "canvasHelp": "PDF veya DOCX · en fazla 25 MB",
     "pitchSubtitle": "Sunum dosyan. Mentorun startupını hızlıca anlamasını sağlar.",
-    "pitchHelp": "PDF veya PPTX · en fazla 25 MB",
     "pickFile": "{title} dosyası seç",
     "mvpTitle": "MVP / Prototip",
     "mvpSubtitle": "Yayındaki ürünün bağlantısı ya da prototip dosyası.",
     "link": "Bağlantı",
     "mvpPlaceholder": "ornek.app veya Figma prototip linki",
     "mvpPick": "MVP / Prototip dosyası seç",
-    "optionalNote": "Şimdi yüklemek zorunda değilsin. Startup profilin onaylandıktan sonra da dosya ekleyebilirsin.",
-    "mvpHelp": "PDF, DOCX veya PPTX · en fazla 25 MB"
+    "optionalNote": "Şimdi yüklemek zorunda değilsin. Startup profilin onaylandıktan sonra da dosya ekleyebilirsin."
   },
   "signupReview": {
     "personal": "Kişisel profil",
@@ -424,8 +421,6 @@
     "whatsNext": "SIRADA NE VAR?",
     "viewSubmitted": "Gönderilen profili görüntüle",
     "backHome": "Ana sayfaya dön",
-    "orPick": "veya cihazından seç",
-    "fileTooBig": "Dosya boyutu {limit} sınırını aşamaz.",
     "uploadedBefore": "Daha önce yüklendi",
     "selected": "Seçildi",
     "uploaded": "Yüklendi",
@@ -434,8 +429,14 @@
     "pick": "{label} seç",
     "remove": "Kaldır",
     "changeShort": "Değiştir",
-    "drop": "Dosyayı sürükleyip bırak",
-    "imageTooBig": "Görsel en fazla 5 MB olabilir."
+    "drop": "Dosyayı sürükleyip bırak"
+  },
+  "uploadCheck": {
+    "hint": "{types} · en fazla {max}",
+    "wrongType": "Bu dosya türü desteklenmiyor. {types} yükleyin.",
+    "videoAsLink": "Video dosyası yüklenemiyor. Videonuzu YouTube veya Google Drive’a yükleyip bağlantısını Bağlantı alanına ekleyin. Buraya {types} yükleyebilirsiniz.",
+    "tooLarge": "Dosya çok büyük (en fazla {max}).",
+    "empty": "Bu dosya boş. Başka bir dosya seçin."
   },
   "mentorOnboarding": {
     "steps": {
@@ -487,7 +488,6 @@
   },
   "mentorSteps": {
     "uploadCv": "CV’nizi yükleyin",
-    "uploadHint": "PDF veya DOCX · Maks. 25 MB",
     "cvPick": "CV dosyası seç",
     "manual": "Bilgilerimi manuel gireceğim",
     "parsing": "Deneyim, rol ve uzmanlık alanları çıkarılıyor…",

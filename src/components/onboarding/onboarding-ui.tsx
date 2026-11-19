@@ -9,8 +9,10 @@ import {
   OnboardingTone,
 } from "@/components/onboarding/onboarding-tone";
 import { useObjectUrl } from "@/hooks/use-object-url";
+import { useUploadCheck } from "@/hooks/use-upload-check";
 import type { UploadedFile } from "@/interfaces/signup";
-import { DOCUMENT_MAX_BYTES } from "@/lib/const";
+import type { DocumentKind } from "@/interfaces/startup-document";
+import type { OnboardingUploadKind } from "@/lib/upload-rules";
 import { formatFileSize } from "@/lib/utils";
 
 export const onboardingInputClass =
@@ -214,32 +216,29 @@ export function OnboardingFileField({
   label,
   file,
   onChange,
-  accept,
-  helpText,
-  maxBytes = DOCUMENT_MAX_BYTES,
+  kind,
   storedName,
 }: {
   label: string;
   file: UploadedFile | null;
   onChange: (file: UploadedFile | null) => void;
-  accept: string;
-  helpText?: string;
-  maxBytes?: number;
+  /** Sets the formats and size the field takes, its hint and its refusals. */
+  kind: OnboardingUploadKind;
   storedName?: string | null;
 }) {
   const copy = useTranslations("onboarding");
+  const upload = useUploadCheck(kind);
   const inputRef = useRef<HTMLInputElement>(null);
-  const [error, setError] = useState("");
   const [dragging, setDragging] = useState(false);
 
   function takeFile(selected: File | undefined) {
-    if (!selected) return;
-    if (selected.size > maxBytes) {
-      setError(copy("fileTooBig", { limit: formatFileSize(maxBytes) }));
-      return;
-    }
-    setError("");
-    onChange({ name: selected.name, size: selected.size, file: selected });
+    const picked = upload.take(selected);
+    if (picked) onChange(picked);
+  }
+
+  function removeFile() {
+    upload.clear();
+    onChange(null);
   }
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
@@ -276,10 +275,9 @@ export function OnboardingFileField({
             </span>
             <button
               type="button"
-              onClick={() =>
-                file ? onChange(null) : inputRef.current?.click()
-              }
+              onClick={() => (file ? removeFile() : inputRef.current?.click())}
               className="text-xs font-medium leading-[18px] text-[#676e78] hover:underline"
+              aria-describedby={upload.errorDescribedBy}
               aria-label={
                 file
                   ? copy("removeFile", { name: shownName })
@@ -294,6 +292,7 @@ export function OnboardingFileField({
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
+          aria-describedby={upload.errorDescribedBy}
           onDragOver={(event) => {
             event.preventDefault();
             setDragging(true);
@@ -321,21 +320,25 @@ export function OnboardingFileField({
             {copy("drop")}
           </span>
           <span className="text-xs leading-[18px] text-[#676e78]">
-            {helpText ?? copy("orPick")}
+            {upload.hint}
           </span>
         </button>
       )}
       <input
         ref={inputRef}
         type="file"
-        accept={accept}
+        accept={upload.accept}
         aria-label={label}
         className="hidden"
         onChange={handleChange}
       />
-      {error ? (
-        <p role="alert" className="text-[11.5px] text-[#b42318]">
-          {error}
+      {upload.error ? (
+        <p
+          id={upload.errorId}
+          role="alert"
+          className="text-[11.5px] text-[#b42318]"
+        >
+          {upload.error}
         </p>
       ) : null}
     </div>
@@ -433,6 +436,7 @@ export function OnboardingImagePicker({
   placeholder,
   file,
   onChange,
+  kind,
   round = false,
   size = 64,
 }: {
@@ -440,25 +444,20 @@ export function OnboardingImagePicker({
   placeholder: string;
   file: UploadedFile | null;
   onChange: (file: UploadedFile | null) => void;
+  kind: DocumentKind.Logo | DocumentKind.Avatar;
   round?: boolean;
   size?: number;
 }) {
   const copy = useTranslations("onboarding");
+  const upload = useUploadCheck(kind);
   const inputRef = useRef<HTMLInputElement>(null);
-  const [error, setError] = useState("");
   const preview = useObjectUrl(file?.file);
   const shape = round ? "rounded-full" : "rounded-xl";
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
-    const selected = event.target.files?.[0];
+    const picked = upload.take(event.target.files?.[0]);
     event.target.value = "";
-    if (!selected) return;
-    if (selected.size > 5 * 1024 * 1024) {
-      setError(copy("imageTooBig"));
-      return;
-    }
-    setError("");
-    onChange({ name: selected.name, size: selected.size, file: selected });
+    if (picked) onChange(picked);
   }
 
   return (
@@ -467,6 +466,9 @@ export function OnboardingImagePicker({
         type="button"
         onClick={() => inputRef.current?.click()}
         aria-label={file ? copy("change", { label }) : copy("pick", { label })}
+        aria-describedby={
+          upload.error ? `${upload.hintId} ${upload.errorId}` : upload.hintId
+        }
         className="relative"
         style={{ width: size, height: size }}
       >
@@ -499,14 +501,25 @@ export function OnboardingImagePicker({
       <input
         ref={inputRef}
         type="file"
-        accept=".png,.jpg,.jpeg,.webp"
+        accept={upload.accept}
         aria-label={label}
         className="hidden"
         onChange={handleChange}
       />
-      {error ? (
-        <p role="alert" className="text-[11px] text-[#b42318]">
-          {error}
+      {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+      <p
+        id={upload.hintId}
+        className="max-w-36 text-[11px] leading-4 text-[#676e78]"
+      >
+        {upload.hint}
+      </p>
+      {upload.error ? (
+        <p
+          id={upload.errorId}
+          role="alert"
+          className="max-w-36 text-[11px] text-[#b42318]"
+        >
+          {upload.error}
         </p>
       ) : null}
     </div>

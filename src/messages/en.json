@@ -373,17 +373,14 @@
   },
   "signupDocuments": {
     "canvasSubtitle": "A one-page summary of your business model.",
-    "canvasHelp": "PDF or DOCX · up to 25 MB",
     "pitchSubtitle": "Your presentation. It helps your mentor understand your startup quickly.",
-    "pitchHelp": "PDF or PPTX · up to 25 MB",
     "pickFile": "Choose {title} file",
     "mvpTitle": "MVP / Prototype",
     "mvpSubtitle": "A link to your live product or a prototype file.",
     "link": "Link",
     "mvpPlaceholder": "example.app or a Figma prototype link",
     "mvpPick": "Choose MVP / prototype file",
-    "optionalNote": "You don't have to upload now. You can add files after your startup profile is approved too.",
-    "mvpHelp": "PDF, DOCX or PPTX · up to 25 MB"
+    "optionalNote": "You don't have to upload now. You can add files after your startup profile is approved too."
   },
   "signupReview": {
     "personal": "Personal profile",
@@ -422,8 +419,6 @@
     "whatsNext": "WHAT'S NEXT?",
     "viewSubmitted": "View submitted profile",
     "backHome": "Back to home",
-    "orPick": "or choose from your device",
-    "fileTooBig": "The file cannot be larger than {limit}.",
     "uploadedBefore": "Uploaded earlier",
     "selected": "Selected",
     "uploaded": "Uploaded",
@@ -432,8 +427,14 @@
     "pick": "Choose {label}",
     "remove": "Remove",
     "changeShort": "Change",
-    "drop": "Drag and drop a file",
-    "imageTooBig": "The image can be at most 5 MB."
+    "drop": "Drag and drop a file"
+  },
+  "uploadCheck": {
+    "hint": "{types} · up to {max}",
+    "wrongType": "This file type isn’t supported. Please upload {types}.",
+    "videoAsLink": "Video files can’t be uploaded. Upload the video to YouTube or Google Drive and add its link in the Link field. Here you can upload {types}.",
+    "tooLarge": "The file is too large (up to {max}).",
+    "empty": "This file is empty. Please choose another file."
   },
   "mentorOnboarding": {
     "steps": {
@@ -485,7 +486,6 @@
   },
   "mentorSteps": {
     "uploadCv": "Upload your CV",
-    "uploadHint": "PDF or DOCX · Max. 25 MB",
     "cvPick": "Choose CV file",
     "manual": "I'll enter my details manually",
     "parsing": "Extracting experience, roles and areas of expertise…",

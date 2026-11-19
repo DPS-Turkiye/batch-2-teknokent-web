@@ -20,13 +20,14 @@ import {
   OnboardingTextAction,
 } from "@/components/onboarding/onboarding-ui";
 import type { MentorOnboarding } from "@/hooks/use-mentor-onboarding";
+import { useUploadCheck } from "@/hooks/use-upload-check";
 import { MAX_EDUCATIONS } from "@/interfaces/mentor";
 import {
   ABOUT_MAX_LENGTH,
   IntroPhase,
   MAX_EXPERIENCES,
 } from "@/interfaces/mentor-onboarding";
-import { DOCUMENT_MAX_BYTES } from "@/lib/const";
+import { DocumentKind } from "@/interfaces/startup-document";
 import { formatFileSize } from "@/lib/utils";
 
 const TONE = OnboardingTone.Mentor;
@@ -34,6 +35,7 @@ const inputClass = `${onboardingInputClass} ${ONBOARDING_TONES[TONE].focus}`;
 
 function UploadPhase({ wizard }: { wizard: MentorOnboarding }) {
   const copy = useTranslations("mentorSteps");
+  const upload = useUploadCheck(DocumentKind.Cv);
   const inputRef = useRef<HTMLInputElement>(null);
   return (
     <div className="flex flex-col gap-3">
@@ -48,6 +50,7 @@ function UploadPhase({ wizard }: { wizard: MentorOnboarding }) {
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
+          aria-describedby={upload.errorDescribedBy}
           className="flex w-full flex-col items-center justify-center gap-3 rounded-xl border border-[#e4e7ea] py-3 hover:bg-[#f8f9fa]"
         >
           <span className="flex flex-col items-center gap-5">
@@ -61,7 +64,7 @@ function UploadPhase({ wizard }: { wizard: MentorOnboarding }) {
               {copy("uploadCv")}
             </span>
           </span>
-          <span className="text-sm text-[#676e78]">{copy("uploadHint")}</span>
+          <span className="text-sm text-[#676e78]">{upload.hint}</span>
           {wizard.canReadCv ? null : (
             <>
               {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
@@ -74,21 +77,24 @@ function UploadPhase({ wizard }: { wizard: MentorOnboarding }) {
         <input
           ref={inputRef}
           type="file"
-          accept=".pdf,.docx"
+          accept={upload.accept}
           aria-label={copy("cvPick")}
           className="hidden"
           onChange={(event) => {
-            const selected = event.target.files?.[0];
+            const picked = upload.take(event.target.files?.[0]);
             event.target.value = "";
-            if (!selected) return;
-            if (selected.size > DOCUMENT_MAX_BYTES) return;
-            void wizard.uploadCv({
-              name: selected.name,
-              size: selected.size,
-              file: selected,
-            });
+            if (picked) void wizard.uploadCv(picked);
           }}
         />
+        {upload.error ? (
+          <p
+            id={upload.errorId}
+            role="alert"
+            className="pb-1 text-center text-xs text-[#b42318]"
+          >
+            {upload.error}
+          </p>
+        ) : null}
       </div>
       <button
         type="button"
@@ -246,6 +252,7 @@ function FormPhase({ wizard }: { wizard: MentorOnboarding }) {
             placeholder={copy("photoPlaceholder")}
             file={draft.photo}
             onChange={(file) => update("photo", file)}
+            kind={DocumentKind.Avatar}
             round
             size={72}
           />
@@ -348,7 +355,7 @@ function FormPhase({ wizard }: { wizard: MentorOnboarding }) {
           file={draft.cv}
           storedName={draft.cvStoredName}
           onChange={wizard.setCv}
-          accept=".pdf,.docx"
+          kind={DocumentKind.Cv}
         />
       </OnboardingCard>
 
