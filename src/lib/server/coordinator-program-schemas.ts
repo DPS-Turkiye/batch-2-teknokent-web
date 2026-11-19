@@ -82,6 +82,7 @@ export const updateProgramSchema = z.object({
   rosterOnly: optionalBooleanSchema,
   individualMentees: optionalBooleanSchema,
   attendanceEnabled: optionalBooleanSchema,
+  mentorLabelsEnabled: optionalBooleanSchema,
 });
 
 export const createProgramEventSchema = z.object({

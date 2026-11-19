@@ -325,6 +325,18 @@ function SettingsBody({
               }
             />
           </Row>
+          {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+          <Row>
+            <Toggle
+              title={tRule("mentorLabels")}
+              hint={tRule("mentorLabelsHint")}
+              checked={draft.mentorLabelsEnabled}
+              disabled={locked}
+              onChange={(value) =>
+                settings.update({ mentorLabelsEnabled: value })
+              }
+            />
+          </Row>
         </Section>
 
         {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}

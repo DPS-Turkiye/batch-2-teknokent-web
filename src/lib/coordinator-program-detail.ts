@@ -486,6 +486,7 @@ export function detailsInput(
     rosterOnly: draft.rosterOnly,
     individualMentees: draft.individualMentees,
     attendanceEnabled: draft.attendanceEnabled,
+    mentorLabelsEnabled: draft.mentorLabelsEnabled,
   };
 }
 

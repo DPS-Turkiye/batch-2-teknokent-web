@@ -14,7 +14,11 @@ import {
 } from "@/components/admin/admin-ui";
 import { PillSelect } from "@/components/coordinator/pill-select";
 import { ProgramDetailFrame } from "@/components/coordinator/program-detail-frame";
+import { MentorLabelChips } from "@/components/mentor-labels/mentor-label-chips";
+import { MentorLabelEditor } from "@/components/mentor-labels/mentor-label-editor";
+import { MentorLabelFilter } from "@/components/mentor-labels/mentor-label-filter";
 import { ProfileLink } from "@/components/people/profile-link";
+import { useMentorPoolLabels } from "@/hooks/use-mentor-labels";
 import { useMentorPool, useMentorReview } from "@/hooks/use-mentor-pool";
 import { useOptionLabel } from "@/hooks/use-option-label";
 import {
@@ -43,6 +47,7 @@ export function ProgramMentorsView({ programId }: { programId: string }) {
 }
 
 type Pool = ReturnType<typeof useMentorPool>;
+type PoolLabels = ReturnType<typeof useMentorPoolLabels>;
 
 function PoolBody({
   programId,
@@ -54,6 +59,11 @@ function PoolBody({
   const t = useTranslations("programMentors");
   const optionLabel = useOptionLabel();
   const pool = useMentorPool(programId);
+  const labels = useMentorPoolLabels(
+    programId,
+    detail.rules.mentorLabelsEnabled,
+    pool.visible,
+  );
   const archived = detail.program.lifecycle === ProgramLifecycle.Completed;
 
   return (
@@ -95,6 +105,14 @@ function PoolBody({
               if (isEnumValue(CapacityFilter, value)) pool.setCapacity(value);
             }}
           />
+          {labels.enabled ? (
+            <MentorLabelFilter
+              options={labels.filterOptions}
+              selected={labels.filter}
+              onToggle={labels.toggleFilter}
+              onClear={labels.clearFilter}
+            />
+          ) : null}
           {archived ? null : (
             <button
               type="button"
@@ -108,13 +126,14 @@ function PoolBody({
       </div>
 
       <QueryNotice isLoading={pool.query.isLoading} error={pool.query.error} />
-      {pool.query.isSuccess && pool.visible.length === 0 ? (
+      <QueryNotice isLoading={false} error={labels.error} />
+      {pool.query.isSuccess && labels.visible.length === 0 ? (
         <EmptyNote>
           {pool.rows.length === 0 ? t("empty") : t("noMatch")}
         </EmptyNote>
       ) : null}
 
-      {pool.visible.length > 0 ? (
+      {labels.visible.length > 0 ? (
         <div className="overflow-x-auto rounded-[28px] border border-[#e9ecef] bg-white">
           <table className="w-full min-w-[980px] text-left text-[13.5px]">
             <thead className="text-[12.5px] text-[#858c96]">
@@ -134,11 +153,12 @@ function PoolBody({
               </tr>
             </thead>
             <tbody>
-              {pool.visible.map((row) => (
+              {labels.visible.map((row) => (
                 <PoolRow
                   key={rowKey(row)}
                   row={row}
                   pool={pool}
+                  labels={labels}
                   archived={archived}
                 />
               ))}
@@ -147,13 +167,22 @@ function PoolBody({
           <p className="border-t border-[#f0f2f4] px-6 py-4 text-[12.5px] text-[#858c96]">
             {t("showing", {
               total: pool.rows.length,
-              shown: pool.visible.length,
+              shown: labels.visible.length,
             })}
           </p>
         </div>
       ) : null}
 
       {pool.inviting ? <InviteDialog pool={pool} /> : null}
+      {labels.editing?.mentorId ? (
+        <MentorLabelEditor
+          programId={programId}
+          mentorId={labels.editing.mentorId}
+          mentorName={labels.editing.fullName ?? labels.editing.email}
+          board={labels.board}
+          onClose={labels.closeEditor}
+        />
+      ) : null}
       {pool.reviewing ? (
         <ReviewDialog
           programId={programId}
@@ -173,10 +202,12 @@ function PoolBody({
 function PoolRow({
   row,
   pool,
+  labels,
   archived,
 }: {
   row: MentorPoolRow;
   pool: Pool;
+  labels: PoolLabels;
   archived: boolean;
 }) {
   const t = useTranslations("programMentors");
@@ -199,6 +230,7 @@ function PoolRow({
             <span className="block truncate text-[12.5px] text-[#858c96]">
               {row.email}
             </span>
+            <RowLabels row={row} labels={labels} name={name} />
           </span>
         </span>
       </td>
@@ -251,6 +283,38 @@ function PoolRow({
         </span>
       </td>
     </tr>
+  );
+}
+
+/* TEST UI: placeholder until the design team's screen; replace when it arrives. */
+function RowLabels({
+  row,
+  labels,
+  name,
+}: {
+  row: MentorPoolRow;
+  labels: PoolLabels;
+  name: string;
+}) {
+  const t = useTranslations("mentorLabels");
+  if (!labels.enabled) return null;
+  const carried = labels.labelsOf(row);
+  const editable = labels.canEdit(row);
+  if (carried.length === 0 && !editable) return null;
+  return (
+    <span className="mt-1.5 flex flex-wrap items-center gap-1.5">
+      <MentorLabelChips labels={carried} />
+      {editable ? (
+        <button
+          type="button"
+          onClick={() => labels.openEditor(row)}
+          aria-label={t("addFor", { name })}
+          className="inline-flex items-center gap-1 rounded-full border border-dashed border-[#c5c9ce] px-2.5 py-0.5 text-[12px] font-medium text-[#515861] hover:border-[#22262b] hover:text-[#22262b]"
+        >
+          <Plus aria-hidden className="size-3" /> {t("add")}
+        </button>
+      ) : null}
+    </span>
   );
 }
 
