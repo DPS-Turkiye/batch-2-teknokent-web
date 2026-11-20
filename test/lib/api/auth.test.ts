@@ -35,11 +35,27 @@ const signedCases: SignedRequestCase[] = [
   ],
   [
     "registers the account under the role's path",
-    () => registerAccount("mentor", { fullName: "Ada" }, "id-token"),
+    () => registerAccount("mentor", { fullName: "Ada" }, "id-token", null),
     {
       method: "POST",
       url: "/api/auth/register/mentor",
       data: { fullName: "Ada" },
+    },
+  ],
+  [
+    "names the visitor to the backend's wrong-code limit when joining with a code",
+    () =>
+      registerAccount(
+        "member",
+        { inviteCode: "ABCD1234" },
+        "id-token",
+        "203.0.113.7",
+      ),
+    {
+      method: "POST",
+      url: "/api/auth/register/member",
+      data: { inviteCode: "ABCD1234" },
+      headers: { "X-Menton-Client-Address": "203.0.113.7" },
     },
   ],
   [

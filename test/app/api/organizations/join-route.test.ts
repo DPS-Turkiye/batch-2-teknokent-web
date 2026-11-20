@@ -23,10 +23,11 @@ const withoutStartup: AppSession = {
   role: UserRole.Mentee,
 };
 
-function request(body: unknown) {
+function request(body: unknown, headers: Record<string, string> = {}) {
   return new Request("http://localhost/api/organizations/join", {
     method: "POST",
     body: JSON.stringify(body),
+    headers,
   });
 }
 
@@ -59,7 +60,7 @@ describe("POST /api/organizations/join", () => {
 
     const response = await POST(request({ inviteCode: "KARGO1" }));
 
-    expect(joinStartup).toHaveBeenCalledWith("mentee-1", "KARGO1");
+    expect(joinStartup).toHaveBeenCalledWith("mentee-1", "KARGO1", null);
     expect(refreshSessionUser).toHaveBeenCalledWith(user);
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual(refreshed);
@@ -86,5 +87,27 @@ describe("POST /api/organizations/join", () => {
 
     expect(response.status).toBe(401);
     expect(joinStartup).not.toHaveBeenCalled();
+  });
+
+  // The backend limits wrong codes per visitor; the address comes from the request, never from the browser's claim.
+  it("names the visitor's address to the backend, ignoring one the browser sent itself", async () => {
+    vi.mocked(getSessionUser).mockResolvedValue(withoutStartup);
+    vi.mocked(joinStartup).mockResolvedValue(backendRefusal(400));
+
+    await POST(
+      request(
+        { inviteCode: "KARGO1" },
+        {
+          "x-forwarded-for": "198.51.100.4, 10.0.0.1",
+          "x-menton-client-address": "1.2.3.4",
+        },
+      ),
+    );
+
+    expect(joinStartup).toHaveBeenCalledWith(
+      "mentee-1",
+      "KARGO1",
+      "198.51.100.4",
+    );
   });
 });
