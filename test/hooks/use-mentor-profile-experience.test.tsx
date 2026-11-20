@@ -5,7 +5,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { Toaster } from "@/components/common/toaster";
 import {
+  mentorFieldLabel,
   mentorProfileFormError,
+  refusedFieldsMessage,
   useMentorProfileForm,
 } from "@/hooks/use-mentor-profile";
 import {
@@ -14,6 +16,7 @@ import {
   PrepFileRequirement,
 } from "@/interfaces/mentor";
 import { ProgramStatus } from "@/interfaces/program";
+import { ClientApiError } from "@/lib/client/api";
 import { updateMentorProfile } from "@/lib/client/mentor-profile";
 import { withKey } from "@/lib/keyed-list";
 import { toMentorCvResult } from "@/lib/mentor-cv";
@@ -48,9 +51,9 @@ const baseForm: Parameters<typeof mentorProfileFormError>[0] = {
   communicationPreference: "",
   mentoringStyle: "",
   fitLabel: "",
-  experienceLevel: "",
+  experienceLevel: "10 yıl",
   sectorExperience: "",
-  startupStages: "",
+  startupStages: "Seed",
   specialties: [],
   offerings: [],
   menteeCapacity: null,
@@ -95,7 +98,116 @@ describe("mentorProfileFormError", () => {
         ...baseForm,
         programRoles: [{ programId: "p1", role: "x".repeat(81) }],
       }),
-    ).toBe("Program rolü en fazla 80 karakter olabilir.");
+    ).toBe("Program rolü en fazla 80 karakter olabilir (şu an 81).");
+  });
+
+  it("names a working style over 200 characters and every blank required field", () => {
+    expect(
+      mentorProfileFormError({ ...baseForm, mentoringStyle: "s".repeat(414) }),
+    ).toBe("Çalışma şekli en fazla 200 karakter olabilir (şu an 414).");
+    expect(
+      mentorProfileFormError({
+        ...baseForm,
+        professionalTitle: "",
+        experienceLevel: "",
+        startupStages: " ",
+      }),
+    ).toBe(
+      "Ünvan alanını doldur. Deneyim alanını doldur. Çalıştığı aşamalar alanını doldur.",
+    );
+  });
+
+  it("names a past role's description by its number", () => {
+    const role = withKey({
+      title: "CTO",
+      organization: "",
+      period: "",
+      summary: "x".repeat(301),
+    });
+    expect(mentorProfileFormError({ ...baseForm, experiences: [role] })).toBe(
+      "Deneyim 1 – açıklama en fazla 300 karakter olabilir (şu an 301).",
+    );
+  });
+});
+
+describe("mentorFieldLabel", () => {
+  it("reads every kind of path the save request has", () => {
+    const at = (field: string, index: number | null, part: string | null) =>
+      mentorFieldLabel({ field, index, part });
+    expect(at("educations", 1, "period")).toBe("Okul 2 – dönem");
+    expect(at("studentProfile", 0, "projects")).toBe("Projeler");
+    expect(at("specialties", 2, null)).toBe("Mentorluk konuları");
+    expect(at("experiences", 0, null)).toBe("Geçmiş roller");
+    expect(at("somethingNew", null, null)).toBe("Profil bilgileri");
+  });
+});
+
+describe("refusedFieldsMessage", () => {
+  it("lists the fields a refused save names, once each", () => {
+    const refused = new ClientApiError(
+      "Request validation failed",
+      400,
+      undefined,
+      {
+        mentoringStyle: "boyut '0' ile '200' arasında olmalı",
+        "experiences[0].summary": "boyut '0' ile '300' arasında olmalı",
+        "specialties[0]": "boş değer olamaz",
+        "specialties[1]": "boş değer olamaz",
+        "[weird]": "?",
+      },
+    );
+    // The empty first row is not sent, so the backend's experiences[0] is the second row on screen.
+    const blank = { title: "", organization: "", period: "", summary: "" };
+    const form = {
+      experiences: [withKey(blank), withKey({ ...blank, title: "CTO" })],
+      educations: [],
+    };
+    expect(refusedFieldsMessage(refused, form)).toBe(
+      "Şu alanlar kabul edilmedi: Çalışma şekli, Deneyim 2 – açıklama, Mentorluk konuları, Profil bilgileri. Düzeltip tekrar kaydet.",
+    );
+  });
+
+  it("leaves other failures to their own message", () => {
+    const form = { experiences: [], educations: [] };
+    expect(refusedFieldsMessage(new Error("Ağ hatası"), form)).toBeNull();
+    expect(
+      refusedFieldsMessage(new ClientApiError("Yetki yok", 403), form),
+    ).toBeNull();
+  });
+});
+
+describe("useMentorProfileForm when the backend refuses a field", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("says which field was refused instead of the generic text", async () => {
+    vi.mocked(updateMentorProfile).mockRejectedValue(
+      new ClientApiError("Gönderilen bilgiler geçersiz.", 400, undefined, {
+        offerings: "boyut '0' ile '255' arasında olmalı",
+      }),
+    );
+    const { result } = renderHook(() => useMentorProfileForm(mentorProfile), {
+      wrapper,
+    });
+
+    await act(() => result.current.handleSave());
+
+    expect(result.current.saveError).toBe(
+      "Şu alanlar kabul edilmedi: Sunduğun destekler. Düzeltip tekrar kaydet.",
+    );
+  });
+
+  it("does not send a working style the backend would refuse", async () => {
+    const { result } = renderHook(() => useMentorProfileForm(mentorProfile), {
+      wrapper,
+    });
+
+    act(() => result.current.updateField("mentoringStyle", "s".repeat(201)));
+    await act(() => result.current.handleSave());
+
+    expect(updateMentorProfile).not.toHaveBeenCalled();
+    expect(result.current.saveError).toBe(
+      "Çalışma şekli en fazla 200 karakter olabilir (şu an 201).",
+    );
   });
 });
 
