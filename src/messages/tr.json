@@ -1030,9 +1030,57 @@
     "mentorProfile": {
       "capacity": "Mentee kapasitesi 1 ile 50 arasında olmalı.",
       "roleTitle": "Her deneyim için bir ünvan gir.",
-      "programRole": "Program rolü en fazla {max} karakter olabilir.",
       "studentRequired": "Bölümünü ve sınıfını gir.",
-      "schoolName": "Her okul için bir ad gir."
+      "schoolName": "Her okul için bir ad gir.",
+      "required": "{field} alanını doldur.",
+      "tooLong": "{field} en fazla {max} karakter olabilir (şu an {length}).",
+      "invalidFields": "Şu alanlar kabul edilmedi: {fields}. Düzeltip tekrar kaydet.",
+      "experienceField": "Deneyim {number} – {part}",
+      "experienceParts": {
+        "title": "ünvan",
+        "organization": "kurum",
+        "period": "dönem",
+        "summary": "açıklama"
+      },
+      "educationField": "Okul {number} – {part}",
+      "educationParts": {
+        "school": "okul adı",
+        "degree": "derece",
+        "period": "dönem"
+      },
+      "studentParts": {
+        "department": "Bölüm",
+        "studyYear": "Sınıf",
+        "strongCourses": "Güçlü dersler",
+        "projects": "Projeler",
+        "erasmus": "Değişim deneyimi"
+      },
+      "fields": {
+        "professionalTitle": "Ünvan",
+        "company": "Şirket",
+        "availabilityLabel": "Uygunluk etiketi",
+        "responseTimeLabel": "Yanıt süresi",
+        "meetingMode": "Görüşme formatı",
+        "communicationPreference": "İletişim",
+        "mentoringStyle": "Çalışma şekli",
+        "fitLabel": "Uygunluk notu",
+        "experienceLevel": "Deneyim",
+        "sectorExperience": "Sektör deneyimi",
+        "startupStages": "Çalıştığı aşamalar",
+        "about": "Hakkında",
+        "specialties": "Mentorluk konuları",
+        "menteeCapacity": "Mentee kapasitesi",
+        "experiences": "Geçmiş roller",
+        "educations": "Okullar",
+        "languages": "Diller",
+        "offerings": "Sunduğun destekler",
+        "programRoles": "Program rolü",
+        "meetingFrequency": "Görüşme sıklığı",
+        "prepFileRequirement": "Ön hazırlık dosyası",
+        "studentProfile": "Öğrenim bilgileri",
+        "other": "Profil bilgileri"
+      },
+      "tooMany": "{field} en fazla {max} madde olabilir."
     },
     "assistant": {
       "network": "ağ hatası",
@@ -3288,7 +3336,9 @@
       "cancel": "Vazgeç",
       "saving": "Kaydediliyor…",
       "save": "Kaydet"
-    }
+    },
+    "counter": "{count} / {max} karakter",
+    "photoLabel": "{name} profil fotoğrafı"
   },
   "availabilityEditor": {
     "loading": "Yükleniyor...",
