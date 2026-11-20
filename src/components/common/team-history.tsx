@@ -4,7 +4,8 @@ import { useLocale, useTranslations } from "next-intl";
 
 import { useTeamHistory } from "@/hooks/use-team-history";
 import { UserAccountStatus } from "@/interfaces/session";
-import { TeamExitReason, type TeamHistoryStay } from "@/interfaces/team-change";
+import type { TeamHistoryStay } from "@/interfaces/team-change";
+import { teamExitKey } from "@/lib/team-move";
 import { formatShortDate } from "@/lib/utils";
 
 /** "Takım geçmişi" for admins and coordinators: every startup the person was in. */
@@ -50,7 +51,7 @@ function StayRow({ stay }: { stay: TeamHistoryStay }) {
   const joined = formatShortDate(stay.joinedAt, locale);
   const notes = [
     stay.leftAt
-      ? t(stay.exitReason === TeamExitReason.Removed ? "removed" : "left", {
+      ? t(teamExitKey(stay.exitReason), {
           from: joined,
           to: formatShortDate(stay.leftAt, locale),
         })
