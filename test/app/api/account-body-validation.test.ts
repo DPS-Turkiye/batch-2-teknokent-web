@@ -114,6 +114,7 @@ const cases: BodyCase[] = [
       "mentor",
       { fullName: "Nihan", email: "nihan@menton.test" },
       "id-token",
+      null,
     ],
     invalid: { "an array": [], "a string": '"nihan"' },
   },

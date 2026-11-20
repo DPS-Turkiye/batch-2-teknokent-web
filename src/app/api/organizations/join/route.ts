@@ -9,6 +9,7 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import { viewerAddress } from "@/lib/server/client-address";
 import { readJsonBody } from "@/lib/server/request-body";
 import { SessionRequiredError } from "@/lib/server/session-error";
 import { getSessionUser, refreshSessionUser } from "@/lib/session";
@@ -23,7 +24,11 @@ export async function POST(request: Request) {
       throw new SessionRequiredError();
     const body = await readJsonBody(request, joinSchema);
     if (!body.ok) return body.response;
-    const response = await joinStartup(session.userId, body.data.inviteCode);
+    const response = await joinStartup(
+      session.userId,
+      body.data.inviteCode,
+      viewerAddress(request.headers),
+    );
     if (response.status !== 200) return backendResponse(response);
     return NextResponse.json(await refreshSessionUser(response.data));
   } catch (error) {

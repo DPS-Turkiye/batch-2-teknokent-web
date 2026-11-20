@@ -9,6 +9,7 @@ import type {
 import type { BackendUser } from "@/interfaces/session";
 import { HttpMethod } from "@/lib/http-method";
 import { backendRequest } from "@/lib/server/backend-client";
+import { clientAddressHeaders } from "@/lib/server/client-address";
 
 export function fetchOrganization(organizationId: string) {
   return backendRequest<StartupProfile>({
@@ -29,11 +30,18 @@ export function updateOrganization(
   });
 }
 
-export function joinStartup(actorId: string, inviteCode: string) {
+/** `clientAddress` names the visitor for the backend's limit on wrong team codes. */
+export function joinStartup(
+  actorId: string,
+  inviteCode: string,
+  clientAddress: string | null,
+) {
+  const headers = clientAddressHeaders(clientAddress);
   return backendRequest<BackendUser>({
     method: HttpMethod.Post,
     url: "/api/organizations/join",
     data: { actorId, inviteCode },
+    ...(Object.keys(headers).length > 0 ? { headers } : {}),
   });
 }
 

@@ -5,6 +5,7 @@ import type { BackendUser } from "@/interfaces/session";
 import { HttpMethod } from "@/lib/http-method";
 import type { Locale } from "@/lib/i18n";
 import { backendRequest } from "@/lib/server/backend-client";
+import { clientAddressHeaders } from "@/lib/server/client-address";
 
 export type RegisterRole = "founder" | "mentor" | "member";
 
@@ -30,16 +31,20 @@ export function fetchProgramEligibility(programId: string, idToken: string) {
   );
 }
 
+/** `clientAddress` names the visitor for the backend's limit on wrong team codes ("member"). */
 export function registerAccount(
   role: RegisterRole,
   payload: unknown,
   idToken: string,
+  clientAddress: string | null,
 ) {
+  const headers = clientAddressHeaders(clientAddress);
   return backendRequest<BackendUser>(
     {
       method: "POST",
       url: `/api/auth/register/${role}`,
       data: payload,
+      ...(Object.keys(headers).length > 0 ? { headers } : {}),
     },
     { idToken },
   );

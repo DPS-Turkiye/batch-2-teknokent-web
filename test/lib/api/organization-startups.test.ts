@@ -27,11 +27,21 @@ const cases: RequestCase[] = [
   ],
   [
     "joins a startup with an invite code",
-    () => joinStartup("user-1", "ABC123"),
+    () => joinStartup("user-1", "ABC123", null),
     {
       method: "POST",
       url: "/api/organizations/join",
       data: { actorId: "user-1", inviteCode: "ABC123" },
+    },
+  ],
+  [
+    "names the visitor to the backend's wrong-code limit",
+    () => joinStartup("user-1", "ABC123", "2001:db8::1"),
+    {
+      method: "POST",
+      url: "/api/organizations/join",
+      data: { actorId: "user-1", inviteCode: "ABC123" },
+      headers: { "X-Menton-Client-Address": "2001:db8::1" },
     },
   ],
   [

@@ -425,7 +425,7 @@ const cases: BodyCase[] = [
     send: (request) => joinStartupRoute(request),
     valid: { inviteCode: "KAVSAK-26" },
     backend: organization.joinStartup,
-    expected: ["user-1", "KAVSAK-26"],
+    expected: ["user-1", "KAVSAK-26", null],
     invalid: { "a code of the wrong type": { inviteCode: 2026 } },
   },
   {
