@@ -90,7 +90,7 @@ describe("POST /api/organizations/join", () => {
   });
 
   // The backend limits wrong codes per visitor; the address comes from the request, never from the browser's claim.
-  it("names the visitor's address to the backend, ignoring one the browser sent itself", async () => {
+  it("names the address CloudFront saw, never one the browser claims", async () => {
     vi.mocked(getSessionUser).mockResolvedValue(withoutStartup);
     vi.mocked(joinStartup).mockResolvedValue(backendRefusal(400));
 
@@ -98,7 +98,8 @@ describe("POST /api/organizations/join", () => {
       request(
         { inviteCode: "KARGO1" },
         {
-          "x-forwarded-for": "198.51.100.4, 10.0.0.1",
+          "cloudfront-viewer-address": "198.51.100.4:51544",
+          "x-forwarded-for": "192.0.2.66",
           "x-menton-client-address": "1.2.3.4",
         },
       ),
@@ -109,5 +110,17 @@ describe("POST /api/organizations/join", () => {
       "KARGO1",
       "198.51.100.4",
     );
+  });
+
+  // A forged X-Forwarded-For naming someone else would spend their budget and lock them out.
+  it("names no address from X-Forwarded-For alone", async () => {
+    vi.mocked(getSessionUser).mockResolvedValue(withoutStartup);
+    vi.mocked(joinStartup).mockResolvedValue(backendRefusal(400));
+
+    await POST(
+      request({ inviteCode: "KARGO1" }, { "x-forwarded-for": "198.51.100.4" }),
+    );
+
+    expect(joinStartup).toHaveBeenCalledWith("mentee-1", "KARGO1", null);
   });
 });

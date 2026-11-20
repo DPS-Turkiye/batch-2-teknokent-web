@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   clientAddress,
   clientAddressHeaders,
+  viewerAddress,
 } from "@/lib/server/client-address";
 
 describe("clientAddress", () => {
@@ -66,5 +67,21 @@ describe("clientAddress", () => {
       "X-Menton-Client-Address": "203.0.113.7",
     });
     expect(clientAddressHeaders(null)).toEqual({});
+  });
+
+  it("takes only CloudFront's own address for the joins", () => {
+    expect(
+      viewerAddress(
+        new Headers({ "cloudfront-viewer-address": "203.0.113.7:46532" }),
+      ),
+    ).toBe("203.0.113.7");
+    expect(
+      viewerAddress(
+        new Headers({
+          "x-forwarded-for": "198.51.100.1",
+          "x-real-ip": "198.51.100.2",
+        }),
+      ),
+    ).toBeNull();
   });
 });

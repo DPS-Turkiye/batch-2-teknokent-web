@@ -42,8 +42,11 @@ describe("POST /api/auth/register/[role]", () => {
     );
   });
 
-  it("names no address when the request carries no usable one", async () => {
-    await register({ "x-menton-client-address": "1.2.3.4" });
+  it("names no address from the browser's own header or X-Forwarded-For", async () => {
+    await register({
+      "x-menton-client-address": "1.2.3.4",
+      "x-forwarded-for": "198.51.100.4",
+    });
 
     expect(registerAccount).toHaveBeenCalledWith(
       "member",

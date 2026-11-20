@@ -7,7 +7,7 @@ import {
   backendResponse,
 } from "@/lib/server/api-response";
 import { readBearerToken } from "@/lib/server/bearer-token";
-import { clientAddress } from "@/lib/server/client-address";
+import { viewerAddress } from "@/lib/server/client-address";
 import { jsonObjectSchema, readJsonBody } from "@/lib/server/request-body";
 
 export async function POST(
@@ -44,7 +44,7 @@ export async function POST(
         role,
         payload.data,
         idToken,
-        clientAddress(request.headers),
+        viewerAddress(request.headers),
       ),
     );
   } catch (error) {
