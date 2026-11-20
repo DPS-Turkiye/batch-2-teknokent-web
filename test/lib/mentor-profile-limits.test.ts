@@ -11,11 +11,11 @@ import {
   showsCharacterCount,
 } from "@/lib/mentor-profile-limits";
 
-// Made-up working-style text, as long as the one the backend refused (414 characters).
+// Made-up working-style text, one character over the backend's 2000.
 const LONG_STYLE =
   "Haftalık kısa görüşmelerle ilerlerim, her görüşmeden önce gündemi birlikte belirleriz. "
-    .repeat(5)
-    .slice(0, 414);
+    .repeat(25)
+    .slice(0, 2001);
 
 const form = {
   professionalTitle: "Ürün Danışmanı",
@@ -48,22 +48,22 @@ describe("mentorProfileProblems", () => {
     expect(
       mentorProfileProblems({
         ...form,
-        mentoringStyle: "s".repeat(200),
+        mentoringStyle: "s".repeat(2000),
         about: "a".repeat(4000),
         experiences: [role("x".repeat(300))],
       }),
     ).toEqual([]);
   });
 
-  it("names a working style longer than the backend's 200", () => {
+  it("names a working style longer than the backend's 2000", () => {
     expect(
       mentorProfileProblems({ ...form, mentoringStyle: LONG_STYLE }),
     ).toEqual([
       {
         kind: MentorProfileProblemKind.TooLong,
         path: { field: "mentoringStyle", index: null, part: null },
-        max: 200,
-        length: 414,
+        max: 2000,
+        length: 2001,
       },
     ]);
   });
@@ -241,10 +241,9 @@ describe("clipText", () => {
 });
 
 describe("limits and counters", () => {
-  it("caps every text field at 200 but the about text at 4000", () => {
-    expect(mentorTextFieldLimit("mentoringStyle")).toBe(
-      MENTOR_PROFILE_LIMITS.text,
-    );
+  it("caps the text fields at 200, the working style at 2000 and the about text at 4000", () => {
+    expect(mentorTextFieldLimit("company")).toBe(MENTOR_PROFILE_LIMITS.text);
+    expect(mentorTextFieldLimit("mentoringStyle")).toBe(2000);
     expect(mentorTextFieldLimit("about")).toBe(4000);
   });
 
