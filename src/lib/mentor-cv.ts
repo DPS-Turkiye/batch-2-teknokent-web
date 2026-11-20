@@ -6,6 +6,7 @@ import type {
 } from "@/interfaces/mentor-onboarding";
 import type { ParsedCvProfile } from "@/lib/client/profile-analysis";
 import { withKeys, type Keyed } from "@/lib/keyed-list";
+import { clipText, MENTOR_PROFILE_LIMITS } from "@/lib/mentor-profile-limits";
 import { isStudentLevel } from "@/lib/student-topics";
 
 export type MentorCvRole = {
@@ -31,33 +32,49 @@ export type MentorCvResult = {
 
 const text = (value: string | null | undefined) => value?.trim() ?? "";
 
+// The CV reader writes as much as the CV says; what reaches the form must fit
+// what the profile save accepts, or the save is refused for text the mentor never typed.
+const clipped = (value: string | null | undefined, max: number) =>
+  clipText(text(value), max);
+
 export function toMentorCvResult(profile: ParsedCvProfile): MentorCvResult {
   const years = profile.years_of_experience;
+  const limits = MENTOR_PROFILE_LIMITS;
   return {
     fullName: text(profile.full_name),
-    title: text(profile.current_role),
-    company: text(profile.current_company),
-    about: text(profile.professional_summary),
+    title: clipped(profile.current_role, limits.text),
+    company: clipped(profile.current_company, limits.text),
+    about: clipped(profile.professional_summary, limits.about),
     experienceLevel:
-      years && years > 0 ? `${years} yıl` : text(profile.experience_level),
-    sectorExperience: (profile.industries ?? [])
-      .map((industry) => industry.trim())
-      .filter(Boolean)
-      .join(", "),
-    specialties: toCvParseResult(profile).expertise,
+      years && years > 0
+        ? `${years} yıl`
+        : clipped(profile.experience_level, limits.text),
+    sectorExperience: clipText(
+      (profile.industries ?? [])
+        .map((industry) => industry.trim())
+        .filter(Boolean)
+        .join(", "),
+      limits.text,
+    ),
+    specialties: toCvParseResult(profile).expertise.map((topic) =>
+      clipText(topic, limits.specialty),
+    ),
     history: (profile.work_history ?? [])
       .map((role) => ({
-        title: text(role.title),
-        organization: text(role.organization),
-        period: text(role.period),
-        summary: text(role.summary),
+        title: clipped(role.title, limits.experience.title),
+        organization: clipped(
+          role.organization,
+          limits.experience.organization,
+        ),
+        period: clipped(role.period, limits.experience.period),
+        summary: clipped(role.summary, limits.experience.summary),
       }))
       .filter((role) => role.title),
     education: (profile.education ?? [])
       .map((school) => ({
-        school: text(school.school),
-        degree: text(school.degree),
-        period: text(school.period),
+        school: clipped(school.school, limits.education.school),
+        degree: clipped(school.degree, limits.education.degree),
+        period: clipped(school.period, limits.education.period),
       }))
       .filter((school) => school.school),
     studies: toStudies(profile),
@@ -68,12 +85,17 @@ function toStudies(profile: ParsedCvProfile): StudentOnboardingDraft {
   const list = (values: string[] | null | undefined) =>
     (values ?? []).map((value) => value.trim()).filter(Boolean);
   const year = text(profile.study_year);
+  const limits = MENTOR_PROFILE_LIMITS.student;
   return {
-    department: text(profile.department),
+    department: clipped(profile.department, limits.department),
     studyYear: isStudentLevel(year) ? year : "",
-    courses: list(profile.strong_courses).join(", "),
-    projects: list(profile.student_projects).join("\n"),
-    erasmus: text(profile.exchange_experience),
+    courses: list(profile.strong_courses)
+      .map((course) => clipText(course, limits.course))
+      .join(", "),
+    projects: list(profile.student_projects)
+      .map((project) => clipText(project, limits.project))
+      .join("\n"),
+    erasmus: clipped(profile.exchange_experience, limits.erasmus),
   };
 }
 

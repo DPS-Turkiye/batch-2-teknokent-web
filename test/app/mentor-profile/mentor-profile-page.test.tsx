@@ -11,6 +11,7 @@ import {
   useMentorProfileForm,
 } from "@/hooks/use-mentor-profile";
 import { useMentorProfileOverview } from "@/hooks/use-mentor-profile-overview";
+import { useProfilePhoto } from "@/hooks/use-profile-photo";
 import {
   MeetingFrequency,
   MentorLanguage,
@@ -60,6 +61,15 @@ vi.mock("@/hooks/use-mentor-profile-overview", () => ({
 
 vi.mock("@/hooks/use-mentor-labels", () => ({
   useMentorProgramLabels: vi.fn(),
+}));
+
+const profilePhoto: ReturnType<typeof useProfilePhoto> = {
+  photoUrl: null,
+  isUploading: false,
+  upload: vi.fn(),
+};
+vi.mock("@/hooks/use-profile-photo", () => ({
+  useProfilePhoto: vi.fn(() => profilePhoto),
 }));
 
 const NO_LABELS: ReturnType<typeof useMentorProgramLabels> = {
@@ -284,8 +294,13 @@ function mockAll(
     overview?: Partial<ProfileOverview>;
     availabilityForm?: Partial<AvailabilityForm>;
     labels?: ReturnType<typeof useMentorProgramLabels>;
+    photoUrl?: string;
   } = {},
 ) {
+  vi.mocked(useProfilePhoto).mockReturnValue({
+    ...profilePhoto,
+    photoUrl: overrides.photoUrl ?? null,
+  });
   vi.mocked(useMentorProfile).mockReturnValue(
     overrides.profileQuery ?? successQuery(profile()),
   );
@@ -451,6 +466,64 @@ describe("MentorProfilePage", () => {
     expect(screen.getAllByText("Kuluçka İzmir 2025")).toHaveLength(1);
     expect(screen.getByText("Mentorluğa açık")).toBeInTheDocument();
     expect(screen.getByText("Türkçe · İngilizce")).toBeInTheDocument();
+  });
+
+  it("shows the mentor's photo, and the initials until there is one", () => {
+    mockAll();
+    const { unmount } = render(<MentorProfilePage />);
+    expect(screen.getByText("NÖ")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("img", { name: "Nihan Öztürk profil fotoğrafı" }),
+    ).toBeNull();
+    unmount();
+
+    mockAll({ photoUrl: "https://files.test/avatar.jpg" });
+    render(<MentorProfilePage />);
+    expect(
+      screen.getByRole("img", { name: "Nihan Öztürk profil fotoğrafı" }),
+    ).toHaveStyle({ backgroundImage: 'url("https://files.test/avatar.jpg")' });
+    expect(screen.queryByText("NÖ")).toBeNull();
+  });
+
+  it("holds every field to the backend's limit and counts the long ones", () => {
+    mockAll({
+      form: {
+        isEditing: true,
+        form: {
+          ...profileForm().form,
+          mentoringStyle: "s".repeat(214),
+          experiences: [
+            withKey({
+              title: "CTO",
+              organization: "Looply",
+              period: "2020",
+              summary: "Ürün ekibini kurdum.",
+            }),
+          ],
+        },
+      },
+    });
+    render(<MentorProfilePage />);
+
+    const style = screen.getByRole("textbox", {
+      name: "Çalışma şekli (her satır bir madde)",
+    });
+    expect(style).toHaveAttribute("maxLength", "200");
+    expect(style).toHaveAccessibleDescription("214 / 200 karakter");
+    expect(screen.getByRole("textbox", { name: "Hakkında" })).toHaveAttribute(
+      "maxLength",
+      "4000",
+    );
+    const company = screen.getByRole("textbox", { name: "Şirket" });
+    expect(company).toHaveAttribute("maxLength", "200");
+    expect(company).not.toHaveAccessibleDescription();
+    const summary = screen.getByRole("textbox", { name: "Açıklama" });
+    expect(summary).toHaveAttribute("maxLength", "300");
+    expect(summary).toHaveAccessibleDescription("20 / 300 karakter");
+    expect(screen.getByRole("textbox", { name: "Dönem" })).toHaveAttribute(
+      "maxLength",
+      "100",
+    );
   });
 
   it("leaves the languages chip out when none are chosen", () => {

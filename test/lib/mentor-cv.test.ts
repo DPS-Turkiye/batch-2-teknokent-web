@@ -94,6 +94,32 @@ describe("toMentorCvResult", () => {
     expect(result.company).toBe("");
     expect(result.history).toEqual([]);
   });
+
+  it("cuts what the CV says to what the profile save accepts", () => {
+    const paragraph = "Ekibi büyüttüm ve ürünü yeniden kurguladım. ".repeat(20);
+    const result = toMentorCvResult({
+      current_role: "r".repeat(250),
+      professional_summary: "a".repeat(5000),
+      work_history: [
+        {
+          title: "CTO",
+          organization: "Looply",
+          period: "2019 Ocak – 2024 Aralık ".repeat(6),
+          summary: paragraph,
+        },
+      ],
+      education: [{ school: "ODTÜ", degree: null, period: "y".repeat(120) }],
+      department: "d".repeat(300),
+    });
+    const [role] = result.history;
+    expect(result.title).toHaveLength(200);
+    expect(result.about.length).toBeLessThanOrEqual(4000);
+    expect(role?.summary.length).toBeLessThanOrEqual(300);
+    expect(role?.summary.endsWith("…")).toBe(true);
+    expect(role?.period.length).toBeLessThanOrEqual(100);
+    expect(result.education[0]?.period.length).toBeLessThanOrEqual(100);
+    expect(result.studies.department.length).toBeLessThanOrEqual(255);
+  });
 });
 
 describe("applyMentorCv", () => {

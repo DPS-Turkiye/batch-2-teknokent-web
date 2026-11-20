@@ -1028,9 +1028,57 @@
     "mentorProfile": {
       "capacity": "Mentee capacity must be between 1 and 50.",
       "roleTitle": "Enter a title for each role.",
-      "programRole": "A program role can be at most {max} characters.",
       "studentRequired": "Enter your department and year.",
-      "schoolName": "Enter a name for every school."
+      "schoolName": "Enter a name for every school.",
+      "required": "Fill in {field}.",
+      "tooLong": "{field} can be at most {max} characters (now {length}).",
+      "invalidFields": "These fields were not accepted: {fields}. Fix them and save again.",
+      "experienceField": "Role {number} – {part}",
+      "experienceParts": {
+        "title": "title",
+        "organization": "organisation",
+        "period": "period",
+        "summary": "description"
+      },
+      "educationField": "School {number} – {part}",
+      "educationParts": {
+        "school": "school name",
+        "degree": "degree",
+        "period": "period"
+      },
+      "studentParts": {
+        "department": "Department",
+        "studyYear": "Year",
+        "strongCourses": "Strong courses",
+        "projects": "Projects",
+        "erasmus": "Exchange experience"
+      },
+      "fields": {
+        "professionalTitle": "Title",
+        "company": "Company",
+        "availabilityLabel": "Availability label",
+        "responseTimeLabel": "Response time",
+        "meetingMode": "Meeting format",
+        "communicationPreference": "Contact",
+        "mentoringStyle": "Working style",
+        "fitLabel": "Fit note",
+        "experienceLevel": "Experience",
+        "sectorExperience": "Sector experience",
+        "startupStages": "Stages worked with",
+        "about": "About",
+        "specialties": "Mentoring topics",
+        "menteeCapacity": "Mentee capacity",
+        "experiences": "Past roles",
+        "educations": "Schools",
+        "languages": "Languages",
+        "offerings": "What you offer",
+        "programRoles": "Program role",
+        "meetingFrequency": "Meeting frequency",
+        "prepFileRequirement": "Preparation file",
+        "studentProfile": "Studies",
+        "other": "Profile details"
+      },
+      "tooMany": "{field} can have at most {max} items."
     },
     "assistant": {
       "network": "network error",
@@ -3286,7 +3334,9 @@
       "cancel": "Cancel",
       "saving": "Saving…",
       "save": "Save"
-    }
+    },
+    "counter": "{count} / {max} characters",
+    "photoLabel": "{name}'s profile photo"
   },
   "availabilityEditor": {
     "loading": "Loading...",

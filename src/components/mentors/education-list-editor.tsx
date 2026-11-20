@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 
 import type { MentorEducationInput } from "@/interfaces/mentor";
 import type { Keyed } from "@/lib/keyed-list";
+import { MENTOR_PROFILE_LIMITS } from "@/lib/mentor-profile-limits";
 
 // TEST UI: placeholder until the design team's screen; replace when it arrives.
 /** A mentor's schools as editable rows; used at signup and on the mentor's own profile page. */
@@ -49,7 +50,7 @@ export function EducationListEditor({
                 <input
                   className={inputClass}
                   value={item[key]}
-                  maxLength={key === "period" ? 100 : 200}
+                  maxLength={MENTOR_PROFILE_LIMITS.education[key]}
                   placeholder={placeholder}
                   onChange={(event) => onChange(index, key, event.target.value)}
                 />

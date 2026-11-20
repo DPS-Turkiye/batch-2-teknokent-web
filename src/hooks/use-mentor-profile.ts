@@ -19,6 +19,7 @@ import {
 } from "@/interfaces/mentor";
 import type { StudentOnboardingDraft } from "@/interfaces/mentor-onboarding";
 import { ToastTone } from "@/interfaces/toast";
+import { ClientApiError } from "@/lib/client/api";
 import {
   createAvailabilitySlot,
   deleteAvailabilitySlot,
@@ -28,6 +29,7 @@ import {
   updateAvailabilitySettings,
   updateMentorProfile,
 } from "@/lib/client/mentor-profile";
+import { isOneOf } from "@/lib/enum";
 import { withKey, withKeys, withoutKeys, type Keyed } from "@/lib/keyed-list";
 import {
   applyMentorCv,
@@ -38,6 +40,20 @@ import {
   toStudentDraft,
   toStudentProfilePayload,
 } from "@/lib/mentor-onboarding";
+import {
+  EDUCATION_PARTS,
+  EXPERIENCE_PARTS,
+  isBlankExperience,
+  isBlankSchool,
+  MENTOR_PROFILE_TEXT_FIELDS,
+  MentorProfileProblemKind,
+  mentorProfileProblems,
+  onScreenPath,
+  parseMentorFieldPath,
+  STUDENT_PARTS,
+  type MentorProfileFieldPath,
+  type MentorProfileProblem,
+} from "@/lib/mentor-profile-limits";
 import { errorMessage, toDateTimeLocalValue } from "@/lib/utils";
 import { useToast } from "@/stores/toast-store";
 
@@ -175,7 +191,6 @@ function toEditablePayload(profile: MentorProfile): MentorProfileForm {
 }
 
 const MAX_EXPERIENCES = 10;
-const MAX_PROGRAM_ROLE_LENGTH = 80;
 const LANGUAGE_ORDER = Object.values(MentorLanguage);
 const EMPTY_EXPERIENCE: MentorExperienceInput = {
   title: "",
@@ -184,26 +199,11 @@ const EMPTY_EXPERIENCE: MentorExperienceInput = {
   summary: "",
 };
 
-function isBlankSchool(school: MentorEducationInput) {
-  return [school.school, school.degree, school.period].every(
-    (value) => !value.trim(),
-  );
-}
-
-function isBlankExperience(experience: MentorExperienceInput) {
-  return [
-    experience.title,
-    experience.organization,
-    experience.period,
-    experience.summary,
-  ].every((value) => !value.trim());
-}
-
 function studentDraftOf(profile: MentorProfile) {
   return profile.studentProfile ? toStudentDraft(profile.studentProfile) : null;
 }
 
-/** The first problem that would make the backend refuse the save, or "". */
+/** What would make the backend refuse the save, in Turkish, or "" when nothing would. */
 export function mentorProfileFormError(
   form: MentorProfileForm,
   student: StudentOnboardingDraft | null = null,
@@ -233,16 +233,84 @@ export function mentorProfileFormError(
   ) {
     return clientText("mentorProfile.roleTitle");
   }
-  if (
-    form.programRoles.some(
-      (programRole) => programRole.role.trim().length > MAX_PROGRAM_ROLE_LENGTH,
-    )
-  ) {
-    return clientText("mentorProfile.programRole", {
-      max: MAX_PROGRAM_ROLE_LENGTH,
+  return mentorProfileProblems(form, student)
+    .map(describeMentorProfileProblem)
+    .join(" ");
+}
+
+// Every field the save request can name, so a refused save reads as the page's own words.
+const NAMED_FIELDS = [
+  ...MENTOR_PROFILE_TEXT_FIELDS,
+  "specialties",
+  "menteeCapacity",
+  "experiences",
+  "educations",
+  "languages",
+  "offerings",
+  "programRoles",
+  "meetingFrequency",
+  "prepFileRequirement",
+  "studentProfile",
+] as const;
+
+/** A field of the save request in Turkish, e.g. `experiences[0].summary` → "Deneyim 1 – açıklama". */
+export function mentorFieldLabel(path: MentorProfileFieldPath) {
+  const number = (path.index ?? 0) + 1;
+  if (path.field === "experiences" && isOneOf(EXPERIENCE_PARTS, path.part)) {
+    return clientText("mentorProfile.experienceField", {
+      number,
+      part: clientText(`mentorProfile.experienceParts.${path.part}`),
     });
   }
-  return "";
+  if (path.field === "educations" && isOneOf(EDUCATION_PARTS, path.part)) {
+    return clientText("mentorProfile.educationField", {
+      number,
+      part: clientText(`mentorProfile.educationParts.${path.part}`),
+    });
+  }
+  if (path.field === "studentProfile" && isOneOf(STUDENT_PARTS, path.part)) {
+    return clientText(`mentorProfile.studentParts.${path.part}`);
+  }
+  return isOneOf(NAMED_FIELDS, path.field)
+    ? clientText(`mentorProfile.fields.${path.field}`)
+    : clientText("mentorProfile.fields.other");
+}
+
+export function describeMentorProfileProblem(problem: MentorProfileProblem) {
+  const field = mentorFieldLabel(problem.path);
+  switch (problem.kind) {
+    case MentorProfileProblemKind.Required:
+      return clientText("mentorProfile.required", { field });
+    case MentorProfileProblemKind.TooMany:
+      return clientText("mentorProfile.tooMany", { field, max: problem.max });
+    case MentorProfileProblemKind.TooLong:
+      return clientText("mentorProfile.tooLong", {
+        field,
+        max: problem.max,
+        length: problem.length,
+      });
+  }
+}
+
+/**
+ * The backend names the fields it refused, while the message it sends is a
+ * generic English one; listing the fields tells the mentor what to fix.
+ */
+export function refusedFieldsMessage(
+  error: unknown,
+  form: Pick<MentorProfileForm, "experiences" | "educations">,
+) {
+  if (!(error instanceof ClientApiError)) return null;
+  const labels = Object.keys(error.fieldErrors).map((key) => {
+    const path = parseMentorFieldPath(key);
+    return path
+      ? mentorFieldLabel(onScreenPath(path, form))
+      : clientText("mentorProfile.fields.other");
+  });
+  if (labels.length === 0) return null;
+  return clientText("mentorProfile.invalidFields", {
+    fields: [...new Set(labels)].join(", "),
+  });
 }
 
 export function useMentorProfileForm(profile: MentorProfile) {
@@ -439,7 +507,9 @@ export function useMentorProfileForm(profile: MentorProfile) {
       showToast({ message: t("saved"), tone: ToastTone.Success });
       return true;
     } catch (error) {
-      const message = errorMessage(error, t("saveFailed"));
+      const message =
+        refusedFieldsMessage(error, form) ??
+        errorMessage(error, t("saveFailed"));
       setSaveError(message);
       showToast({ message, tone: ToastTone.Error });
       return false;

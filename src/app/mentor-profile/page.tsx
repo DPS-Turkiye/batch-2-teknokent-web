@@ -2,8 +2,9 @@
 
 import { X } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 
+import { PhotoAvatar } from "@/components/common/avatar";
 import { ListPagination } from "@/components/common/list-pagination";
 import { AppShell } from "@/components/hoc/app-shell";
 import { MentorProgramLabels } from "@/components/mentor-labels/mentor-program-labels";
@@ -22,14 +23,23 @@ import {
 } from "@/hooks/use-mentor-profile";
 import { useMentorProfileOverview } from "@/hooks/use-mentor-profile-overview";
 import { useOptionLabel } from "@/hooks/use-option-label";
+import { useProfilePhoto } from "@/hooks/use-profile-photo";
 import {
   MeetingFrequency,
   MentorLanguage,
   PrepFileRequirement,
+  type MentorExperienceInput,
   type MentorProfile,
 } from "@/interfaces/mentor";
 import { MENTOR_PROFILE_HISTORY_PAGE_SIZE } from "@/lib/const/mentorships";
 import { educationLine } from "@/lib/mentor-detail";
+import {
+  alwaysCountsExperiencePart,
+  MENTOR_PROFILE_LIMITS,
+  mentorTextFieldLimit,
+  showsCharacterCount,
+  type MentorProfileTextField,
+} from "@/lib/mentor-profile-limits";
 import type {
   LabelValue,
   MentorshipHistoryRow,
@@ -37,7 +47,6 @@ import type {
 import { initials as toInitials } from "@/lib/utils";
 
 type ProfileForm = ReturnType<typeof useMentorProfileForm>;
-type TextField = Parameters<ProfileForm["updateField"]>[0];
 type ChipTone = "blue" | "green" | "grey";
 
 // globals.css gives buttons and form fields `font: inherit` outside any layer,
@@ -186,6 +195,27 @@ function Rows({ rows }: { rows: LabelValue[] }) {
   );
 }
 
+/** "n / max karakter" under a field; it turns to the warning colour past the backend's limit. */
+function CharacterCount({
+  id,
+  count,
+  max,
+}: {
+  id: string;
+  count: number;
+  max: number;
+}) {
+  const t = useTranslations("mentorProfile");
+  return (
+    <span
+      id={id}
+      className={`mt-1 block text-right text-[11px] ${count > max ? "text-[#a65a15]" : "text-[#858c96]"}`}
+    >
+      {t("counter", { count, max })}
+    </span>
+  );
+}
+
 function TextInput({
   form,
   field,
@@ -193,28 +223,83 @@ function TextInput({
   multiline = false,
 }: {
   form: ProfileForm;
-  field: TextField;
+  field: MentorProfileTextField;
   label: string;
   multiline?: boolean;
 }) {
+  const counterId = useId();
   const value = form.form[field];
+  const max = mentorTextFieldLimit(field);
+  const counted = showsCharacterCount(value.length, max, multiline);
+  const shared = {
+    value,
+    maxLength: max,
+    "aria-describedby": counted ? counterId : undefined,
+    "aria-invalid": value.length > max || undefined,
+  };
   return (
-    <label className={labelClass}>
-      {label}
-      {multiline ? (
-        <textarea
-          value={value}
-          onChange={(event) => form.updateField(field, event.target.value)}
-          className={`${inputClass} min-h-24`}
-        />
-      ) : (
+    <div>
+      <label className={labelClass}>
+        {label}
+        {multiline ? (
+          <textarea
+            {...shared}
+            onChange={(event) => form.updateField(field, event.target.value)}
+            className={`${inputClass} min-h-24`}
+          />
+        ) : (
+          <input
+            {...shared}
+            onChange={(event) => form.updateField(field, event.target.value)}
+            className={inputClass}
+          />
+        )}
+      </label>
+      {counted ? (
+        <CharacterCount id={counterId} count={value.length} max={max} />
+      ) : null}
+    </div>
+  );
+}
+
+function ExperienceInput({
+  form,
+  index,
+  field,
+  label,
+}: {
+  form: ProfileForm;
+  index: number;
+  field: keyof MentorExperienceInput;
+  label: string;
+}) {
+  const counterId = useId();
+  const value = form.form.experiences[index]?.[field] ?? "";
+  const max = MENTOR_PROFILE_LIMITS.experience[field];
+  const counted = showsCharacterCount(
+    value.length,
+    max,
+    alwaysCountsExperiencePart(field),
+  );
+  return (
+    <div>
+      <label className={labelClass}>
+        {label}
         <input
           value={value}
-          onChange={(event) => form.updateField(field, event.target.value)}
+          maxLength={max}
+          aria-describedby={counted ? counterId : undefined}
+          aria-invalid={value.length > max || undefined}
+          onChange={(event) =>
+            form.updateExperience(index, field, event.target.value)
+          }
           className={inputClass}
         />
-      )}
-    </label>
+      </label>
+      {counted ? (
+        <CharacterCount id={counterId} count={value.length} max={max} />
+      ) : null}
+    </div>
   );
 }
 
@@ -278,6 +363,7 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
   const [availabilityOpen, setAvailabilityOpen] = useState(false);
   const form = useMentorProfileForm(profile);
   const overview = useMentorProfileOverview(profile);
+  const photo = useProfilePhoto();
   const [editedSection, setEditedSection] = useState<string | null>(null);
   const primaryButtonRef = useRef<HTMLButtonElement>(null);
   const editing = form.isEditing;
@@ -295,9 +381,13 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
       <main className="mx-auto flex w-full max-w-[1276px] flex-col gap-[22px] px-4 pb-[72px] pt-3 sm:px-6">
         <header className="flex flex-wrap items-center justify-between gap-6">
           <div className="flex min-w-0 items-center gap-[18px]">
-            <div className="grid size-[88px] shrink-0 place-items-center rounded-full bg-[#e6f1f8] text-[26px] font-semibold leading-10 text-[#26a4ff]">
-              {profile.initials || toInitials(profile.fullName)}
-            </div>
+            <PhotoAvatar
+              initials={profile.initials || toInitials(profile.fullName)}
+              photoUrl={photo.photoUrl}
+              className="size-[88px] text-[26px] leading-10"
+              colors="bg-[#e6f1f8] text-[#26a4ff]"
+              label={t("photoLabel", { name: profile.fullName })}
+            />
             <div className="flex min-w-0 flex-col gap-2">
               <h1 className="break-words text-[28px] font-semibold leading-[43px] text-[#22262b]">
                 {profile.fullName}
@@ -500,6 +590,7 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
                   <input
                     aria-label={t("topics.new")}
                     value={form.specialtyInput}
+                    maxLength={MENTOR_PROFILE_LIMITS.specialty}
                     onChange={(event) =>
                       form.setSpecialtyInput(event.target.value)
                     }
@@ -577,20 +668,13 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
                         ["summary", t("roles.summary")],
                       ] as const
                     ).map(([field, label]) => (
-                      <label key={field} className={labelClass}>
-                        {label}
-                        <input
-                          value={experience[field]}
-                          onChange={(event) =>
-                            form.updateExperience(
-                              index,
-                              field,
-                              event.target.value,
-                            )
-                          }
-                          className={inputClass}
-                        />
-                      </label>
+                      <ExperienceInput
+                        key={field}
+                        form={form}
+                        index={index}
+                        field={field}
+                        label={label}
+                      />
                     ))}
                     <button
                       type="button"
@@ -731,7 +815,7 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
                           {t("programs.role")}
                           <input
                             value={form.programRole(program.id)}
-                            maxLength={80}
+                            maxLength={MENTOR_PROFILE_LIMITS.programRole}
                             onChange={(event) =>
                               form.updateProgramRole(
                                 program.id,
