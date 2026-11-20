@@ -6361,7 +6361,9 @@
     "attendanceQrFailed": "The QR code could not be prepared.",
     "attendanceMarkFailed": "Attendance could not be updated.",
     "attendanceQrNotValid": "This QR code is not valid right now.",
-    "weekVisibilitySaveFailed": "Couldn't save the week's visibility."
+    "weekVisibilitySaveFailed": "Couldn't save the week's visibility.",
+    "teamMoveLoadFailed": "Couldn't load the move options.",
+    "teamMoveFailed": "Couldn't move the person."
   },
   "startupStart": {
     "title": "My startup",
@@ -6472,9 +6474,49 @@
     "current": "since {from}",
     "left": "{from} – {to}, left",
     "removed": "{from} – {to}, removed",
+    "moved": "{from} – {to}, moved to another team",
     "archived": "archived",
     "startupPending": "startup awaiting approval",
     "startupRejected": "startup rejected"
+  },
+  "teamMove": {
+    "action": "Move to another team",
+    "sectionTitle": "Move to a team",
+    "sectionBody": "Move this person to another team. The move happens at once; the person and both teams' founders are notified.",
+    "dialogTitle": "Move to another team",
+    "loading": "Loading…",
+    "loadFailed": "Couldn't load the move options.",
+    "currentTeam": "Current team: {team}",
+    "target": "New team",
+    "searchPlaceholder": "Search teams or programs",
+    "noTargets": "There is no other team you can move this person to.",
+    "noMatch": "No team matches the search.",
+    "summary": "{name} will be moved to {team}.",
+    "movedHeading": "Goes with the person",
+    "movedItems": {
+      "profile": "Their profile and account",
+      "files": "Their CV and photo",
+      "history": "Team history: their time in the old team closes as \"moved\""
+    },
+    "keptHeading": "Stays with the old team",
+    "keptItems": {
+      "mentorships": "Mentorships, mentorship requests and meetings",
+      "tasks": "Süreç records; their open tasks are handed over to the team",
+      "documents": "Team documents"
+    },
+    "notice": "There is no approval step. The person and the founders of the old and new teams are notified. You can move the person back the same way if needed.",
+    "blocked": {
+      "founder": "This person founded the team, so they cannot be moved. Change the founder or delete the startup first.",
+      "notATeamMember": "Only startup team members can be moved; mentor, coordinator and admin accounts cannot.",
+      "noTeam": "This person has no team to move out of.",
+      "notApproved": "Their account is not approved yet; decide on it under Approvals first."
+    },
+    "cancel": "Cancel",
+    "close": "Close",
+    "confirm": "Move",
+    "moving": "Moving…",
+    "moved": "{name} was moved to {team}.",
+    "failed": "Couldn't move the person."
   },
   "startupGate": {
     "none": {

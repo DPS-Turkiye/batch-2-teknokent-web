@@ -13,7 +13,9 @@ import {
 } from "@/components/admin/admin-ui";
 import { TeamHistory } from "@/components/common/team-history";
 import { TeamPhase } from "@/components/coordinator/team-phase";
+import { MoveMemberButton } from "@/components/people/move-member-dialog";
 import { ProfileLink } from "@/components/people/profile-link";
+import { useTeamMoveAvailable } from "@/hooks/use-move-member";
 import { useOptionLabel } from "@/hooks/use-option-label";
 import { useProgramTeamDetail } from "@/hooks/use-program-team-detail";
 import { mentorshipHref } from "@/lib/coordinator-calendar";
@@ -41,6 +43,7 @@ export function TeamDetailDrawer({
   const locale = useLocale();
   const optionLabel = useOptionLabel();
   const query = useProgramTeamDetail(programId, organizationId);
+  const canMoveMembers = useTeamMoveAvailable();
   const team = query.data;
   const messageHref = coordinatorTeamMessageHref(programId, organizationId);
   const mentorshipId = team
@@ -182,6 +185,16 @@ export function TeamDetailDrawer({
                         ) : null}
                         {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
                         <ProfileLink userId={member.id} name={member.name} />
+                        {canMoveMembers ? (
+                          <>
+                            {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+                            <MoveMemberButton
+                              userId={member.id}
+                              programId={programId}
+                              className="shrink-0 whitespace-nowrap rounded-full border border-[#e9ecef] px-3 py-1.5 text-[12px] font-medium text-[#22262b]"
+                            />
+                          </>
+                        ) : null}
                       </li>
                     ))}
                   </ul>

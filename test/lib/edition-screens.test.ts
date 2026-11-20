@@ -7,6 +7,7 @@ import {
   adminUserTabsOf,
   loginOptionsOf,
   offersLogin,
+  offersTeamMove,
   offersUserDeletion,
   programTypesOf,
   signupRolesOf,
@@ -94,5 +95,12 @@ describe("offersUserDeletion", () => {
   it("offers deleting a user in Teknokent only; ODTÜ deletion is deferred", () => {
     expect(offersUserDeletion(Edition.Teknokent)).toBe(true);
     expect(offersUserDeletion(Edition.Odtu)).toBe(false);
+  });
+});
+
+describe("offersTeamMove", () => {
+  it("lets admins and coordinators move members in Teknokent only; ODTÜ students sit in personal teams", () => {
+    expect(offersTeamMove(Edition.Teknokent)).toBe(true);
+    expect(offersTeamMove(Edition.Odtu)).toBe(false);
   });
 });

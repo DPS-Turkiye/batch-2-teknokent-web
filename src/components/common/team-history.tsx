@@ -44,13 +44,19 @@ export function TeamHistory({ userId }: { userId: string }) {
   );
 }
 
+const EXIT_KEYS = {
+  [TeamExitReason.Left]: "left",
+  [TeamExitReason.Removed]: "removed",
+  [TeamExitReason.Moved]: "moved",
+} as const satisfies Record<TeamExitReason, string>;
+
 function StayRow({ stay }: { stay: TeamHistoryStay }) {
   const t = useTranslations("teamHistory");
   const locale = useLocale();
   const joined = formatShortDate(stay.joinedAt, locale);
   const notes = [
     stay.leftAt
-      ? t(stay.exitReason === TeamExitReason.Removed ? "removed" : "left", {
+      ? t(stay.exitReason ? EXIT_KEYS[stay.exitReason] : "left", {
           from: joined,
           to: formatShortDate(stay.leftAt, locale),
         })

@@ -11,6 +11,8 @@ type EditionScreens = {
   adminUserTabs: readonly UserTab[];
   /** Whether an admin may delete a user; the backend closes the endpoint in the other edition. */
   userDeletion: boolean;
+  /** Whether admins and coordinators may move a member to another team; the backend closes it in the other edition. */
+  teamMove: boolean;
 };
 
 /**
@@ -30,6 +32,7 @@ const SCREENS: Record<Edition, EditionScreens> = {
     programTypes: [ProgramType.StartupMentoring],
     adminUserTabs: [UserTab.Coordinators, UserTab.Mentors, UserTab.Teams],
     userDeletion: true,
+    teamMove: true,
   },
   [Edition.Odtu]: {
     // Password stays for ODTÜ's seeded admin and coordinator accounts; invite codes and OTG belong to Teknokent.
@@ -40,6 +43,8 @@ const SCREENS: Record<Edition, EditionScreens> = {
     adminUserTabs: [UserTab.Coordinators, UserTab.Students, UserTab.Academics],
     // Deferred: deleting an ODTÜ account would have to settle its roster and institution login first.
     userDeletion: false,
+    // ODTÜ students sit in personal teams; moving between teams is a Teknokent startup concept.
+    teamMove: false,
   },
 };
 
@@ -69,4 +74,8 @@ export function adminUserTabsOf(edition: Edition): readonly UserTab[] {
 
 export function offersUserDeletion(edition: Edition) {
   return SCREENS[edition].userDeletion;
+}
+
+export function offersTeamMove(edition: Edition) {
+  return SCREENS[edition].teamMove;
 }
