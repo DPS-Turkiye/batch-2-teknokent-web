@@ -14,6 +14,7 @@ import { getTeamMoveOptions, moveMemberToTeam } from "@/lib/client/team-moves";
 import type { ToastInput } from "@/stores/toast-store";
 import {
   founderBlocked,
+  soloFounder,
   teamMoveOptions,
   teamMoveResult,
 } from "@test/fixtures/team-moves";
@@ -224,5 +225,35 @@ describe("useMoveMember", () => {
     await waitFor(() =>
       expect(hook.result.current.loadError).toBe("Kullanıcı bulunamadı."),
     );
+  });
+
+  it("names the startup a solo founder's move archives, and says so when it is done", async () => {
+    vi.mocked(getTeamMoveOptions).mockResolvedValue(soloFounder());
+    vi.mocked(moveMemberToTeam).mockResolvedValue(
+      teamMoveResult({ archivedFrom: true, withdrawnRequests: 0 }),
+    );
+    const { hook } = setup();
+    act(() => hook.result.current.show());
+    await waitFor(() =>
+      expect(hook.result.current.archivedTeamName).toBe("Döngü"),
+    );
+    act(() => hook.result.current.select("org-new"));
+
+    act(() => hook.result.current.confirm());
+
+    await waitFor(() =>
+      expect(showToast).toHaveBeenCalledWith({
+        message: "Merve Geçer, Pazar Lab takımına taşındı; Döngü arşivlendi.",
+        tone: ToastTone.Success,
+      }),
+    );
+  });
+
+  it("names no archived startup for an ordinary member", async () => {
+    const { hook } = setup();
+    act(() => hook.result.current.show());
+    await waitFor(() => expect(hook.result.current.hasTargets).toBe(true));
+
+    expect(hook.result.current.archivedTeamName).toBeNull();
   });
 });
