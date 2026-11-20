@@ -5,20 +5,25 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { InviteView } from "@/components/auth/invite-view";
 import { ClientApiError } from "@/lib/client/api";
 import { registerMember } from "@/lib/client/auth";
+import { checkInviteCode } from "@/lib/client/invite-code";
 import {
   createFirebaseAccount,
   currentIdToken,
-  currentOtgAccount,
+  currentSignedInAccount,
   isCurrentEmailVerified,
+  isEmailAlreadyInUse,
   signOutOfFirebase,
 } from "@/lib/firebase/auth";
+import { readInviteIntent, saveInviteIntent } from "@/lib/invite-intent";
 import { InLocale } from "@test/test-utils";
 
 const push = vi.fn();
 const login = vi.fn();
+let searchParams = new URLSearchParams();
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push }),
+  useSearchParams: () => searchParams,
 }));
 vi.mock("next/link", () => import("@test/mocks/next-link"));
 vi.mock("@/components/providers/session-provider", () => ({
@@ -30,11 +35,15 @@ vi.mock("@/components/auth/verify-email-view", () => ({
 vi.mock("@/lib/client/auth", () => ({
   registerMember: vi.fn(),
 }));
+vi.mock("@/lib/client/invite-code", () => ({
+  checkInviteCode: vi.fn(),
+}));
 vi.mock("@/lib/firebase/auth", () => ({
   createFirebaseAccount: vi.fn(),
   currentIdToken: vi.fn(),
-  currentOtgAccount: vi.fn(),
+  currentSignedInAccount: vi.fn(),
   isCurrentEmailVerified: vi.fn(),
+  isEmailAlreadyInUse: vi.fn(),
   signOutOfFirebase: vi.fn(),
   describeAuthError: (error: unknown) =>
     error instanceof Error ? error.message : "Kimlik doğrulama tamamlanamadı.",
@@ -55,7 +64,14 @@ function renderInvite() {
 describe("Invite code sign-up", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(currentOtgAccount).mockResolvedValue(null);
+    window.localStorage.clear();
+    searchParams = new URLSearchParams();
+    vi.mocked(currentSignedInAccount).mockResolvedValue(null);
+    vi.mocked(checkInviteCode).mockResolvedValue({
+      valid: true,
+      teamName: "Yıldız Team",
+    });
+    vi.mocked(isEmailAlreadyInUse).mockReturnValue(false);
     vi.mocked(createFirebaseAccount).mockResolvedValue("id-token");
     vi.mocked(currentIdToken).mockResolvedValue("id-token");
     vi.mocked(isCurrentEmailVerified).mockReturnValue(true);
@@ -100,10 +116,11 @@ describe("Invite code sign-up", () => {
 
   // The OTG login already holds the address; a second login for it would fail with "email already in use".
   it("joins with the signed-in OTG login: address read-only, no password", async () => {
-    vi.mocked(currentOtgAccount).mockResolvedValue({
+    vi.mocked(currentSignedInAccount).mockResolvedValue({
       email: "ogrenci@ornek.com",
       fullName: "Ayşe Nur Yılmaz",
       verified: true,
+      otg: true,
     });
     const user = userEvent.setup();
     renderInvite();
@@ -134,10 +151,11 @@ describe("Invite code sign-up", () => {
   });
 
   it("lets someone who is not the signed-in OTG person use a new login instead", async () => {
-    vi.mocked(currentOtgAccount).mockResolvedValue({
+    vi.mocked(currentSignedInAccount).mockResolvedValue({
       email: "ogrenci@ornek.com",
       fullName: "",
       verified: true,
+      otg: true,
     });
     const user = userEvent.setup();
     renderInvite();
@@ -154,10 +172,11 @@ describe("Invite code sign-up", () => {
   });
 
   it("asks an OTG login with an unverified address to verify before joining", async () => {
-    vi.mocked(currentOtgAccount).mockResolvedValue({
+    vi.mocked(currentSignedInAccount).mockResolvedValue({
       email: "ogrenci@ornek.com",
       fullName: "Ayşe Yılmaz",
       verified: false,
+      otg: true,
     });
     const user = userEvent.setup();
     renderInvite();
@@ -182,8 +201,9 @@ describe("Invite code sign-up", () => {
       email: string;
       fullName: string;
       verified: boolean;
+      otg: boolean;
     }) => void = () => undefined;
-    vi.mocked(currentOtgAccount).mockReturnValue(
+    vi.mocked(currentSignedInAccount).mockReturnValue(
       new Promise((resolve) => {
         resolveAccount = resolve;
       }),
@@ -196,6 +216,7 @@ describe("Invite code sign-up", () => {
       email: "ogrenci@ornek.com",
       fullName: "Ayşe Yılmaz",
       verified: true,
+      otg: true,
     });
 
     expect(await screen.findByText("ogrenci@ornek.com")).toBeInTheDocument();
@@ -204,10 +225,11 @@ describe("Invite code sign-up", () => {
   });
 
   it("needs a last name when the OTG name is a single word", async () => {
-    vi.mocked(currentOtgAccount).mockResolvedValue({
+    vi.mocked(currentSignedInAccount).mockResolvedValue({
       email: "ogrenci@ornek.com",
       fullName: "Ayşe",
       verified: true,
+      otg: true,
     });
     const user = userEvent.setup();
     renderInvite();
@@ -223,10 +245,11 @@ describe("Invite code sign-up", () => {
   });
 
   it("shows the backend's refusal and lets an OTG login try again", async () => {
-    vi.mocked(currentOtgAccount).mockResolvedValue({
+    vi.mocked(currentSignedInAccount).mockResolvedValue({
       email: "ogrenci@ornek.com",
       fullName: "Ayşe Yılmaz",
       verified: true,
+      otg: true,
     });
     vi.mocked(registerMember).mockRejectedValue(
       new ClientApiError("Davet kodu geçersiz.", 400),
@@ -248,10 +271,11 @@ describe("Invite code sign-up", () => {
 
   // Otherwise the new login would only fail with "email already in use".
   it("stays on the OTG login when signing out of it fails", async () => {
-    vi.mocked(currentOtgAccount).mockResolvedValue({
+    vi.mocked(currentSignedInAccount).mockResolvedValue({
       email: "ogrenci@ornek.com",
       fullName: "",
       verified: true,
+      otg: true,
     });
     vi.mocked(signOutOfFirebase).mockRejectedValue(new Error("Ağ hatası"));
     const user = userEvent.setup();
@@ -265,4 +289,182 @@ describe("Invite code sign-up", () => {
     expect(screen.getByText("ogrenci@ornek.com")).toBeInTheDocument();
     expect(field("invite-password")).toBeNull();
   });
+
+  it("checks the code first and makes no login for a code that opens no team", async () => {
+    vi.mocked(checkInviteCode).mockResolvedValue({
+      valid: false,
+      teamName: null,
+    });
+    const user = userEvent.setup();
+    renderInvite();
+
+    await fillNewLogin(user, "YANLIS99");
+    await user.click(screen.getByRole("button", { name: "Ekibe katıl" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Bu kodla bir takım bulunamadı.",
+    );
+    expect(checkInviteCode).toHaveBeenCalledWith("YANLIS99");
+    expect(createFirebaseAccount).not.toHaveBeenCalled();
+    expect(registerMember).not.toHaveBeenCalled();
+    expect(readInviteIntent()).toBeNull();
+    expect(screen.getByRole("button", { name: "Ekibe katıl" })).toBeEnabled();
+  });
+
+  it("goes ahead when the check cannot answer, since registration checks again", async () => {
+    vi.mocked(checkInviteCode).mockRejectedValue(
+      new ClientApiError("Çok fazla deneme.", 429),
+    );
+    const user = userEvent.setup();
+    renderInvite();
+
+    await fillNewLogin(user, "ABCD1234");
+    await user.click(screen.getByRole("button", { name: "Ekibe katıl" }));
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/workspace"));
+    expect(createFirebaseAccount).toHaveBeenCalled();
+  });
+
+  it("fills the code from a shared link and names the team", async () => {
+    searchParams = new URLSearchParams({ code: "LINK2345" });
+    renderInvite();
+
+    expect(field("invite-code")).toHaveValue("LINK2345");
+    expect(
+      await screen.findByText("Yıldız Team takımına katılıyorsun."),
+    ).toBeInTheDocument();
+    expect(checkInviteCode).toHaveBeenCalledWith("LINK2345");
+  });
+
+  it("says at once when a shared link's code is no longer valid", async () => {
+    vi.mocked(checkInviteCode).mockResolvedValue({
+      valid: false,
+      teamName: null,
+    });
+    searchParams = new URLSearchParams({ code: "ESKI2345" });
+    renderInvite();
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Bu kodla bir takım bulunamadı.",
+    );
+  });
+
+  it("brings back the code saved before the person left to verify their e-mail", () => {
+    saveInviteIntent("SAKL2345");
+    renderInvite();
+
+    expect(field("invite-code")).toHaveValue("SAKL2345");
+    expect(checkInviteCode).not.toHaveBeenCalled();
+  });
+
+  it("remembers the code before making the login, and forgets it once joined", async () => {
+    vi.mocked(createFirebaseAccount).mockImplementation(async () => {
+      expect(readInviteIntent()?.code).toBe("ABCD1234");
+      return "id-token";
+    });
+    const user = userEvent.setup();
+    renderInvite();
+
+    await fillNewLogin(user, "ABCD1234");
+    await user.click(screen.getByRole("button", { name: "Ekibe katıl" }));
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/workspace"));
+    expect(readInviteIntent()).toBeNull();
+  });
+
+  // The login they made here earlier, back after verifying elsewhere: no second login, no "email already in use".
+  it("joins with a signed-in e-mail login on return, verifying it first when needed", async () => {
+    searchParams = new URLSearchParams({ code: "ABCD1234", resume: "1" });
+    vi.mocked(currentSignedInAccount).mockResolvedValue({
+      email: "deniz@ornek.com",
+      fullName: "",
+      verified: false,
+      otg: false,
+    });
+    const user = userEvent.setup();
+    renderInvite();
+
+    expect(
+      screen.getByText(/Kaldığın yerden devam ediyorsun/),
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByText("Bu hesapla katılıyorsun:", { exact: false }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("deniz@ornek.com")).toBeInTheDocument();
+    expect(field("invite-password")).toBeNull();
+
+    await user.type(field("invite-first-name")!, "Deniz");
+    await user.type(field("invite-last-name")!, "Kaya");
+    await user.type(field("invite-phone")!, "+905551112233");
+    await user.click(screen.getByRole("button", { name: "Ekibe katıl" }));
+
+    expect(
+      await screen.findByText("verify deniz@ornek.com"),
+    ).toBeInTheDocument();
+    expect(createFirebaseAccount).not.toHaveBeenCalled();
+    expect(registerMember).not.toHaveBeenCalled();
+  });
+
+  it("registers a verified signed-in e-mail login straight away", async () => {
+    vi.mocked(currentSignedInAccount).mockResolvedValue({
+      email: "deniz@ornek.com",
+      fullName: "Deniz Kaya",
+      verified: true,
+      otg: false,
+    });
+    const user = userEvent.setup();
+    renderInvite();
+
+    await screen.findByText("deniz@ornek.com");
+    await user.type(field("invite-code")!, "ABCD1234");
+    await user.type(field("invite-phone")!, "+905551112233");
+    await user.click(screen.getByRole("button", { name: "Ekibe katıl" }));
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/workspace"));
+    expect(createFirebaseAccount).not.toHaveBeenCalled();
+    expect(registerMember).toHaveBeenCalledWith(
+      {
+        fullName: "Deniz Kaya",
+        email: "deniz@ornek.com",
+        inviteCode: "ABCD1234",
+        phone: "+905551112233",
+      },
+      "id-token",
+    );
+  });
+
+  it("sends someone whose address already has a login to sign in, with the code kept", async () => {
+    const taken = new Error("auth/email-already-in-use");
+    vi.mocked(createFirebaseAccount).mockRejectedValue(taken);
+    vi.mocked(isEmailAlreadyInUse).mockImplementation(
+      (error) => error === taken,
+    );
+    const user = userEvent.setup();
+    renderInvite();
+
+    await fillNewLogin(user, "ABCD1234");
+    await user.click(screen.getByRole("button", { name: "Ekibe katıl" }));
+
+    expect(
+      await screen.findByText(/Bu e-posta adresiyle zaten bir giriş var/),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Giriş yap ve devam et" }),
+    ).toHaveAttribute("href", "/login");
+    expect(readInviteIntent()?.code).toBe("ABCD1234");
+    expect(registerMember).not.toHaveBeenCalled();
+  });
 });
+
+async function fillNewLogin(
+  user: ReturnType<typeof userEvent.setup>,
+  code: string,
+) {
+  await user.type(field("invite-code")!, code);
+  await user.type(field("invite-first-name")!, "Deniz");
+  await user.type(field("invite-last-name")!, "Kaya");
+  await user.type(field("invite-email")!, "deniz@ornek.com");
+  await user.type(field("invite-phone")!, "+905551112233");
+  await user.type(field("invite-password")!, "Guclu-sifre-123");
+  await user.type(field("invite-password-confirm")!, "Guclu-sifre-123");
+}

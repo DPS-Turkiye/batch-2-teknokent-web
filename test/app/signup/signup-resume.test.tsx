@@ -85,7 +85,7 @@ describe("SignupFlow resume", () => {
       "/login",
     );
     expect(
-      screen.getByRole("link", { name: "Kodunla doğrudan devam edebilirsin." }),
+      screen.getByRole("link", { name: "Davet koduyla katıl" }),
     ).toHaveAttribute("href", "/invite");
     // Nobody is signed in yet, so there is nothing to sign out of.
     expect(

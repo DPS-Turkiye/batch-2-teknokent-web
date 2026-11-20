@@ -1,6 +1,7 @@
 import { Edition } from "@/interfaces/edition";
 import { SignupRole } from "@/interfaces/signup";
-import { signupRolesOf } from "@/lib/edition-screens";
+import { offersMemberSignup, signupRolesOf } from "@/lib/edition-screens";
+import { INVITE_PATH } from "@/lib/invite-intent";
 
 /** Which card text the role page shows; its copy lives under `roleSelect.cards.<value>`. */
 export enum SignupCardCopy {
@@ -8,9 +9,14 @@ export enum SignupCardCopy {
   Mentor = "mentor",
   /** ODTÜ's founder flow: an İŞKUR student joining an individual program, with no startup. */
   Student = "student",
+  /** A teammate with their founder's code: not a role of the wizard, so the card links to /invite. */
+  Member = "member",
 }
 
-export type SignupCard = { role: SignupRole; copy: SignupCardCopy };
+/** A card either starts the wizard as `role` or, for a teammate with a code, links to `href`. */
+export type SignupCard =
+  | { copy: SignupCardCopy; role: SignupRole; href: null }
+  | { copy: SignupCardCopy; role: null; href: string };
 
 const ROLE_COPY: Record<SignupRole, SignupCardCopy> = {
   [SignupRole.Founder]: SignupCardCopy.Founder,
@@ -19,11 +25,15 @@ const ROLE_COPY: Record<SignupRole, SignupCardCopy> = {
 
 /** The role cards of the edition's sign-up page, in display order. */
 export function signupCards(edition: Edition): SignupCard[] {
-  return signupRolesOf(edition).map((role) => ({
+  const roles: SignupCard[] = signupRolesOf(edition).map((role) => ({
     role,
+    href: null,
     copy:
       edition === Edition.Odtu && role === SignupRole.Founder
         ? SignupCardCopy.Student
         : ROLE_COPY[role],
   }));
+  return offersMemberSignup(edition)
+    ? [...roles, { copy: SignupCardCopy.Member, role: null, href: INVITE_PATH }]
+    : roles;
 }

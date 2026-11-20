@@ -45,6 +45,9 @@ describe("RoleSelectView", () => {
     expect(screen.queryByText("Mentor olarak devam et")).toBeNull();
     expect(screen.queryByText("Girişimci olarak devam et")).toBeNull();
     expect(screen.queryByRole("link", { name: /Kodunla/ })).toBeNull();
+    expect(
+      screen.queryByRole("link", { name: "Davet koduyla katıl" }),
+    ).toBeNull();
 
     await user.click(
       screen.getByRole("button", { name: "İŞKUR öğrencisi olarak devam et" }),
@@ -67,7 +70,7 @@ describe("RoleSelectView", () => {
     ).toBeInTheDocument();
   });
 
-  it("keeps Teknokent's founder and mentor cards and the invite code, without ODTÜ", () => {
+  it("keeps Teknokent's founder and mentor cards and adds the team member card, without ODTÜ", () => {
     vi.stubEnv("NEXT_PUBLIC_ODTU_DEV_LOGIN", "true");
     render(
       <RoleSelectView
@@ -79,10 +82,14 @@ describe("RoleSelectView", () => {
 
     expect(screen.getByText("Girişimci olarak devam et")).toBeInTheDocument();
     expect(screen.getByText("Mentor olarak devam et")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Kodunla/ })).toHaveAttribute(
-      "href",
-      "/invite",
-    );
+    expect(
+      screen.getByRole("heading", { name: "Ekip üyesiyim — davet kodum var" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Davet koduyla katıl" }),
+    ).toHaveAttribute("href", "/invite");
+    // The card replaces the small link under the cards.
+    expect(screen.queryByRole("link", { name: /Kodunla/ })).toBeNull();
     expect(screen.queryByRole("region", { name: /ODTÜ öğrencisi/ })).toBeNull();
   });
 

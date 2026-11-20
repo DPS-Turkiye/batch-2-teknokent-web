@@ -9,6 +9,7 @@ import {
   getInviteCode,
   rotateInviteCode,
 } from "@/lib/client/organization-invite";
+import { inviteLink } from "@/lib/invite-intent";
 import { useToast } from "@/stores/toast-store";
 
 export const ORGANIZATION_INVITE_QUERY_KEY = ["organization-invite"] as const;
@@ -36,10 +37,12 @@ export function useInviteCodeCard() {
   const inviteQuery = useOrganizationInvite();
   const rotate = useRotateInviteCode();
   const [copied, setCopied] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
 
   return {
     code: inviteQuery.data?.inviteCode ?? null,
     copied,
+    linkCopied,
     error: inviteQuery.error,
     isLoading: inviteQuery.isLoading,
     isRotating: rotate.isPending,
@@ -50,8 +53,19 @@ export function useInviteCodeCard() {
       setCopied(true);
       showToast({ message: t("copiedToast"), tone: ToastTone.Success });
     },
+    /** The link opens /invite with the code filled in, so a teammate does not have to type it. */
+    async copyLink() {
+      const code = inviteQuery.data?.inviteCode;
+      if (!code) return;
+      await navigator.clipboard.writeText(
+        inviteLink(window.location.origin, code),
+      );
+      setLinkCopied(true);
+      showToast({ message: t("linkCopiedToast"), tone: ToastTone.Success });
+    },
     async rotate() {
       setCopied(false);
+      setLinkCopied(false);
       try {
         await rotate.mutateAsync();
         showToast({ message: t("rotated"), tone: ToastTone.Success });

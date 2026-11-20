@@ -12,6 +12,7 @@ import {
   fetchOnboardingDraft,
 } from "@/lib/client/onboarding-draft";
 import { ACCOUNT_NOT_APPROVED, REGISTRATION_REQUIRED } from "@/lib/const";
+import { saveInviteIntent } from "@/lib/invite-intent";
 
 vi.mock("@/lib/client/onboarding-draft", () => ({
   clearOnboardingDraft: vi.fn(),
@@ -32,6 +33,7 @@ describe("accountNotReadyHref", () => {
     vi.clearAllMocks();
     vi.mocked(fetchOnboardingDraft).mockResolvedValue(null);
     vi.mocked(clearOnboardingDraft).mockResolvedValue(undefined);
+    window.localStorage.clear();
   });
 
   it("leaves other errors alone", async () => {
@@ -84,6 +86,31 @@ describe("accountNotReadyHref", () => {
       "/signup?resume=1&role=founder",
     );
     expect(clearOnboardingDraft).not.toHaveBeenCalled();
+  });
+
+  it("sends a login that entered a team code back to /invite, not to the founder and mentor sign-up", async () => {
+    saveInviteIntent("ABCD2345");
+
+    await expect(accountNotReadyHref(unregistered, "t")).resolves.toBe(
+      "/invite?code=ABCD2345&resume=1",
+    );
+    vi.mocked(fetchOnboardingDraft).mockResolvedValue(founderDraft);
+    await expect(accountNotReadyHref(unregistered, "t")).resolves.toBe(
+      "/invite?code=ABCD2345&resume=1",
+    );
+  });
+
+  it("keeps a mentor's onboarding and a pending account's status page ahead of a saved code", async () => {
+    saveInviteIntent("ABCD2345");
+    vi.mocked(fetchOnboardingDraft).mockResolvedValue(mentorDraft);
+
+    await expect(accountNotReadyHref(unregistered, "t")).resolves.toBe(
+      "/signup?resume=1&role=mentor",
+    );
+    vi.mocked(fetchOnboardingDraft).mockResolvedValue(null);
+    await expect(accountNotReadyHref(pending, "t")).resolves.toBe(
+      "/application-status",
+    );
   });
 
   it("routes without a token, or when the draft cannot be read", async () => {

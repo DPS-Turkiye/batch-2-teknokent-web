@@ -75,14 +75,35 @@ describe("organization invite hooks", () => {
     ]);
   });
 
+  it("copies a link that opens /invite with the code filled in", async () => {
+    const { result } = renderHook(() => useInviteCodeCard(), queryWrapper());
+    await waitFor(() => expect(result.current.code).toBe("OLD-CODE"));
+
+    await act(() => result.current.copyLink());
+
+    expect(writeText).toHaveBeenCalledWith(
+      `${window.location.origin}/invite?code=OLD-CODE`,
+    );
+    expect(result.current.linkCopied).toBe(true);
+    expect(result.current.copied).toBe(false);
+    expect(toasts()).toEqual([
+      {
+        message: "Davet linki kopyalandı. Ekip arkadaşına gönderebilirsin.",
+        tone: ToastTone.Success,
+      },
+    ]);
+  });
+
   it("copies nothing before the code has loaded", async () => {
     vi.mocked(getInviteCode).mockReturnValue(new Promise(() => {}));
     const { result } = renderHook(() => useInviteCodeCard(), queryWrapper());
 
     await act(() => result.current.copy());
+    await act(() => result.current.copyLink());
 
     expect(writeText).not.toHaveBeenCalled();
     expect(result.current.copied).toBe(false);
+    expect(result.current.linkCopied).toBe(false);
   });
 
   it("puts the rotated code in the cache and clears the copied mark", async () => {
@@ -94,11 +115,13 @@ describe("organization invite hooks", () => {
     const { result } = renderHook(() => useInviteCodeCard(), { wrapper });
     await waitFor(() => expect(result.current.code).toBe("OLD-CODE"));
     await act(() => result.current.copy());
+    await act(() => result.current.copyLink());
 
     await act(() => result.current.rotate());
 
     expect(result.current.code).toBe("NEW-CODE");
     expect(result.current.copied).toBe(false);
+    expect(result.current.linkCopied).toBe(false);
     expect(queryClient.getQueryData(ORGANIZATION_INVITE_QUERY_KEY)).toEqual({
       organizationId: "org-1",
       inviteCode: "NEW-CODE",

@@ -1,51 +1,99 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { useSession } from "@/components/providers/session-provider";
 import { useRegisterForm } from "@/hooks/use-auth-form";
 import { ClientApiError } from "@/lib/client/api";
 import { registerMember } from "@/lib/client/auth";
+import { checkInviteCode } from "@/lib/client/invite-code";
 import {
   createFirebaseAccount,
   currentIdToken,
-  currentOtgAccount,
+  currentSignedInAccount,
   describeAuthError,
   isCurrentEmailVerified,
+  isEmailAlreadyInUse,
   signOutOfFirebase,
 } from "@/lib/firebase/auth";
+import {
+  clearInviteIntent,
+  inviteCodeOrNull,
+  readInviteIntent,
+  saveInviteIntent,
+} from "@/lib/invite-intent";
 import { splitFullName } from "@/lib/utils";
 
+type SignedInAccount = { email: string; verified: boolean; otg: boolean };
+
+const CodeCheckStatus = {
+  Unknown: "unknown",
+  Valid: "valid",
+  Invalid: "invalid",
+} as const;
+
+/** What the code check said: unknown until asked, or when the check itself could not answer. */
+type CodeCheck =
+  | { status: typeof CodeCheckStatus.Unknown }
+  | { status: typeof CodeCheckStatus.Valid; teamName: string | null }
+  | { status: typeof CodeCheckStatus.Invalid };
+
+const UNCHECKED: CodeCheck = { status: CodeCheckStatus.Unknown };
+
 /**
- * /invite: join a team with its invite code. Someone who just signed in with OTG already has a Firebase login
- * under their OTG address, so they join with it (the address read-only, no password); creating a second login
- * for the same address would fail with "email already in use". Everyone else gets a new e-mail + password login,
- * as before.
+ * The check only spares a dead end; registration checks the code again. So a check that fails (rate limit,
+ * network) lets the join go ahead instead of blocking it.
+ */
+async function checkCode(code: string): Promise<CodeCheck> {
+  try {
+    const answer = await checkInviteCode(code);
+    return answer.valid
+      ? { status: CodeCheckStatus.Valid, teamName: answer.teamName }
+      : { status: CodeCheckStatus.Invalid };
+  } catch {
+    return UNCHECKED;
+  }
+}
+
+/**
+ * /invite: join a team with its invite code. The code is checked before any login is made, so a typo leaves
+ * nothing behind. Someone already signed in to Firebase in this tab (an OTG login, or the e-mail + password login
+ * they made here before leaving to verify it) joins with that login: making a second one for the same address
+ * fails with "email already in use". A new login that hits "email already in use" is sent to sign in, and the
+ * code saved in this browser brings them back here afterwards.
  */
 export function useInviteJoin() {
   const fields = useTranslations("auth");
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { login } = useSession();
   const register = useRegisterForm();
   const { form, prefill, reset } = register;
-  const [inviteCode, setInviteCode] = useState("");
+  const linkCode = inviteCodeOrNull(searchParams.get("code"));
+  const resumed = searchParams.get("resume") === "1";
+  const [inviteCode, setInviteCode] = useState(
+    () => linkCode ?? readInviteIntent()?.code ?? "",
+  );
+  const [codeCheck, setCodeCheck] = useState<CodeCheck>(UNCHECKED);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [emailInUse, setEmailInUse] = useState(false);
   const [needsEmailVerification, setNeedsEmailVerification] = useState(false);
-  const [otgAccount, setOtgAccount] = useState<{
-    email: string;
-    verified: boolean;
-  } | null>(null);
+  const [account, setAccount] = useState<SignedInAccount | null>(null);
 
   useEffect(() => {
     let active = true;
-    void currentOtgAccount()
-      .then((account) => {
-        if (!active || !account) return;
-        setOtgAccount({ email: account.email, verified: account.verified });
-        prefill({ email: account.email, ...splitFullName(account.fullName) });
+    void currentSignedInAccount()
+      .then((signedIn) => {
+        if (!active || !signedIn) return;
+        setAccount({
+          email: signedIn.email,
+          verified: signedIn.verified,
+          otg: signedIn.otg,
+        });
+        prefill({ email: signedIn.email, ...splitFullName(signedIn.fullName) });
       })
       .catch(() => undefined);
     return () => {
@@ -53,9 +101,26 @@ export function useInviteJoin() {
     };
   }, [prefill]);
 
+  // A shared link names the team up front, so the person sees they are joining the right one.
+  useEffect(() => {
+    if (!linkCode) return;
+    let active = true;
+    void checkCode(linkCode).then((result) => {
+      if (active) setCodeCheck(result);
+    });
+    return () => {
+      active = false;
+    };
+  }, [linkCode]);
+
+  function changeInviteCode(value: string) {
+    setInviteCode(value);
+    setCodeCheck(UNCHECKED);
+  }
+
   const canJoin = Boolean(
     inviteCode.trim() &&
-    (otgAccount
+    (account
       ? form.firstName.trim() &&
         form.lastName.trim() &&
         form.phone.trim() &&
@@ -71,12 +136,13 @@ export function useInviteJoin() {
     await registerMember(
       {
         fullName: `${form.firstName.trim()} ${form.lastName.trim()}`,
-        email: otgAccount?.email ?? form.email.trim(),
+        email: account?.email ?? form.email.trim(),
         inviteCode: inviteCode.trim(),
         phone: form.phone.trim() || undefined,
       },
       idToken,
     );
+    clearInviteIntent();
     await login(idToken);
     router.push("/workspace");
   }
@@ -85,13 +151,20 @@ export function useInviteJoin() {
     if (!canJoin || submitting) return;
     setSubmitting(true);
     setError("");
+    setEmailInUse(false);
+    const code = inviteCode.trim();
     try {
-      if (!otgAccount) {
+      const checked = await checkCode(code);
+      setCodeCheck(checked);
+      if (checked.status === CodeCheckStatus.Invalid) {
+        setSubmitting(false);
+        return;
+      }
+      saveInviteIntent(code);
+      if (!account) {
         await createFirebaseAccount(form.email, form.password);
       }
-      const verified = otgAccount
-        ? otgAccount.verified
-        : isCurrentEmailVerified();
+      const verified = account ? account.verified : isCurrentEmailVerified();
       if (!verified) {
         setNeedsEmailVerification(true);
         setSubmitting(false);
@@ -99,19 +172,23 @@ export function useInviteJoin() {
       }
       await joinAfterEmailVerified();
     } catch (caught) {
-      setError(
-        caught instanceof ClientApiError
-          ? caught.message
-          : describeAuthError(caught),
-      );
+      if (isEmailAlreadyInUse(caught)) {
+        setEmailInUse(true);
+      } else {
+        setError(
+          caught instanceof ClientApiError
+            ? caught.message
+            : describeAuthError(caught),
+        );
+      }
       setSubmitting(false);
     }
   }
 
   /**
-   * Not the OTG person who is signed in: sign them out and fall back to a new e-mail + password login, with the
-   * form emptied of what came from their OTG profile. If the sign-out fails, stay on the OTG login: the new login
-   * would only fail with "email already in use".
+   * Not the person who is signed in: sign them out and fall back to a new e-mail + password login, with the form
+   * emptied of what came from the signed-in profile. If the sign-out fails, stay on the signed-in login: the new
+   * login would only fail with "email already in use".
    */
   async function switchAccount() {
     setError("");
@@ -121,18 +198,24 @@ export function useInviteJoin() {
       setError(describeAuthError(caught));
       return;
     }
-    setOtgAccount(null);
+    setAccount(null);
     reset();
   }
 
   return {
     ...register,
     inviteCode,
-    setInviteCode,
-    otgAccount,
+    setInviteCode: changeInviteCode,
+    teamName:
+      codeCheck.status === CodeCheckStatus.Valid ? codeCheck.teamName : null,
+    codeInvalid: codeCheck.status === CodeCheckStatus.Invalid,
+    resumed,
+    account,
+    verificationEmail: account?.email ?? form.email.trim(),
     canJoin,
     submitting,
     error,
+    emailInUse,
     needsEmailVerification,
     join,
     joinAfterEmailVerified,

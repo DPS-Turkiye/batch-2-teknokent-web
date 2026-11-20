@@ -153,7 +153,13 @@
     "noCode": "No invite code?",
     "otgAccount": "You are joining with your ODTÜ TEKNOKENT Girişimcilik account:",
     "otgSwitch": "Join with another account",
-    "backToLogin": "Back to sign in"
+    "backToLogin": "Back to sign in",
+    "codeInvalid": "No team has this code. Check the code with your team lead; no account was created.",
+    "joiningTeam": "You are joining {team}.",
+    "resumeNote": "You are picking up where you left off. Complete your details to join your team.",
+    "signedInAccount": "You are joining with this account:",
+    "emailInUse": "A login already exists for this e-mail address. Your invite code is saved in this browser: once you sign in, you finish joining here.",
+    "signInToContinue": "Sign in and continue"
   },
   "verifyEmail": {
     "title": "Verify your email",
@@ -235,6 +241,18 @@
           "Training and badge"
         ],
         "action": "Continue as an İŞKUR student"
+      },
+      "member": {
+        "badge": "Team member",
+        "title": "I'm a team member — I have an invite code",
+        "description": "You join your team with the invite code from your startup's founder. No separate approval needed.",
+        "steps": [
+          "Invite code",
+          "Name, phone and password",
+          "E-mail verification",
+          "Join your team"
+        ],
+        "action": "Join with an invite code"
       }
     },
     "odtuBanner": {
@@ -2102,7 +2120,7 @@
     "saveFailed": "Couldn't save the team member.",
     "invite": {
       "title": "Invite code",
-      "hint": "Your teammate signs up with this code on the /invite page.",
+      "hint": "Your teammate signs up with this code or with the invite link.",
       "loading": "Loading the invite code…",
       "copied": "Copied",
       "copy": "Copy",
@@ -2110,7 +2128,10 @@
       "rotate": "Generate a new code",
       "copiedToast": "Invite code copied.",
       "rotated": "New invite code generated.",
-      "rotateFailed": "Couldn't generate a new code."
+      "rotateFailed": "Couldn't generate a new code.",
+      "copyLink": "Copy invite link",
+      "linkCopied": "Link copied",
+      "linkCopiedToast": "Invite link copied. You can send it to your teammate."
     },
     "removalRequested": "Removal request sent to the coordinator.",
     "removeRequestBody": "The request to remove {name} goes to the program's coordinator. {name} stays in the team until the coordinator approves; their open tasks then go to the rest of the team.",
@@ -6380,7 +6401,8 @@
     "teamMoveFailed": "Couldn't move the person.",
     "founderChangeLoadFailed": "Couldn't load the team's members.",
     "founderChangeFailed": "Couldn't change the founder.",
-    "teamIdInvalid": "Choose a valid team."
+    "teamIdInvalid": "Choose a valid team.",
+    "inviteCodeCheckFailed": "The invite code could not be checked right now."
   },
   "startupStart": {
     "title": "My startup",

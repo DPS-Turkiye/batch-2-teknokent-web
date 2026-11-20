@@ -23,10 +23,15 @@ export function InviteView() {
     emailDomainNotAllowed,
     inviteCode,
     setInviteCode,
-    otgAccount,
+    teamName,
+    codeInvalid,
+    resumed,
+    account,
+    verificationEmail,
     canJoin,
     submitting,
     error,
+    emailInUse,
     needsEmailVerification,
     join,
     joinAfterEmailVerified,
@@ -36,7 +41,7 @@ export function InviteView() {
   if (needsEmailVerification) {
     return (
       <VerifyEmailView
-        email={form.email.trim()}
+        email={verificationEmail}
         onVerified={joinAfterEmailVerified}
       />
     );
@@ -52,14 +57,19 @@ export function InviteView() {
           {copy("intro")}
         </p>
 
-        {otgAccount ? (
+        {resumed ? (
+          // TEST UI: placeholder until the design team's screen; replace when it arrives.
+          <p className="mt-5 rounded-lg border border-[#d6e4f0] bg-[#f5f9fc] px-3 py-2 text-xs text-[#374151]">
+            {copy("resumeNote")}
+          </p>
+        ) : null}
+
+        {account ? (
           // TEST UI: placeholder until the design team's screen; replace when it arrives.
           <div className="mt-5 flex flex-col gap-1 rounded-lg border border-[#d6e4f0] bg-[#f5f9fc] px-3 py-2 text-xs text-[#374151]">
             <p>
-              {copy("otgAccount")}{" "}
-              <span className="font-semibold break-all">
-                {otgAccount.email}
-              </span>
+              {account.otg ? copy("otgAccount") : copy("signedInAccount")}{" "}
+              <span className="font-semibold break-all">{account.email}</span>
             </p>
             <button
               type="button"
@@ -72,14 +82,26 @@ export function InviteView() {
         ) : null}
 
         <div className="flex flex-col gap-4 pt-7">
-          <AuthField
-            id="invite-code"
-            label={copy("code")}
-            required
-            placeholder="ABCD1234"
-            value={inviteCode}
-            onChange={setInviteCode}
-          />
+          <div>
+            <AuthField
+              id="invite-code"
+              label={copy("code")}
+              required
+              placeholder="ABCD1234"
+              value={inviteCode}
+              onChange={setInviteCode}
+            />
+            {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+            {codeInvalid ? (
+              <p role="alert" className="mt-1.5 text-xs text-[#c0392b]">
+                {copy("codeInvalid")}
+              </p>
+            ) : teamName ? (
+              <p className="mt-1.5 text-xs text-[#15803d]">
+                {copy("joiningTeam", { team: teamName })}
+              </p>
+            ) : null}
+          </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <AuthField
               id="invite-first-name"
@@ -98,7 +120,7 @@ export function InviteView() {
               onChange={(value) => update("lastName", value)}
             />
           </div>
-          {otgAccount ? null : (
+          {account ? null : (
             <div>
               <AuthField
                 id="invite-email"
@@ -132,7 +154,7 @@ export function InviteView() {
             value={form.phone}
             onChange={(value) => update("phone", value)}
           />
-          {otgAccount ? null : (
+          {account ? null : (
             <>
               <div>
                 <AuthField
@@ -192,6 +214,22 @@ export function InviteView() {
           >
             {error}
           </p>
+        ) : null}
+
+        {emailInUse ? (
+          // TEST UI: placeholder until the design team's screen; replace when it arrives.
+          <div
+            role="alert"
+            className="mt-3 rounded-lg border border-[#f2b78f] bg-[#fff4ec] px-3 py-2 text-xs text-[#7a3a10]"
+          >
+            <p>{copy("emailInUse")}</p>
+            <Link
+              href="/login"
+              className="mt-1 inline-block font-semibold text-[#e5701d] hover:underline"
+            >
+              {copy("signInToContinue")}
+            </Link>
+          </div>
         ) : null}
 
         <p className="pt-5 text-center text-xs text-[#6b7280]">
