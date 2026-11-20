@@ -13,6 +13,8 @@ type EditionScreens = {
   userDeletion: boolean;
   /** Whether admins and coordinators may move a member to another team; the backend closes it in the other edition. */
   teamMove: boolean;
+  /** Whether admins and coordinators may make another member a startup's founder; closed in the other edition. */
+  founderChange: boolean;
 };
 
 /**
@@ -33,6 +35,7 @@ const SCREENS: Record<Edition, EditionScreens> = {
     adminUserTabs: [UserTab.Coordinators, UserTab.Mentors, UserTab.Teams],
     userDeletion: true,
     teamMove: true,
+    founderChange: true,
   },
   [Edition.Odtu]: {
     // Password stays for ODTÜ's seeded admin and coordinator accounts; invite codes and OTG belong to Teknokent.
@@ -45,6 +48,7 @@ const SCREENS: Record<Edition, EditionScreens> = {
     userDeletion: false,
     // ODTÜ students sit in personal teams; moving between teams is a Teknokent startup concept.
     teamMove: false,
+    founderChange: false,
   },
 };
 
@@ -78,4 +82,8 @@ export function offersUserDeletion(edition: Edition) {
 
 export function offersTeamMove(edition: Edition) {
   return SCREENS[edition].teamMove;
+}
+
+export function offersFounderChange(edition: Edition) {
+  return SCREENS[edition].founderChange;
 }

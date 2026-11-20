@@ -6377,7 +6377,10 @@
     "accountDeleteFailed": "The account could not be deleted.",
     "startupDeleteFailed": "The startup could not be deleted.",
     "teamMoveLoadFailed": "Couldn't load the move options.",
-    "teamMoveFailed": "Couldn't move the person."
+    "teamMoveFailed": "Couldn't move the person.",
+    "founderChangeLoadFailed": "Couldn't load the team's members.",
+    "founderChangeFailed": "Couldn't change the founder.",
+    "teamIdInvalid": "Choose a valid team."
   },
   "startupStart": {
     "title": "My startup",
@@ -6533,6 +6536,26 @@
     "moving": "Moving…",
     "moved": "{name} was moved to {team}.",
     "failed": "Couldn't move the person."
+  },
+  "founderChange": {
+    "action": "Change founder",
+    "sectionTitle": "Change founder",
+    "sectionBody": "Hand {team} over to another member of the team.",
+    "dialogTitle": "Change founder",
+    "loading": "Loading…",
+    "loadFailed": "Couldn't load the team's members.",
+    "current": "{team}'s founder now: {founder}",
+    "noFounder": "{team} has no founder right now.",
+    "candidates": "New founder",
+    "noCandidates": "There is no other approved member who can become the founder.",
+    "summary": "{name} will become the founder of {team} and run the team.",
+    "previousStays": "{founder} stays in the team as a member.",
+    "notice": "There is no approval step. The old founder, the new founder and the program's coordinators are notified.",
+    "cancel": "Cancel",
+    "confirm": "Make founder",
+    "changing": "Saving…",
+    "changed": "{name} is now the founder of {team}.",
+    "failed": "Couldn't change the founder."
   },
   "startupGate": {
     "none": {

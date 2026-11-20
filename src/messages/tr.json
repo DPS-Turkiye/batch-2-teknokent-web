@@ -6379,7 +6379,10 @@
     "accountDeleteFailed": "Hesap silinemedi.",
     "startupDeleteFailed": "Startup silinemedi.",
     "teamMoveLoadFailed": "Taşıma seçenekleri yüklenemedi.",
-    "teamMoveFailed": "Kişi taşınamadı."
+    "teamMoveFailed": "Kişi taşınamadı.",
+    "founderChangeLoadFailed": "Takımın üyeleri yüklenemedi.",
+    "founderChangeFailed": "Kurucu değiştirilemedi.",
+    "teamIdInvalid": "Geçerli bir takım seçin."
   },
   "startupStart": {
     "title": "Startup'ım",
@@ -6535,6 +6538,26 @@
     "moving": "Taşınıyor…",
     "moved": "{name}, {team} takımına taşındı.",
     "failed": "Kişi taşınamadı."
+  },
+  "founderChange": {
+    "action": "Kurucuyu değiştir",
+    "sectionTitle": "Kurucuyu değiştir",
+    "sectionBody": "{team} girişiminin kurucusunu takımdaki başka bir üyeye devredin.",
+    "dialogTitle": "Kurucuyu değiştir",
+    "loading": "Yükleniyor…",
+    "loadFailed": "Takımın üyeleri yüklenemedi.",
+    "current": "{team} girişiminin şu anki kurucusu: {founder}",
+    "noFounder": "{team} girişiminin şu an bir kurucusu yok.",
+    "candidates": "Yeni kurucu",
+    "noCandidates": "Kurucu yapılabilecek, hesabı onaylı başka bir üye yok.",
+    "summary": "{name}, {team} girişiminin kurucusu olacak ve takımı yönetecek.",
+    "previousStays": "{founder} takımda üye olarak kalır.",
+    "notice": "Onay adımı yoktur. Eski kurucu, yeni kurucu ve programın koordinatörleri bildirim alır.",
+    "cancel": "Vazgeç",
+    "confirm": "Kurucu yap",
+    "changing": "Kaydediliyor…",
+    "changed": "{name} artık {team} girişiminin kurucusu.",
+    "failed": "Kurucu değiştirilemedi."
   },
   "startupGate": {
     "none": {

@@ -13,8 +13,10 @@ import {
 } from "@/components/admin/admin-ui";
 import { TeamHistory } from "@/components/common/team-history";
 import { TeamPhase } from "@/components/coordinator/team-phase";
+import { ChangeFounderButton } from "@/components/people/change-founder-dialog";
 import { MoveMemberButton } from "@/components/people/move-member-dialog";
 import { ProfileLink } from "@/components/people/profile-link";
+import { useFounderChangeAvailable } from "@/hooks/use-change-founder";
 import { useTeamMoveAvailable } from "@/hooks/use-move-member";
 import { useOptionLabel } from "@/hooks/use-option-label";
 import { useProgramTeamDetail } from "@/hooks/use-program-team-detail";
@@ -44,6 +46,7 @@ export function TeamDetailDrawer({
   const optionLabel = useOptionLabel();
   const query = useProgramTeamDetail(programId, organizationId);
   const canMoveMembers = useTeamMoveAvailable();
+  const canChangeFounder = useFounderChangeAvailable();
   const team = query.data;
   const messageHref = coordinatorTeamMessageHref(programId, organizationId);
   const mentorshipId = team
@@ -124,6 +127,16 @@ export function TeamDetailDrawer({
                 ) : (
                   <EmptyNote>{t("noLead")}</EmptyNote>
                 )}
+                {canChangeFounder ? (
+                  <div className="mt-2 flex justify-end">
+                    {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+                    <ChangeFounderButton
+                      organizationId={organizationId}
+                      programId={programId}
+                      className="rounded-full border border-[#e9ecef] px-3 py-1.5 text-[12px] font-medium text-[#22262b]"
+                    />
+                  </div>
+                ) : null}
               </Section>
 
               {team.code ? (
