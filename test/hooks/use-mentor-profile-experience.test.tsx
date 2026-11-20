@@ -101,10 +101,13 @@ describe("mentorProfileFormError", () => {
     ).toBe("Program rolü en fazla 80 karakter olabilir (şu an 81).");
   });
 
-  it("names a working style over 200 characters and every blank required field", () => {
+  it("names a working style over 2000 characters and every blank required field", () => {
     expect(
       mentorProfileFormError({ ...baseForm, mentoringStyle: "s".repeat(414) }),
-    ).toBe("Çalışma şekli en fazla 200 karakter olabilir (şu an 414).");
+    ).toBe("");
+    expect(
+      mentorProfileFormError({ ...baseForm, mentoringStyle: "s".repeat(2001) }),
+    ).toBe("Çalışma şekli en fazla 2000 karakter olabilir (şu an 2001).");
     expect(
       mentorProfileFormError({
         ...baseForm,
@@ -201,12 +204,12 @@ describe("useMentorProfileForm when the backend refuses a field", () => {
       wrapper,
     });
 
-    act(() => result.current.updateField("mentoringStyle", "s".repeat(201)));
+    act(() => result.current.updateField("mentoringStyle", "s".repeat(2001)));
     await act(() => result.current.handleSave());
 
     expect(updateMentorProfile).not.toHaveBeenCalled();
     expect(result.current.saveError).toBe(
-      "Çalışma şekli en fazla 200 karakter olabilir (şu an 201).",
+      "Çalışma şekli en fazla 2000 karakter olabilir (şu an 2001).",
     );
   });
 });
