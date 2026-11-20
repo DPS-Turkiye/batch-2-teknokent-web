@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 
+import { DangerZoneSection } from "@/components/profile/danger-zone-section";
 import { StartupProfileSection } from "@/components/profile/startup-profile-section";
 import { StartupProfileImport } from "@/components/startup/startup-profile-import";
 
@@ -21,6 +22,8 @@ export function StartupProfileToolsView() {
       </header>
       <StartupProfileSection />
       <StartupProfileImport />
+      {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+      <DangerZoneSection />
     </div>
   );
 }

@@ -11,6 +11,10 @@ vi.mock("@/components/profile/personal-analysis-archive", () => ({
   PersonalAnalysisArchive: () => null,
 }));
 
+// The danger zone has its own tests; it needs the session provider these screens do not render.
+vi.mock("@/components/profile/danger-zone-section", () => ({
+  DangerZoneSection: () => null,
+}));
 vi.mock("@/components/hoc/app-shell", () => ({
   AppShell: ({ children }: { children: React.ReactNode }) => (
     <div>{children}</div>

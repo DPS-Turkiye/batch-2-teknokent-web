@@ -9,6 +9,7 @@ import { PhotoAvatar } from "@/components/common/avatar";
 import { EditableChips } from "@/components/common/editable-chips";
 import { AppShell } from "@/components/hoc/app-shell";
 import { CvFileSection } from "@/components/profile/cv-file-section";
+import { DangerZoneSection } from "@/components/profile/danger-zone-section";
 import { PersonalAnalysisArchive } from "@/components/profile/personal-analysis-archive";
 import { ProfileCard as Card } from "@/components/profile/profile-card";
 import { usePersonalCv } from "@/hooks/use-personal-cv";
@@ -486,6 +487,8 @@ export function PersonalProfileView() {
               <AccountCard page={page} />
             </aside>
           </div>
+          {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+          <DangerZoneSection />
         </main>
       )}
     </AppShell>

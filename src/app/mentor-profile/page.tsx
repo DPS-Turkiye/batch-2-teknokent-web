@@ -13,6 +13,7 @@ import { EducationListEditor } from "@/components/mentors/education-list-editor"
 import { MentorStudentProfile } from "@/components/mentors/mentor-student-profile";
 import { MentorAccent } from "@/components/mentorships/mentor-accent";
 import { CvFileSection } from "@/components/profile/cv-file-section";
+import { DangerZoneSection } from "@/components/profile/danger-zone-section";
 import { useClientPagination } from "@/hooks/use-client-pagination";
 import { useMentorCv } from "@/hooks/use-mentor-cv";
 import {
@@ -753,6 +754,8 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
             </Card>
           </aside>
         </div>
+        {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+        <DangerZoneSection />
       </main>
       {availabilityOpen ? (
         <AvailabilityDialog onClose={() => setAvailabilityOpen(false)} />

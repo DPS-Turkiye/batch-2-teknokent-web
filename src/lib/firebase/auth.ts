@@ -204,6 +204,19 @@ export async function currentIdToken(): Promise<string | null> {
   return user ? user.getIdToken() : null;
 }
 
+/**
+ * When the person last entered their credentials (the token's `auth_time`; a token refresh does not move it), or
+ * null when nobody is signed in.
+ */
+export async function currentSignInTime(): Promise<Date | null> {
+  const auth = firebaseAuth();
+  await auth.authStateReady();
+  const user = auth.currentUser;
+  if (!user) return null;
+  const { authTime } = await user.getIdTokenResult();
+  return new Date(authTime);
+}
+
 export async function signOutOfFirebase(): Promise<void> {
   await signOut(firebaseAuth());
 }

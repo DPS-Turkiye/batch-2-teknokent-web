@@ -11,6 +11,7 @@ import { LandingHero } from "@/components/landing/landing-hero";
 import { LandingHow } from "@/components/landing/landing-how";
 import { LandingNav } from "@/components/landing/landing-nav";
 import { cx, styles } from "@/components/landing/landing-styles";
+import { useAccountDeletedNotice } from "@/hooks/use-account-deleted-notice";
 import { useLandingFaq, useLandingReveal } from "@/hooks/use-landing";
 import { usePublicSessionDestination } from "@/hooks/use-public-session-destination";
 import { LANDING_FAQ_DIFFERENCE_INDEX } from "@/lib/const/landing";
@@ -27,6 +28,7 @@ export function LandingPage() {
   const revealing = useLandingReveal(rootRef, REVEAL_CLASSES);
   const faq = useLandingFaq();
   const destination = usePublicSessionDestination();
+  useAccountDeletedNotice();
   const login = { href: destination.href, label: destination.label };
 
   return (
