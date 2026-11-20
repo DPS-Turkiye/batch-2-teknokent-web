@@ -262,6 +262,28 @@ export type CreateProgramInput = {
   syllabusDocumentId?: string | null;
 };
 
+/** A person's place in a program team, mirroring the backend's `TeamPersonRole`. */
+export enum TeamPersonRole {
+  Founder = "FOUNDER",
+  Member = "MEMBER",
+}
+
+/** One hit of Takımlar's person search: the person with their team. */
+export type ProgramTeamPeopleHit = {
+  id: string;
+  fullName: string;
+  role: TeamPersonRole;
+  jobTitle: string | null;
+  organizationId: string;
+  teamName: string;
+};
+
+/** `GET /api/coordinator/programs/{id}/team-people?q=`; `truncated` when more people matched than were sent. */
+export type ProgramTeamPeople = {
+  people: ProgramTeamPeopleHit[];
+  truncated: boolean;
+};
+
 export type ProgramTeamPerson = {
   id: string;
   name: string;

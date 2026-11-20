@@ -5,6 +5,7 @@ import {
   dayPart,
   distinctBy,
   errorMessage,
+  foldSearchText,
   formatFileSize,
   formatLongDate,
   formatShortDate,
@@ -12,6 +13,7 @@ import {
   httpUrlOrNull,
   isAdminArea,
   isUuid,
+  matchesPersonName,
   minutesOfDay,
   splitFullName,
 } from "@/lib/utils";
@@ -142,5 +144,32 @@ describe("minutesOfDay", () => {
     expect(minutesOfDay("00:00")).toBe(0);
     expect(minutesOfDay("09:30")).toBe(570);
     expect(minutesOfDay("23:59")).toBe(1439);
+  });
+});
+
+describe("person name search", () => {
+  it("folds case and Turkish letters the way the backend does", () => {
+    expect(foldSearchText("  Çağrı   ÖZTÜRK ")).toBe("cagri ozturk");
+    expect(foldSearchText("İpek IŞIK")).toBe("ipek isik");
+    expect(foldSearchText("Şule Gülşen Kâmil")).toBe("sule gulsen kamil");
+  });
+
+  // The same cases as the backend's NameSearchTest, so the two folds cannot drift apart.
+  it("folds like the backend, Unicode spaces included", () => {
+    expect(foldSearchText("Çağrı\u00A0Yılmaz")).toBe("cagri yilmaz");
+    expect(foldSearchText("\u3000İLKER\u2003ışık\uFEFF")).toBe("ilker isik");
+    expect(foldSearchText("Gökçe\tÜNAL")).toBe("gokce unal");
+  });
+
+  it("matches when every word appears in the name, with or without Turkish letters", () => {
+    expect(matchesPersonName("Çağrı Yılmaz", "cagri")).toBe(true);
+    expect(matchesPersonName("Cagri Yilmaz", "ÇAĞRI")).toBe(true);
+    expect(matchesPersonName("Çağrı Yılmaz", "yıl çağ")).toBe(true);
+    expect(matchesPersonName("İrem Işık", "irem isik")).toBe(true);
+    expect(matchesPersonName("Çağrı Yılmaz", "çağrı demir")).toBe(false);
+  });
+
+  it("matches nothing for a blank query", () => {
+    expect(matchesPersonName("Çağrı Yılmaz", "   ")).toBe(false);
   });
 });

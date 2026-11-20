@@ -3,8 +3,10 @@ import type { useTranslations } from "next-intl";
 import {
   ProgramLifecycle,
   TeamJoinStatus,
+  TeamPersonRole,
   type CoordinatorProgramDetail,
   type ProgramTeam,
+  type ProgramTeamPeopleHit,
 } from "@/interfaces/coordinator-program";
 import type { ProgramsT } from "@/lib/coordinator-programs";
 import { formatDayMonth, isEmailAddress } from "@/lib/utils";
@@ -80,6 +82,19 @@ export function teamFilterOptions(teams: ProgramTeam[], t: TeamsT) {
 export function filterTeams(teams: ProgramTeam[], filter: TeamFilter) {
   if (filter === TeamFilter.All) return teams;
   return teams.filter((team) => teamFilterOf(team) === filter);
+}
+
+/** "Takım üyesi · Kavşak · CTO" under a person search hit. */
+export function teamPersonLine(person: ProgramTeamPeopleHit, t: TeamsT) {
+  return [
+    person.role === TeamPersonRole.Founder
+      ? t("people.founder")
+      : t("people.member"),
+    person.teamName,
+    person.jobTitle,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 }
 
 /** "Gönderildi 19 Eyl · ali@pusula.io" once the code has been emailed. */

@@ -4280,6 +4280,16 @@
     "peerCategoriesNote": "Students and peer mentors only see the categories you turn on here. None is on to begin with."
   },
   "programTeams": {
+    "people": {
+      "search": "Search people (full name)",
+      "results": "People search results",
+      "searching": "Searching…",
+      "noMatch": "No founder or team member matches this name.",
+      "truncated": "Showing the first {count} people; narrow the search to see the rest.",
+      "founder": "Founder",
+      "member": "Team member",
+      "openTeam": "Open team"
+    },
     "filters": {
       "ALL": "All {count}",
       "JOINED": "Joined {count}",
@@ -6095,6 +6105,7 @@
     "mentorDetailsLoadFailed": "Could not load the mentor's details.",
     "programReportLoadFailed": "Could not load the program report.",
     "teamDetailLoadFailed": "Could not load the team's details.",
+    "teamPeopleSearchFailed": "Could not search the program's people.",
     "teamStageLoadFailed": "Couldn't load the team's phase.",
     "teamsLoadFailed": "Could not load the teams.",
     "teamsAddFailed": "Could not add the teams.",
@@ -6475,6 +6486,7 @@
     "withoutTeamTitle": "People without a team",
     "withoutTeamHint": "Approved, but they haven't created a startup or joined a team yet.",
     "withoutTeamEmpty": "Everyone has a team.",
+    "withoutTeamNoMatch": "Nobody without a team matches this name.",
     "teamChangesTitle": "Leaving and removal",
     "teamChangesHint": "Members who want to leave and people team leaders want to remove. Once approved, the person stays in the program without a team.",
     "teamChangesEmpty": "No requests waiting.",

@@ -12,6 +12,7 @@ import type {
   ProgramPhaseInput,
   ProgramTeam,
   ProgramTeamDetail,
+  ProgramTeamPeople,
   TeamInviteInput,
   UpdateProgramDetailsInput,
 } from "@/interfaces/coordinator-program";
@@ -246,6 +247,18 @@ export function fetchProgramTeamDetail(
     method: "GET",
     url: `${programUrl(programId)}/team-details/${encodeURIComponent(organizationId)}`,
     params: { actorId },
+  });
+}
+
+export function fetchProgramTeamPeople(
+  actorId: string,
+  programId: string,
+  query: string,
+) {
+  return backendRequest<ProgramTeamPeople>({
+    method: HttpMethod.Get,
+    url: `${programUrl(programId)}/team-people`,
+    params: { actorId, q: query },
   });
 }
 

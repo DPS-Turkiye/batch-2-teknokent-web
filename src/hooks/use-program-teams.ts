@@ -31,6 +31,10 @@ import { useToast } from "@/stores/toast-store";
 export const programTeamsQueryKey = (programId: string) =>
   [...coordinatorProgramQueryKey(programId), "teams"] as const;
 
+/** Takımlar's person search answers; a team change refreshes them along with the teams. */
+export const programTeamPeopleQueryKey = (programId: string) =>
+  [...programTeamsQueryKey(programId), "people"] as const;
+
 export function useProgramTeamsQuery(programId: string) {
   return useQuery({
     queryKey: programTeamsQueryKey(programId),
@@ -56,6 +60,9 @@ export function useProgramTeams(programId: string) {
 
   const saved = (teams: ProgramTeam[]) => {
     queryClient.setQueryData(programTeamsQueryKey(programId), teams);
+    void queryClient.invalidateQueries({
+      queryKey: programTeamPeopleQueryKey(programId),
+    });
     void queryClient.invalidateQueries({
       queryKey: coordinatorProgramQueryKey(programId),
       exact: true,

@@ -7,9 +7,15 @@ import { TeamHistory } from "@/components/common/team-history";
 import { ProfileLink } from "@/components/people/profile-link";
 import { useProgramWithoutTeam } from "@/hooks/use-program-without-team";
 
-export function ProgramWithoutTeam({ programId }: { programId: string }) {
+export function ProgramWithoutTeam({
+  programId,
+  search = "",
+}: {
+  programId: string;
+  search?: string;
+}) {
   const t = useTranslations("programApprovals");
-  const query = useProgramWithoutTeam(programId);
+  const { query, people, noMatch } = useProgramWithoutTeam(programId, search);
   if (!query.data)
     return <QueryNotice isLoading={query.isLoading} error={query.error} />;
   return (
@@ -22,12 +28,14 @@ export function ProgramWithoutTeam({ programId }: { programId: string }) {
       </div>
       <Panel>
         <ul className="divide-y divide-[#f1f3f5]">
-          {query.data.length === 0 ? (
+          {people.length === 0 ? (
             <li>
-              <EmptyNote>{t("withoutTeamEmpty")}</EmptyNote>
+              <EmptyNote>
+                {noMatch ? t("withoutTeamNoMatch") : t("withoutTeamEmpty")}
+              </EmptyNote>
             </li>
           ) : (
-            query.data.map((person) => (
+            people.map((person) => (
               <li key={person.id} className="px-5 py-4">
                 {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
                 <div className="flex items-start justify-between gap-3">

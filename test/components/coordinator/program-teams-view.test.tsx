@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ProgramTeamsView } from "@/components/coordinator/program-teams-view";
 import {
   TeamJoinStatus,
+  TeamPersonRole,
   type ProgramTeam,
 } from "@/interfaces/coordinator-program";
 import { StartupStageState } from "@/interfaces/startup-process";
@@ -12,7 +13,9 @@ import {
   addProgramTeams,
   getCoordinatorProgram,
   getProgramTeamDetail,
+  getProgramTeamPeople,
   getProgramTeams,
+  getProgramWithoutTeam,
   removeProgramTeam,
   sendProgramTeamCode,
   updateProgramTeam,
@@ -36,7 +39,8 @@ vi.mock("@/lib/client/coordinator-programs", () => ({
   removeProgramTeam: vi.fn(),
   sendProgramTeamCode: vi.fn(),
   getProgramTeamDetail: vi.fn(),
-  getProgramWithoutTeam: vi.fn().mockResolvedValue([]),
+  getProgramTeamPeople: vi.fn(),
+  getProgramWithoutTeam: vi.fn(),
 }));
 vi.mock("@/lib/client/startup-process", () => ({
   getTeamProcess: vi.fn(),
@@ -88,6 +92,153 @@ describe("ProgramTeamsView", () => {
       coordinatorProgramDetail(),
     );
     vi.mocked(getProgramTeams).mockResolvedValue([joined, waiting]);
+    vi.mocked(getProgramWithoutTeam).mockResolvedValue([]);
+  });
+
+  it("finds a team member by name, shows their own row with the team and opens that team", async () => {
+    const user = userEvent.setup();
+    vi.mocked(getProgramTeamPeople).mockResolvedValue({
+      people: [
+        {
+          id: "member-1",
+          fullName: "Çağrı Tunç",
+          role: TeamPersonRole.Member,
+          jobTitle: "CTO",
+          organizationId: "org-1",
+          teamName: "Kavşak",
+        },
+        {
+          id: "lead-2",
+          fullName: "Cağla Arı",
+          role: TeamPersonRole.Founder,
+          jobTitle: null,
+          organizationId: "org-2",
+          teamName: "Mira Bio",
+        },
+      ],
+      truncated: false,
+    });
+    vi.mocked(getProgramTeamDetail).mockResolvedValue({
+      organizationId: "org-1",
+      name: "Kavşak",
+      sector: null,
+      lead: null,
+      code: null,
+      members: [],
+      mentorships: [],
+    });
+    renderWithQueryClient(<ProgramTeamsView programId="program-1" />);
+    expect(await screen.findByText("Deniz Arı")).toBeInTheDocument();
+
+    await user.type(
+      screen.getByRole("textbox", { name: "Kişi ara (ad soyad)" }),
+      "ÇAĞ",
+    );
+
+    const results = await screen.findByRole("list", {
+      name: "Kişi arama sonuçları",
+    });
+    expect(within(results).getByText("Çağrı Tunç")).toBeInTheDocument();
+    expect(
+      within(results).getByText("Takım üyesi · Kavşak · CTO"),
+    ).toBeInTheDocument();
+    expect(within(results).getByText("Kurucu · Mira Bio")).toBeInTheDocument();
+    expect(
+      within(results).getByRole("link", { name: "Profili gör: Çağrı Tunç" }),
+    ).toHaveAttribute("href", "/coordinator/people/member-1");
+    expect(getProgramTeamPeople).toHaveBeenCalledWith("program-1", "cag");
+    expect(screen.queryByText("Deniz Arı")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Yetkili bekleniyor 1" }),
+    ).not.toBeInTheDocument();
+
+    await user.click(
+      within(results).getByRole("button", { name: "Takımı aç (Kavşak)" }),
+    );
+    expect(
+      await screen.findByRole("dialog", { name: "Takım detayı" }),
+    ).toBeInTheDocument();
+    expect(getProgramTeamDetail).toHaveBeenCalledWith("program-1", "org-1");
+
+    await user.clear(screen.getByPlaceholderText("Kişi ara (ad soyad)"));
+    expect(screen.getByText("Deniz Arı")).toBeInTheDocument();
+  });
+
+  it("says when nobody matches and also narrows the people without a team", async () => {
+    const user = userEvent.setup();
+    vi.mocked(getProgramTeamPeople).mockResolvedValue({
+      people: [],
+      truncated: false,
+    });
+    vi.mocked(getProgramWithoutTeam).mockResolvedValue([
+      {
+        id: "u1",
+        fullName: "Işıl Kaya",
+        email: "isil@example.test",
+        jobTitle: null,
+        organizationName: null,
+        createdAt: "2026-09-01T09:00:00Z",
+      },
+      {
+        id: "u2",
+        fullName: "Ada Test",
+        email: "ada@example.test",
+        jobTitle: null,
+        organizationName: null,
+        createdAt: "2026-09-01T09:00:00Z",
+      },
+    ]);
+    renderWithQueryClient(<ProgramTeamsView programId="program-1" />);
+    expect(await screen.findByText("Ada Test")).toBeInTheDocument();
+
+    await user.type(screen.getByPlaceholderText("Kişi ara (ad soyad)"), "isil");
+
+    expect(
+      await screen.findByText("Bu adla eşleşen kurucu ya da takım üyesi yok."),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Işıl Kaya")).toBeInTheDocument();
+    expect(screen.queryByText("Ada Test")).not.toBeInTheDocument();
+
+    await user.clear(screen.getByPlaceholderText("Kişi ara (ad soyad)"));
+    await user.type(screen.getByPlaceholderText("Kişi ara (ad soyad)"), "zz");
+    expect(
+      await screen.findByText("Bu adla eşleşen takımsız kişi yok."),
+    ).toBeInTheDocument();
+  });
+
+  it("lists the first people and asks to narrow when more matched", async () => {
+    const user = userEvent.setup();
+    vi.mocked(getProgramTeamPeople).mockResolvedValue({
+      people: [
+        {
+          id: "member-1",
+          fullName: "Ayşe Tunç",
+          role: TeamPersonRole.Member,
+          jobTitle: null,
+          organizationId: "org-1",
+          teamName: "Kavşak",
+        },
+      ],
+      truncated: true,
+    });
+    renderWithQueryClient(
+      <InLocale locale="en">
+        <ProgramTeamsView programId="program-1" />
+      </InLocale>,
+    );
+    expect(await screen.findByText("Deniz Arı")).toBeInTheDocument();
+
+    await user.type(
+      screen.getByPlaceholderText("Search people (full name)"),
+      "ay",
+    );
+
+    expect(await screen.findByText("Team member · Kavşak")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Showing the first 1 people; narrow the search to see the rest.",
+      ),
+    ).toBeInTheDocument();
   });
 
   it("shows who joined and filters to the teams still waiting", async () => {
