@@ -13,6 +13,8 @@ import { toStudentProfilePayload } from "@/lib/mentor-onboarding";
  */
 export const MENTOR_PROFILE_LIMITS = {
   text: 200,
+  // "Nasıl çalışıyorum" is a paragraph, one line per point (backend V125).
+  mentoringStyle: 2000,
   about: 4000,
   experience: { title: 200, organization: 200, period: 100, summary: 300 },
   education: { school: 200, degree: 200, period: 100 },
@@ -55,9 +57,14 @@ export const REQUIRED_MENTOR_PROFILE_FIELDS = [
 ] as const satisfies readonly MentorProfileTextField[];
 
 export function mentorTextFieldLimit(field: MentorProfileTextField) {
-  return field === "about"
-    ? MENTOR_PROFILE_LIMITS.about
-    : MENTOR_PROFILE_LIMITS.text;
+  switch (field) {
+    case "about":
+      return MENTOR_PROFILE_LIMITS.about;
+    case "mentoringStyle":
+      return MENTOR_PROFILE_LIMITS.mentoringStyle;
+    default:
+      return MENTOR_PROFILE_LIMITS.text;
+  }
 }
 
 /** Where a value sits in the save request, e.g. `experiences[0].summary` → experiences, 0, summary. */
