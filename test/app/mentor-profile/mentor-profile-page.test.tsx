@@ -491,7 +491,7 @@ describe("MentorProfilePage", () => {
         isEditing: true,
         form: {
           ...profileForm().form,
-          mentoringStyle: "s".repeat(214),
+          mentoringStyle: "s".repeat(414),
           experiences: [
             withKey({
               title: "CTO",
@@ -508,8 +508,8 @@ describe("MentorProfilePage", () => {
     const style = screen.getByRole("textbox", {
       name: "Çalışma şekli (her satır bir madde)",
     });
-    expect(style).toHaveAttribute("maxLength", "200");
-    expect(style).toHaveAccessibleDescription("214 / 200 karakter");
+    expect(style).toHaveAttribute("maxLength", "2000");
+    expect(style).toHaveAccessibleDescription("414 / 2000 karakter");
     expect(screen.getByRole("textbox", { name: "Hakkında" })).toHaveAttribute(
       "maxLength",
       "4000",
