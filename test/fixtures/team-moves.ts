@@ -30,6 +30,7 @@ export function teamMoveOptions(
       programName: "Kuluçka 2026",
     }),
     blockedBy: null,
+    archivesCurrentTeam: false,
     targets: [
       teamMoveTeam({
         organizationId: "org-tree",
@@ -60,7 +61,13 @@ export function teamMoveResult(
     }),
     to: teamMoveTeam(),
     programId: "program-2",
+    archivedFrom: false,
+    withdrawnRequests: 0,
     movedAt: "2026-11-20T09:00:00Z",
     ...overrides,
   };
 }
+
+/** Merve Geçer founded Döngü and is alone in it, so moving her archives it. */
+export const soloFounder = (): MemberTeamMoveOptions =>
+  teamMoveOptions({ fullName: "Merve Geçer", archivesCurrentTeam: true });

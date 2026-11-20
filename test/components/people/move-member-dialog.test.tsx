@@ -7,6 +7,7 @@ import { TeamMoveBlock } from "@/interfaces/team-move";
 import { getTeamMoveOptions, moveMemberToTeam } from "@/lib/client/team-moves";
 import {
   founderBlocked,
+  soloFounder,
   teamMoveOptions,
   teamMoveResult,
 } from "@test/fixtures/team-moves";
@@ -106,7 +107,7 @@ describe("MoveMemberButton", () => {
 
     expect(
       await within(dialog).findByText(
-        /Önce kurucuyu değiştirin ya da girişimi silin/,
+        /Önce "Kurucuyu değiştir" ile başka bir üyeyi kurucu yapın/,
       ),
     ).toBeInTheDocument();
     expect(within(dialog).queryByRole("radio")).not.toBeInTheDocument();
@@ -171,5 +172,41 @@ describe("MoveMemberButton", () => {
 
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(moveMemberToTeam).not.toHaveBeenCalled();
+  });
+
+  it("warns that a solo founder's startup is archived before moving them", async () => {
+    vi.mocked(getTeamMoveOptions).mockResolvedValue(soloFounder());
+    vi.mocked(moveMemberToTeam).mockResolvedValue(
+      teamMoveResult({ archivedFrom: true, withdrawnRequests: 2 }),
+    );
+    const user = show();
+    const dialog = await open(user);
+
+    await user.click(
+      await within(dialog).findByRole("radio", { name: /Pazar Lab/ }),
+    );
+
+    expect(
+      within(dialog).getByText(
+        /Eski girişim \(Döngü\) boşalacağı için arşivlenir\./,
+      ),
+    ).toBeInTheDocument();
+    await user.click(within(dialog).getByRole("button", { name: "Taşı" }));
+    expect(
+      await screen.findByText(
+        "Merve Geçer, Pazar Lab takımına taşındı; Döngü arşivlendi. 2 yanıt bekleyen talep kapatıldı.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("does not warn about archiving for a member who is not the founder", async () => {
+    const user = show();
+    const dialog = await open(user);
+
+    await user.click(
+      await within(dialog).findByRole("radio", { name: /Pazar Lab/ }),
+    );
+
+    expect(within(dialog).queryByText(/arşivlenir/)).not.toBeInTheDocument();
   });
 });

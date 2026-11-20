@@ -6507,6 +6507,8 @@
     "noTargets": "There is no other team you can move this person to.",
     "noMatch": "No team matches the search.",
     "summary": "{name} will be moved to {team}.",
+    "archiveNotice": "The old startup ({team}) will be archived because nobody will be left in it.",
+    "archiveRequestsNotice": "Requests still waiting for a mentor are closed and the mentors are told; mentorships, meetings and documents stay on record.",
     "movedHeading": "Goes with the person",
     "movedItems": {
       "profile": "Their profile and account",
@@ -6522,7 +6524,7 @@
     "notice": "There is no approval step. The person and the founders of the old and new teams are notified. You can move the person back the same way if needed.",
     "sessionNotice": "The moved person is signed out within 10 minutes and sees their new team when they sign in again.",
     "blocked": {
-      "founder": "This person founded the team, so they cannot be moved. Change the founder or delete the startup first.",
+      "founder": "The founder cannot be moved while others are in the team. Use \"Change founder\" to make another member the founder first.",
       "notATeamMember": "Only startup team members can be moved; mentor, coordinator and admin accounts cannot.",
       "noTeam": "This person has no team to move out of.",
       "notApproved": "Their account is not approved yet; decide on it under Approvals first."
@@ -6532,6 +6534,7 @@
     "confirm": "Move",
     "moving": "Moving…",
     "moved": "{name} was moved to {team}.",
+    "movedArchived": "{name} was moved to {team}; {oldTeam} was archived.{count, plural, =0 {} one { # waiting request was closed.} other { # waiting requests were closed.}}",
     "failed": "Couldn't move the person."
   },
   "startupGate": {

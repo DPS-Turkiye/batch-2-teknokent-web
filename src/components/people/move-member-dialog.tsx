@@ -105,6 +105,12 @@ function MoveMemberDialog({ move }: { move: MemberMove }) {
                 team: move.target.name,
               })}
             </p>
+            {move.archivedTeamName ? (
+              <div className="mt-3 space-y-1 rounded-2xl bg-[#fff6ed] px-4 py-3 text-[13px] leading-[1.5] text-[#9a3412]">
+                <p>{t("archiveNotice", { team: move.archivedTeamName })}</p>
+                <p>{t("archiveRequestsNotice")}</p>
+              </div>
+            ) : null}
             <p className={LIST_HEADING}>{t("movedHeading")}</p>
             <ul className={LIST}>
               {MOVED_ITEMS.map((item) => (

@@ -20,6 +20,8 @@ export interface MemberTeamMoveOptions {
   fullName: string;
   currentTeam: TeamMoveTeam | null;
   blockedBy: TeamMoveBlock | null;
+  /** The person founded their startup and is alone in it, so moving them archives it. */
+  archivesCurrentTeam: boolean;
   targets: TeamMoveTeam[];
 }
 
@@ -28,5 +30,8 @@ export interface MemberTeamMoveResult {
   from: TeamMoveTeam;
   to: TeamMoveTeam;
   programId: string | null;
+  /** The old startup was emptied by the move and archived; its unanswered requests were withdrawn. */
+  archivedFrom: boolean;
+  withdrawnRequests: number;
   movedAt: string;
 }

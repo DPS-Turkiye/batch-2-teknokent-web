@@ -65,11 +65,15 @@ export function useMoveMember(userId: string, programId?: string) {
       moveMemberToTeam(userId, organizationId),
     // On the mutation, not the call: the move happened even if the dialog was closed before the answer came.
     onSuccess: (result) => {
+      const moved = { name: data?.fullName ?? "", team: result.to.name };
       showToast({
-        message: t("moved", {
-          name: data?.fullName ?? "",
-          team: result.to.name,
-        }),
+        message: result.archivedFrom
+          ? t("movedArchived", {
+              ...moved,
+              oldTeam: result.from.name,
+              count: result.withdrawnRequests,
+            })
+          : t("moved", moved),
         tone: ToastTone.Success,
       });
       reset();
@@ -110,6 +114,11 @@ export function useMoveMember(userId: string, programId?: string) {
       : null,
     blockedKey: data?.blockedBy ? TEAM_MOVE_BLOCK_KEYS[data.blockedBy] : null,
     hasTargets: (data?.targets.length ?? 0) > 0,
+    /** The startup that is archived by the move: the person founded it and nobody else is in it. */
+    archivedTeamName:
+      data?.archivesCurrentTeam && data.currentTeam
+        ? data.currentTeam.name
+        : null,
     search,
     setSearch,
     targets,
