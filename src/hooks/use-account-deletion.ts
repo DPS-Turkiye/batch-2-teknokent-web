@@ -18,7 +18,11 @@ import {
   deleteOwnStartup,
   getSelfDeletionOptions,
 } from "@/lib/client/self-deletion";
-import { currentIdToken, currentSignInTime } from "@/lib/firebase/auth";
+import {
+  currentIdToken,
+  currentSignInTime,
+  signOutOfFirebase,
+} from "@/lib/firebase/auth";
 import { loginPathFor } from "@/lib/public-paths";
 import {
   accountDeletedHref,
@@ -53,6 +57,8 @@ export function useAccountDeletion() {
   const [dialog, setDialog] = useState<OpenDialog | null>(null);
   const [typed, setTyped] = useState("");
   const [checkingSignIn, setCheckingSignIn] = useState(false);
+  // Between a successful delete and leaving the page: the dialog stays locked so it cannot be sent twice.
+  const [finishing, setFinishing] = useState(false);
 
   async function idToken() {
     const token = await currentIdToken();
@@ -85,12 +91,12 @@ export function useAccountDeletion() {
   const startup = options.data?.startup ?? null;
   const accountOffered =
     account !== null && account.blockedReason !== AccountDeletionBlock.Staff;
+  const busy = remove.isPending || finishing;
   const matches =
     dialog?.target === DeletionTarget.Startup
       ? startup !== null && confirmsStartupDeletion(typed, startup.name)
       : confirmsAccountDeletion(typed);
-  const canConfirm =
-    dialog?.step === DeletionStep.Confirm && matches && !remove.isPending;
+  const canConfirm = dialog?.step === DeletionStep.Confirm && matches && !busy;
 
   function close() {
     setDialog(null);
@@ -99,7 +105,7 @@ export function useAccountDeletion() {
 
   function cancel() {
     // Escape or a backdrop click must not hide a deletion that is already on its way.
-    if (!remove.isPending) close();
+    if (!busy) close();
   }
 
   function open(target: DeletionTarget) {
@@ -113,12 +119,11 @@ export function useAccountDeletion() {
     setCheckingSignIn(true);
     try {
       const signedInAt = await currentSignInTime().catch(() => null);
-      setDialog({
-        target: dialog.target,
-        step: signedInRecently(signedInAt, new Date())
-          ? DeletionStep.Confirm
-          : DeletionStep.SignInAgain,
-      });
+      const step = signedInRecently(signedInAt, new Date())
+        ? DeletionStep.Confirm
+        : DeletionStep.SignInAgain;
+      // Functional: the person may have cancelled while the sign-in time was read.
+      setDialog((current) => current && { ...current, step });
     } finally {
       setCheckingSignIn(false);
     }
@@ -130,17 +135,21 @@ export function useAccountDeletion() {
   }
 
   async function afterAccountDeleted() {
-    // The backend has already removed the login and the cookie; this clears what the browser still holds.
-    await logout().catch(() => undefined);
+    // The backend has already removed the login and the cookie. Only Firebase's local copy is cleared here: the
+    // session provider's logout would start its own redirect to /login and race this one.
+    setFinishing(true);
+    await signOutOfFirebase().catch(() => undefined);
     replaceLocation(accountDeletedHref());
   }
 
   async function afterStartupDeleted() {
+    setFinishing(true);
     close();
     showToast({ message: t("startup.done"), tone: ToastTone.Success });
     await refresh();
     await queryClient.invalidateQueries();
     router.replace(PROFILE_HREF);
+    setFinishing(false);
   }
 
   function confirm() {
@@ -161,6 +170,16 @@ export function useAccountDeletion() {
             setDialog({ target, step: DeletionStep.SignInAgain });
             return;
           }
+          if (
+            error instanceof ClientApiError &&
+            error.code === SelfDeletionErrorCode.Founder
+          ) {
+            // A startup was founded since the page asked; show the block instead of a button that cannot work.
+            close();
+            void queryClient.invalidateQueries({
+              queryKey: SELF_DELETION_QUERY_KEY,
+            });
+          }
           showToast({
             message: errorMessage(error, t("failed")),
             tone: ToastTone.Error,
@@ -176,12 +195,13 @@ export function useAccountDeletion() {
     /** Whether "Hesabımı sil" is shown; it may still be blocked, with the reason below. */
     accountOffered,
     accountBlockedReason: account?.blockedReason ?? null,
+    accountAllowed: account?.allowed ?? false,
     startup,
     dialog,
     typed,
     setTyped,
     canConfirm,
-    pending: remove.isPending,
+    pending: busy,
     checkingSignIn,
     open,
     proceed,

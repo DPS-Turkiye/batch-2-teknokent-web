@@ -2,7 +2,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useId } from "react";
+import { useEffect, useId } from "react";
 import { createPortal } from "react-dom";
 
 import { AdminOverlay } from "@/components/admin/admin-ui";
@@ -74,7 +74,7 @@ export function DangerZoneSection() {
                 : t("account.body")
           }
           button={t("account.button")}
-          disabled={blocked !== null}
+          disabled={!deletion.accountAllowed}
           onClick={() => deletion.open(DeletionTarget.Account)}
         />
       ) : null}
@@ -121,6 +121,15 @@ type StepProps = { deletion: AccountDeletion; target: DeletionTarget };
 function DeletionDialog({ deletion, target }: StepProps) {
   const t = useTranslations("dangerZone");
   const step = deletion.dialog?.step;
+
+  // Focus goes back to the row's button when the dialog closes.
+  useEffect(() => {
+    const opener =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+    return () => opener?.focus();
+  }, []);
 
   // Portalled, so the card's layout can never trap the fixed overlay inside it.
   return createPortal(
@@ -175,6 +184,7 @@ function ExplainStep({ deletion, target }: StepProps) {
       <div className="mt-5 flex justify-end gap-2">
         <button
           type="button"
+          autoFocus
           onClick={deletion.cancel}
           className={SECONDARY_BUTTON}
         >
@@ -182,7 +192,6 @@ function ExplainStep({ deletion, target }: StepProps) {
         </button>
         <button
           type="button"
-          autoFocus
           onClick={() => void deletion.proceed()}
           disabled={deletion.checkingSignIn}
           className={DESTRUCTIVE_BUTTON}

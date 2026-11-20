@@ -28,10 +28,13 @@ export function confirmsAccountDeletion(typed: string) {
   );
 }
 
-/** The startup's name exactly, apart from surrounding spaces: case and diacritics count, as on the backend. */
+/**
+ * The startup's name exactly, apart from surrounding spaces: case and diacritics count, as on the backend. Both sides
+ * are NFC, so a name pasted with a decomposed "ö" or "İ" still matches.
+ */
 export function confirmsStartupDeletion(typed: string, name: string) {
-  const entered = typed.trim();
-  return entered.length > 0 && entered === name.trim();
+  const entered = typed.trim().normalize("NFC");
+  return entered.length > 0 && entered === name.trim().normalize("NFC");
 }
 
 /** Whether a sign-in at `signedInAt` is recent enough for a deletion at `now`; unknown counts as not. */

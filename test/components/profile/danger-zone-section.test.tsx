@@ -15,7 +15,11 @@ import {
   deleteOwnStartup,
   getSelfDeletionOptions,
 } from "@/lib/client/self-deletion";
-import { currentIdToken, currentSignInTime } from "@/lib/firebase/auth";
+import {
+  currentIdToken,
+  currentSignInTime,
+  signOutOfFirebase,
+} from "@/lib/firebase/auth";
 import { accountDeletedHref } from "@/lib/self-deletion";
 import { renderWithQueryClient } from "@test/test-utils";
 
@@ -42,6 +46,7 @@ vi.mock("@/lib/client/self-deletion", () => ({
 vi.mock("@/lib/firebase/auth", () => ({
   currentIdToken: vi.fn(),
   currentSignInTime: vi.fn(),
+  signOutOfFirebase: vi.fn(),
 }));
 vi.mock("@/lib/assign-location", () => ({ replaceLocation: vi.fn() }));
 
@@ -76,6 +81,7 @@ describe("DangerZoneSection", () => {
     auth.refresh.mockResolvedValue(null);
     vi.mocked(currentIdToken).mockResolvedValue("id-token");
     vi.mocked(currentSignInTime).mockResolvedValue(new Date());
+    vi.mocked(signOutOfFirebase).mockResolvedValue(undefined);
   });
 
   it("offers nothing to a coordinator, and does not even ask", async () => {
@@ -133,7 +139,90 @@ describe("DangerZoneSection", () => {
       expect(replaceLocation).toHaveBeenCalledWith(accountDeletedHref()),
     );
     expect(deleteOwnAccount).toHaveBeenCalledWith("sil", "id-token");
-    expect(auth.logout).toHaveBeenCalled();
+    expect(signOutOfFirebase).toHaveBeenCalled();
+    // The provider's logout would start its own redirect to /login.
+    expect(auth.logout).not.toHaveBeenCalled();
+  });
+
+  it("locks the dialog after a successful delete so it cannot be sent twice", async () => {
+    vi.mocked(deleteOwnAccount).mockResolvedValue({
+      deletedUserId: "user-1",
+      cleanupPending: false,
+    });
+    let signedOut = () => {};
+    vi.mocked(signOutOfFirebase).mockReturnValue(
+      new Promise<void>((resolve) => {
+        signedOut = resolve;
+      }),
+    );
+    show(member);
+
+    const dialog = await throughTheExplanation("Hesabımı sil");
+    await userEvent.type(within(dialog).getByRole("textbox"), "SİL");
+    await userEvent.click(
+      within(dialog).getByRole("button", {
+        name: "Hesabımı kalıcı olarak sil",
+      }),
+    );
+
+    await vi.waitFor(() => expect(signOutOfFirebase).toHaveBeenCalled());
+    expect(
+      within(dialog).getByRole("button", { name: "Siliniyor…" }),
+    ).toBeDisabled();
+    expect(
+      within(dialog).getByRole("button", { name: "Vazgeç" }),
+    ).toBeDisabled();
+    await userEvent.keyboard("{Escape}");
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(deleteOwnAccount).toHaveBeenCalledTimes(1);
+    signedOut();
+  });
+
+  it("does not reopen the dialog when it is cancelled while the sign-in time is read", async () => {
+    let signInTime = (_: Date) => {};
+    vi.mocked(currentSignInTime).mockReturnValue(
+      new Promise<Date>((resolve) => {
+        signInTime = resolve;
+      }),
+    );
+    show(member);
+
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Hesabımı sil" }),
+    );
+    const dialog = screen.getByRole("dialog");
+    await userEvent.click(
+      within(dialog).getByRole("button", { name: "Devam et" }),
+    );
+    await userEvent.click(
+      within(dialog).getByRole("button", { name: "Vazgeç" }),
+    );
+    signInTime(new Date());
+
+    await Promise.resolve();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("closes and asks again when the backend says a startup was founded meanwhile", async () => {
+    vi.mocked(deleteOwnAccount).mockRejectedValue(
+      new ClientApiError("Founder", 409, "SELF_DELETE_FOUNDER"),
+    );
+    show(member);
+
+    const dialog = await throughTheExplanation("Hesabımı sil");
+    await userEvent.type(within(dialog).getByRole("textbox"), "SİL");
+    await userEvent.click(
+      within(dialog).getByRole("button", {
+        name: "Hesabımı kalıcı olarak sil",
+      }),
+    );
+
+    await vi.waitFor(() =>
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+    );
+    await vi.waitFor(() =>
+      expect(getSelfDeletionOptions).toHaveBeenCalledTimes(2),
+    );
   });
 
   it("keeps a founder's account button off until the startup is deleted", async () => {

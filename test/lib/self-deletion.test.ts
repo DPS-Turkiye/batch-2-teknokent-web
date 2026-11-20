@@ -28,6 +28,9 @@ describe("confirmsStartupDeletion", () => {
     expect(confirmsStartupDeletion("döngü labs", "Döngü Labs")).toBe(false);
     expect(confirmsStartupDeletion("Dongu Labs", "Döngü Labs")).toBe(false);
     expect(confirmsStartupDeletion("  ", "  ")).toBe(false);
+    expect(
+      confirmsStartupDeletion("Döngü Labs".normalize("NFD"), "Döngü Labs"),
+    ).toBe(true);
   });
 });
 
