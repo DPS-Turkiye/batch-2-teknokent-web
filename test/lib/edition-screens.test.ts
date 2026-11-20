@@ -6,6 +6,7 @@ import { SignupRole } from "@/interfaces/signup";
 import {
   adminUserTabsOf,
   loginOptionsOf,
+  offersFounderChange,
   offersLogin,
   offersTeamMove,
   offersUserDeletion,
@@ -102,5 +103,12 @@ describe("offersTeamMove", () => {
   it("lets admins and coordinators move members in Teknokent only; ODTÜ students sit in personal teams", () => {
     expect(offersTeamMove(Edition.Teknokent)).toBe(true);
     expect(offersTeamMove(Edition.Odtu)).toBe(false);
+  });
+});
+
+describe("offersFounderChange", () => {
+  it("lets admins and coordinators change a startup's founder in Teknokent only", () => {
+    expect(offersFounderChange(Edition.Teknokent)).toBe(true);
+    expect(offersFounderChange(Edition.Odtu)).toBe(false);
   });
 });

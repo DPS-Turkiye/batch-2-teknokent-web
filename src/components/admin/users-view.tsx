@@ -20,6 +20,7 @@ import { MoveTeamProgram } from "@/components/admin/move-team-program";
 import { RemoveMentorFromProgram } from "@/components/admin/remove-mentor-from-program";
 import { RevokeSignInsButton } from "@/components/admin/revoke-sign-ins-button";
 import { TeamHistory } from "@/components/common/team-history";
+import { ChangeFounderButton } from "@/components/people/change-founder-dialog";
 import { ProfileLink } from "@/components/people/profile-link";
 import { useAdminOverview } from "@/hooks/use-admin-overview";
 import {
@@ -28,6 +29,7 @@ import {
   useMentorsTable,
   useTeamsTable,
 } from "@/hooks/use-admin-users";
+import { useFounderChangeAvailable } from "@/hooks/use-change-founder";
 import { useOptionLabel } from "@/hooks/use-option-label";
 import { usePersonProfileHref } from "@/hooks/use-person-profile-href";
 import {
@@ -989,6 +991,7 @@ function TeamDrawer({
   const bottlenecks = ofOrganization(data.bottlenecks, startup.id);
   const requests = ofOrganization(data.requests, startup.id);
   const health = teamHealth(data, startup);
+  const canChangeFounder = useFounderChangeAvailable();
 
   function requestClose() {
     if (closing.current) return;
@@ -1081,6 +1084,15 @@ function TeamDrawer({
                 programs={moveTargetsForStartup(data, startup)}
                 onMoved={requestClose}
               />
+              {canChangeFounder ? (
+                <>
+                  {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+                  <ChangeFounderButton
+                    organizationId={startup.id}
+                    className="rounded-full border border-[#e9ecef] px-4 py-[9px] text-[13px] font-medium text-[#22262b]"
+                  />
+                </>
+              ) : null}
               <p>
                 <span className="text-[#858c96]">{t("sectorField")}</span>
                 {startup.sector ?? "—"}

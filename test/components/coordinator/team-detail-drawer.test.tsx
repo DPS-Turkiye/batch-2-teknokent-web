@@ -5,7 +5,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { TeamDetailDrawer } from "@/components/coordinator/team-detail-drawer";
 import { Edition } from "@/interfaces/edition";
 import { getProgramTeamDetail } from "@/lib/client/coordinator-programs";
+import { getFounderChangeOptions } from "@/lib/client/founder-change";
 import { getTeamMoveOptions } from "@/lib/client/team-moves";
+import { founderChangeOptions } from "@test/fixtures/founder-change";
 import { teamMoveOptions } from "@test/fixtures/team-moves";
 import { renderWithQueryClient } from "@test/test-utils";
 
@@ -21,6 +23,11 @@ vi.mock("@/components/coordinator/team-phase", () => ({
 
 vi.mock("@/lib/client/coordinator-programs", () => ({
   getProgramTeamDetail: vi.fn(),
+}));
+
+vi.mock("@/lib/client/founder-change", () => ({
+  getFounderChangeOptions: vi.fn(),
+  changeFounder: vi.fn(),
 }));
 
 vi.mock("@/lib/client/team-moves", () => ({
@@ -114,5 +121,30 @@ describe("TeamDetailDrawer member moves", () => {
 
     await user.keyboard("{Escape}");
     expect(onClose).toHaveBeenCalledOnce();
+  });
+
+  it("offers changing the founder under the lead, for this drawer's startup", async () => {
+    vi.mocked(getFounderChangeOptions).mockResolvedValue(
+      founderChangeOptions(),
+    );
+    const { user } = render();
+    await screen.findByText("Mert Kaya");
+
+    await user.click(screen.getByRole("button", { name: "Kurucuyu değiştir" }));
+
+    expect(
+      await screen.findByRole("dialog", { name: "Kurucuyu değiştir" }),
+    ).toBeInTheDocument();
+    expect(getFounderChangeOptions).toHaveBeenCalledWith("org-1");
+  });
+
+  it("offers no founder change in the ODTÜ edition", async () => {
+    sessionState.edition = Edition.Odtu;
+    render();
+
+    expect(await screen.findByText("Mert Kaya")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Kurucuyu değiştir" }),
+    ).not.toBeInTheDocument();
   });
 });
