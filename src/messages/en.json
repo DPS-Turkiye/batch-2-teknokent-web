@@ -6373,6 +6373,9 @@
     "attendanceMarkFailed": "Attendance could not be updated.",
     "attendanceQrNotValid": "This QR code is not valid right now.",
     "weekVisibilitySaveFailed": "Couldn't save the week's visibility.",
+    "selfDeletionLoadFailed": "The deletion options could not be loaded.",
+    "accountDeleteFailed": "The account could not be deleted.",
+    "startupDeleteFailed": "The startup could not be deleted.",
     "teamMoveLoadFailed": "Couldn't load the move options.",
     "teamMoveFailed": "Couldn't move the person."
   },
@@ -7306,5 +7309,61 @@
     "program": "Program: {name}",
     "close": "Close",
     "openDetail": "Open {title}"
+  },
+  "dangerZone": {
+    "title": "Danger zone",
+    "intro": "These actions are permanent and cannot be undone.",
+    "erasedHeading": "What is erased",
+    "keptHeading": "What stays",
+    "irreversible": "This cannot be undone.",
+    "continue": "Continue",
+    "cancel": "Cancel",
+    "deleting": "Deleting…",
+    "failed": "The deletion could not be completed. Try again.",
+    "signInAgain": "Sign in again",
+    "signInAgainBody": "For your security, sign in again before doing this. You will come back to this page afterwards and can try again.",
+    "account": {
+      "title": "Delete my account",
+      "body": "Your account and personal data are erased for good. Your history shared with others stays, under the name “Silinmiş kullanıcı”.",
+      "blockedFounder": "You are the founder of a startup. Delete the startup before deleting your account.",
+      "blockedInstitution": "Your account is tied to ODTÜ institution records and cannot be deleted here yet. Ask your coordinator for help.",
+      "button": "Delete my account",
+      "dialogTitle": "Delete your account for good?",
+      "explain": "Your account is deleted right away and you can never sign in with it again. You may register again later with the same e-mail.",
+      "erased": {
+        "profile": "Your name, e-mail, phone, LinkedIn and everything on your profile (about, experience, education, specialties)",
+        "files": "Your CV, photo and personal files",
+        "login": "Your login and open sessions",
+        "notifications": "Your notifications and notification settings"
+      },
+      "kept": {
+        "history": "History shared with others (mentorships, meetings, requests, messages, notes) stays so their records hold; you appear as “Silinmiş kullanıcı”",
+        "requests": "Your open requests are withdrawn, planned meetings you mentor are cancelled, and the other side is told"
+      },
+      "typeLabel": "Type the word below to confirm",
+      "confirm": "Delete my account for good",
+      "done": "Your account was deleted. Thank you for using Menton."
+    },
+    "startup": {
+      "title": "Delete the startup",
+      "body": "{name} and all its data are erased for good. Its members' accounts stay.",
+      "button": "Delete the startup",
+      "dialogTitle": "Delete the startup for good?",
+      "explain": "{name} is deleted right away. The team members' accounts are not deleted; they leave the team and are told.",
+      "erased": {
+        "profile": "The startup profile (description, website, problem, solution, sector and the rest)",
+        "files": "Files the startup uploaded (pitch deck, logo, documents); members' own CVs stay",
+        "programs": "Program places, the invite code and pending member invites",
+        "process": "Process records: tasks, progress notes, rounds and requested documents"
+      },
+      "kept": {
+        "members": "The members' accounts; they leave the team and are told",
+        "history": "History shared with mentors (meetings, requests, messages): the startup appears as “Silinmiş girişim”",
+        "open": "Running mentorships end, open requests are withdrawn, planned meetings are cancelled and the mentors are told"
+      },
+      "typeLabel": "Type the startup's exact name to confirm",
+      "confirm": "Delete the startup for good",
+      "done": "The startup was deleted."
+    }
   }
 }

@@ -6375,6 +6375,9 @@
     "attendanceMarkFailed": "Katılım güncellenemedi.",
     "attendanceQrNotValid": "Bu QR şu an geçerli değil.",
     "weekVisibilitySaveFailed": "Haftanın görünürlüğü kaydedilemedi.",
+    "selfDeletionLoadFailed": "Silme seçenekleri yüklenemedi.",
+    "accountDeleteFailed": "Hesap silinemedi.",
+    "startupDeleteFailed": "Startup silinemedi.",
     "teamMoveLoadFailed": "Taşıma seçenekleri yüklenemedi.",
     "teamMoveFailed": "Kişi taşınamadı."
   },
@@ -7308,5 +7311,61 @@
     "program": "Program: {name}",
     "close": "Kapat",
     "openDetail": "{title} detayını aç"
+  },
+  "dangerZone": {
+    "title": "Tehlikeli bölge",
+    "intro": "Buradaki işlemler kalıcıdır ve geri alınamaz.",
+    "erasedHeading": "Silinecekler",
+    "keptHeading": "Kalacaklar",
+    "irreversible": "Bu işlem geri alınamaz.",
+    "continue": "Devam et",
+    "cancel": "Vazgeç",
+    "deleting": "Siliniyor…",
+    "failed": "Silme işlemi tamamlanamadı. Tekrar dene.",
+    "signInAgain": "Yeniden giriş yap",
+    "signInAgainBody": "Güvenliğin için bu işlemden önce yeniden giriş yapman gerekiyor. Giriş yaptıktan sonra bu sayfaya döner ve tekrar denersin.",
+    "account": {
+      "title": "Hesabımı sil",
+      "body": "Hesabın ve kişisel verilerin kalıcı olarak silinir. Başkalarıyla ortak geçmişin “Silinmiş kullanıcı” adıyla kalır.",
+      "blockedFounder": "Kurucusu olduğun bir startup var. Hesabını silmeden önce startup'ı silmelisin.",
+      "blockedInstitution": "Hesabın ODTÜ kurum kayıtlarına bağlı; bu hesaplar henüz buradan silinemiyor. Destek için koordinatörüne yaz.",
+      "button": "Hesabımı sil",
+      "dialogTitle": "Hesabın kalıcı olarak silinsin mi?",
+      "explain": "Hesabın hemen silinir ve bir daha bu hesapla giriş yapamazsın. Aynı e-postayla daha sonra yeniden kayıt olabilirsin.",
+      "erased": {
+        "profile": "Adın, e-postan, telefonun, LinkedIn adresin ve profilindeki tüm bilgiler (hakkında, deneyim, eğitim, uzmanlıklar)",
+        "files": "Yüklediğin özgeçmiş, fotoğraf ve kişisel dosyalar",
+        "login": "Giriş bilgin ve açık oturumların",
+        "notifications": "Bildirimlerin ve bildirim tercihlerin"
+      },
+      "kept": {
+        "history": "Başkalarıyla ortak geçmiş (mentorluklar, görüşmeler, talepler, mesajlar, notlar): karşı tarafın kayıtları bozulmasın diye kalır, sen “Silinmiş kullanıcı” olarak görünürsün",
+        "requests": "Açık taleplerin geri çekilir, mentoru olduğun planlı görüşmeler iptal edilir ve karşı taraf bilgilendirilir"
+      },
+      "typeLabel": "Onaylamak için aşağıdaki kelimeyi yaz",
+      "confirm": "Hesabımı kalıcı olarak sil",
+      "done": "Hesabın silindi. Menton'u kullandığın için teşekkürler."
+    },
+    "startup": {
+      "title": "Startup'ı sil",
+      "body": "{name} ve tüm startup verileri kalıcı olarak silinir. Üyelerin hesapları kalır.",
+      "button": "Startup'ı sil",
+      "dialogTitle": "Startup kalıcı olarak silinsin mi?",
+      "explain": "{name} hemen silinir. Ekip üyelerinin hesapları silinmez; takımdan çıkarlar ve bilgilendirilirler.",
+      "erased": {
+        "profile": "Startup profili (açıklama, web sitesi, problem, çözüm, sektör ve diğer bilgiler)",
+        "files": "Startup'ın yüklediği dosyalar (pitch deck, logo, belgeler); üyelerin kendi özgeçmişleri kalır",
+        "programs": "Program katılımları, davet kodu ve bekleyen üye davetleri",
+        "process": "Süreç kayıtları: görevler, ilerleme notları, turlar ve istenen belgeler"
+      },
+      "kept": {
+        "members": "Üyelerin hesapları; takımdan çıkar ve bilgilendirilirler",
+        "history": "Mentorlarla ortak geçmiş (görüşmeler, talepler, mesajlar): startup “Silinmiş girişim” olarak görünür",
+        "open": "Süren mentorluklar sona erer, açık talepler geri çekilir, planlı görüşmeler iptal edilir ve mentorlar bilgilendirilir"
+      },
+      "typeLabel": "Onaylamak için startup'ın adını aynen yaz",
+      "confirm": "Startup'ı kalıcı olarak sil",
+      "done": "Startup silindi."
+    }
   }
 }
