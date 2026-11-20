@@ -52,7 +52,8 @@ export function TeamDetailDrawer({
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
+      // A dialog opened from the drawer handles its own Escape first.
+      if (event.key === "Escape" && !event.defaultPrevented) onClose();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);

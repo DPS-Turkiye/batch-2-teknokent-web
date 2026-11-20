@@ -1,9 +1,12 @@
 import { screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { TeamDetailDrawer } from "@/components/coordinator/team-detail-drawer";
 import { Edition } from "@/interfaces/edition";
 import { getProgramTeamDetail } from "@/lib/client/coordinator-programs";
+import { getTeamMoveOptions } from "@/lib/client/team-moves";
+import { teamMoveOptions } from "@test/fixtures/team-moves";
 import { renderWithQueryClient } from "@test/test-utils";
 
 const sessionState: { edition: Edition } = { edition: Edition.Teknokent };
@@ -36,14 +39,16 @@ function lead() {
 }
 
 function render() {
+  const onClose = vi.fn<() => void>();
   renderWithQueryClient(
     <TeamDetailDrawer
       programId="program-1"
       organizationId="org-1"
       onCopyCode={vi.fn()}
-      onClose={vi.fn()}
+      onClose={onClose}
     />,
   );
+  return { onClose, user: userEvent.setup() };
 }
 
 describe("TeamDetailDrawer member moves", () => {
@@ -87,5 +92,27 @@ describe("TeamDetailDrawer member moves", () => {
     expect(
       screen.queryByRole("button", { name: "Başka takıma taşı" }),
     ).not.toBeInTheDocument();
+  });
+
+  it("closes only the move dialog on Escape, keeping the drawer open", async () => {
+    vi.mocked(getTeamMoveOptions).mockResolvedValue(teamMoveOptions());
+    const { onClose, user } = render();
+    await screen.findByText("Mert Kaya");
+    const [, memberMove] = screen.getAllByRole("button", {
+      name: "Başka takıma taşı",
+    });
+    if (!memberMove) throw new Error("no move button on the member row");
+    await user.click(memberMove);
+    await screen.findByRole("dialog", { name: "Başka takıma taşı" });
+
+    await user.keyboard("{Escape}");
+
+    expect(
+      screen.queryByRole("dialog", { name: "Başka takıma taşı" }),
+    ).not.toBeInTheDocument();
+    expect(onClose).not.toHaveBeenCalled();
+
+    await user.keyboard("{Escape}");
+    expect(onClose).toHaveBeenCalledOnce();
   });
 });

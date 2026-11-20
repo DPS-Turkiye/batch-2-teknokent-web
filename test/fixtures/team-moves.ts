@@ -1,6 +1,7 @@
 import {
   TeamMoveBlock,
   type MemberTeamMoveOptions,
+  type MemberTeamMoveResult,
   type TeamMoveTeam,
 } from "@/interfaces/team-move";
 
@@ -44,3 +45,22 @@ export function teamMoveOptions(
 
 export const founderBlocked = (): MemberTeamMoveOptions =>
   teamMoveOptions({ blockedBy: TeamMoveBlock.Founder, targets: [] });
+
+/** Mert Kaya moved from Döngü (Kuluçka 2026) to Pazar Lab (Hızlandırma 2026). */
+export function teamMoveResult(
+  overrides: Partial<MemberTeamMoveResult> = {},
+): MemberTeamMoveResult {
+  return {
+    userId: "user-1",
+    from: teamMoveTeam({
+      organizationId: "org-old",
+      name: "Döngü",
+      programId: "program-1",
+      programName: "Kuluçka 2026",
+    }),
+    to: teamMoveTeam(),
+    programId: "program-2",
+    movedAt: "2026-11-20T09:00:00Z",
+    ...overrides,
+  };
+}

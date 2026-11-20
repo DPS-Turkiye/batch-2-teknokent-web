@@ -19,6 +19,7 @@ import {
   canOfferTeamMove,
   filterTeamMoveTargets,
   TEAM_MOVE_BLOCK_KEYS,
+  teamMoveLabel,
 } from "@/lib/team-move";
 import { errorMessage } from "@/lib/utils";
 import { useToast } from "@/stores/toast-store";
@@ -44,13 +45,20 @@ export function useMoveMember(userId: string, programId?: string) {
     queryKey: teamMoveQueryKey(userId),
     queryFn: () => getTeamMoveOptions(userId),
     enabled: open,
-    // Always ask again on open: another admin may have moved the person meanwhile.
-    staleTime: 0,
   });
   const data = options.data;
   const targets = filterTeamMoveTargets(data?.targets ?? [], search);
+  // Only a team still on screen can be moved to: a search that hides the choice also unpicks it.
   const target: TeamMoveTeam | null =
-    data?.targets.find((team) => team.organizationId === targetId) ?? null;
+    targets.find((team) => team.organizationId === targetId) ?? null;
+
+  // The options are dropped on close, so a reopened dialog never shows (or acts on) what another admin has changed since.
+  const reset = () => {
+    setOpen(false);
+    setSearch("");
+    setTargetId("");
+    queryClient.removeQueries({ queryKey: teamMoveQueryKey(userId) });
+  };
 
   const move = useMutation({
     mutationFn: (organizationId: string) =>
@@ -64,15 +72,14 @@ export function useMoveMember(userId: string, programId?: string) {
         }),
         tone: ToastTone.Success,
       });
-      setOpen(false);
-      setSearch("");
-      setTargetId("");
+      reset();
       const keys = [
-        teamMoveQueryKey(userId),
         teamHistoryQueryKey(userId),
         personSummaryQueryKey(userId),
         ADMIN_OVERVIEW_QUERY_KEY,
-        ...(programId ? [programTeamsQueryKey(programId)] : []),
+        ...[programId, result.to.programId]
+          .filter((id): id is string => Boolean(id))
+          .map(programTeamsQueryKey),
       ];
       keys.forEach(
         (queryKey) => void queryClient.invalidateQueries({ queryKey }),
@@ -91,15 +98,16 @@ export function useMoveMember(userId: string, programId?: string) {
     show: () => setOpen(true),
     close: () => {
       // Escape or a backdrop click must not hide a move that is already on its way.
-      if (move.isPending) return;
-      setOpen(false);
-      setSearch("");
-      setTargetId("");
+      if (!move.isPending) reset();
     },
     loading: options.isLoading,
-    loadError: options.error,
+    loadError: options.error
+      ? errorMessage(options.error, t("loadFailed"))
+      : null,
     fullName: data?.fullName ?? "",
-    currentTeam: data?.currentTeam ?? null,
+    currentTeamLabel: data?.currentTeam
+      ? teamMoveLabel(data.currentTeam)
+      : null,
     blockedKey: data?.blockedBy ? TEAM_MOVE_BLOCK_KEYS[data.blockedBy] : null,
     hasTargets: (data?.targets.length ?? 0) > 0,
     search,

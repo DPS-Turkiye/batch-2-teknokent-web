@@ -8,7 +8,6 @@ import { teamMoveQueryKey, useMoveMember } from "@/hooks/use-move-member";
 import { personSummaryQueryKey } from "@/hooks/use-person-summary";
 import { programTeamsQueryKey } from "@/hooks/use-program-teams";
 import { teamHistoryQueryKey } from "@/hooks/use-team-history";
-import type { MemberTeamMoveResult } from "@/interfaces/team-move";
 import { ToastTone } from "@/interfaces/toast";
 import { ClientApiError } from "@/lib/client/api";
 import { getTeamMoveOptions, moveMemberToTeam } from "@/lib/client/team-moves";
@@ -16,7 +15,7 @@ import type { ToastInput } from "@/stores/toast-store";
 import {
   founderBlocked,
   teamMoveOptions,
-  teamMoveTeam,
+  teamMoveResult,
 } from "@test/fixtures/team-moves";
 import { createTestQueryClient, InLocale } from "@test/test-utils";
 
@@ -30,16 +29,6 @@ const showToast = vi.fn<(toast: ToastInput) => void>();
 vi.mock("@/stores/toast-store", () => ({
   useToast: () => ({ showToast, dismiss: vi.fn() }),
 }));
-
-function result(): MemberTeamMoveResult {
-  return {
-    userId: "user-1",
-    from: teamMoveTeam({ organizationId: "org-old", name: "Döngü" }),
-    to: teamMoveTeam(),
-    programId: "program-2",
-    movedAt: "2026-11-20T09:00:00Z",
-  };
-}
 
 function wrapperFor(queryClient: QueryClient) {
   return function Wrapper({ children }: { children: ReactNode }) {
@@ -57,14 +46,14 @@ function setup(programId?: string) {
   const hook = renderHook(() => useMoveMember("user-1", programId), {
     wrapper: wrapperFor(queryClient),
   });
-  return { hook, invalidate };
+  return { hook, invalidate, queryClient };
 }
 
 describe("useMoveMember", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(getTeamMoveOptions).mockResolvedValue(teamMoveOptions());
-    vi.mocked(moveMemberToTeam).mockResolvedValue(result());
+    vi.mocked(moveMemberToTeam).mockResolvedValue(teamMoveResult());
   });
 
   it("asks the backend only once the dialog opens", async () => {
@@ -76,7 +65,7 @@ describe("useMoveMember", () => {
     await waitFor(() => expect(hook.result.current.hasTargets).toBe(true));
     expect(getTeamMoveOptions).toHaveBeenCalledWith("user-1");
     expect(hook.result.current.fullName).toBe("Mert Kaya");
-    expect(hook.result.current.currentTeam?.name).toBe("Döngü");
+    expect(hook.result.current.currentTeamLabel).toBe("Döngü · Kuluçka 2026");
     expect(hook.result.current.blockedKey).toBeNull();
   });
 
@@ -106,7 +95,7 @@ describe("useMoveMember", () => {
   });
 
   it("moves, says so, closes and refreshes every list that shows the person", async () => {
-    const { hook, invalidate } = setup("program-1");
+    const { hook, invalidate, queryClient } = setup("program-1");
     act(() => hook.result.current.show());
     await waitFor(() => expect(hook.result.current.hasTargets).toBe(true));
     act(() => hook.result.current.select("org-new"));
@@ -122,14 +111,17 @@ describe("useMoveMember", () => {
     const keys = invalidate.mock.calls.map(([filters]) => filters?.queryKey);
     expect(keys).toEqual(
       expect.arrayContaining([
-        teamMoveQueryKey("user-1"),
         teamHistoryQueryKey("user-1"),
         personSummaryQueryKey("user-1"),
         ADMIN_OVERVIEW_QUERY_KEY,
         programTeamsQueryKey("program-1"),
+        programTeamsQueryKey("program-2"),
       ]),
     );
     expect(hook.result.current.targetId).toBe("");
+    expect(
+      queryClient.getQueryData(teamMoveQueryKey("user-1")),
+    ).toBeUndefined();
   });
 
   it("shows the backend's refusal and keeps the dialog open", async () => {
@@ -153,7 +145,8 @@ describe("useMoveMember", () => {
   });
 
   it("does not move without a chosen team, and stays open while a move is on its way", async () => {
-    let finish: (value: MemberTeamMoveResult) => void = () => undefined;
+    let finish: (value: ReturnType<typeof teamMoveResult>) => void = () =>
+      undefined;
     vi.mocked(moveMemberToTeam).mockReturnValue(
       new Promise((resolve) => {
         finish = resolve;
@@ -172,7 +165,7 @@ describe("useMoveMember", () => {
     act(() => hook.result.current.close());
     expect(hook.result.current.open).toBe(true);
 
-    act(() => finish(result()));
+    act(() => finish(teamMoveResult()));
     await waitFor(() => expect(hook.result.current.open).toBe(false));
   });
 
@@ -190,5 +183,46 @@ describe("useMoveMember", () => {
     expect(hook.result.current.open).toBe(false);
     expect(hook.result.current.search).toBe("");
     expect(hook.result.current.targetId).toBe("");
+  });
+
+  it("unpicks a team once the search hides it, so nothing off screen can be moved to", async () => {
+    const { hook } = setup();
+    act(() => hook.result.current.show());
+    await waitFor(() => expect(hook.result.current.hasTargets).toBe(true));
+    act(() => hook.result.current.select("org-tree"));
+    expect(hook.result.current.canMove).toBe(true);
+
+    act(() => hook.result.current.setSearch("pazar"));
+
+    expect(hook.result.current.target).toBeNull();
+    expect(hook.result.current.canMove).toBe(false);
+    act(() => hook.result.current.confirm());
+    expect(moveMemberToTeam).not.toHaveBeenCalled();
+  });
+
+  it("asks again on every open instead of showing what it had before", async () => {
+    const { hook } = setup();
+    act(() => hook.result.current.show());
+    await waitFor(() => expect(hook.result.current.hasTargets).toBe(true));
+    act(() => hook.result.current.close());
+    vi.mocked(getTeamMoveOptions).mockResolvedValue(founderBlocked());
+
+    act(() => hook.result.current.show());
+
+    expect(hook.result.current.hasTargets).toBe(false);
+    await waitFor(() => expect(hook.result.current.blockedKey).toBe("founder"));
+    expect(getTeamMoveOptions).toHaveBeenCalledTimes(2);
+  });
+
+  it("names why the options could not be loaded", async () => {
+    vi.mocked(getTeamMoveOptions).mockRejectedValue(
+      new ClientApiError("Kullanıcı bulunamadı.", 404),
+    );
+    const { hook } = setup();
+    act(() => hook.result.current.show());
+
+    await waitFor(() =>
+      expect(hook.result.current.loadError).toBe("Kullanıcı bulunamadı."),
+    );
   });
 });

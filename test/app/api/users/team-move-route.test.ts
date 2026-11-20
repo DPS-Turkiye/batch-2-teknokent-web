@@ -1,3 +1,4 @@
+import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GET, POST } from "@/app/api/users/[id]/team-move/route";
@@ -10,7 +11,7 @@ import {
   guardRefusal,
   tokenRequest,
 } from "@test/fixtures/route-handlers";
-import { teamMoveOptions } from "@test/fixtures/team-moves";
+import { teamMoveOptions, teamMoveResult } from "@test/fixtures/team-moves";
 
 vi.mock("@/lib/api/team-moves", () => ({
   fetchTeamMoveOptions: vi.fn(),
@@ -80,7 +81,7 @@ describe("/api/users/[id]/team-move", () => {
 
   it("moves the person to the chosen team with the caller's own token", async () => {
     vi.mocked(moveMemberToTeam).mockResolvedValue(
-      backendResponse({ userId: PERSON }),
+      backendResponse(teamMoveResult()),
     );
 
     const response = await post({ targetOrganizationId: TEAM });
@@ -130,5 +131,37 @@ describe("/api/users/[id]/team-move", () => {
 
     expect(response.status).toBe(409);
     expect(await response.json()).toMatchObject({ code: "TEAM_FOUNDER" });
+  });
+
+  it("rejects a body that is not JSON", async () => {
+    const response = await POST(
+      new NextRequest(`http://localhost/api/users/${PERSON}/team-move`, {
+        method: "POST",
+        headers: { Authorization: "Bearer id-token" },
+        body: "{",
+      }),
+      context(),
+    );
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({ code: "INVALID_REQUEST" });
+    expect(moveMemberToTeam).not.toHaveBeenCalled();
+  });
+
+  it("answers a translated 502 when the backend cannot be reached", async () => {
+    vi.mocked(fetchTeamMoveOptions).mockRejectedValue(
+      new Error("ECONNREFUSED"),
+    );
+    vi.mocked(moveMemberToTeam).mockRejectedValue(new Error("ECONNREFUSED"));
+
+    const options = await get();
+    const move = await post({ targetOrganizationId: TEAM });
+
+    expect(options.status).toBe(502);
+    expect(await options.json()).toMatchObject({
+      message: "Taşıma seçenekleri yüklenemedi.",
+    });
+    expect(move.status).toBe(502);
+    expect(await move.json()).toMatchObject({ message: "Kişi taşınamadı." });
   });
 });

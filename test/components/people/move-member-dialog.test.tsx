@@ -8,7 +8,7 @@ import { getTeamMoveOptions, moveMemberToTeam } from "@/lib/client/team-moves";
 import {
   founderBlocked,
   teamMoveOptions,
-  teamMoveTeam,
+  teamMoveResult,
 } from "@test/fixtures/team-moves";
 import { renderWithQueryClient } from "@test/test-utils";
 
@@ -33,13 +33,7 @@ describe("MoveMemberButton", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(getTeamMoveOptions).mockResolvedValue(teamMoveOptions());
-    vi.mocked(moveMemberToTeam).mockResolvedValue({
-      userId: "user-1",
-      from: teamMoveTeam({ organizationId: "org-old", name: "Döngü" }),
-      to: teamMoveTeam(),
-      programId: "program-2",
-      movedAt: "2026-11-20T09:00:00Z",
-    });
+    vi.mocked(moveMemberToTeam).mockResolvedValue(teamMoveResult());
   });
 
   it("shows the current team and lists the teams this caller may pick", async () => {
@@ -62,7 +56,7 @@ describe("MoveMemberButton", () => {
     const user = show();
     const dialog = await open(user);
     const search = await within(dialog).findByRole("searchbox", {
-      name: "Yeni takım",
+      name: "Takım ara",
     });
 
     await user.type(search, "hızlandırma");
@@ -91,6 +85,9 @@ describe("MoveMemberButton", () => {
       within(dialog).getByText(
         "Mentorluklar, mentorluk talepleri ve görüşmeler",
       ),
+    ).toBeInTheDocument();
+    expect(
+      within(dialog).getByText(/en geç 10 dakika içinde oturumdan çıkarılır/),
     ).toBeInTheDocument();
 
     await user.click(within(dialog).getByRole("button", { name: "Taşı" }));

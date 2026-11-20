@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import { UserAccountStatus, UserRole } from "@/interfaces/session";
+import { TeamExitReason } from "@/interfaces/team-change";
 import { TeamMoveBlock } from "@/interfaces/team-move";
 import {
   canOfferTeamMove,
   filterTeamMoveTargets,
   TEAM_MOVE_BLOCK_KEYS,
+  teamExitKey,
+  teamMoveLabel,
 } from "@/lib/team-move";
 import { menteeSummary } from "@test/fixtures/person-summary";
 import { teamMoveTeam } from "@test/fixtures/team-moves";
@@ -71,5 +74,21 @@ describe("canOfferTeamMove", () => {
       canOfferTeamMove({ ...member, status: UserAccountStatus.Pending }),
     ).toBe(false);
     expect(canOfferTeamMove({ ...member, role: UserRole.Mentor })).toBe(false);
+  });
+});
+
+describe("teamMoveLabel", () => {
+  it("names the program next to the team, or the team alone", () => {
+    expect(teamMoveLabel(tree)).toBe("Ağaç · Kuluçka 2026");
+    expect(teamMoveLabel(loose)).toBe("İzmir Kod");
+  });
+});
+
+describe("teamExitKey", () => {
+  it("reads every exit reason, and an old row without one as a leave", () => {
+    expect(teamExitKey(TeamExitReason.Left)).toBe("left");
+    expect(teamExitKey(TeamExitReason.Removed)).toBe("removed");
+    expect(teamExitKey(TeamExitReason.Moved)).toBe("moved");
+    expect(teamExitKey(null)).toBe("left");
   });
 });

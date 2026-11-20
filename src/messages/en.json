@@ -6488,6 +6488,7 @@
     "loadFailed": "Couldn't load the move options.",
     "currentTeam": "Current team: {team}",
     "target": "New team",
+    "searchLabel": "Search teams",
     "searchPlaceholder": "Search teams or programs",
     "noTargets": "There is no other team you can move this person to.",
     "noMatch": "No team matches the search.",
@@ -6505,6 +6506,7 @@
       "documents": "Team documents"
     },
     "notice": "There is no approval step. The person and the founders of the old and new teams are notified. You can move the person back the same way if needed.",
+    "sessionNotice": "The moved person is signed out within 10 minutes and sees their new team when they sign in again.",
     "blocked": {
       "founder": "This person founded the team, so they cannot be moved. Change the founder or delete the startup first.",
       "notATeamMember": "Only startup team members can be moved; mentor, coordinator and admin accounts cannot.",

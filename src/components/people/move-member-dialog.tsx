@@ -7,7 +7,6 @@ import { createPortal } from "react-dom";
 
 import { AdminOverlay } from "@/components/admin/admin-ui";
 import { useMoveMember, type MemberMove } from "@/hooks/use-move-member";
-import type { TeamMoveTeam } from "@/interfaces/team-move";
 
 const MOVED_ITEMS = ["profile", "files", "history"] as const;
 const KEPT_ITEMS = ["mentorships", "tasks", "documents"] as const;
@@ -40,10 +39,6 @@ export function MoveMemberButton({
   );
 }
 
-function teamLabel(team: TeamMoveTeam) {
-  return team.programName ? `${team.name} · ${team.programName}` : team.name;
-}
-
 function MoveMemberDialog({ move }: { move: MemberMove }) {
   const t = useTranslations("teamMove");
   const searchId = useId();
@@ -67,19 +62,21 @@ function MoveMemberDialog({ move }: { move: MemberMove }) {
           {t("dialogTitle")}
         </h2>
         {move.loading ? (
-          <p className="mt-3 text-[13px] text-[#858c96]">{t("loading")}</p>
+          <p role="status" className="mt-3 text-[13px] text-[#858c96]">
+            {t("loading")}
+          </p>
         ) : null}
         {move.loadError ? (
           <p role="alert" className="mt-3 text-[13px] text-[#c2410c]">
-            {move.loadError.message || t("loadFailed")}
+            {move.loadError}
           </p>
         ) : null}
         {move.fullName ? (
           <p className="mt-2 text-[13.5px] text-[#22262b]">{move.fullName}</p>
         ) : null}
-        {move.currentTeam ? (
+        {move.currentTeamLabel ? (
           <p className="mt-1 text-[13px] text-[#676e78]">
-            {t("currentTeam", { team: teamLabel(move.currentTeam) })}
+            {t("currentTeam", { team: move.currentTeamLabel })}
           </p>
         ) : null}
 
@@ -122,6 +119,9 @@ function MoveMemberDialog({ move }: { move: MemberMove }) {
             </ul>
             <p className="mt-4 text-[13px] leading-[1.5] text-[#676e78]">
               {t("notice")}
+            </p>
+            <p className="mt-2 text-[13px] leading-[1.5] text-[#676e78]">
+              {t("sessionNotice")}
             </p>
           </>
         ) : null}
@@ -167,7 +167,7 @@ function TargetPicker({
         htmlFor={searchId}
         className="text-[13px] font-medium text-[#22262b]"
       >
-        {t("target")}
+        {t("searchLabel")}
       </label>
       <input
         id={searchId}
@@ -178,7 +178,9 @@ function TargetPicker({
         className="mt-1.5 w-full rounded-full border border-[#e9ecef] px-4 py-[9px] text-[13px] text-[#22262b]"
       />
       {move.targets.length === 0 ? (
-        <p className="mt-2 text-[13px] text-[#858c96]">{t("noMatch")}</p>
+        <p role="status" className="mt-2 text-[13px] text-[#858c96]">
+          {t("noMatch")}
+        </p>
       ) : (
         <fieldset className="mt-2 max-h-56 overflow-y-auto rounded-2xl border border-[#e9ecef]">
           <legend className="sr-only">{t("target")}</legend>

@@ -6490,6 +6490,7 @@
     "loadFailed": "Taşıma seçenekleri yüklenemedi.",
     "currentTeam": "Şu anki takım: {team}",
     "target": "Yeni takım",
+    "searchLabel": "Takım ara",
     "searchPlaceholder": "Takım ya da program ara",
     "noTargets": "Bu kişiyi taşıyabileceğiniz başka bir takım yok.",
     "noMatch": "Aramaya uyan takım yok.",
@@ -6507,6 +6508,7 @@
       "documents": "Takım belgeleri"
     },
     "notice": "Onay adımı yoktur. Kişi, eski takımın kurucusu ve yeni takımın kurucusu bildirim alır. Gerekirse kişiyi aynı yoldan geri taşıyabilirsiniz.",
+    "sessionNotice": "Taşınan kişi en geç 10 dakika içinde oturumdan çıkarılır ve yeniden giriş yaptığında yeni takımını görür.",
     "blocked": {
       "founder": "Bu kişi takımın kurucusu, bu yüzden taşınamaz. Önce kurucuyu değiştirin ya da girişimi silin.",
       "notATeamMember": "Yalnızca girişim ekip üyeleri taşınabilir; mentor, koordinatör ve yönetici hesapları taşınamaz.",
