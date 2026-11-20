@@ -28,6 +28,7 @@ import {
   fetchProgramCoordinators,
   fetchProgramEligibleEmails,
   fetchProgramTeamDetail,
+  fetchProgramTeamPeople,
   fetchProgramTeams,
   fetchProgramWithoutTeam,
   inviteProgramMentor,
@@ -294,6 +295,15 @@ const teamCases: RequestCase[] = [
       method: "GET",
       url: `${PROGRAM_URL}/team-details/org%2F9`,
       params: { actorId: ACTOR },
+    },
+  ],
+  [
+    "searches the program's team people by name as the actor",
+    () => fetchProgramTeamPeople(ACTOR, PROGRAM, "cagri"),
+    {
+      method: "GET",
+      url: `${PROGRAM_URL}/team-people`,
+      params: { actorId: ACTOR, q: "cagri" },
     },
   ],
   [

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   TeamJoinStatus,
+  TeamPersonRole,
   type ProgramTeam,
 } from "@/interfaces/coordinator-program";
 import {
@@ -12,6 +13,7 @@ import {
   setupSteps,
   TeamFilter,
   teamFilterOptions,
+  teamPersonLine,
   TeamRowProblem,
   teamRowProblems,
   waitingTeamCount,
@@ -131,5 +133,27 @@ describe("waitingTeamCount", () => {
       ),
     ).toBe(3);
     expect(waitingTeamCount([team()], 4)).toBe(0);
+  });
+});
+
+describe("teamPersonLine", () => {
+  const t = translatorIn("tr", "programTeams");
+  const person = {
+    id: "u1",
+    fullName: "Çağrı Tunç",
+    role: TeamPersonRole.Founder,
+    jobTitle: "CEO",
+    organizationId: "org-1",
+    teamName: "Kavşak",
+  };
+
+  it("names the role, the team and the job title", () => {
+    expect(teamPersonLine(person, t)).toBe("Kurucu · Kavşak · CEO");
+    expect(
+      teamPersonLine(
+        { ...person, role: TeamPersonRole.Member, jobTitle: null },
+        t,
+      ),
+    ).toBe("Takım üyesi · Kavşak");
   });
 });

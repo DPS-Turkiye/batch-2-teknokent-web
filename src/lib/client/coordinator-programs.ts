@@ -10,6 +10,7 @@ import type {
   ProgramPhaseInput,
   ProgramTeam,
   ProgramTeamDetail,
+  ProgramTeamPeople,
   TeamInviteInput,
   UpdateProgramDetailsInput,
 } from "@/interfaces/coordinator-program";
@@ -232,6 +233,15 @@ export async function getProgramTeamDetail(
   return requireSuccess(
     await httpClient.get<ProgramTeamDetail>(
       `${programUrl(programId)}/team-details/${encodeURIComponent(organizationId)}`,
+    ),
+  );
+}
+
+export async function getProgramTeamPeople(programId: string, query: string) {
+  return requireSuccess(
+    await httpClient.get<ProgramTeamPeople>(
+      `${programUrl(programId)}/team-people`,
+      { params: { q: query } },
     ),
   );
 }

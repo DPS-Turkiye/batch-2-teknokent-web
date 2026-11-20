@@ -4332,6 +4332,16 @@
     "peerCategoriesNote": "Öğrenciler ve akran mentorları yalnızca burada etkinleştirdiğin kategorileri görür. Başlangıçta hiçbiri etkin değildir."
   },
   "programTeams": {
+    "people": {
+      "search": "Kişi ara (ad soyad)",
+      "results": "Kişi arama sonuçları",
+      "searching": "Aranıyor…",
+      "noMatch": "Bu adla eşleşen kurucu ya da takım üyesi yok.",
+      "truncated": "İlk {count} kişi gösteriliyor; daha fazlası için aramayı daraltın.",
+      "founder": "Kurucu",
+      "member": "Takım üyesi",
+      "openTeam": "Takımı aç"
+    },
     "filters": {
       "ALL": "Tümü {count}",
       "JOINED": "Katıldı {count}",
@@ -6147,6 +6157,7 @@
     "mentorDetailsLoadFailed": "Mentor bilgileri yüklenemedi.",
     "programReportLoadFailed": "Program raporu yüklenemedi.",
     "teamDetailLoadFailed": "Takım detayı yüklenemedi.",
+    "teamPeopleSearchFailed": "Kişi araması yapılamadı.",
     "teamStageLoadFailed": "Takımın fazı yüklenemedi.",
     "teamsLoadFailed": "Takımlar yüklenemedi.",
     "teamsAddFailed": "Takımlar eklenemedi.",
@@ -6571,6 +6582,7 @@
     "withoutTeamTitle": "Takımı olmayanlar",
     "withoutTeamHint": "Onaylanmış ama henüz bir startup oluşturmamış ya da bir takıma katılmamış kişiler.",
     "withoutTeamEmpty": "Takımı olmayan kimse yok.",
+    "withoutTeamNoMatch": "Bu adla eşleşen takımsız kişi yok.",
     "teamChangesTitle": "Takımdan ayrılma ve çıkarma",
     "teamChangesHint": "Ayrılmak isteyen üyeler ve takım liderlerinin çıkarmak istediği kişiler. Onaylanınca kişi takımsız olarak programda kalır.",
     "teamChangesEmpty": "Bekleyen talep yok.",

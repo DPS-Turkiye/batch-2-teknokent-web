@@ -28,6 +28,7 @@ import {
   getProgramCoordinators,
   getProgramEligibleEmails,
   getProgramTeamDetail,
+  getProgramTeamPeople,
   getProgramTeams,
   getProgramWithoutTeam,
   inviteProgramCoordinator,
@@ -236,6 +237,12 @@ const calls: ClientCall[] = [
     call: () => getProgramTeamDetail(PROGRAM, "org/1"),
     method: "get",
     args: [`${P}/team-details/org%2F1`],
+  },
+  {
+    title: "getProgramTeamPeople sends the person search as q",
+    call: () => getProgramTeamPeople(PROGRAM, "cagri"),
+    method: "get",
+    args: [`${P}/team-people`, { params: { q: "cagri" } }],
   },
   {
     title: "getProgramApprovals reads the approval queues",

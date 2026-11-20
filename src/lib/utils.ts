@@ -166,3 +166,24 @@ export function isAdminArea(pathname: string | null) {
 
 /** A yyyy-mm-dd day, the way the report and calendar endpoints take it. */
 export const ISO_DAY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * Text folded for a name search, the way the backend's `NameSearch` folds it: lowercase, dotless "ı" as "i" and
+ * the accents dropped, so "cagri" finds "Çağrı" and "IŞIK" finds "Işık".
+ */
+export function foldSearchText(text: string) {
+  return text
+    .toLocaleLowerCase("tr")
+    .replace(/ı/g, "i")
+    .normalize("NFD")
+    .replace(/\p{M}+/gu, "")
+    .replace(/[\s\p{Z}\uFEFF]+/gu, " ")
+    .trim();
+}
+
+/** Every word of the query appears in the name, ignoring case and Turkish letters; a blank query matches nothing. */
+export function matchesPersonName(name: string, query: string) {
+  const words = foldSearchText(query).split(" ").filter(Boolean);
+  const folded = foldSearchText(name);
+  return words.length > 0 && words.every((word) => folded.includes(word));
+}

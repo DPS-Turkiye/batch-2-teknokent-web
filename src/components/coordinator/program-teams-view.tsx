@@ -7,11 +7,17 @@ import {
   EmptyNote,
   FilterPills,
   QueryNotice,
+  SearchField,
   StatusChip,
 } from "@/components/admin/admin-ui";
 import { ProgramDetailFrame } from "@/components/coordinator/program-detail-frame";
+import { ProgramTeamPeopleResults } from "@/components/coordinator/program-team-people-results";
 import { ProgramWithoutTeam } from "@/components/coordinator/program-without-team";
 import { TeamDetailDrawer } from "@/components/coordinator/team-detail-drawer";
+import {
+  TEAM_PEOPLE_MAX_QUERY,
+  useProgramTeamPeople,
+} from "@/hooks/use-program-team-people";
 import { useProgramTeams } from "@/hooks/use-program-teams";
 import {
   ProgramLifecycle,
@@ -34,26 +40,43 @@ export function ProgramTeamsView({ programId }: { programId: string }) {
   return (
     <ProgramDetailFrame programId={programId} tab={ProgramTab.Teams}>
       {(detail) => (
-        <div className="space-y-8">
-          <TeamsBody
-            programId={programId}
-            archived={detail.program.lifecycle === ProgramLifecycle.Completed}
-          />
-          <ProgramWithoutTeam programId={programId} />
-        </div>
+        <TeamsScreen
+          programId={programId}
+          archived={detail.program.lifecycle === ProgramLifecycle.Completed}
+        />
       )}
     </ProgramDetailFrame>
   );
 }
 
 type Teams = ReturnType<typeof useProgramTeams>;
+type TeamPeople = ReturnType<typeof useProgramTeamPeople>;
 
-function TeamsBody({
+/** One person search for the teams and for the people without a team below them. */
+function TeamsScreen({
   programId,
   archived,
 }: {
   programId: string;
   archived: boolean;
+}) {
+  const people = useProgramTeamPeople(programId);
+  return (
+    <div className="space-y-8">
+      <TeamsBody programId={programId} archived={archived} people={people} />
+      <ProgramWithoutTeam programId={programId} search={people.search} />
+    </div>
+  );
+}
+
+function TeamsBody({
+  programId,
+  archived,
+  people,
+}: {
+  programId: string;
+  archived: boolean;
+  people: TeamPeople;
 }) {
   const t = useTranslations("programTeams");
   const teams = useProgramTeams(programId);
@@ -86,11 +109,36 @@ function TeamsBody({
         )}
       </div>
 
-      <FilterPills
-        value={teams.filter}
-        onChange={teams.setFilter}
-        options={teams.filterOptions}
-      />
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        {people.active ? null : (
+          <FilterPills
+            value={teams.filter}
+            onChange={teams.setFilter}
+            options={teams.filterOptions}
+          />
+        )}
+        {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+        <div className="flex sm:ml-auto">
+          <SearchField
+            value={people.search}
+            onChange={people.setSearch}
+            placeholder={t("people.search")}
+            ariaLabel={t("people.search")}
+            maxLength={TEAM_PEOPLE_MAX_QUERY}
+          />
+        </div>
+      </div>
+
+      {people.active ? (
+        <ProgramTeamPeopleResults
+          people={people.people}
+          truncated={people.truncated}
+          searching={people.searching}
+          noMatch={people.noMatch}
+          error={people.error}
+          onOpenTeam={teams.openDetail}
+        />
+      ) : null}
 
       {teams.adding ? (
         <TeamForm
@@ -109,13 +157,13 @@ function TeamsBody({
         isLoading={teams.query.isLoading}
         error={teams.query.error}
       />
-      {teams.query.isSuccess && teams.visible.length === 0 ? (
+      {!people.active && teams.query.isSuccess && teams.visible.length === 0 ? (
         <EmptyNote>
           {teams.teams.length === 0 ? t("empty") : t("noMatch")}
         </EmptyNote>
       ) : null}
 
-      {teams.visible.length > 0 ? (
+      {!people.active && teams.visible.length > 0 ? (
         <div className="overflow-x-auto rounded-[28px] border border-[#e9ecef] bg-white">
           <table className="w-full min-w-[820px] text-left text-[13.5px]">
             <thead className="text-[12.5px] text-[#858c96]">

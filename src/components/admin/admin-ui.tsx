@@ -178,10 +178,14 @@ export function SearchField({
   value,
   onChange,
   placeholder,
+  ariaLabel,
+  maxLength,
 }: {
   value: string;
   onChange: (value: string) => void;
   placeholder: string;
+  ariaLabel?: string;
+  maxLength?: number;
 }) {
   return (
     <label className="flex h-10 min-w-[180px] flex-1 items-center gap-2 rounded-full border border-[#e9ecef] bg-white px-3.5 text-[#858c96] sm:max-w-[280px] sm:flex-none">
@@ -190,6 +194,8 @@ export function SearchField({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
+        aria-label={ariaLabel}
+        maxLength={maxLength}
         className="w-full bg-transparent text-[13px] text-[#22262b] outline-none placeholder:text-[#aeb4bc]"
       />
     </label>

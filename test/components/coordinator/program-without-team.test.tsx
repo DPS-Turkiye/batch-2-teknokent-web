@@ -28,3 +28,27 @@ it("lists approved people without a startup and exposes their history", async ()
     screen.getByRole("link", { name: "Profili gör: Ada Test" }),
   ).toHaveAttribute("href", "/coordinator/people/u1");
 });
+
+it("shows only the people whose name matches Takımlar's person search", async () => {
+  vi.mocked(getProgramWithoutTeam).mockResolvedValue([
+    {
+      id: "u1",
+      fullName: "Çağrı Test",
+      email: "cagri@example.test",
+      jobTitle: null,
+      organizationName: null,
+      createdAt: "2026-09-01T09:00:00Z",
+    },
+    {
+      id: "u2",
+      fullName: "Ada Test",
+      email: "ada2@example.test",
+      jobTitle: null,
+      organizationName: null,
+      createdAt: "2026-09-01T09:00:00Z",
+    },
+  ]);
+  renderWithQueryClient(<ProgramWithoutTeam programId="p1" search="cagri" />);
+  expect(await screen.findByText("Çağrı Test")).toBeInTheDocument();
+  expect(screen.queryByText("Ada Test")).not.toBeInTheDocument();
+});
