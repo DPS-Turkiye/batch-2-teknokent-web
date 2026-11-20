@@ -13,7 +13,7 @@ import { useLoginChoices } from "@/hooks/use-login-choices";
 import { useOnboardingExit } from "@/hooks/use-onboarding-exit";
 import type { Edition } from "@/interfaces/edition";
 import type { SignupRole } from "@/interfaces/signup";
-import { SignupCardCopy, signupCards } from "@/lib/signup-cards";
+import { showsCodeLink, SignupCardCopy, signupCards } from "@/lib/signup-cards";
 
 /** Badge, bullets and button of each card: Girişimci orange, Mentor blue, Ekip üyesi green, the İŞKUR student ODTÜ red. */
 const CARD_STYLES: Record<
@@ -61,7 +61,6 @@ export function RoleSelectView({
   const copy = useTranslations("roleSelect");
   const { exit, exiting } = useOnboardingExit();
   const cards = signupCards(edition);
-  const hasMemberCard = cards.some((card) => card.href !== null);
   const choices = useLoginChoices(edition);
 
   return (
@@ -148,7 +147,7 @@ export function RoleSelectView({
           })}
         </div>
 
-        {choices.invite && !hasMemberCard ? (
+        {showsCodeLink(cards, choices.invite) ? (
           <p className="mt-11 text-center text-xs leading-5 text-[#4a5059]">
             {copy("haveCode")}{" "}
             <Link href="/invite" className="hover:underline">

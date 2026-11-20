@@ -15,10 +15,17 @@ export enum SignupCardCopy {
 
 /** A card either starts the wizard as `role` or, for a teammate with a code, links to `href`. */
 export type SignupCard =
-  | { copy: SignupCardCopy; role: SignupRole; href: null }
-  | { copy: SignupCardCopy; role: null; href: string };
+  | {
+      copy: Exclude<SignupCardCopy, SignupCardCopy.Member>;
+      role: SignupRole;
+      href: null;
+    }
+  | { copy: SignupCardCopy.Member; role: null; href: string };
 
-const ROLE_COPY: Record<SignupRole, SignupCardCopy> = {
+const ROLE_COPY: Record<
+  SignupRole,
+  Exclude<SignupCardCopy, SignupCardCopy.Member>
+> = {
   [SignupRole.Founder]: SignupCardCopy.Founder,
   [SignupRole.Mentor]: SignupCardCopy.Mentor,
 };
@@ -36,4 +43,9 @@ export function signupCards(edition: Edition): SignupCard[] {
   return offersMemberSignup(edition)
     ? [...roles, { copy: SignupCardCopy.Member, role: null, href: INVITE_PATH }]
     : roles;
+}
+
+/** The small "Davet kodun mu var?" link under the cards, for an edition without the team member card. */
+export function showsCodeLink(cards: readonly SignupCard[], invite: boolean) {
+  return invite && !cards.some((card) => card.copy === SignupCardCopy.Member);
 }

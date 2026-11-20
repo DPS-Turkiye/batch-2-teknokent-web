@@ -454,6 +454,78 @@ describe("Invite code sign-up", () => {
     expect(readInviteIntent()?.code).toBe("ABCD1234");
     expect(registerMember).not.toHaveBeenCalled();
   });
+
+  it("drops a link's team name once the person types another code", async () => {
+    let answer: (value: {
+      valid: boolean;
+      teamName: string | null;
+    }) => void = () => undefined;
+    vi.mocked(checkInviteCode).mockReturnValueOnce(
+      new Promise((resolve) => {
+        answer = resolve;
+      }),
+    );
+    searchParams = new URLSearchParams({ code: "LINK2345" });
+    const user = userEvent.setup();
+    renderInvite();
+
+    await user.clear(field("invite-code")!);
+    await user.type(field("invite-code")!, "BASKA234");
+    answer({ valid: true, teamName: "Yıldız Team" });
+
+    await waitFor(() => expect(checkInviteCode).toHaveBeenCalledTimes(1));
+    expect(
+      screen.queryByText("Yıldız Team takımına katılıyorsun."),
+    ).not.toBeInTheDocument();
+  });
+
+  it("forgets the code when no login could be made, so a later founder is not sent here", async () => {
+    vi.mocked(createFirebaseAccount).mockRejectedValue(
+      new Error("Zayıf şifre"),
+    );
+    const user = userEvent.setup();
+    renderInvite();
+
+    await fillNewLogin(user, "ABCD1234");
+    await user.click(screen.getByRole("button", { name: "Ekibe katıl" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Zayıf şifre");
+    expect(readInviteIntent()).toBeNull();
+  });
+
+  it("keeps the code when the login exists but joining failed, so the next sign-in returns here", async () => {
+    vi.mocked(registerMember).mockRejectedValue(
+      new ClientApiError("Bu e-posta programın listesinde yok.", 400),
+    );
+    const user = userEvent.setup();
+    renderInvite();
+
+    await fillNewLogin(user, "ABCD1234");
+    await user.click(screen.getByRole("button", { name: "Ekibe katıl" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Bu e-posta programın listesinde yok.",
+    );
+    expect(readInviteIntent()?.code).toBe("ABCD1234");
+  });
+
+  it("forgets the saved code when the signed-in person switches account", async () => {
+    saveInviteIntent("SAKL2345");
+    vi.mocked(currentSignedInAccount).mockResolvedValue({
+      email: "deniz@ornek.com",
+      fullName: "",
+      verified: true,
+      otg: false,
+    });
+    const user = userEvent.setup();
+    renderInvite();
+
+    await user.click(
+      await screen.findByRole("button", { name: "Başka bir hesapla katıl" }),
+    );
+
+    expect(readInviteIntent()).toBeNull();
+  });
 });
 
 async function fillNewLogin(

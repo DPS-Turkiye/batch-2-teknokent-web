@@ -8,8 +8,11 @@ export const INVITE_PATH = "/invite";
 export const INVITE_CODE_MAX_LENGTH = 32;
 
 const STORAGE_KEY = "menton.inviteIntent";
-/** A code saved longer ago than this has likely been rotated; the person starts over at /invite. */
-const INTENT_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
+/**
+ * Long enough for a verification e-mail opened days later; short enough that on a shared computer a stale code
+ * does not keep sending the next person's sign-in to /invite.
+ */
+const INTENT_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
 export type InviteIntent = { code: string; savedAt: number };
 

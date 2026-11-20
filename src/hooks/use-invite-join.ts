@@ -42,6 +42,9 @@ type CodeCheck =
 
 const UNCHECKED: CodeCheck = { status: CodeCheckStatus.Unknown };
 
+/** A check answers for the code it was asked about; once the field holds another code, it says nothing. */
+type CheckedCode = { code: string; check: CodeCheck };
+
 /**
  * The check only spares a dead end; registration checks the code again. So a check that fails (rate limit,
  * network) lets the join go ahead instead of blocking it.
@@ -76,7 +79,7 @@ export function useInviteJoin() {
   const [inviteCode, setInviteCode] = useState(
     () => linkCode ?? readInviteIntent()?.code ?? "",
   );
-  const [codeCheck, setCodeCheck] = useState<CodeCheck>(UNCHECKED);
+  const [checked, setChecked] = useState<CheckedCode | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [emailInUse, setEmailInUse] = useState(false);
@@ -105,18 +108,16 @@ export function useInviteJoin() {
   useEffect(() => {
     if (!linkCode) return;
     let active = true;
-    void checkCode(linkCode).then((result) => {
-      if (active) setCodeCheck(result);
+    void checkCode(linkCode).then((check) => {
+      if (active) setChecked({ code: linkCode, check });
     });
     return () => {
       active = false;
     };
   }, [linkCode]);
 
-  function changeInviteCode(value: string) {
-    setInviteCode(value);
-    setCodeCheck(UNCHECKED);
-  }
+  const codeCheck =
+    checked?.code === inviteCode.trim() ? checked.check : UNCHECKED;
 
   const canJoin = Boolean(
     inviteCode.trim() &&
@@ -153,16 +154,19 @@ export function useInviteJoin() {
     setError("");
     setEmailInUse(false);
     const code = inviteCode.trim();
+    // Kept when the login exists (or already did): the person comes back here at their next sign-in.
+    let loginExists = Boolean(account);
     try {
-      const checked = await checkCode(code);
-      setCodeCheck(checked);
-      if (checked.status === CodeCheckStatus.Invalid) {
+      const check = await checkCode(code);
+      setChecked({ code, check });
+      if (check.status === CodeCheckStatus.Invalid) {
         setSubmitting(false);
         return;
       }
       saveInviteIntent(code);
       if (!account) {
         await createFirebaseAccount(form.email, form.password);
+        loginExists = true;
       }
       const verified = account ? account.verified : isCurrentEmailVerified();
       if (!verified) {
@@ -175,6 +179,7 @@ export function useInviteJoin() {
       if (isEmailAlreadyInUse(caught)) {
         setEmailInUse(true);
       } else {
+        if (!loginExists) clearInviteIntent();
         setError(
           caught instanceof ClientApiError
             ? caught.message
@@ -199,13 +204,14 @@ export function useInviteJoin() {
       return;
     }
     setAccount(null);
+    clearInviteIntent();
     reset();
   }
 
   return {
     ...register,
     inviteCode,
-    setInviteCode: changeInviteCode,
+    setInviteCode,
     teamName:
       codeCheck.status === CodeCheckStatus.Valid ? codeCheck.teamName : null,
     codeInvalid: codeCheck.status === CodeCheckStatus.Invalid,

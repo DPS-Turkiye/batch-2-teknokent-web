@@ -90,14 +90,11 @@ export function InviteView() {
               placeholder="ABCD1234"
               value={inviteCode}
               onChange={setInviteCode}
+              error={codeInvalid ? copy("codeInvalid") : null}
             />
             {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
-            {codeInvalid ? (
-              <p role="alert" className="mt-1.5 text-xs text-[#c0392b]">
-                {copy("codeInvalid")}
-              </p>
-            ) : teamName ? (
-              <p className="mt-1.5 text-xs text-[#15803d]">
+            {teamName ? (
+              <p role="status" className="mt-1.5 text-xs text-[#15803d]">
                 {copy("joiningTeam", { team: teamName })}
               </p>
             ) : null}
