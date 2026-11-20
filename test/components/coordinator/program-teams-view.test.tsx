@@ -7,6 +7,7 @@ import {
   TeamJoinStatus,
   type ProgramTeam,
 } from "@/interfaces/coordinator-program";
+import { Edition } from "@/interfaces/edition";
 import { StartupStageState } from "@/interfaces/startup-process";
 import {
   addProgramTeams,
@@ -37,6 +38,10 @@ vi.mock("@/lib/client/coordinator-programs", () => ({
   sendProgramTeamCode: vi.fn(),
   getProgramTeamDetail: vi.fn(),
   getProgramWithoutTeam: vi.fn().mockResolvedValue([]),
+}));
+// The drawer's move button reads the edition from the session.
+vi.mock("@/components/providers/session-provider", () => ({
+  useAppSession: () => ({ edition: Edition.Teknokent }),
 }));
 vi.mock("@/lib/client/startup-process", () => ({
   getTeamProcess: vi.fn(),

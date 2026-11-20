@@ -6363,7 +6363,9 @@
     "attendanceQrFailed": "QR kod hazırlanamadı.",
     "attendanceMarkFailed": "Katılım güncellenemedi.",
     "attendanceQrNotValid": "Bu QR şu an geçerli değil.",
-    "weekVisibilitySaveFailed": "Haftanın görünürlüğü kaydedilemedi."
+    "weekVisibilitySaveFailed": "Haftanın görünürlüğü kaydedilemedi.",
+    "teamMoveLoadFailed": "Taşıma seçenekleri yüklenemedi.",
+    "teamMoveFailed": "Kişi taşınamadı."
   },
   "startupStart": {
     "title": "Startup'ım",
@@ -6474,9 +6476,51 @@
     "current": "{from} tarihinden beri",
     "left": "{from} – {to}, ayrıldı",
     "removed": "{from} – {to}, çıkarıldı",
+    "moved": "{from} – {to}, başka takıma taşındı",
     "archived": "arşivlendi",
     "startupPending": "startup onay bekliyor",
     "startupRejected": "startup reddedildi"
+  },
+  "teamMove": {
+    "action": "Başka takıma taşı",
+    "sectionTitle": "Takıma taşı",
+    "sectionBody": "Bu kişiyi başka bir takıma taşıyın. Taşıma hemen olur; kişi ve iki takımın kurucusu bilgilendirilir.",
+    "dialogTitle": "Başka takıma taşı",
+    "loading": "Yükleniyor…",
+    "loadFailed": "Taşıma seçenekleri yüklenemedi.",
+    "currentTeam": "Şu anki takım: {team}",
+    "target": "Yeni takım",
+    "searchLabel": "Takım ara",
+    "searchPlaceholder": "Takım ya da program ara",
+    "noTargets": "Bu kişiyi taşıyabileceğiniz başka bir takım yok.",
+    "noMatch": "Aramaya uyan takım yok.",
+    "summary": "{name}, {team} takımına taşınacak.",
+    "movedHeading": "Kişiyle birlikte gelir",
+    "movedItems": {
+      "profile": "Profili ve hesap bilgileri",
+      "files": "CV'si ve fotoğrafı",
+      "history": "Takım geçmişi: eski takımdaki dönemi \"taşındı\" olarak kapanır"
+    },
+    "keptHeading": "Eski takımda kalır",
+    "keptItems": {
+      "mentorships": "Mentorluklar, mentorluk talepleri ve görüşmeler",
+      "tasks": "Süreç kayıtları; kişinin açık işleri ekibe devredilir",
+      "documents": "Takım belgeleri"
+    },
+    "notice": "Onay adımı yoktur. Kişi, eski takımın kurucusu ve yeni takımın kurucusu bildirim alır. Gerekirse kişiyi aynı yoldan geri taşıyabilirsiniz.",
+    "sessionNotice": "Taşınan kişi en geç 10 dakika içinde oturumdan çıkarılır ve yeniden giriş yaptığında yeni takımını görür.",
+    "blocked": {
+      "founder": "Bu kişi takımın kurucusu, bu yüzden taşınamaz. Önce kurucuyu değiştirin ya da girişimi silin.",
+      "notATeamMember": "Yalnızca girişim ekip üyeleri taşınabilir; mentor, koordinatör ve yönetici hesapları taşınamaz.",
+      "noTeam": "Bu kişinin taşınacağı bir takımı yok.",
+      "notApproved": "Hesabı henüz onaylanmadı; önce Onaylar sekmesinden karar verin."
+    },
+    "cancel": "Vazgeç",
+    "close": "Kapat",
+    "confirm": "Taşı",
+    "moving": "Taşınıyor…",
+    "moved": "{name}, {team} takımına taşındı.",
+    "failed": "Kişi taşınamadı."
   },
   "startupGate": {
     "none": {

@@ -24,7 +24,10 @@ export function AdminOverlay({
 }) {
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
-      if (event.key === "Escape") onClose();
+      if (event.key !== "Escape") return;
+      // Marked as handled, so a drawer underneath (listening on window) does not close as well.
+      event.preventDefault();
+      onClose();
     }
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);

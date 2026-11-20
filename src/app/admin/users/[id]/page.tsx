@@ -1,8 +1,9 @@
 import { connection } from "next/server";
 
 import { DeleteUserSection } from "@/components/admin/delete-user-section";
+import { MoveMemberSection } from "@/components/admin/move-member-section";
 import { PersonSummaryView } from "@/components/people/person-summary-view";
-import { offersUserDeletion } from "@/lib/edition-screens";
+import { offersTeamMove, offersUserDeletion } from "@/lib/edition-screens";
 import { appEdition } from "@/lib/server/edition";
 
 export default async function AdminPersonProfilePage({
@@ -16,6 +17,7 @@ export default async function AdminPersonProfilePage({
   return (
     <div className="space-y-6">
       <PersonSummaryView userId={id} />
+      {offersTeamMove(appEdition()) ? <MoveMemberSection userId={id} /> : null}
       {offersUserDeletion(appEdition()) ? (
         <DeleteUserSection userId={id} />
       ) : null}

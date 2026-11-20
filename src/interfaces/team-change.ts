@@ -17,6 +17,8 @@ export enum TeamChangeStatus {
 export enum TeamExitReason {
   Left = "LEFT",
   Removed = "REMOVED",
+  /** An admin or coordinator moved the person to another team. */
+  Moved = "MOVED",
 }
 
 export interface TeamChange {

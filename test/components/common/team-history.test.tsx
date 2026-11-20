@@ -53,4 +53,32 @@ describe("TeamHistory", () => {
       ),
     ).toBeInTheDocument();
   });
+
+  it("says when an admin or coordinator moved the person to another team", async () => {
+    vi.mocked(getTeamHistory).mockResolvedValue({
+      userId: "u1",
+      fullName: "Selin Ak",
+      stays: [
+        {
+          organizationId: "o1",
+          organizationName: "Döngü",
+          joinedAt: "2026-06-12T09:00:00Z",
+          leftAt: "2026-11-20T09:00:00Z",
+          exitReason: TeamExitReason.Moved,
+          startupApproval: UserAccountStatus.Approved,
+          startupArchived: false,
+        },
+      ],
+    });
+    const user = userEvent.setup();
+    renderWithQueryClient(<TeamHistory userId="u1" />);
+
+    await user.click(screen.getByRole("button", { name: "Takım geçmişi" }));
+
+    expect(
+      await screen.findByText(
+        /12 Haz 2026 – 20 Kas 2026, başka takıma taşındı/,
+      ),
+    ).toBeInTheDocument();
+  });
 });
