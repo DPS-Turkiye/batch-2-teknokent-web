@@ -8,6 +8,7 @@ import { requestVerificationEmail } from "@/lib/client/auth-email";
 import {
   createFirebaseAccount,
   currentFirebaseAccount,
+  currentSignedInAccount,
   currentUserEmail,
   isCurrentEmailVerified,
   reloadAndCheckEmailVerified,
@@ -16,8 +17,10 @@ import {
   signInWithInstitutionToken,
   signOutOfFirebase,
 } from "@/lib/firebase/auth";
+import { OTG_UID_PREFIX } from "@/lib/otg-login";
 
 type FakeUser = {
+  uid: string;
   email: string | null;
   displayName: string | null;
   emailVerified: boolean;
@@ -53,6 +56,7 @@ vi.mock("@/lib/client/auth-email", () => ({
 
 function user(overrides: Partial<FakeUser> = {}): FakeUser {
   return {
+    uid: "firebase-uid-1",
     email: "ada@acme.test",
     displayName: "  Ada Kaya ",
     emailVerified: false,
@@ -264,6 +268,31 @@ describe("Firebase session helpers", () => {
       firebaseNotConfigured();
 
       await expect(currentFirebaseAccount()).resolves.toBeNull();
+    });
+  });
+
+  describe("currentSignedInAccount", () => {
+    it("answers an e-mail login and says it is not an OTG one", async () => {
+      auth.currentUser = user();
+
+      await expect(currentSignedInAccount()).resolves.toEqual({
+        email: "ada@acme.test",
+        fullName: "Ada Kaya",
+        verified: false,
+        otg: false,
+      });
+    });
+
+    it("recognises a login the backend made for an OTG person", async () => {
+      auth.currentUser = user({ uid: `${OTG_UID_PREFIX}42` });
+
+      await expect(currentSignedInAccount()).resolves.toMatchObject({
+        otg: true,
+      });
+    });
+
+    it("is null when nobody is signed in", async () => {
+      await expect(currentSignedInAccount()).resolves.toBeNull();
     });
   });
 

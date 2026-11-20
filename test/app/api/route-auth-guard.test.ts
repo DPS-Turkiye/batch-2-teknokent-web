@@ -17,6 +17,8 @@ const HANDLER =
 const PUBLIC_HANDLERS = new Set([
   // Deployment-wide AI switches; the signup CV step reads them before there is a session.
   "ai-features/route.ts GET",
+  // /invite checks a team code before any login exists; the backend answers only valid + team name, rate-limited.
+  "auth/invite-code/route.ts POST",
   "auth/password-reset/route.ts POST",
   "health/route.ts GET",
   // Signing in through an institution happens before there is a session; the backend verifies the login.

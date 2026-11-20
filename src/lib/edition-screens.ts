@@ -7,6 +7,8 @@ import { LoginOption } from "@/types/edition-screens";
 type EditionScreens = {
   loginOptions: readonly LoginOption[];
   signupRoles: readonly SignupRole[];
+  /** Whether sign-up shows the "Ekip üyesiyim" card, which leads to /invite (Teknokent's team codes). */
+  memberSignup: boolean;
   programTypes: readonly ProgramType[];
   adminUserTabs: readonly UserTab[];
   /** Whether an admin may delete a user; the backend closes the endpoint in the other edition. */
@@ -31,6 +33,7 @@ const SCREENS: Record<Edition, EditionScreens> = {
       LoginOption.Invite,
     ],
     signupRoles: [SignupRole.Founder, SignupRole.Mentor],
+    memberSignup: true,
     programTypes: [ProgramType.StartupMentoring],
     adminUserTabs: [UserTab.Coordinators, UserTab.Mentors, UserTab.Teams],
     userDeletion: true,
@@ -42,6 +45,7 @@ const SCREENS: Record<Edition, EditionScreens> = {
     loginOptions: [LoginOption.Password, LoginOption.Odtu, LoginOption.SignUp],
     // Students sign up through the founder flow into an individual (İŞKUR) program; there is no mentor sign-up.
     signupRoles: [SignupRole.Founder],
+    memberSignup: false,
     programTypes: [ProgramType.PeerMentoring, ProgramType.OfficeHours],
     adminUserTabs: [UserTab.Coordinators, UserTab.Students, UserTab.Academics],
     // Deferred: deleting an ODTÜ account would have to settle its roster and institution login first.
@@ -64,6 +68,10 @@ export function offersLogin(edition: Edition, option: LoginOption) {
 /** The roles the sign-up role page offers, in display order. */
 export function signupRolesOf(edition: Edition): readonly SignupRole[] {
   return SCREENS[edition].signupRoles;
+}
+
+export function offersMemberSignup(edition: Edition) {
+  return SCREENS[edition].memberSignup;
 }
 
 /** The program types the program wizard offers; the backend refuses any other. */

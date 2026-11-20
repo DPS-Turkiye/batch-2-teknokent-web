@@ -12,13 +12,16 @@ vi.mock("@/hooks/use-organization-invite", () => ({
 type Card = ReturnType<typeof useInviteCodeCard>;
 
 const copy = vi.fn();
+const copyLink = vi.fn();
 const rotate = vi.fn();
 
 function card(overrides: Partial<Card> = {}): Card {
   return {
     code: "ABCD2345",
     copied: false,
+    linkCopied: false,
     copy,
+    copyLink,
     error: null,
     isLoading: false,
     isRotating: false,
@@ -36,7 +39,7 @@ describe("StartupInviteCode", () => {
 
     expect(screen.getByText("ABCD2345")).toBeInTheDocument();
     expect(
-      screen.getByText(/\/invite sayfasında bu kodla kayıt olur/),
+      screen.getByText(/bu kodla ya da davet linkiyle kaydolur/),
     ).toBeInTheDocument();
   });
 
@@ -51,6 +54,24 @@ describe("StartupInviteCode", () => {
     vi.mocked(useInviteCodeCard).mockReturnValue(card({ copied: true }));
     rerender(<StartupInviteCode />);
     expect(screen.getByRole("button", { name: "Kopyalandı" })).toBeEnabled();
+  });
+
+  it("copies the invite link and then says so", async () => {
+    const user = userEvent.setup();
+    vi.mocked(useInviteCodeCard).mockReturnValue(card());
+    const { rerender } = render(<StartupInviteCode />);
+
+    await user.click(
+      screen.getByRole("button", { name: "Davet linkini kopyala" }),
+    );
+    expect(copyLink).toHaveBeenCalledOnce();
+    expect(copy).not.toHaveBeenCalled();
+
+    vi.mocked(useInviteCodeCard).mockReturnValue(card({ linkCopied: true }));
+    rerender(<StartupInviteCode />);
+    expect(
+      screen.getByRole("button", { name: "Link kopyalandı" }),
+    ).toBeEnabled();
   });
 
   it("regenerates the code and blocks a second press while it runs", async () => {

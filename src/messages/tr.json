@@ -153,7 +153,13 @@
     "noCode": "Davet kodun yok mu?",
     "otgAccount": "ODTÜ TEKNOKENT Girişimcilik hesabınla katılıyorsun:",
     "otgSwitch": "Başka bir hesapla katıl",
-    "backToLogin": "Giriş ekranına dön"
+    "backToLogin": "Giriş ekranına dön",
+    "codeInvalid": "Bu kodla bir takım bulunamadı. Kodu takım liderinden kontrol et; hesabın oluşturulmadı.",
+    "joiningTeam": "{team} takımına katılıyorsun.",
+    "resumeNote": "Kaldığın yerden devam ediyorsun. Bilgilerini tamamlayıp ekibine katıl.",
+    "signedInAccount": "Bu hesapla katılıyorsun:",
+    "emailInUse": "Bu e-posta adresiyle zaten bir giriş var. Davet kodun bu tarayıcıda kayıtlı: giriş yaptığında katılımı buradan tamamlarsın.",
+    "signInToContinue": "Giriş yap ve devam et"
   },
   "verifyEmail": {
     "title": "E-postanı doğrula",
@@ -235,6 +241,18 @@
           "Eğitim ve rozet"
         ],
         "action": "İŞKUR öğrencisi olarak devam et"
+      },
+      "member": {
+        "badge": "Ekip üyesi",
+        "title": "Ekip üyesiyim — davet kodum var",
+        "description": "Startup'ının kurucusundan aldığın davet koduyla ekibine katılırsın. Ayrıca onay beklemezsin.",
+        "steps": [
+          "Davet kodu",
+          "Ad, telefon ve şifre",
+          "E-posta doğrulama",
+          "Ekibine katılım"
+        ],
+        "action": "Davet koduyla katıl"
       }
     },
     "odtuBanner": {
@@ -2104,7 +2122,7 @@
     "saveFailed": "Ekip üyesi kaydedilemedi.",
     "invite": {
       "title": "Davet kodu",
-      "hint": "Ekip arkadaşın /invite sayfasında bu kodla kayıt olur.",
+      "hint": "Ekip arkadaşın bu kodla ya da davet linkiyle kaydolur.",
       "loading": "Davet kodu yükleniyor…",
       "copied": "Kopyalandı",
       "copy": "Kopyala",
@@ -2112,7 +2130,10 @@
       "rotate": "Yeni kod üret",
       "copiedToast": "Davet kodu kopyalandı.",
       "rotated": "Yeni davet kodu üretildi.",
-      "rotateFailed": "Yeni kod üretilemedi."
+      "rotateFailed": "Yeni kod üretilemedi.",
+      "copyLink": "Davet linkini kopyala",
+      "linkCopied": "Link kopyalandı",
+      "linkCopiedToast": "Davet linki kopyalandı. Ekip arkadaşına gönderebilirsin."
     },
     "removalRequested": "Çıkarma talebi koordinatöre gönderildi.",
     "removeRequestBody": "{name} için çıkarma talebi programın koordinatörüne gider. Koordinatör onaylayana kadar {name} ekipte kalır; açık görevleri onaydan sonra ekipteki diğer kişilere dağıtılır.",
@@ -6382,7 +6403,8 @@
     "teamMoveFailed": "Kişi taşınamadı.",
     "founderChangeLoadFailed": "Takımın üyeleri yüklenemedi.",
     "founderChangeFailed": "Kurucu değiştirilemedi.",
-    "teamIdInvalid": "Geçerli bir takım seçin."
+    "teamIdInvalid": "Geçerli bir takım seçin.",
+    "inviteCodeCheckFailed": "Davet kodu şu an kontrol edilemedi."
   },
   "startupStart": {
     "title": "Startup'ım",

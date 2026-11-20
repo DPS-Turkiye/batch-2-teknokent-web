@@ -13,6 +13,11 @@ import {
   fetchOnboardingDraft,
 } from "@/lib/client/onboarding-draft";
 import { ACCOUNT_NOT_APPROVED, REGISTRATION_REQUIRED } from "@/lib/const";
+import {
+  inviteHref,
+  inviteIntentWins,
+  readInviteIntent,
+} from "@/lib/invite-intent";
 import { signupResumeHref } from "@/lib/signup-resume";
 
 export const APPLICATION_STATUS_HREF = "/application-status";
@@ -49,8 +54,9 @@ export function existingAccountHref(
 
 /**
  * Where a sign-in goes when the account isn't ready: a pending account to its status page (a mentor still in
- * onboarding back to it), a half-registered one to its saved signup, a login without an account to the ordinary
- * signup. The Firebase session is kept. Null when the error is anything else.
+ * onboarding back to it), a half-registered one to its saved signup, a login that entered a team code in this
+ * browser back to /invite, any other login without an account to the ordinary signup. The Firebase session is
+ * kept. Null when the error is anything else.
  */
 export async function accountNotReadyHref(
   error: unknown,
@@ -67,7 +73,10 @@ export async function accountNotReadyHref(
     ? await fetchOnboardingDraft(idToken).catch(() => null)
     : null;
   if (error.code === REGISTRATION_REQUIRED) {
-    return signupResumeHref(draft?.kind);
+    const intent = readInviteIntent();
+    return inviteIntentWins(intent, draft)
+      ? inviteHref(intent.code, true)
+      : signupResumeHref(draft?.kind);
   }
   // Resuming a founder wizard for an account that exists only loops: the wizard sends them back to sign in.
   if (draft && !isStaleDraft(draft)) return signupResumeHref(draft.kind);

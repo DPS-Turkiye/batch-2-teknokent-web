@@ -44,6 +44,14 @@ export function StartupInviteCode() {
             >
               {invite.copied ? t("copied") : t("copy")}
             </button>
+            {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+            <button
+              type="button"
+              onClick={() => void invite.copyLink()}
+              className="rounded-[10px] border border-[#f2b78f] px-4 py-2 text-xs font-semibold text-[#e5701d] hover:bg-[#fff4ec]"
+            >
+              {invite.linkCopied ? t("linkCopied") : t("copyLink")}
+            </button>
             <button
               type="button"
               disabled={invite.isRotating}

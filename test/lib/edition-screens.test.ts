@@ -8,6 +8,7 @@ import {
   loginOptionsOf,
   offersFounderChange,
   offersLogin,
+  offersMemberSignup,
   offersTeamMove,
   offersUserDeletion,
   programTypesOf,
@@ -110,5 +111,12 @@ describe("offersFounderChange", () => {
   it("lets admins and coordinators change a startup's founder in Teknokent only", () => {
     expect(offersFounderChange(Edition.Teknokent)).toBe(true);
     expect(offersFounderChange(Edition.Odtu)).toBe(false);
+  });
+});
+
+describe("offersMemberSignup", () => {
+  it("shows the team member card on Teknokent only, where team codes exist", () => {
+    expect(offersMemberSignup(Edition.Teknokent)).toBe(true);
+    expect(offersMemberSignup(Edition.Odtu)).toBe(false);
   });
 });

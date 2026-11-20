@@ -68,6 +68,13 @@ export function describeAuthError(error: unknown): string {
   return clientText("authFailed");
 }
 
+/** Creating a login failed because one already exists for the address: the person should sign in instead. */
+export function isEmailAlreadyInUse(error: unknown): boolean {
+  return (
+    error instanceof FirebaseError && error.code === "auth/email-already-in-use"
+  );
+}
+
 export async function createFirebaseAccount(
   email: string,
   password: string,
@@ -186,14 +193,17 @@ export async function currentFirebaseAccount(): Promise<FirebaseAccount | null> 
 }
 
 /**
- * The signed-in Firebase login when it is one the backend made for an OTG person, else null. Only such a login
- * may stand in for a new account: any other leftover session is someone else's.
+ * Whoever is signed in to Firebase in this tab, OTG or e-mail + password, and whether it is an OTG login. /invite
+ * lets such a login join instead of making a second one for the same address; it shows the address with a way
+ * to switch, since a leftover session may be someone else's.
  */
-export async function currentOtgAccount(): Promise<FirebaseAccount | null> {
+export async function currentSignedInAccount(): Promise<
+  (FirebaseAccount & { otg: boolean }) | null
+> {
   const account = await signedInAccount();
-  if (!account?.uid.startsWith(OTG_UID_PREFIX)) return null;
-  const { email, fullName, verified } = account;
-  return { email, fullName, verified };
+  if (!account) return null;
+  const { uid, email, fullName, verified } = account;
+  return { email, fullName, verified, otg: uid.startsWith(OTG_UID_PREFIX) };
 }
 
 export async function currentIdToken(): Promise<string | null> {

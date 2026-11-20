@@ -13,9 +13,9 @@ import { useLoginChoices } from "@/hooks/use-login-choices";
 import { useOnboardingExit } from "@/hooks/use-onboarding-exit";
 import type { Edition } from "@/interfaces/edition";
 import type { SignupRole } from "@/interfaces/signup";
-import { SignupCardCopy, signupCards } from "@/lib/signup-cards";
+import { showsCodeLink, SignupCardCopy, signupCards } from "@/lib/signup-cards";
 
-/** Badge, bullets and button of each card: Girişimci orange, Mentor blue, the İŞKUR student ODTÜ red. */
+/** Badge, bullets and button of each card: Girişimci orange, Mentor blue, Ekip üyesi green, the İŞKUR student ODTÜ red. */
 const CARD_STYLES: Record<
   SignupCardCopy,
   { badge: string; bullet: string; button: string }
@@ -30,11 +30,22 @@ const CARD_STYLES: Record<
     bullet: "bg-[#26a4ff]",
     button: `${ONBOARDING_TONES[OnboardingTone.Mentor].bg} ${ONBOARDING_TONES[OnboardingTone.Mentor].bgHover}`,
   },
+  [SignupCardCopy.Member]: {
+    badge: "bg-[#f1f8f3] text-[#2f7d4a]",
+    bullet: "bg-[#2f7d4a]",
+    button: "bg-[#2f7d4a] hover:bg-[#276a3e]",
+  },
   [SignupCardCopy.Student]: {
     badge: "bg-brand-odtu-bg text-brand-odtu-primary",
     bullet: "bg-brand-odtu-primary",
     button: "bg-brand-odtu-primary hover:opacity-90",
   },
+};
+
+const GRID_COLUMNS: Record<number, string> = {
+  1: "max-w-[430px]",
+  2: "md:grid-cols-2",
+  3: "md:grid-cols-3",
 };
 
 export function RoleSelectView({
@@ -74,14 +85,14 @@ export function RoleSelectView({
         ) : null}
 
         <div
-          className={`mt-11 grid w-full gap-5 ${cards.length > 1 ? "md:grid-cols-2" : "max-w-[430px]"}`}
+          className={`mt-11 grid w-full gap-5 ${GRID_COLUMNS[Math.min(cards.length, 3)] ?? ""}`}
         >
           {cards.map((card) => {
             const style = CARD_STYLES[card.copy];
             return (
               <section
-                key={card.role}
-                aria-labelledby={`role-${card.role}`}
+                key={card.copy}
+                aria-labelledby={`role-${card.copy}`}
                 className="flex flex-col rounded-2xl border border-[#e3e6ea] bg-white p-5 sm:p-[22px]"
               >
                 <span
@@ -90,7 +101,7 @@ export function RoleSelectView({
                   {copy(`cards.${card.copy}.badge`)}
                 </span>
                 <h2
-                  id={`role-${card.role}`}
+                  id={`role-${card.copy}`}
                   className="mt-3 text-base font-semibold leading-6"
                 >
                   {copy(`cards.${card.copy}.title`)}
@@ -114,19 +125,29 @@ export function RoleSelectView({
                     ),
                   )}
                 </ul>
-                <button
-                  type="button"
-                  onClick={() => onChoose(card.role)}
-                  className={`mt-5 h-10 w-full rounded-full text-[13px] font-medium text-white ${style.button}`}
-                >
-                  {copy(`cards.${card.copy}.action`)}
-                </button>
+                {card.href === null ? (
+                  <button
+                    type="button"
+                    onClick={() => onChoose(card.role)}
+                    className={`mt-5 h-10 w-full rounded-full text-[13px] font-medium text-white ${style.button}`}
+                  >
+                    {copy(`cards.${card.copy}.action`)}
+                  </button>
+                ) : (
+                  // TEST UI: placeholder until the design team's screen; replace when it arrives.
+                  <Link
+                    href={card.href}
+                    className={`mt-5 flex h-10 w-full items-center justify-center rounded-full text-[13px] font-medium text-white ${style.button}`}
+                  >
+                    {copy(`cards.${card.copy}.action`)}
+                  </Link>
+                )}
               </section>
             );
           })}
         </div>
 
-        {choices.invite ? (
+        {showsCodeLink(cards, choices.invite) ? (
           <p className="mt-11 text-center text-xs leading-5 text-[#4a5059]">
             {copy("haveCode")}{" "}
             <Link href="/invite" className="hover:underline">

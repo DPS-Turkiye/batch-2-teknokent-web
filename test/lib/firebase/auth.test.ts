@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   describeAuthError,
+  isEmailAlreadyInUse,
   isEmailVerificationExempt,
 } from "@/lib/firebase/auth";
 import { clientTextsIn } from "@test/client-texts";
@@ -83,5 +84,21 @@ describe("isEmailVerificationExempt", () => {
     expect(isEmailVerificationExempt("Coordinator@teknokent.demo")).toBe(true);
     expect(isEmailVerificationExempt("gulse@dongu.co")).toBe(false);
     expect(isEmailVerificationExempt("mentor@teknokent.demo")).toBe(false);
+  });
+});
+
+describe("isEmailAlreadyInUse", () => {
+  it("is true only for Firebase's existing-login error", () => {
+    expect(
+      isEmailAlreadyInUse(
+        new FirebaseError("auth/email-already-in-use", "taken"),
+      ),
+    ).toBe(true);
+    expect(
+      isEmailAlreadyInUse(new FirebaseError("auth/weak-password", "weak")),
+    ).toBe(false);
+    expect(isEmailAlreadyInUse(new Error("auth/email-already-in-use"))).toBe(
+      false,
+    );
   });
 });
