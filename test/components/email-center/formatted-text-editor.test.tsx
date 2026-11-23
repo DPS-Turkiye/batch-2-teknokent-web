@@ -46,6 +46,9 @@ describe("the text of a mail", () => {
       "Kayıt ol{Enter}",
     );
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    await waitFor(async () => {
+      expect(await text()).toHaveFocus();
+    });
     expect(last()).toContain('href="https://menton.com.tr/invite"');
     expect(last()).toContain(">Kayıt ol</a>");
   });
@@ -73,6 +76,7 @@ describe("the text of a mail", () => {
     await press("Ekle");
     expect(within(dialog()).getByRole("alert")).toHaveTextContent(why);
     expect(address()).toBeInvalid();
+    expect(address()).toHaveFocus();
     expect(address()).toHaveAccessibleDescription(why);
     expect(onChange).not.toHaveBeenCalled();
     await userEvent.type(address(), "x");
@@ -124,16 +128,28 @@ describe("the text of a mail", () => {
   });
 
   it("warns of a pasted http link whose words would lose it", async () => {
-    open("<p></p>");
+    open("<p>Metin</p>");
     fireEvent.paste(await text(), {
       clipboardData: {
         files: [],
         types: ["text/html"],
         getData: (type: string) =>
-          type === "text/html" ? '<a href="http://eski.example">Kayıt</a>' : "",
+          type === "text/html"
+            ? '<a href="http://eski.example">Kayıt</a> <a href="www.eski.example">ol</a>'
+            : "",
       },
     });
     expect(await screen.findByText(/alıcı tıklayamaz/)).toBeInTheDocument();
+    expect((await text()).querySelector("a[href]")).toBeNull();
+  });
+
+  it("offers no tools while it is disabled", async () => {
+    renderWithQueryClient(
+      <FormattedTextEditor html="<p>a</p>" disabled onChange={vi.fn()} />,
+    );
+    await text();
+    for (const tool of screen.getAllByRole("button"))
+      expect(tool).toBeDisabled();
   });
 
   it("does not warn of an https address", async () => {

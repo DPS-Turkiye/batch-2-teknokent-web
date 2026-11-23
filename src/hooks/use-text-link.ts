@@ -19,8 +19,17 @@ type LinkForm = {
 export function useTextLink(editor: Editor | null, onSaved: () => void) {
   const [form, setForm] = useState<LinkForm | null>(null);
 
+  // Back to the text, once the dialog has given the focus back to its button.
+  const leave = () => {
+    setForm(null);
+    setTimeout(() => {
+      if (editor && !editor.isDestroyed)
+        editor.commands.focus(null, { scrollIntoView: false });
+    }, 0);
+  };
+
   const open = () => {
-    if (!editor) return;
+    if (!editor?.isEditable) return;
     const isEditing = editor.isActive("link");
     const href: unknown = editor.getAttributes("link").href;
     setForm({
@@ -32,11 +41,13 @@ export function useTextLink(editor: Editor | null, onSaved: () => void) {
     });
   };
 
-  const save = () => {
-    if (!editor || !form) return;
+  /** `addressField` is gone to when the address cannot be used. */
+  const save = (addressField: HTMLElement | null) => {
+    if (!editor?.isEditable || !form) return;
     const { href, problem } = emailLink(form.address);
     if (href === null) {
       setForm({ ...form, problem });
+      addressField?.focus();
       return;
     }
     if (form.needsWords) {
@@ -56,7 +67,7 @@ export function useTextLink(editor: Editor | null, onSaved: () => void) {
       editor.chain().extendMarkRange("link").setLink({ href }).run();
     }
     onSaved();
-    setForm(null);
+    leave();
   };
 
   return {
@@ -75,8 +86,9 @@ export function useTextLink(editor: Editor | null, onSaved: () => void) {
     },
     save,
     remove: () => {
-      editor?.chain().extendMarkRange("link").unsetLink().run();
-      setForm(null);
+      if (!editor?.isEditable) return;
+      editor.chain().extendMarkRange("link").unsetLink().run();
+      leave();
     },
   };
 }

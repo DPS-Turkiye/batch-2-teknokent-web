@@ -11,6 +11,9 @@ import type { useTextLink } from "@/hooks/use-text-link";
 const FIELD =
   "mt-1.5 h-10 w-full rounded-xl border border-[#e9ecef] px-3 text-[13.5px] text-[#22262b] outline-none focus-visible:border-[#22262b] focus-visible:ring-2 focus-visible:ring-[#22262b] aria-invalid:border-[#b4232a]";
 
+const PANEL =
+  "max-h-[calc(100dvh-2rem)] w-full max-w-md space-y-4 overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl outline-none";
+
 /** The address of a link in a mail's text, and why one cannot be used. */
 export function TextLinkDialog({
   link,
@@ -24,7 +27,11 @@ export function TextLinkDialog({
   if (!form) return null;
 
   return (
-    <ModalDialog labelledBy={`${id}-title`} onClose={link.close}>
+    <ModalDialog
+      labelledBy={`${id}-title`}
+      onClose={link.close}
+      panelClassName={PANEL}
+    >
       <h2
         id={`${id}-title`}
         className="text-[19px] font-semibold text-[#22262b]"
@@ -36,7 +43,7 @@ export function TextLinkDialog({
         className="space-y-4"
         onSubmit={(event) => {
           event.preventDefault();
-          link.save();
+          link.save(event.currentTarget.querySelector("input"));
         }}
       >
         <label className="block text-[13px] text-[#676e78]">
@@ -48,7 +55,9 @@ export function TextLinkDialog({
             autoComplete="off"
             placeholder="https://"
             aria-invalid={form.problem !== null}
-            aria-describedby={`${id}-hint ${id}-problem`}
+            aria-describedby={
+              form.problem ? `${id}-problem ${id}-hint` : `${id}-hint`
+            }
             onChange={(event) => {
               link.changeAddress(event.target.value);
             }}

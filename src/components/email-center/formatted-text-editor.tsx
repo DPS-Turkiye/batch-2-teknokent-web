@@ -9,7 +9,7 @@ import { TextLinkDialog } from "@/components/email-center/text-link-dialog";
 import { useFormattedText } from "@/hooks/use-formatted-text";
 
 const TOOL =
-  "grid size-9 place-items-center rounded-full text-[#676e78] hover:bg-[#f4f5f7] focus-visible:outline-2 focus-visible:outline-[#22262b] aria-pressed:bg-[#f4f5f7] aria-pressed:text-[#22262b]";
+  "grid size-9 place-items-center rounded-full text-[#676e78] hover:bg-[#f4f5f7] focus-visible:outline-2 focus-visible:outline-[#22262b] disabled:opacity-50 aria-pressed:bg-[#f4f5f7] aria-pressed:text-[#22262b] aria-pressed:ring-1 aria-pressed:ring-[#22262b]";
 
 /** Formatted text with links. */
 export function FormattedTextEditor({
@@ -44,6 +44,7 @@ export function FormattedTextEditor({
               type="button"
               aria-label={label}
               aria-pressed={isOn}
+              disabled={disabled}
               onClick={toggle}
               className={TOOL}
             >
@@ -54,8 +55,9 @@ export function FormattedTextEditor({
             type="button"
             aria-label={text.isLink ? t("editLink") : t("addLink")}
             aria-haspopup="dialog"
+            disabled={disabled}
             onClick={text.link.open}
-            className={`${TOOL} ${text.isLink ? "bg-[#f4f5f7] text-[#22262b]" : ""}`}
+            className={`${TOOL} ${text.isLink ? "bg-[#f4f5f7] text-[#22262b] ring-1 ring-[#22262b]" : ""}`}
           >
             <Link aria-hidden className="size-4" />
           </button>

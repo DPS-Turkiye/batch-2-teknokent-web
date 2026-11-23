@@ -11,10 +11,14 @@ export function useNow(isTicking: (now: Date) => boolean) {
 
   useEffect(() => {
     if (!ticks) return;
-    const timer = setInterval(() => {
+    const tick = () => {
       setNow(new Date());
-    }, TICK_MS);
+    };
+    // The time shown may be old if nothing ticked for a while.
+    const first = setTimeout(tick, 0);
+    const timer = setInterval(tick, TICK_MS);
     return () => {
+      clearTimeout(first);
       clearInterval(timer);
     };
   }, [ticks]);

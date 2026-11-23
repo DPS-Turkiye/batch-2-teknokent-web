@@ -6,7 +6,12 @@ import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 
 import { useTextLink } from "@/hooks/use-text-link";
-import { hasHttpAddress, hasHttpLink, isEmailLink } from "@/lib/email-link";
+import { isBlankHtml } from "@/lib/email-center";
+import {
+  hasHttpAddress,
+  isEmailLink,
+  withoutLostLinks,
+} from "@/lib/email-link";
 
 const STAY = { scrollIntoView: false };
 
@@ -53,8 +58,9 @@ export function useFormattedText({
           "min-h-64 w-full px-4 py-3 text-sm leading-relaxed text-[#22262b] outline-none [&_a]:underline [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:mb-2 [&_ul]:list-disc [&_ul]:pl-5",
       },
       transformPastedHTML: (pasted) => {
-        if (hasHttpLink(pasted)) setDroppedLink(true);
-        return pasted;
+        const { cleaned, lost } = withoutLostLinks(pasted);
+        if (lost) setDroppedLink(true);
+        return cleaned;
       },
     },
     onUpdate: ({ editor: current }) => {
@@ -83,7 +89,7 @@ export function useFormattedText({
     editor,
     link,
     isLink: state?.link ?? false,
-    warnsOfHttp: hasHttpAddress(html) || droppedLink,
+    warnsOfHttp: hasHttpAddress(html) || (droppedLink && !isBlankHtml(html)),
     bold: {
       isOn: state?.bold ?? false,
       toggle: () => editor?.chain().focus(null, STAY).toggleBold().run(),

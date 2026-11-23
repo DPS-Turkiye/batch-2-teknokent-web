@@ -7520,7 +7520,7 @@
       "toolbar": "Metin biçimi",
       "addLink": "Bağlantı ekle",
       "editLink": "Bağlantıyı düzenle",
-      "httpWarning": "http:// ile başlayan adresler e-postada bağlantı olmaz, alıcı tıklayamaz. https:// kullan.",
+      "httpWarning": "Yalnızca https:// bağlantıları çalışır; http:// ve diğer adreslere alıcı tıklayamaz.",
       "linkDialog": {
         "addTitle": "Bağlantı ekle",
         "editTitle": "Bağlantıyı düzenle",
