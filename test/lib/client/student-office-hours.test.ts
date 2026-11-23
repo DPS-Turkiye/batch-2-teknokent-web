@@ -121,6 +121,8 @@ describe("student Office Hours client", () => {
   });
 
   it("keeps the open slots inside the asked window, each free to ask", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-11-22T12:00:00+03:00"));
     vi.mocked(getAcademicianOpenSlots).mockResolvedValue([
       {
         startsAt: "2026-11-23T09:00:00+03:00",
@@ -146,6 +148,7 @@ describe("student Office Hours client", () => {
         available: true,
       },
     ]);
+    vi.useRealTimers();
   });
 
   it("never offers a time already past, and none once the academician is no longer listed", async () => {
