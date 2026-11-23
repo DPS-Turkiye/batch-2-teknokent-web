@@ -19,6 +19,10 @@ it("starts with the given text and reports its formatting", async () => {
   ).toHaveTextContent("Merhaba");
   await userEvent.click(screen.getByRole("button", { name: "Madde listesi" }));
   expect(onChange.mock.lastCall?.[0]).toContain("<ul>");
+  expect(screen.getByRole("button", { name: "Madde listesi" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
   await userEvent.click(screen.getByRole("button", { name: "Numaralı liste" }));
   expect(onChange.mock.lastCall?.[0]).toContain("<ol>");
   await userEvent.click(screen.getByRole("button", { name: "Kalın" }));

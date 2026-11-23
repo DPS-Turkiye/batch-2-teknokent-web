@@ -216,7 +216,8 @@ export function useEmailDraft(
       if (isBlankHtml(draft.bodyHtml)) fill(template);
       else setQuestion({ kind: DraftQuestionKind.Template, template });
     },
-    isWaitingForSave: save.isPending,
+    savedAudience: saved.audience,
+    isMissingSomething: !isDraftComplete(draft),
     textVersion,
     replyTo: detail?.replyTo ?? null,
     isNew: id === null,

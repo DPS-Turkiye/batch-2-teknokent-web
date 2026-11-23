@@ -1,7 +1,7 @@
 // TEST UI: placeholder until the design team's screen; replace when it arrives.
 "use client";
 
-import { EditorContent, useEditor } from "@tiptap/react";
+import { EditorContent, useEditor, useEditorState } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { Bold, Italic, List, ListOrdered } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -53,9 +53,19 @@ export function FormattedTextEditor({
   useEffect(() => {
     editor?.setEditable(!disabled, false);
   }, [editor, disabled]);
+  const active = useEditorState({
+    editor,
+    selector: ({ editor: current }) => ({
+      bold: current?.isActive("bold") ?? false,
+      italic: current?.isActive("italic") ?? false,
+      bulletList: current?.isActive("bulletList") ?? false,
+      orderedList: current?.isActive("orderedList") ?? false,
+    }),
+  });
   const tools = [
     {
       label: t("bold"),
+      isOn: active?.bold ?? false,
       icon: Bold,
       run: () =>
         editor
@@ -66,6 +76,7 @@ export function FormattedTextEditor({
     },
     {
       label: t("italic"),
+      isOn: active?.italic ?? false,
       icon: Italic,
       run: () =>
         editor
@@ -76,6 +87,7 @@ export function FormattedTextEditor({
     },
     {
       label: t("bulletList"),
+      isOn: active?.bulletList ?? false,
       icon: List,
       run: () =>
         editor
@@ -86,6 +98,7 @@ export function FormattedTextEditor({
     },
     {
       label: t("orderedList"),
+      isOn: active?.orderedList ?? false,
       icon: ListOrdered,
       run: () =>
         editor
@@ -97,19 +110,20 @@ export function FormattedTextEditor({
   ];
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-[#e9ecef] bg-white focus-within:border-[#22262b]">
+    <div className="overflow-hidden rounded-2xl border border-[#e9ecef] bg-white focus-within:border-[#22262b] focus-within:ring-2 focus-within:ring-[#22262b]">
       <div
-        role="toolbar"
+        role="group"
         aria-label={t("toolbar")}
         className="flex gap-1 border-b border-[#eef0f2] p-2"
       >
-        {tools.map(({ label, icon: Icon, run }) => (
+        {tools.map(({ label, icon: Icon, isOn, run }) => (
           <button
             key={label}
             type="button"
             aria-label={label}
+            aria-pressed={isOn}
             onClick={run}
-            className="grid size-9 place-items-center rounded-full text-[#676e78] hover:bg-[#f4f5f7]"
+            className="grid size-9 place-items-center rounded-full text-[#676e78] hover:bg-[#f4f5f7] aria-pressed:bg-[#f4f5f7] aria-pressed:text-[#22262b]"
           >
             <Icon aria-hidden className="size-4" />
           </button>

@@ -39,8 +39,11 @@ export function EmailTemplatesView({
           />
         </div>
       ) : null}
-      <div role={view.error ? "alert" : "status"}>
-        <QueryNotice isLoading={view.isLoading} error={view.error} />
+      <div role="status">
+        <QueryNotice isLoading={view.isLoading} error={null} />
+      </div>
+      <div role="alert">
+        <QueryNotice isLoading={false} error={view.error} />
       </div>
       {view.hasNoProgram ? (
         <EmptyState title={t("templates.noProgram")} />

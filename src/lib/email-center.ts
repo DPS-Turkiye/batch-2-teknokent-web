@@ -160,7 +160,7 @@ export const RECIPIENT_TONES: Record<EmailRecipientStatus, StatusTone> = {
   [EmailRecipientStatus.Skipped]: "amber",
 };
 
-/** Where the writer stands: the first step that is not done is the current one. */
+/** Where the writer stands: the first step that is not done is the current one, and those after it wait. */
 export function emailStepStates(done: {
   isSaved: boolean;
   isTested: boolean;
@@ -174,7 +174,7 @@ export function emailStepStates(done: {
   ];
   const current = order.findIndex((row) => !row.isDone);
   const stateAt = (index: number) =>
-    order[index]?.isDone
+    index < current
       ? EmailStepState.Done
       : index === current
         ? EmailStepState.Current

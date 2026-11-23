@@ -100,7 +100,12 @@ describe("email center rules", () => {
       Waiting,
       Waiting,
     ]);
-    expect(states(true, false, true)).toEqual([Done, Current, Done, Waiting]);
+    expect(states(true, false, true)).toEqual([
+      Done,
+      Current,
+      Waiting,
+      Waiting,
+    ]);
     expect(states(true, true, true)).toEqual([Done, Done, Done, Current]);
   });
 

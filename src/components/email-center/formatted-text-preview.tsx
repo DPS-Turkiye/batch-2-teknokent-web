@@ -21,7 +21,7 @@ export function FormattedTextPreview({
       editorProps: {
         attributes: {
           "aria-label": label,
-          role: "document",
+          role: "group",
           class:
             "text-sm leading-relaxed text-[#515861] outline-none [&_a]:underline [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:mb-2 [&_ul]:list-disc [&_ul]:pl-5",
         },

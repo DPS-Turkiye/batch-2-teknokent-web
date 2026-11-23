@@ -54,7 +54,7 @@ export function SentEmail({
           </Link>
         }
       />
-      <div role="status">
+      <div>
         <StatusChip tone={CAMPAIGN_TONES[campaign.status]}>
           {t(`campaignStatuses.${campaign.status}`)}
         </StatusChip>
@@ -80,20 +80,22 @@ export function SentEmail({
         <RecipientList
           title={t("notReached", { count: problems.length })}
           recipients={problems}
+          heading="h2"
         />
       ) : null}
       <RecipientList
         title={t("sendLog")}
         recipients={detail.recipients}
+        heading="h2"
         filters={Object.values(RecipientFilter).map((id) => ({
           id,
           label: t(`filters.${id}`),
         }))}
       />
-      <section aria-label={t("text")} className="space-y-3">
-        <h3 className="text-[15px] font-semibold text-[#22262b]">
+      <section className="space-y-3">
+        <h2 className="text-[15px] font-semibold text-[#22262b]">
           {t("text")}
-        </h3>
+        </h2>
         <Panel>
           <div className="p-6">
             <FormattedTextPreview html={detail.bodyHtml} label={t("text")} />

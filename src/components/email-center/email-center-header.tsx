@@ -63,7 +63,7 @@ export function SendingOffNotice() {
   return (
     <p
       role="status"
-      className="rounded-2xl bg-[#fff6e5] px-5 py-3 text-[13.5px] text-[#b7791f]"
+      className="rounded-2xl bg-[#fff6e5] px-5 py-3 text-[13.5px] text-[#8a5a0c]"
     >
       {t("sendingOff")}
     </p>

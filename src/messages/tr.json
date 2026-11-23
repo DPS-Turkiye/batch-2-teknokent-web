@@ -7558,7 +7558,6 @@
     "pages": "E-posta sayfaları",
     "pagesOf": "{list}: sayfalar",
     "search": "Kişi ara",
-    "searchIn": "{list}: ara",
     "noMatch": "Aramana uyan kimse yok.",
     "noAddress": "Adres yok",
     "composeIntro": "E-postayı yaz, kendine dene, listeyi kontrol et, sonra gönder.",
@@ -7581,6 +7580,8 @@
       "notReached": "Ulaşmayan",
       "reached": "Gönderilen",
       "other": "Diğer"
-    }
+    },
+    "nobody": "Bu listede kimse yok.",
+    "requiredHint": "Kaydetmek için program, konu ve metin gerekli."
   }
 }

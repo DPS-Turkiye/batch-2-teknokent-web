@@ -36,7 +36,7 @@ export function NewEmailView({
     );
   if (!start)
     return (
-      <p role="status" className="text-sm text-[#858c96]">
+      <p role="status" className="text-sm text-[#676e78]">
         {tCommon("loading")}
       </p>
     );

@@ -7556,7 +7556,6 @@
     "pages": "E-mail pages",
     "pagesOf": "{list}: pages",
     "search": "Search people",
-    "searchIn": "Search in {list}",
     "noMatch": "Nobody matches your search.",
     "noAddress": "No address",
     "composeIntro": "Write the e-mail, try it on yourself, check the list, then send.",
@@ -7579,6 +7578,8 @@
       "notReached": "Not reached",
       "reached": "Sent",
       "other": "Other"
-    }
+    },
+    "nobody": "Nobody is on this list.",
+    "requiredHint": "A program, a subject and a text are needed to save."
   }
 }

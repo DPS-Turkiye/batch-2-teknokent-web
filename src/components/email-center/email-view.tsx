@@ -27,7 +27,7 @@ export function EmailView({
     );
   if (isLoading || !detail)
     return (
-      <p role="status" className="text-sm text-[#858c96]">
+      <p role="status" className="text-sm text-[#676e78]">
         {t("loading")}
       </p>
     );

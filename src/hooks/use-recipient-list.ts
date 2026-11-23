@@ -27,7 +27,9 @@ export function useRecipientList(recipients: EmailRecipient[]) {
       pages.setPage(1);
     },
     rows: pages.pageItems,
-    hasNoMatch: recipients.length > 0 && found.length === 0,
+    isEmpty: recipients.length === 0,
+    isSearching: search.trim() !== "" || filter !== RecipientFilter.All,
+    foundCount: found.length,
     page: pages.page,
     totalPages: pages.totalPages,
     setPage: pages.setPage,

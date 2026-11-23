@@ -28,7 +28,7 @@ export function UnsubscribeView({ token }: { token: string | null }) {
           </PrimaryButton>
         ) : null}
         {form.hasFailed ? (
-          <p role="alert" className="text-sm text-[#d9464b]">
+          <p role="alert" className="text-sm text-[#b4232a]">
             {t("failed")}
           </p>
         ) : null}

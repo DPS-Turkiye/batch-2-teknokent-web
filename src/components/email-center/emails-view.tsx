@@ -30,8 +30,11 @@ export function EmailsView({ basePath }: { basePath: EmailCenterPath }) {
     <div className="space-y-6 pb-10">
       <EmailCenterHeader basePath={basePath} onTemplates={false} />
       {list.sendingOff ? <SendingOffNotice /> : null}
-      <div role={list.error ? "alert" : "status"}>
-        <QueryNotice isLoading={list.isLoading} error={list.error} />
+      <div role="status">
+        <QueryNotice isLoading={list.isLoading} error={null} />
+      </div>
+      <div role="alert">
+        <QueryNotice isLoading={false} error={list.error} />
       </div>
       {list.isEmpty ? (
         <EmptyState
@@ -60,7 +63,7 @@ export function EmailsView({ basePath }: { basePath: EmailCenterPath }) {
                     <span className="block text-[14px] font-medium break-words text-[#22262b]">
                       {campaign.subject}
                     </span>
-                    <span className="mt-1 block text-[12.5px] text-[#858c96]">
+                    <span className="mt-1 block text-[12.5px] text-[#676e78]">
                       {t("campaignLine", {
                         program: campaign.programName,
                         audience: t(`audiences.${campaign.audience}`),

@@ -21,7 +21,7 @@ export function EmailQuestionDialog({
   const t = useTranslations("emailCenter");
   const facts = [
     { label: t("program"), value: form.programName },
-    { label: t("audience"), value: t(`audiences.${form.draft.audience}`) },
+    { label: t("audience"), value: t(`audiences.${form.savedAudience}`) },
     {
       label: t("recipientCount"),
       value: t("people", { count: form.selectedCount }),
@@ -40,7 +40,7 @@ export function EmailQuestionDialog({
               key={fact.label}
               className="flex flex-wrap justify-between gap-x-4"
             >
-              <dt className="text-[#858c96]">{fact.label}</dt>
+              <dt className="text-[#676e78]">{fact.label}</dt>
               <dd className="font-medium break-all text-[#22262b]">
                 {fact.value}
               </dd>

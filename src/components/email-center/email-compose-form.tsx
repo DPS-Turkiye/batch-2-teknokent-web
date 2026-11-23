@@ -26,7 +26,7 @@ import { isEnumValue } from "@/lib/enum";
 import { EmailStep as Step } from "@/types/email-center";
 
 const FIELD =
-  "mt-1.5 h-10 w-full rounded-xl border border-[#e9ecef] px-3 text-[13.5px] text-[#22262b] outline-none focus:border-[#22262b]";
+  "mt-1.5 h-10 w-full rounded-xl border border-[#e9ecef] px-3 text-[13.5px] text-[#22262b] outline-none focus-visible:border-[#22262b] focus-visible:ring-2 focus-visible:ring-[#22262b]";
 
 export function EmailComposeForm({
   detail,
@@ -58,7 +58,7 @@ export function EmailComposeForm({
       {form.sendingOff ? <SendingOffNotice /> : null}
       <ol className="space-y-4">
         <EmailStep number={1} step={Step.Write} state={form.steps[Step.Write]}>
-          <fieldset disabled={form.isWaitingForSave} className="space-y-4">
+          <fieldset disabled={form.isBusy} className="space-y-4">
             <legend className="sr-only">{t("steps.write")}</legend>
             <div className="flex flex-wrap gap-2">
               <PillSelect
@@ -114,17 +114,20 @@ export function EmailComposeForm({
             <FormattedTextEditor
               key={form.textVersion}
               html={form.draft.bodyHtml}
-              disabled={form.isWaitingForSave}
+              disabled={form.isBusy}
               onChange={(html) => {
                 form.update("bodyHtml", html);
               }}
             />
-            <p className="text-[12.5px] break-words text-[#858c96]">
+            <p className="text-[12.5px] break-words text-[#676e78]">
               {form.replyTo
                 ? t("replyTo", { address: form.replyTo })
                 : t("replyToLater")}
             </p>
           </fieldset>
+          {form.isMissingSomething ? (
+            <p className="text-[12.5px] text-[#676e78]">{t("requiredHint")}</p>
+          ) : null}
           <div className="flex flex-wrap gap-2">
             <SolidButton disabled={!form.canSave} onClick={form.save}>
               {t("save")}
@@ -152,6 +155,9 @@ export function EmailComposeForm({
           state={form.steps[Step.Review]}
         >
           <p className="text-[13.5px] text-[#676e78]">{t("reviewHint")}</p>
+          <p role="status" className="sr-only">
+            {form.isReviewed ? t("people", { count: form.selectedCount }) : ""}
+          </p>
           <OutlineButton disabled={!form.canReview} onClick={form.review}>
             {form.isReviewed ? t("reviewAgain") : t("showList")}
           </OutlineButton>
@@ -169,10 +175,7 @@ export function EmailComposeForm({
                   recipients={form.excluded}
                 />
               ) : null}
-              <p
-                role="status"
-                className="sticky bottom-3 z-10 rounded-full bg-[#22262b] px-5 py-3 text-center text-[13px] font-medium text-white shadow-[0_12px_32px_rgba(33,38,43,0.2)]"
-              >
+              <p className="sticky bottom-3 z-10 rounded-full bg-[#22262b] px-5 py-3 text-center text-[13px] font-medium text-white shadow-[0_12px_32px_rgba(33,38,43,0.2)]">
                 {t("finalCount", {
                   count: form.selectedCount,
                   excluded: form.excluded.length,

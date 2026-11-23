@@ -222,6 +222,37 @@ describe("writing a mail", () => {
     ).toBeInTheDocument();
   });
 
+  it("says when nobody is left to write to, and pages a long list", async () => {
+    vi.mocked(client.getEmailCampaign).mockResolvedValue({
+      ...ready,
+      recipients: [],
+    });
+    const { unmount } = view();
+    expect(
+      await screen.findByText("Bu listede kimse yok."),
+    ).toBeInTheDocument();
+    unmount();
+    vi.mocked(client.getEmailCampaign).mockResolvedValue({
+      ...ready,
+      recipients: Array.from({ length: 30 }, (_, index) =>
+        emailRecipient({ id: `r${index}`, fullName: `Kişi ${index}` }),
+      ),
+    });
+    view();
+    expect(await screen.findAllByRole("checkbox")).toHaveLength(25);
+    await userEvent.click(
+      screen.getByRole("checkbox", { name: "Kişi 0 kişisine gönder" }),
+    );
+    await userEvent.click(await button("Sonraki"));
+    expect(screen.getAllByRole("checkbox")).toHaveLength(5);
+    expect(await button("29 kişiye gönder")).toBeEnabled();
+    await userEvent.type(
+      screen.getByRole("textbox", { name: "Kişi ara" }),
+      "0",
+    );
+    expect(screen.getAllByRole("checkbox")).toHaveLength(3);
+  });
+
   it("shows which step is next", async () => {
     vi.mocked(client.getEmailCampaign).mockResolvedValue(emailDetail());
     view();
@@ -397,7 +428,7 @@ describe("the templates", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Konu: Kaydını tamamla")).toBeInTheDocument();
     expect(
-      await screen.findByRole("document", {
+      await screen.findByRole("group", {
         name: "Davet hatırlatması önizlemesi",
       }),
     ).toHaveTextContent("Hatırlatma");

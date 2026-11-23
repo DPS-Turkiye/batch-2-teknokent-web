@@ -2,6 +2,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { useId } from "react";
 
 import {
   Avatar,
@@ -25,12 +26,14 @@ import type { RecipientFilter } from "@/types/email-center";
 /** People on a mail: with tick boxes in the review, with what became of each mail afterwards. */
 export function RecipientList({
   title,
+  heading: Heading = "h3",
   recipients,
   isTicked,
   onToggle,
   filters,
 }: {
   title: string;
+  heading?: "h2" | "h3";
   recipients: EmailRecipient[];
   isTicked?: (id: string) => boolean;
   onToggle?: (id: string) => void;
@@ -38,17 +41,23 @@ export function RecipientList({
 }) {
   const t = useTranslations("emailCenter");
   const list = useRecipientList(recipients);
+  const headingId = useId();
 
   return (
-    <section aria-label={title} className="space-y-3">
+    <section aria-labelledby={headingId} className="space-y-3">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h3 className="text-[15px] font-semibold text-[#22262b]">{title}</h3>
+        <Heading
+          id={headingId}
+          className="text-[15px] font-semibold text-[#22262b]"
+        >
+          {title}
+        </Heading>
         <div className="flex">
           <SearchField
             value={list.search}
             onChange={list.setSearch}
             placeholder={t("search")}
-            ariaLabel={t("searchIn", { list: title })}
+            ariaLabel={t("search")}
           />
         </div>
       </div>
@@ -62,7 +71,15 @@ export function RecipientList({
         </div>
       ) : null}
       <div role="status">
-        {list.hasNoMatch ? <EmptyNote>{t("noMatch")}</EmptyNote> : null}
+        {list.isEmpty ? <EmptyNote>{t("nobody")}</EmptyNote> : null}
+        {list.isSearching && list.foundCount === 0 ? (
+          <EmptyNote>{t("noMatch")}</EmptyNote>
+        ) : null}
+        {list.isSearching && list.foundCount > 0 ? (
+          <span className="sr-only">
+            {t("people", { count: list.foundCount })}
+          </span>
+        ) : null}
       </div>
       {list.rows.length > 0 ? (
         <Panel>
@@ -80,7 +97,7 @@ export function RecipientList({
                     onChange={() => {
                       onToggle(row.id);
                     }}
-                    className="mt-1.5 size-5 shrink-0 accent-[#22262b] sm:mt-0"
+                    className="mt-1.5 size-5 shrink-0 scroll-mt-28 scroll-mb-24 accent-[#22262b] focus-visible:ring-2 focus-visible:ring-[#22262b] focus-visible:ring-offset-2 sm:mt-0"
                   />
                 ) : null}
                 <span aria-hidden className="hidden sm:block">
@@ -99,7 +116,7 @@ export function RecipientList({
                     <p className="text-[12.5px] break-all text-[#676e78]">
                       {row.address ?? t("noAddress")}
                     </p>
-                    <p className="text-[12.5px] text-[#858c96]">
+                    <p className="text-[12.5px] text-[#676e78]">
                       {row.teamName ?? t(`kinds.${row.kind}`)}
                     </p>
                   </div>
