@@ -25,7 +25,7 @@ import {
   jsonRequest,
 } from "@test/app/api/body-validation";
 import { withForgedActor } from "@test/fixtures/forged-actor";
-import { guardRefusal } from "@test/fixtures/route-handlers";
+import { backendResponse, guardRefusal } from "@test/fixtures/route-handlers";
 import { appSession } from "@test/fixtures/session";
 
 vi.mock("@/lib/api/email-center");
@@ -168,7 +168,12 @@ describe("unsubscribing", () => {
     );
 
   it("needs no session, only the link's token", async () => {
-    expect((await post(`?t=${token}`)).status).toBe(200);
+    vi.mocked(backend.unsubscribeEmail).mockResolvedValue(
+      backendResponse(null, 204),
+    );
+    const response = await post(`?t=${token}`);
+    expect(response.status).toBe(204);
+    expect(await response.text()).toBe("");
     expect(backend.unsubscribeEmail).toHaveBeenCalledWith(token);
     expect(requireCoordinatorOrAdminSession).not.toHaveBeenCalled();
   });

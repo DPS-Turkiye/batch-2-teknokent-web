@@ -7463,9 +7463,6 @@
     "include": "{name} kişisine gönder",
     "sendTo": "{count} kişiye gönder",
     "sendStarted": "Gönderim başladı.",
-    "confirmTitle": "{count} kişiye gönderilsin mi?",
-    "confirmText": "Gönderilen e-posta geri alınamaz.",
-    "confirmSend": "Evet, gönder",
     "cancel": "Vazgeç",
     "sendLog": "Gönderim durumu",
     "columns": {
@@ -7473,7 +7470,8 @@
       "address": "E-posta",
       "team": "Takım",
       "account": "Hesap",
-      "status": "Durum"
+      "status": "Durum",
+      "include": "Gönder"
     },
     "audiences": {
       "PARTICIPANTS": "Katılımcılar",
@@ -7524,7 +7522,8 @@
       "bold": "Kalın",
       "italic": "İtalik",
       "bulletList": "Madde listesi",
-      "orderedList": "Numaralı liste"
+      "orderedList": "Numaralı liste",
+      "toolbar": "Metin biçimi"
     },
     "unsubscribe": {
       "title": "E-posta tercihi",
@@ -7533,6 +7532,23 @@
       "done": "Tamam, artık bu e-postaları almayacaksın.",
       "missingToken": "Bu bağlantı geçersiz. E-postadaki bağlantıyı kullan.",
       "failed": "İşlem tamamlanamadı. Biraz sonra tekrar dene."
+    },
+    "questions": {
+      "SEND": {
+        "title": "{count} kişiye gönderilsin mi?",
+        "text": "Gönderilen e-posta geri alınamaz.",
+        "yes": "Evet, gönder"
+      },
+      "DELETE": {
+        "title": "Taslak silinsin mi?",
+        "text": "Silinen taslak geri getirilemez.",
+        "yes": "Evet, sil"
+      },
+      "TEMPLATE": {
+        "title": "Yazdıkların değiştirilsin mi?",
+        "text": "Şablon, konuyu ve metni değiştirir.",
+        "yes": "Evet, şablonu kullan"
+      }
     }
   }
 }

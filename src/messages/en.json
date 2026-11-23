@@ -7461,9 +7461,6 @@
     "include": "Send to {name}",
     "sendTo": "Send to {count} people",
     "sendStarted": "Sending has started.",
-    "confirmTitle": "Send to {count} people?",
-    "confirmText": "A sent e-mail cannot be taken back.",
-    "confirmSend": "Yes, send",
     "cancel": "Cancel",
     "sendLog": "Delivery status",
     "columns": {
@@ -7471,7 +7468,8 @@
       "address": "E-mail",
       "team": "Team",
       "account": "Account",
-      "status": "Status"
+      "status": "Status",
+      "include": "Include"
     },
     "audiences": {
       "PARTICIPANTS": "Participants",
@@ -7522,7 +7520,8 @@
       "bold": "Bold",
       "italic": "Italic",
       "bulletList": "Bullet list",
-      "orderedList": "Numbered list"
+      "orderedList": "Numbered list",
+      "toolbar": "Text format"
     },
     "unsubscribe": {
       "title": "E-mail preference",
@@ -7531,6 +7530,23 @@
       "done": "Done, you will no longer get these e-mails.",
       "missingToken": "This link is not valid. Use the link in the e-mail.",
       "failed": "That did not work. Try again in a moment."
+    },
+    "questions": {
+      "SEND": {
+        "title": "Send to {count} people?",
+        "text": "A sent e-mail cannot be taken back.",
+        "yes": "Yes, send"
+      },
+      "DELETE": {
+        "title": "Delete the draft?",
+        "text": "A deleted draft cannot be brought back.",
+        "yes": "Yes, delete"
+      },
+      "TEMPLATE": {
+        "title": "Replace what you wrote?",
+        "text": "The template replaces the subject and the text.",
+        "yes": "Yes, use the template"
+      }
     }
   }
 }

@@ -21,12 +21,19 @@ export function RecipientTable({
   return (
     <div className="overflow-x-auto rounded-xl border border-[#e4e7ea] bg-white">
       <table className="w-full text-left text-sm">
-        <caption className="px-4 py-3 text-left text-sm font-semibold text-[#22262b]">
+        <caption
+          aria-live="polite"
+          className="px-4 py-3 text-left text-sm font-semibold text-[#22262b]"
+        >
           {caption}
         </caption>
         <thead className="text-xs text-[#858c96]">
           <tr>
-            {onToggle ? <th scope="col" className="px-4 py-2" /> : null}
+            {onToggle ? (
+              <th scope="col" className="px-4 py-2">
+                <span className="sr-only">{t("columns.include")}</span>
+              </th>
+            ) : null}
             <th scope="col" className="px-4 py-2 font-medium">
               {t("columns.name")}
             </th>

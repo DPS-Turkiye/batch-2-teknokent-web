@@ -249,9 +249,62 @@ describe("writing a mail", () => {
     await userEvent.click(await button("Vazgeç"));
     expect(client.confirmEmailSend).not.toHaveBeenCalled();
     await userEvent.click(await button("Taslağı sil"));
+    expect(client.removeEmailDraft).not.toHaveBeenCalled();
+    await userEvent.click(await button("Evet, sil"));
     await waitFor(() => {
       expect(replace).toHaveBeenCalledWith("/coordinator/emails");
     });
+  });
+
+  it("creates one draft however often Kaydet is pressed", async () => {
+    vi.mocked(client.saveEmailDraft).mockResolvedValue(emailDetail());
+    renderWithQueryClient(
+      <EmailComposeForm detail={null} basePath={EmailCenterPath.Coordinator} />,
+    );
+    await screen.findByRole("option", { name: "Build '26" });
+    await userEvent.selectOptions(screen.getByLabelText("Program"), program.id);
+    await userEvent.type(screen.getByLabelText("Konu"), "Konu");
+    await userEvent.type(screen.getByLabelText("E-posta metni"), "x");
+    const save = await button("Kaydet");
+    await userEvent.click(save);
+    await waitFor(() => {
+      expect(replace).toHaveBeenCalled();
+    });
+    expect(save).toBeDisabled();
+    await userEvent.click(save);
+    expect(client.saveEmailDraft).toHaveBeenCalledTimes(1);
+  });
+
+  it("asks before a template replaces what was written", async () => {
+    vi.mocked(client.getEmailCampaign).mockResolvedValue(emailDetail());
+    view();
+    await screen.findByRole("option", { name: "Davet hatırlatması" });
+    const choose = () =>
+      userEvent.selectOptions(
+        screen.getByLabelText("Şablon"),
+        "inviteReminder",
+      );
+    await choose();
+    await userEvent.click(await button("Vazgeç"));
+    expect(screen.getByLabelText("Konu")).toHaveValue("Duyuru konusu");
+    await choose();
+    await userEvent.click(await button("Evet, şablonu kullan"));
+    expect(screen.getByLabelText("Konu")).toHaveValue("Kaydını tamamla");
+  });
+
+  it("starts with everybody ticked again when the list was renewed", async () => {
+    vi.mocked(client.getEmailCampaign).mockResolvedValue(ready);
+    vi.mocked(client.reviewEmailRecipients).mockResolvedValue({
+      ...ready,
+      reviewDigest: "digest-2",
+    });
+    view();
+    await userEvent.click(
+      await screen.findByRole("checkbox", { name: "Can Üye kişisine gönder" }),
+    );
+    expect(await button("1 kişiye gönder")).toBeEnabled();
+    await userEvent.click(await button("Listeyi yenile"));
+    expect(await button("2 kişiye gönder")).toBeEnabled();
   });
 
   it("says why a draft could not be saved", async () => {

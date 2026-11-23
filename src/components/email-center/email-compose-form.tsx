@@ -41,7 +41,11 @@ export function EmailComposeForm({
           {t("sendingOff")}
         </p>
       ) : null}
-      <section aria-label={t("steps.write")} className="space-y-4">
+      <fieldset
+        disabled={form.isWaitingForSave}
+        aria-label={t("steps.write")}
+        className="space-y-4"
+      >
         <h2 className="text-lg font-semibold">{t("steps.write")}</h2>
         <div className="grid gap-4 sm:grid-cols-3">
           <label className="text-sm">
@@ -86,7 +90,7 @@ export function EmailComposeForm({
               value=""
               disabled={form.templates.length === 0}
               onChange={(event) => {
-                form.applyTemplate(event.target.value);
+                form.chooseTemplate(event.target.value);
               }}
             >
               <option value="">{t("choose")}</option>
@@ -112,6 +116,7 @@ export function EmailComposeForm({
         <FormattedTextEditor
           key={form.textVersion}
           html={form.draft.bodyHtml}
+          disabled={form.isWaitingForSave}
           onChange={(html) => {
             form.update("bodyHtml", html);
           }}
@@ -135,13 +140,13 @@ export function EmailComposeForm({
               type="button"
               className={BUTTON}
               disabled={form.isBusy}
-              onClick={form.remove}
+              onClick={form.askToDelete}
             >
               {t("delete")}
             </button>
           )}
         </div>
-      </section>
+      </fieldset>
 
       <section aria-label={t("steps.test")} className="space-y-3">
         <h2 className="text-lg font-semibold">{t("steps.test")}</h2>
@@ -193,25 +198,29 @@ export function EmailComposeForm({
           type="button"
           className={PRIMARY}
           disabled={!form.canSend}
-          onClick={form.askToConfirm}
+          onClick={form.askToSend}
         >
           {t("sendTo", { count: form.selectedCount })}
         </button>
       </section>
-      {form.isConfirming ? (
+      {form.question ? (
         <ModalDialog
-          labelledBy="email-confirm-title"
-          onClose={form.cancelConfirm}
+          labelledBy="email-question-title"
+          onClose={form.cancelQuestion}
         >
-          <h2 id="email-confirm-title" className="text-lg font-semibold">
-            {t("confirmTitle", { count: form.selectedCount })}
+          <h2 id="email-question-title" className="text-lg font-semibold">
+            {t(`questions.${form.question}.title`, {
+              count: form.selectedCount,
+            })}
           </h2>
-          <p className="text-sm text-[#676e78]">{t("confirmText")}</p>
+          <p className="text-sm text-[#676e78]">
+            {t(`questions.${form.question}.text`)}
+          </p>
           <div className="flex justify-end gap-3">
             <button
               type="button"
               className={BUTTON}
-              onClick={form.cancelConfirm}
+              onClick={form.cancelQuestion}
             >
               {t("cancel")}
             </button>
@@ -219,9 +228,9 @@ export function EmailComposeForm({
               type="button"
               className={PRIMARY}
               disabled={form.isBusy}
-              onClick={form.confirmSend}
+              onClick={form.answerYes}
             >
-              {t("confirmSend")}
+              {t(`questions.${form.question}.yes`)}
             </button>
           </div>
         </ModalDialog>

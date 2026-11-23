@@ -14,6 +14,7 @@ import {
   EmailAudience,
   type EmailCampaignDetail,
   type EmailDraft,
+  type EmailTemplate,
 } from "@/interfaces/email-center";
 import { ToastTone } from "@/interfaces/toast";
 import { ClientApiError } from "@/lib/client/api";
@@ -27,6 +28,7 @@ import {
 } from "@/lib/client/email-center";
 import {
   EmailSendRefusal,
+  isBlankHtml,
   isDraftComplete,
   isSameDraft,
   splitRecipients,
@@ -41,6 +43,16 @@ const EMPTY_DRAFT: EmailDraft = {
   subject: "",
   bodyHtml: "",
 };
+
+export enum DraftQuestionKind {
+  Send = "SEND",
+  Delete = "DELETE",
+  Template = "TEMPLATE",
+}
+
+type DraftQuestion =
+  | { kind: DraftQuestionKind.Send | DraftQuestionKind.Delete }
+  | { kind: DraftQuestionKind.Template; template: EmailTemplate };
 
 function draftOf(detail: EmailCampaignDetail | null): EmailDraft {
   if (!detail) return EMPTY_DRAFT;
@@ -61,8 +73,12 @@ export function useEmailDraft(
   const [draft, setDraft] = useState<EmailDraft>(() => draftOf(detail));
   // What the backend holds, as it answered: its cleaned-up text is what the next edit is compared with.
   const [saved, setSaved] = useState<EmailDraft>(() => draftOf(detail));
-  const [unticked, setUnticked] = useState<ReadonlySet<string>>(new Set());
-  const [confirming, setConfirming] = useState(false);
+  // Belongs to one review: another list starts with everybody ticked.
+  const [unticked, setUnticked] = useState<{
+    digest: string | null;
+    ids: ReadonlySet<string>;
+  }>({ digest: null, ids: new Set() });
+  const [question, setQuestion] = useState<DraftQuestion | null>(null);
   // Remounts the editor when its text is replaced from outside: a template, or the backend's cleaned-up text.
   const [textVersion, setTextVersion] = useState(0);
 
@@ -70,7 +86,11 @@ export function useEmailDraft(
   const reviewDigest = detail?.reviewDigest ?? null;
   const isSaved = id !== null && isSameDraft(draft, saved);
   const { offered, excluded } = splitRecipients(detail?.recipients ?? []);
-  const selectedCount = offered.filter((row) => !unticked.has(row.id)).length;
+  const untickedIds =
+    unticked.digest === reviewDigest
+      ? offered.map((row) => row.id).filter((row) => unticked.ids.has(row))
+      : [];
+  const selectedCount = offered.length - untickedIds.length;
 
   const templates = useQuery({
     queryKey: ["email-templates", draft.programId],
@@ -79,11 +99,18 @@ export function useEmailDraft(
   });
 
   const keep = (next: EmailCampaignDetail) => {
-    queryClient.setQueryData(emailCampaignQueryKey(next.campaign.id), next);
+    const queryKey = emailCampaignQueryKey(next.campaign.id);
+    // A refetch that started earlier must not bring the older answer back.
+    void queryClient.cancelQueries({ queryKey });
+    queryClient.setQueryData(queryKey, next);
     void queryClient.invalidateQueries({
       queryKey: EMAIL_CAMPAIGNS_QUERY_KEY,
       exact: true,
     });
+  };
+  const fill = ({ audience, subject, bodyHtml }: EmailTemplate) => {
+    setDraft((previous) => ({ ...previous, audience, subject, bodyHtml }));
+    setTextVersion((version) => version + 1);
   };
   const fail = (error: unknown) => {
     showToast({
@@ -98,8 +125,9 @@ export function useEmailDraft(
       keep(next);
       setDraft(draftOf(next));
       setSaved(draftOf(next));
-      setTextVersion((version) => version + 1);
-      setUnticked(new Set());
+      // The backend cleans the text up; only then does the editor have to be refilled.
+      if (next.bodyHtml !== draft.bodyHtml)
+        setTextVersion((version) => version + 1);
       showToast({ message: t("saved"), tone: ToastTone.Success });
       if (id === null) router.replace(`${basePath}/${next.campaign.id}`);
     },
@@ -115,10 +143,7 @@ export function useEmailDraft(
   });
   const review = useMutation({
     mutationFn: reviewEmailRecipients,
-    onSuccess: (next) => {
-      keep(next);
-      setUnticked(new Set());
-    },
+    onSuccess: keep,
     onError: fail,
   });
   const send = useMutation({
@@ -131,7 +156,7 @@ export function useEmailDraft(
     }) =>
       confirmEmailSend(campaignId, {
         reviewDigest: digest,
-        untickedIds: [...unticked],
+        untickedIds,
         expectedCount: selectedCount,
       }),
     onSuccess: (next) => {
@@ -152,12 +177,13 @@ export function useEmailDraft(
       }
     },
     onSettled: () => {
-      setConfirming(false);
+      setQuestion(null);
     },
   });
   const remove = useMutation({
     mutationFn: removeEmailDraft,
-    onSuccess: () => {
+    onSuccess: (_result, removedId) => {
+      queryClient.removeQueries({ queryKey: emailCampaignQueryKey(removedId) });
       void queryClient.invalidateQueries({
         queryKey: EMAIL_CAMPAIGNS_QUERY_KEY,
         exact: true,
@@ -165,9 +191,14 @@ export function useEmailDraft(
       router.replace(basePath);
     },
     onError: fail,
+    onSettled: () => {
+      setQuestion(null);
+    },
   });
 
   const isBusy =
+    // Until the page of the new draft is open, another click would create a second one.
+    (id === null && save.isSuccess) ||
     save.isPending ||
     test.isPending ||
     review.isPending ||
@@ -187,13 +218,13 @@ export function useEmailDraft(
     },
     programs: options.data?.programs ?? [],
     templates: templates.data ?? [],
-    applyTemplate: (key: string) => {
+    chooseTemplate: (key: string) => {
       const template = templates.data?.find((row) => row.key === key);
       if (!template) return;
-      const { audience, subject, bodyHtml } = template;
-      setDraft((previous) => ({ ...previous, audience, subject, bodyHtml }));
-      setTextVersion((version) => version + 1);
+      if (isBlankHtml(draft.bodyHtml)) fill(template);
+      else setQuestion({ kind: DraftQuestionKind.Template, template });
     },
+    isWaitingForSave: save.isPending,
     textVersion,
     replyTo: detail?.replyTo ?? null,
     isNew: id === null,
@@ -216,30 +247,34 @@ export function useEmailDraft(
     review: () => {
       if (id !== null) review.mutate(id);
     },
-    remove: () => {
-      if (id !== null) remove.mutate(id);
-    },
     offered: isReviewed ? offered : [],
     excluded: isReviewed ? excluded : [],
-    isTicked: (recipientId: string) => !unticked.has(recipientId),
+    isTicked: (recipientId: string) => !untickedIds.includes(recipientId),
     toggle: (recipientId: string) => {
-      setUnticked((previous) => {
-        const next = new Set(previous);
-        if (!next.delete(recipientId)) next.add(recipientId);
-        return next;
-      });
+      const ids = new Set(untickedIds);
+      if (!ids.delete(recipientId)) ids.add(recipientId);
+      setUnticked({ digest: reviewDigest, ids });
     },
     selectedCount,
-    isConfirming: confirming,
-    askToConfirm: () => {
-      setConfirming(true);
+    question: question?.kind ?? null,
+    askToSend: () => {
+      setQuestion({ kind: DraftQuestionKind.Send });
     },
-    cancelConfirm: () => {
-      setConfirming(false);
+    askToDelete: () => {
+      setQuestion({ kind: DraftQuestionKind.Delete });
     },
-    confirmSend: () => {
-      if (id !== null && reviewDigest !== null)
+    cancelQuestion: () => {
+      setQuestion(null);
+    },
+    answerYes: () => {
+      if (question?.kind === DraftQuestionKind.Template) {
+        fill(question.template);
+        setQuestion(null);
+      } else if (question?.kind === DraftQuestionKind.Delete && id !== null) {
+        remove.mutate(id);
+      } else if (id !== null && reviewDigest !== null) {
         send.mutate({ digest: reviewDigest, campaignId: id });
+      }
     },
   };
 }

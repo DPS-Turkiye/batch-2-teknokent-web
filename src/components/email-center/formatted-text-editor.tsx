@@ -5,13 +5,16 @@ import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { Bold, Italic, List, ListOrdered } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useEffect } from "react";
 
 /** Formatted text with links (pasted or typed addresses become links). `html` is only the starting text. */
 export function FormattedTextEditor({
   html,
+  disabled,
   onChange,
 }: {
   html: string;
+  disabled: boolean;
   onChange: (html: string) => void;
 }) {
   const t = useTranslations("emailCenter.editor");
@@ -24,10 +27,15 @@ export function FormattedTextEditor({
         heading: { levels: [2, 3] },
         horizontalRule: false,
         strike: false,
-        link: { openOnClick: false, protocols: ["https", "mailto"] },
+        link: {
+          openOnClick: false,
+          defaultProtocol: "https",
+          protocols: ["https", "mailto"],
+        },
       }),
     ],
     content: html,
+    editable: !disabled,
     immediatelyRender: false,
     editorProps: {
       attributes: {
@@ -42,6 +50,9 @@ export function FormattedTextEditor({
       onChange(current.getHTML());
     },
   });
+  useEffect(() => {
+    editor?.setEditable(!disabled, false);
+  }, [editor, disabled]);
   const tools = [
     {
       label: t("bold"),
@@ -87,7 +98,11 @@ export function FormattedTextEditor({
 
   return (
     <div className="rounded-xl border border-[#e4e7ea] bg-white">
-      <div className="flex gap-1 border-b border-[#eef0f2] p-2">
+      <div
+        role="toolbar"
+        aria-label={t("toolbar")}
+        className="flex gap-1 border-b border-[#eef0f2] p-2"
+      >
         {tools.map(({ label, icon: Icon, run }) => (
           <button
             key={label}
