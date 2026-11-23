@@ -410,6 +410,25 @@ describe("the templates", () => {
     expect(await button("Kaydet")).toBeEnabled();
   });
 
+  it("starts over when another template, or none, is asked for", async () => {
+    const queryClient = createTestQueryClient();
+    const at = (templateKey: string) => (
+      <InLocale locale="tr">
+        <QueryClientProvider client={queryClient}>
+          <NewEmailView
+            basePath={EmailCenterPath.Coordinator}
+            programId={templateKey ? program.id : ""}
+            templateKey={templateKey}
+          />
+        </QueryClientProvider>
+      </InLocale>
+    );
+    const { rerender } = render(at("inviteReminder"));
+    expect(await screen.findByLabelText("Konu")).toHaveValue("Kaydını tamamla");
+    rerender(at(""));
+    expect(screen.getByLabelText("Konu")).toHaveValue("");
+  });
+
   it("keeps what is being written when a later refetch fails", async () => {
     const queryClient = createTestQueryClient();
     render(
@@ -436,6 +455,8 @@ describe("the templates", () => {
     unmount();
     start(program.id, "unknown");
     expect(await screen.findByLabelText("Konu")).toHaveValue("");
+    await screen.findByRole("option", { name: "Build '26" });
+    expect(screen.getByLabelText("Program")).toHaveValue(program.id);
   });
 
   it("says why the chosen one could not be loaded", async () => {

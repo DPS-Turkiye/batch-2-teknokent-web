@@ -14,7 +14,7 @@ export function FormattedTextPreview({
 }) {
   const editor = useEditor(
     {
-      extensions: [StarterKit],
+      extensions: [StarterKit.configure({ link: { openOnClick: false } })],
       content: html,
       editable: false,
       immediatelyRender: false,

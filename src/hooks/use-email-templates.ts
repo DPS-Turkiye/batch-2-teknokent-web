@@ -22,7 +22,8 @@ export function useEmailTemplates() {
   const options = useEmailOptions();
   const [picked, setPicked] = useState<string | null>(null);
   const programs = options.data?.programs ?? [];
-  const programId = picked ?? programs[0]?.id ?? "";
+  const shown = programs.find((row) => row.id === picked) ?? programs[0];
+  const programId = shown?.id ?? "";
   const templates = useEmailTemplatesQuery(programId);
   return {
     programs,
@@ -43,7 +44,7 @@ export function useEmailStart(programId: string, templateKey: string) {
     ? null
     : template
       ? draftFromTemplate(programId, template)
-      : EMPTY_EMAIL_DRAFT;
+      : { ...EMPTY_EMAIL_DRAFT, programId };
   // A later refetch that fails must not take a half-written mail off the screen.
   return { start, error: templates.data ? null : templates.error };
 }
