@@ -4,8 +4,8 @@
 import { useTranslations } from "next-intl";
 
 import { OutlineButton } from "@/components/admin/admin-ui";
-import { DangerButton } from "@/components/common/danger-button";
 import { ModalDialog } from "@/components/common/modal-dialog";
+import { DangerPill } from "@/components/email-center/danger-pill";
 import { useEmailStop } from "@/hooks/use-email-stop";
 import type { EmailCampaign } from "@/interfaces/email-center";
 
@@ -41,9 +41,9 @@ export function EmailStopPanel({ campaign }: { campaign: EmailCampaign }) {
           {stop.isHolding ? t("stop.holdHint") : t("stop.leavingHint")}
         </p>
       </div>
-      <DangerButton disabled={stop.isStopping} onClick={stop.ask}>
+      <DangerPill disabled={stop.isStopping} onClick={stop.ask}>
         {t("stop.button")}
-      </DangerButton>
+      </DangerPill>
       {stop.isAsking ? (
         <ModalDialog labelledBy={TITLE_ID} onClose={stop.cancel}>
           <h2
@@ -55,9 +55,9 @@ export function EmailStopPanel({ campaign }: { campaign: EmailCampaign }) {
           <p className="text-[13.5px] text-[#676e78]">{t("stop.text")}</p>
           <div className="flex flex-wrap justify-end gap-2">
             <OutlineButton onClick={stop.cancel}>{t("cancel")}</OutlineButton>
-            <DangerButton disabled={stop.isStopping} onClick={stop.confirm}>
+            <DangerPill disabled={stop.isStopping} onClick={stop.confirm}>
               {t("stop.yes")}
-            </DangerButton>
+            </DangerPill>
           </div>
         </ModalDialog>
       ) : null}

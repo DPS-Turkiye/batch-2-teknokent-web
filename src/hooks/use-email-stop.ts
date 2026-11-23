@@ -2,12 +2,13 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import {
   EMAIL_CAMPAIGNS_QUERY_KEY,
   emailCampaignQueryKey,
 } from "@/hooks/use-email-campaigns";
+import { useNow } from "@/hooks/use-now";
 import {
   EmailCampaignStatus,
   type EmailCampaign,
@@ -18,27 +19,14 @@ import { countdownLabel, holdSecondsLeft } from "@/lib/email-center";
 import { errorMessage } from "@/lib/utils";
 import { useToast } from "@/stores/toast-store";
 
-const TICK_MS = 1_000;
-
 /** A confirmed mail's hold and taking it back. The backend keeps the hold; the countdown only shows it. */
 export function useEmailStop(campaign: EmailCampaign) {
   const t = useTranslations("emailCenter");
   const queryClient = useQueryClient();
   const { showToast } = useToast();
-  const [now, setNow] = useState(() => new Date());
   const [isAsking, setIsAsking] = useState(false);
+  const now = useNow((at) => holdSecondsLeft(campaign, at) > 0);
   const secondsLeft = holdSecondsLeft(campaign, now);
-  const isHolding = secondsLeft > 0;
-
-  useEffect(() => {
-    if (!isHolding) return;
-    const timer = setInterval(() => {
-      setNow(new Date());
-    }, TICK_MS);
-    return () => {
-      clearInterval(timer);
-    };
-  }, [isHolding]);
 
   const stop = useMutation({
     mutationFn: () => stopEmailSend(campaign.id),
@@ -64,7 +52,7 @@ export function useEmailStop(campaign: EmailCampaign) {
 
   return {
     canStop: campaign.status === EmailCampaignStatus.Sending,
-    isHolding,
+    isHolding: secondsLeft > 0,
     countdown: countdownLabel(secondsLeft),
     isAsking,
     isStopping: stop.isPending,

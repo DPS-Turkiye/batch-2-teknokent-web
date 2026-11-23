@@ -83,8 +83,8 @@ export function EmailsView({ basePath }: { basePath: EmailCenterPath }) {
                         {t("problemCount", { count: problemCount(campaign) })}
                       </StatusChip>
                     ) : null}
-                    <StatusChip tone={CAMPAIGN_TONES[campaign.status]}>
-                      {t(`campaignStatuses.${campaign.status}`)}
+                    <StatusChip tone={CAMPAIGN_TONES[list.labelOf(campaign)]}>
+                      {t(`campaignStatuses.${list.labelOf(campaign)}`)}
                     </StatusChip>
                   </span>
                 </Link>

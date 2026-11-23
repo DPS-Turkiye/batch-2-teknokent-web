@@ -3,11 +3,13 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { useClientPagination } from "@/hooks/use-client-pagination";
+import { useNow } from "@/hooks/use-now";
 import type { EmailCampaign } from "@/interfaces/email-center";
 import {
   getEmailCampaigns,
   getEmailCenterOptions,
 } from "@/lib/client/email-center";
+import { campaignLabel, holdSecondsLeft } from "@/lib/email-center";
 import { POLL_INTERVAL, polling } from "@/lib/poll";
 
 export const EMAIL_CAMPAIGNS_QUERY_KEY = ["email-campaigns"] as const;
@@ -35,8 +37,12 @@ export function useEmailCampaigns() {
     ...polling(POLL_INTERVAL.background),
   });
   const pages = useClientPagination(campaigns.data ?? NO_CAMPAIGNS, PAGE_SIZE);
+  const now = useNow((at) =>
+    pages.pageItems.some((campaign) => holdSecondsLeft(campaign, at) > 0),
+  );
   return {
     campaigns: pages.pageItems,
+    labelOf: (campaign: EmailCampaign) => campaignLabel(campaign, now),
     page: pages.page,
     totalPages: pages.totalPages,
     setPage: pages.setPage,

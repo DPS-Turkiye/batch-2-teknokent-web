@@ -7485,7 +7485,8 @@
       "DRAFT": "Draft",
       "SENDING": "Sending",
       "SENT": "Sending finished",
-      "STOPPED": "Stopped"
+      "STOPPED": "Stopped",
+      "WAITING": "Waiting"
     },
     "statuses": {
       "EXCLUDED": "Not a recipient",
@@ -7514,7 +7515,27 @@
       "italic": "Italic",
       "bulletList": "Bullet list",
       "orderedList": "Numbered list",
-      "toolbar": "Text format"
+      "toolbar": "Text format",
+      "addLink": "Add a link",
+      "editLink": "Edit the link",
+      "httpWarning": "Addresses that start with http:// do not become links in the e-mail, so readers cannot click them. Use https://.",
+      "linkDialog": {
+        "addTitle": "Add a link",
+        "editTitle": "Edit the link",
+        "address": "Address",
+        "words": "Words to show (the address if left empty)",
+        "hint": "Only https:// addresses can be used. An address like menton.com.tr is added as https://.",
+        "add": "Add",
+        "save": "Save",
+        "remove": "Remove the link",
+        "problems": {
+          "empty": "Write an address.",
+          "http": "http:// cannot be used because it is not secure. Try the site's https:// address.",
+          "email": "An e-mail address cannot be a link. You can write it in the text.",
+          "other": "This kind of address cannot be used. Write one that starts with https://.",
+          "invalid": "This does not look like a web address. For example: https://menton.com.tr"
+        }
+      }
     },
     "unsubscribe": {
       "title": "E-mail preference",

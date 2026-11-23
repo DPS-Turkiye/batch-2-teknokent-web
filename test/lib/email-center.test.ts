@@ -8,6 +8,7 @@ import {
   EmailSkipReason,
 } from "@/interfaces/email-center";
 import {
+  campaignLabel,
   countdownLabel,
   EmailCenterPath,
   emailStepStates,
@@ -26,7 +27,11 @@ import {
   statusCounts,
   templateHref,
 } from "@/lib/email-center";
-import { EmailStepState, RecipientFilter } from "@/types/email-center";
+import {
+  CampaignLabel,
+  EmailStepState,
+  RecipientFilter,
+} from "@/types/email-center";
 import { emailCampaign, emailRecipient } from "@test/fixtures/email-center";
 
 const draft = {
@@ -150,6 +155,19 @@ describe("email center rules", () => {
     expect(at("2026-11-23T10:04:00Z", EmailCampaignStatus.Stopped)).toBe(0);
     expect(countdownLabel(272)).toBe("4:32");
     expect(countdownLabel(5)).toBe("0:05");
+  });
+
+  it("calls a confirmed mail waiting until its hold is over", () => {
+    const now = new Date("2026-11-23T10:00:00Z");
+    const label = (status: EmailCampaignStatus, startsAt: string | null) =>
+      campaignLabel(emailCampaign({ status, startsAt }), now);
+    const { Sending, Stopped, Draft, Sent } = EmailCampaignStatus;
+    expect(label(Sending, "2026-11-23T10:00:01Z")).toBe(CampaignLabel.Waiting);
+    expect(label(Sending, "2026-11-23T10:00:00Z")).toBe(CampaignLabel.Sending);
+    expect(label(Sending, null)).toBe(CampaignLabel.Sending);
+    expect(label(Stopped, "2026-11-23T10:04:00Z")).toBe(CampaignLabel.Stopped);
+    expect(label(Draft, null)).toBe(CampaignLabel.Draft);
+    expect(label(Sent, "2026-11-23T09:00:00Z")).toBe(CampaignLabel.Sent);
   });
 
   it("names why somebody was skipped, and nothing for other rows or codes", () => {

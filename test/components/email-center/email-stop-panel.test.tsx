@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 import { EmailView } from "@/components/email-center/email-view";
+import { EmailsView } from "@/components/email-center/emails-view";
 import {
   EmailCampaignStatus,
   EmailRecipientStatus,
@@ -66,6 +67,8 @@ it("shows the hold and stops it after asking", async () => {
   vi.mocked(client.stopEmailSend).mockResolvedValue(stopped);
   view();
   expect(await screen.findByRole("timer")).toHaveTextContent("4:32");
+  expect(screen.getByText("Bekliyor")).toBeInTheDocument();
+  expect(screen.queryByText("Gönderiliyor")).not.toBeInTheDocument();
   await userEvent.click(screen.getByRole("button", { name: "Durdur" }));
   expect(client.stopEmailSend).not.toHaveBeenCalled();
   const dialog = screen.getByRole("dialog", {
@@ -84,6 +87,30 @@ it("shows the hold and stops it after asking", async () => {
   });
   expect(screen.getByText("Atlandı")).toBeInTheDocument();
   expect(screen.getAllByText("Durduruldu").length).toBeGreaterThan(1);
+});
+
+it("turns from waiting to sending when the hold is over, on the page and in the list", async () => {
+  vi.mocked(client.getEmailCampaign).mockResolvedValue(
+    sending("2026-11-23T10:00:30Z"),
+  );
+  vi.mocked(client.getEmailCampaigns).mockResolvedValue([
+    sending("2026-11-23T10:00:30Z").campaign,
+  ]);
+  const { unmount } = view();
+  expect(await screen.findByText("Bekliyor")).toBeInTheDocument();
+  vi.setSystemTime(new Date("2026-11-23T10:00:31Z"));
+  expect(
+    await screen.findByText("Gönderiliyor", {}, { timeout: 3_000 }),
+  ).toBeInTheDocument();
+  expect(screen.queryByRole("timer")).not.toBeInTheDocument();
+  unmount();
+  vi.setSystemTime(new Date("2026-11-23T10:00:00Z"));
+  renderWithQueryClient(<EmailsView basePath={EmailCenterPath.Admin} />);
+  expect(await screen.findByText("Bekliyor")).toBeInTheDocument();
+  vi.setSystemTime(new Date("2026-11-23T10:00:31Z"));
+  expect(
+    await screen.findByText("Gönderiliyor", {}, { timeout: 3_000 }),
+  ).toBeInTheDocument();
 });
 
 it("says once mails leave that those cannot be taken back, and can be backed out of", async () => {

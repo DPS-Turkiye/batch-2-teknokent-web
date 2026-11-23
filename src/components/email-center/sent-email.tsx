@@ -8,6 +8,7 @@ import { PageHeading, Panel, StatusChip } from "@/components/admin/admin-ui";
 import { EmailStopPanel } from "@/components/email-center/email-stop-panel";
 import { FormattedTextPreview } from "@/components/email-center/formatted-text-preview";
 import { RecipientList } from "@/components/email-center/recipient-list";
+import { useCampaignLabel } from "@/hooks/use-campaign-label";
 import type { EmailCampaignDetail } from "@/interfaces/email-center";
 import {
   CAMPAIGN_TONES,
@@ -30,6 +31,7 @@ export function SentEmail({
   const t = useTranslations("emailCenter");
   const locale = useLocale();
   const { campaign } = detail;
+  const label = useCampaignLabel(campaign);
   const problems = notReached(detail.recipients);
 
   return (
@@ -56,8 +58,8 @@ export function SentEmail({
         }
       />
       <div role="status">
-        <StatusChip tone={CAMPAIGN_TONES[campaign.status]}>
-          {t(`campaignStatuses.${campaign.status}`)}
+        <StatusChip tone={CAMPAIGN_TONES[label]}>
+          {t(`campaignStatuses.${label}`)}
         </StatusChip>
       </div>
       <EmailStopPanel campaign={campaign} />

@@ -7487,7 +7487,8 @@
       "DRAFT": "Taslak",
       "SENDING": "Gönderiliyor",
       "SENT": "Gönderim tamamlandı",
-      "STOPPED": "Durduruldu"
+      "STOPPED": "Durduruldu",
+      "WAITING": "Bekliyor"
     },
     "statuses": {
       "EXCLUDED": "Alıcı değil",
@@ -7516,7 +7517,27 @@
       "italic": "İtalik",
       "bulletList": "Madde listesi",
       "orderedList": "Numaralı liste",
-      "toolbar": "Metin biçimi"
+      "toolbar": "Metin biçimi",
+      "addLink": "Bağlantı ekle",
+      "editLink": "Bağlantıyı düzenle",
+      "httpWarning": "http:// ile başlayan adresler e-postada bağlantı olmaz, alıcı tıklayamaz. https:// kullan.",
+      "linkDialog": {
+        "addTitle": "Bağlantı ekle",
+        "editTitle": "Bağlantıyı düzenle",
+        "address": "Adres",
+        "words": "Görünen metin (boş bırakırsan adres görünür)",
+        "hint": "Yalnızca https:// adresleri kullanılabilir. menton.com.tr gibi bir adres https:// olarak eklenir.",
+        "add": "Ekle",
+        "save": "Kaydet",
+        "remove": "Bağlantıyı kaldır",
+        "problems": {
+          "empty": "Bir adres yaz.",
+          "http": "http:// güvenli olmadığı için kullanılamaz. Sitenin https:// adresini dene.",
+          "email": "E-posta adresi bağlantı olamaz. Adresi metne yazabilirsin.",
+          "other": "Bu tür adres kullanılamaz. https:// ile başlayan bir adres yaz.",
+          "invalid": "Bu bir web adresine benzemiyor. Örnek: https://menton.com.tr"
+        }
+      }
     },
     "unsubscribe": {
       "title": "E-posta tercihi",

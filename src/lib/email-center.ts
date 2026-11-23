@@ -10,6 +10,7 @@ import {
 } from "@/interfaces/email-center";
 import { isEnumValue } from "@/lib/enum";
 import {
+  CampaignLabel,
   EmailStep,
   EmailStepState,
   RecipientFilter,
@@ -165,12 +166,27 @@ export function isSameDraft(left: EmailDraft, right: EmailDraft) {
   );
 }
 
-export const CAMPAIGN_TONES: Record<EmailCampaignStatus, StatusTone> = {
-  [EmailCampaignStatus.Draft]: "neutral",
-  [EmailCampaignStatus.Sending]: "blue",
-  [EmailCampaignStatus.Sent]: "green",
-  [EmailCampaignStatus.Stopped]: "amber",
+const LABELS: Record<EmailCampaignStatus, CampaignLabel> = {
+  [EmailCampaignStatus.Draft]: CampaignLabel.Draft,
+  [EmailCampaignStatus.Sending]: CampaignLabel.Sending,
+  [EmailCampaignStatus.Sent]: CampaignLabel.Sent,
+  [EmailCampaignStatus.Stopped]: CampaignLabel.Stopped,
 };
+
+export const CAMPAIGN_TONES: Record<CampaignLabel, StatusTone> = {
+  [CampaignLabel.Draft]: "neutral",
+  [CampaignLabel.Waiting]: "amber",
+  [CampaignLabel.Sending]: "blue",
+  [CampaignLabel.Sent]: "green",
+  [CampaignLabel.Stopped]: "amber",
+};
+
+/** A confirmed mail waits until its hold is over, and only then is it being sent. */
+export function campaignLabel(campaign: EmailCampaign, now: Date) {
+  return holdSecondsLeft(campaign, now) > 0
+    ? CampaignLabel.Waiting
+    : LABELS[campaign.status];
+}
 
 export const RECIPIENT_TONES: Record<EmailRecipientStatus, StatusTone> = {
   [EmailRecipientStatus.Excluded]: "neutral",
