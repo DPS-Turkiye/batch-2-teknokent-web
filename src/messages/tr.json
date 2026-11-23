@@ -7587,7 +7587,7 @@
     "requiredHint": "Kaydetmek için program, konu ve metin gerekli.",
     "stopped": "Gönderim durduruldu.",
     "stop": {
-      "startsIn": "Gönderim başlamasına kalan süre:",
+      "startsIn": "Gönderimin başlamasına kalan süre:",
       "holdHint": "Bu süre dolmadan durdurursan gönderim hiç başlamaz.",
       "leaving": "E-postalar gönderiliyor.",
       "leavingHint": "Durdurursan henüz gitmemiş e-postalar iptal edilir; gidenler geri alınamaz.",
