@@ -55,7 +55,7 @@ export function SentEmail({
           </Link>
         }
       />
-      <div>
+      <div role="status">
         <StatusChip tone={CAMPAIGN_TONES[campaign.status]}>
           {t(`campaignStatuses.${campaign.status}`)}
         </StatusChip>

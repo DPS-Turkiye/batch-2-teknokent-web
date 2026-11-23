@@ -71,7 +71,7 @@ it("shows the hold and stops it after asking", async () => {
   const dialog = screen.getByRole("dialog", {
     name: "Gönderim durdurulsun mu?",
   });
-  expect(within(dialog).getByText(/Hiç kimseye/)).toBeInTheDocument();
+  expect(within(dialog).getByText(/Henüz gitmemiş/)).toBeInTheDocument();
   await userEvent.click(
     within(dialog).getByRole("button", { name: "Evet, durdur" }),
   );
@@ -100,6 +100,26 @@ it("says once mails leave that those cannot be taken back, and can be backed out
   await userEvent.click(screen.getByRole("button", { name: "Vazgeç" }));
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   expect(client.stopEmailSend).not.toHaveBeenCalled();
+});
+
+it("sends one stop, and keeps its dialog until it is answered", async () => {
+  vi.mocked(client.getEmailCampaign).mockResolvedValue(
+    sending("2026-11-23T10:04:32Z"),
+  );
+  vi.mocked(client.stopEmailSend).mockReturnValue(
+    new Promise(() => {
+      // Never answers.
+    }),
+  );
+  view();
+  await userEvent.click(await screen.findByRole("button", { name: "Durdur" }));
+  const yes = screen.getByRole("button", { name: "Evet, durdur" });
+  await userEvent.click(yes);
+  await userEvent.click(yes);
+  await userEvent.keyboard("{Escape}");
+  expect(screen.getByRole("dialog")).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Durdur" })).toBeDisabled();
+  expect(client.stopEmailSend).toHaveBeenCalledTimes(1);
 });
 
 it("says when it was too late to stop", async () => {

@@ -7588,14 +7588,13 @@
     "stopped": "Gönderim durduruldu.",
     "stop": {
       "startsIn": "Gönderim başlamasına kalan süre:",
-      "holdHint": "Bu süre dolmadan durdurursan hiç kimseye e-posta gitmez.",
+      "holdHint": "Bu süre dolmadan durdurursan gönderim hiç başlamaz.",
       "leaving": "E-postalar gönderiliyor.",
       "leavingHint": "Durdurursan henüz gitmemiş e-postalar iptal edilir; gidenler geri alınamaz.",
       "button": "Durdur",
       "title": "Gönderim durdurulsun mu?",
-      "holdText": "Hiç kimseye e-posta gitmeyecek. Durdurulan gönderim devam ettirilemez.",
-      "leavingText": "Henüz gitmemiş e-postalar iptal edilecek. Şu anda gönderilmekte olan bir e-posta yine de ulaşabilir. Durdurulan gönderim devam ettirilemez.",
-      "yes": "Evet, durdur"
+      "yes": "Evet, durdur",
+      "text": "Henüz gitmemiş e-postalar iptal edilecek. Gönderim başladıysa şu anda gönderilmekte olan bir e-posta yine de ulaşabilir. Durdurulan gönderim devam ettirilemez."
     },
     "skipReasons": {
       "STOPPED": "Durduruldu",

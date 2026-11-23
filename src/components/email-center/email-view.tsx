@@ -34,6 +34,6 @@ export function EmailView({
   return isDraft ? (
     <EmailComposeForm key={id} detail={detail} basePath={basePath} />
   ) : (
-    <SentEmail detail={detail} basePath={basePath} />
+    <SentEmail key={id} detail={detail} basePath={basePath} />
   );
 }

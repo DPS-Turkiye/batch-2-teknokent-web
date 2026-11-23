@@ -72,10 +72,11 @@ export function useEmailStop(campaign: EmailCampaign) {
       setIsAsking(true);
     },
     cancel: () => {
-      setIsAsking(false);
+      // A stop on its way cannot be taken back, so its dialog stays until it is answered.
+      if (!stop.isPending) setIsAsking(false);
     },
     confirm: () => {
-      stop.mutate();
+      if (!stop.isPending) stop.mutate();
     },
   };
 }
