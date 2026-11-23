@@ -1,11 +1,23 @@
 import { notFound } from "next/navigation";
 
-import { EmailComposeForm } from "@/components/email-center/email-compose-form";
-import { EMAIL_CENTER_ENABLED, EmailCenterPath } from "@/lib/email-center";
+import { NewEmailView } from "@/components/email-center/new-email-view";
+import {
+  EMAIL_CENTER_ENABLED,
+  EmailCenterPath,
+  startFromQuery,
+  type EmailStartQuery,
+} from "@/lib/email-center";
 
-export default function NewCoordinatorEmailsPage() {
+export default async function NewCoordinatorEmailsPage({
+  searchParams,
+}: {
+  searchParams: Promise<EmailStartQuery>;
+}) {
   if (!EMAIL_CENTER_ENABLED) notFound();
   return (
-    <EmailComposeForm detail={null} basePath={EmailCenterPath.Coordinator} />
+    <NewEmailView
+      basePath={EmailCenterPath.Coordinator}
+      {...startFromQuery(await searchParams)}
+    />
   );
 }

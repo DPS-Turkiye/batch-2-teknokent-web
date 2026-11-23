@@ -7549,6 +7549,15 @@
         "text": "Şablon, konuyu ve metni değiştirir.",
         "yes": "Evet, şablonu kullan"
       }
+    },
+    "templates": {
+      "title": "Şablonlar",
+      "intro": "Hazır metinlerden biriyle başla; göndermeden önce istediğin gibi düzenle.",
+      "line": "{audience} · Konu: {subject}",
+      "preview": "{name} önizlemesi",
+      "use": "Bu şablonu kullan",
+      "useNamed": "Bu şablonu kullan: {name}",
+      "noProgram": "Yönettiğin bir program olunca şablonlar burada görünür."
     }
   }
 }

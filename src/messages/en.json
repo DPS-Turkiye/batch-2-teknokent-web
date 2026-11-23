@@ -7547,6 +7547,15 @@
         "text": "The template replaces the subject and the text.",
         "yes": "Yes, use the template"
       }
+    },
+    "templates": {
+      "title": "Templates",
+      "intro": "Start from a ready text and edit it as you like before sending.",
+      "line": "{audience} · Subject: {subject}",
+      "preview": "Preview of {name}",
+      "use": "Use this template",
+      "useNamed": "Use this template: {name}",
+      "noProgram": "The templates show here once you manage a program."
     }
   }
 }

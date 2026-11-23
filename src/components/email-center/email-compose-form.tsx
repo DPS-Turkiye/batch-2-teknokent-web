@@ -10,6 +10,7 @@ import { useEmailDraft } from "@/hooks/use-email-draft";
 import {
   EmailAudience,
   type EmailCampaignDetail,
+  type EmailDraft,
 } from "@/interfaces/email-center";
 import { EMAIL_SUBJECT_MAX, type EmailCenterPath } from "@/lib/email-center";
 import { isEnumValue } from "@/lib/enum";
@@ -24,12 +25,15 @@ const PRIMARY =
 export function EmailComposeForm({
   detail,
   basePath,
+  start,
 }: {
   detail: EmailCampaignDetail | null;
   basePath: EmailCenterPath;
+  /** What a new mail starts with. */
+  start?: EmailDraft;
 }) {
   const t = useTranslations("emailCenter");
-  const form = useEmailDraft(detail, basePath);
+  const form = useEmailDraft(detail, basePath, start);
 
   return (
     <div className="space-y-8 pb-10">

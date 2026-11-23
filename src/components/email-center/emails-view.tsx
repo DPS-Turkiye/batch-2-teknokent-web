@@ -26,12 +26,20 @@ export function EmailsView({ basePath }: { basePath: EmailCenterPath }) {
           </h1>
           <p className="mt-2 text-sm text-[#676e78]">{t("intro")}</p>
         </div>
-        <Link
-          href={`${basePath}/new`}
-          className="rounded-full bg-[#e86f22] px-5 py-2.5 text-sm font-semibold text-white"
-        >
-          {t("newEmail")}
-        </Link>
+        <div className="flex gap-3">
+          <Link
+            href={`${basePath}/templates`}
+            className="rounded-full border border-[#e4e7ea] px-5 py-2.5 text-sm font-semibold"
+          >
+            {t("templates.title")}
+          </Link>
+          <Link
+            href={`${basePath}/new`}
+            className="rounded-full bg-[#e86f22] px-5 py-2.5 text-sm font-semibold text-white"
+          >
+            {t("newEmail")}
+          </Link>
+        </div>
       </header>
       {sendingOff ? (
         <p role="status" className="rounded-xl bg-[#fff6ef] p-4 text-sm">

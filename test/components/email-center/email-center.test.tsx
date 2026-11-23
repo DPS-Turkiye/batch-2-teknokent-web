@@ -1,10 +1,13 @@
-import { screen, waitFor, within } from "@testing-library/react";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { EmailComposeForm } from "@/components/email-center/email-compose-form";
+import { EmailTemplatesView } from "@/components/email-center/email-templates-view";
 import { EmailView } from "@/components/email-center/email-view";
 import { EmailsView } from "@/components/email-center/emails-view";
+import { NewEmailView } from "@/components/email-center/new-email-view";
 import { UnsubscribeView } from "@/components/email-center/unsubscribe-view";
 import {
   EmailAudience,
@@ -20,7 +23,11 @@ import {
   emailDetail,
   emailRecipient,
 } from "@test/fixtures/email-center";
-import { renderWithQueryClient } from "@test/test-utils";
+import {
+  createTestQueryClient,
+  InLocale,
+  renderWithQueryClient,
+} from "@test/test-utils";
 
 const replace = vi.fn();
 vi.mock("next/navigation", () => ({ useRouter: () => ({ replace }) }));
@@ -101,6 +108,10 @@ describe("the list of mails", () => {
     expect(link).toHaveAttribute("href", `/admin/emails/${emailCampaign().id}`);
     expect(link).toHaveTextContent("4 kişiye gönderildi");
     expect(link).toHaveTextContent("1 sorun");
+    expect(screen.getByRole("link", { name: "Şablonlar" })).toHaveAttribute(
+      "href",
+      "/admin/emails/templates",
+    );
   });
 
   it("says that sending is off and that there is nothing yet", async () => {
@@ -319,6 +330,119 @@ describe("writing a mail", () => {
     await userEvent.type(screen.getByLabelText("E-posta metni"), "x");
     await userEvent.click(await button("Kaydet"));
     expect(await screen.findByText("Çok uzun")).toBeInTheDocument();
+  });
+});
+
+describe("the templates", () => {
+  const templates = () =>
+    renderWithQueryClient(
+      <EmailTemplatesView basePath={EmailCenterPath.Coordinator} />,
+    );
+  const start = (programId: string, templateKey: string) =>
+    renderWithQueryClient(
+      <NewEmailView
+        basePath={EmailCenterPath.Coordinator}
+        programId={programId}
+        templateKey={templateKey}
+      />,
+    );
+
+  it("shows each one's name, subject and text and leads to a new mail", async () => {
+    templates();
+    expect(
+      await screen.findByRole("heading", { name: "Davet hatırlatması" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Konu: Kaydını tamamla/)).toBeInTheDocument();
+    expect(
+      await screen.findByRole("document", {
+        name: "Davet hatırlatması önizlemesi",
+      }),
+    ).toHaveTextContent("Hatırlatma");
+    expect(
+      screen.getByRole("link", {
+        name: "Bu şablonu kullan: Davet hatırlatması",
+      }),
+    ).toHaveAttribute(
+      "href",
+      `/coordinator/emails/new?program=${program.id}&template=inviteReminder`,
+    );
+  });
+
+  it("shows another program's when it is picked", async () => {
+    vi.mocked(client.getEmailCenterOptions).mockResolvedValue({
+      sendingOn: true,
+      programs: [program, { id: "p2", name: "Growth" }],
+    });
+    templates();
+    await screen.findByRole("heading", { name: "Davet hatırlatması" });
+    await userEvent.selectOptions(screen.getByLabelText("Program"), "p2");
+    await waitFor(() => {
+      expect(client.getEmailTemplates).toHaveBeenLastCalledWith("p2");
+    });
+  });
+
+  it("says when there is no program, and why they could not be loaded", async () => {
+    vi.mocked(client.getEmailCenterOptions).mockResolvedValue({
+      sendingOn: true,
+      programs: [],
+    });
+    const { unmount } = templates();
+    expect(
+      await screen.findByText(/Yönettiğin bir program olunca/),
+    ).toBeInTheDocument();
+    expect(client.getEmailTemplates).not.toHaveBeenCalled();
+    unmount();
+    vi.mocked(client.getEmailCenterOptions).mockRejectedValue(new Error("x"));
+    templates();
+    expect(await screen.findByRole("alert")).toBeInTheDocument();
+  });
+
+  it("fills a new, unsaved mail with the chosen one", async () => {
+    start(program.id, "inviteReminder");
+    expect(await screen.findByLabelText("Konu")).toHaveValue("Kaydını tamamla");
+    expect(screen.getByLabelText("Alıcılar")).toHaveValue(
+      EmailAudience.Unjoined,
+    );
+    expect(screen.getByLabelText("E-posta metni")).toHaveValue(
+      "<p>Hatırlatma</p>",
+    );
+    expect(client.saveEmailDraft).not.toHaveBeenCalled();
+    expect(await button("Kaydet")).toBeEnabled();
+  });
+
+  it("keeps what is being written when a later refetch fails", async () => {
+    const queryClient = createTestQueryClient();
+    render(
+      <InLocale locale="tr">
+        <QueryClientProvider client={queryClient}>
+          <NewEmailView
+            basePath={EmailCenterPath.Coordinator}
+            programId={program.id}
+            templateKey="inviteReminder"
+          />
+        </QueryClientProvider>
+      </InLocale>,
+    );
+    await userEvent.type(await screen.findByLabelText("Konu"), "!");
+    vi.mocked(client.getEmailTemplates).mockRejectedValue(new Error("yok"));
+    await act(() => queryClient.refetchQueries());
+    expect(screen.getByLabelText("Konu")).toHaveValue("Kaydını tamamla!");
+  });
+
+  it("starts empty without one, or with one that does not exist", async () => {
+    const { unmount } = start("", "");
+    expect(await screen.findByLabelText("Konu")).toHaveValue("");
+    expect(client.getEmailTemplates).not.toHaveBeenCalled();
+    unmount();
+    start(program.id, "unknown");
+    expect(await screen.findByLabelText("Konu")).toHaveValue("");
+  });
+
+  it("says why the chosen one could not be loaded", async () => {
+    vi.mocked(client.getEmailTemplates).mockRejectedValue(new Error("yok"));
+    start("somebody-elses", "inviteReminder");
+    expect(await screen.findByRole("alert")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Konu")).not.toBeInTheDocument();
   });
 });
 

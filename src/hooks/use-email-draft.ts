@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -10,24 +10,25 @@ import {
   emailCampaignQueryKey,
   useEmailOptions,
 } from "@/hooks/use-email-campaigns";
-import {
-  EmailAudience,
-  type EmailCampaignDetail,
-  type EmailDraft,
-  type EmailTemplate,
+import { useEmailTemplatesQuery } from "@/hooks/use-email-templates";
+import type {
+  EmailCampaignDetail,
+  EmailDraft,
+  EmailTemplate,
 } from "@/interfaces/email-center";
 import { ToastTone } from "@/interfaces/toast";
 import { ClientApiError } from "@/lib/client/api";
 import {
   confirmEmailSend,
-  getEmailTemplates,
   removeEmailDraft,
   reviewEmailRecipients,
   saveEmailDraft,
   sendEmailTest,
 } from "@/lib/client/email-center";
 import {
+  draftFromTemplate,
   EmailSendRefusal,
+  EMPTY_EMAIL_DRAFT,
   isBlankHtml,
   isDraftComplete,
   isSameDraft,
@@ -36,13 +37,6 @@ import {
 } from "@/lib/email-center";
 import { errorMessage } from "@/lib/utils";
 import { useToast } from "@/stores/toast-store";
-
-const EMPTY_DRAFT: EmailDraft = {
-  programId: "",
-  audience: EmailAudience.Participants,
-  subject: "",
-  bodyHtml: "",
-};
 
 export enum DraftQuestionKind {
   Send = "SEND",
@@ -55,7 +49,7 @@ type DraftQuestion =
   | { kind: DraftQuestionKind.Template; template: EmailTemplate };
 
 function draftOf(detail: EmailCampaignDetail | null): EmailDraft {
-  if (!detail) return EMPTY_DRAFT;
+  if (!detail) return EMPTY_EMAIL_DRAFT;
   const { programId, audience, subject } = detail.campaign;
   return { programId, audience, subject, bodyHtml: detail.bodyHtml };
 }
@@ -64,13 +58,14 @@ function draftOf(detail: EmailCampaignDetail | null): EmailDraft {
 export function useEmailDraft(
   detail: EmailCampaignDetail | null,
   basePath: EmailCenterPath,
+  start: EmailDraft = draftOf(detail),
 ) {
   const t = useTranslations("emailCenter");
   const router = useRouter();
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   const options = useEmailOptions();
-  const [draft, setDraft] = useState<EmailDraft>(() => draftOf(detail));
+  const [draft, setDraft] = useState<EmailDraft>(start);
   // What the backend holds, as it answered: its cleaned-up text is what the next edit is compared with.
   const [saved, setSaved] = useState<EmailDraft>(() => draftOf(detail));
   // Belongs to one review: another list starts with everybody ticked.
@@ -92,11 +87,7 @@ export function useEmailDraft(
       : [];
   const selectedCount = offered.length - untickedIds.length;
 
-  const templates = useQuery({
-    queryKey: ["email-templates", draft.programId],
-    queryFn: () => getEmailTemplates(draft.programId),
-    enabled: draft.programId !== "",
-  });
+  const templates = useEmailTemplatesQuery(draft.programId);
 
   const keep = (next: EmailCampaignDetail) => {
     const queryKey = emailCampaignQueryKey(next.campaign.id);
@@ -108,8 +99,8 @@ export function useEmailDraft(
       exact: true,
     });
   };
-  const fill = ({ audience, subject, bodyHtml }: EmailTemplate) => {
-    setDraft((previous) => ({ ...previous, audience, subject, bodyHtml }));
+  const fill = (template: EmailTemplate) => {
+    setDraft(({ programId }) => draftFromTemplate(programId, template));
     setTextVersion((version) => version + 1);
   };
   const fail = (error: unknown) => {

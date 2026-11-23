@@ -6,12 +6,15 @@ import {
   EmailRecipientStatus,
 } from "@/interfaces/email-center";
 import {
+  EmailCenterPath,
   isBlankHtml,
   isDraftComplete,
   isSameDraft,
   problemCount,
   sentCount,
   splitRecipients,
+  startFromQuery,
+  templateHref,
 } from "@/lib/email-center";
 import { emailCampaign, emailRecipient } from "@test/fixtures/email-center";
 
@@ -62,6 +65,23 @@ describe("email center rules", () => {
     expect(isDraftComplete({ ...draft, subject: "  " })).toBe(false);
     expect(isDraftComplete({ ...draft, subject: "a".repeat(201) })).toBe(false);
     expect(isDraftComplete({ ...draft, bodyHtml: "<p></p>" })).toBe(false);
+  });
+
+  it("leads from a template to a new mail of the program and back", () => {
+    const href = templateHref(EmailCenterPath.Admin, "p 1", "inviteReminder");
+    expect(href).toBe("/admin/emails/new?program=p+1&template=inviteReminder");
+    const query = new URL(href, "http://x").searchParams;
+    expect(startFromQuery(Object.fromEntries(query))).toEqual({
+      programId: "p 1",
+      templateKey: "inviteReminder",
+    });
+  });
+
+  it("starts empty from a query it does not understand", () => {
+    expect(startFromQuery({ program: ["a", "b"] })).toEqual({
+      programId: "",
+      templateKey: "",
+    });
   });
 
   it("notices any changed field", () => {
