@@ -20,6 +20,8 @@ const PUBLIC_HANDLERS = new Set([
   // /invite checks a team code before any login exists; the backend answers only valid + team name, rate-limited.
   "auth/invite-code/route.ts POST",
   "auth/password-reset/route.ts POST",
+  // The link in a mail, and mail programs' one-click unsubscribe: the random token is the only proof.
+  "email-unsubscribe/route.ts POST",
   "health/route.ts GET",
   // Signing in through an institution happens before there is a session; the backend verifies the login.
   "institution-login/[provider]/complete/route.ts POST",

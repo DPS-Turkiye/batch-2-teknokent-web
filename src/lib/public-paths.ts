@@ -30,6 +30,7 @@ const PUBLIC_PATHS = new Set([
   "/signup",
   "/invite",
   "/application-status",
+  "/unsubscribe",
   "/login/odtu/dev",
   OTG_START_PATH,
   OTG_CALLBACK_PATH,
