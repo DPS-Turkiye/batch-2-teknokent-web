@@ -6411,7 +6411,8 @@
     "emailSaveFailed": "Taslak kaydedilemedi.",
     "emailTestSendFailed": "Test e-postası gönderilemedi.",
     "emailSendFailed": "E-posta gönderilemedi.",
-    "unsubscribeFailed": "İşlem tamamlanamadı."
+    "unsubscribeFailed": "İşlem tamamlanamadı.",
+    "emailStopFailed": "Gönderim durdurulamadı."
   },
   "startupStart": {
     "title": "Startup'ım",
@@ -7461,7 +7462,7 @@
     "willNotGet": "Almayacaklar ({count})",
     "include": "{name} kişisine gönder",
     "sendTo": "{count} kişiye gönder",
-    "sendStarted": "Gönderim başladı.",
+    "sendStarted": "Onayladın. Gönderim birazdan başlayacak.",
     "cancel": "Vazgeç",
     "sendLog": "Gönderim durumu",
     "audiences": {
@@ -7485,7 +7486,8 @@
     "campaignStatuses": {
       "DRAFT": "Taslak",
       "SENDING": "Gönderiliyor",
-      "SENT": "Gönderim tamamlandı"
+      "SENT": "Gönderim tamamlandı",
+      "STOPPED": "Durduruldu"
     },
     "statuses": {
       "EXCLUDED": "Alıcı değil",
@@ -7527,7 +7529,7 @@
     "questions": {
       "SEND": {
         "title": "{count} kişiye gönderilsin mi?",
-        "text": "Gönderilen e-posta geri alınamaz.",
+        "text": "Onayından sonra gönderim birkaç dakika bekler; bu sürede durdurabilirsin. Giden e-posta geri alınamaz.",
         "yes": "Evet, gönder"
       },
       "DELETE": {
@@ -7582,6 +7584,29 @@
       "other": "Diğer"
     },
     "nobody": "Bu listede kimse yok.",
-    "requiredHint": "Kaydetmek için program, konu ve metin gerekli."
+    "requiredHint": "Kaydetmek için program, konu ve metin gerekli.",
+    "stopped": "Gönderim durduruldu.",
+    "stop": {
+      "startsIn": "Gönderim başlamasına kalan süre:",
+      "holdHint": "Bu süre dolmadan durdurursan hiç kimseye e-posta gitmez.",
+      "leaving": "E-postalar gönderiliyor.",
+      "leavingHint": "Durdurursan henüz gitmemiş e-postalar iptal edilir; gidenler geri alınamaz.",
+      "button": "Durdur",
+      "title": "Gönderim durdurulsun mu?",
+      "holdText": "Hiç kimseye e-posta gitmeyecek. Durdurulan gönderim devam ettirilemez.",
+      "leavingText": "Henüz gitmemiş e-postalar iptal edilecek. Şu anda gönderilmekte olan bir e-posta yine de ulaşabilir. Durdurulan gönderim devam ettirilemez.",
+      "yes": "Evet, durdur"
+    },
+    "skipReasons": {
+      "STOPPED": "Durduruldu",
+      "EXPIRED": "Çok uzun bekledi",
+      "NO_ADDRESS": "Adres yok",
+      "SENDER_NOT_ALLOWED": "Gönderenin yetkisi yok",
+      "ACCOUNT_NOT_APPROVED": "Hesabı onaylı değil",
+      "ADDRESS_CHANGED": "Adresi değişti",
+      "LEFT_THE_PROGRAM": "Artık listede değil",
+      "SUPPRESSED": "E-posta almıyor",
+      "NOT_ON_ALLOWLIST": "Test modu"
+    }
   }
 }

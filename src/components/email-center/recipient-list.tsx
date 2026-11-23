@@ -19,9 +19,17 @@ import {
   type EmailRecipient,
 } from "@/interfaces/email-center";
 import { UserAccountStatus } from "@/interfaces/session";
-import { RECIPIENT_TONES } from "@/lib/email-center";
+import { RECIPIENT_TONES, skipReasonOf } from "@/lib/email-center";
 import { initials } from "@/lib/utils";
 import type { RecipientFilter } from "@/types/email-center";
+
+function SkipReason({ recipient }: { recipient: EmailRecipient }) {
+  const t = useTranslations("emailCenter");
+  const reason = skipReasonOf(recipient);
+  return reason ? (
+    <StatusChip tone="neutral">{t(`skipReasons.${reason}`)}</StatusChip>
+  ) : null;
+}
 
 /** People on a mail: with tick boxes in the review, with what became of each mail afterwards. */
 export function RecipientList({
@@ -128,6 +136,7 @@ export function RecipientList({
                           : t("accountStatuses.none")}
                       </StatusChip>
                     )}
+                    <SkipReason recipient={row} />
                     <StatusChip
                       tone={
                         row.exclusion ? "amber" : RECIPIENT_TONES[row.status]

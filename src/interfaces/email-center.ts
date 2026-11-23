@@ -17,6 +17,7 @@ export enum EmailCampaignStatus {
   Draft = "DRAFT",
   Sending = "SENDING",
   Sent = "SENT",
+  Stopped = "STOPPED",
 }
 
 export enum EmailRecipientStatus {
@@ -42,6 +43,19 @@ export enum EmailExclusion {
   NotOnAllowlist = "NOT_ON_ALLOWLIST",
 }
 
+/** Why a confirmed mail did not go to somebody after all: a skipped recipient's `errorCode`. */
+export enum EmailSkipReason {
+  Stopped = "STOPPED",
+  Expired = "EXPIRED",
+  NoAddress = "NO_ADDRESS",
+  SenderNotAllowed = "SENDER_NOT_ALLOWED",
+  AccountNotApproved = "ACCOUNT_NOT_APPROVED",
+  AddressChanged = "ADDRESS_CHANGED",
+  LeftTheProgram = "LEFT_THE_PROGRAM",
+  Suppressed = "SUPPRESSED",
+  NotOnAllowlist = "NOT_ON_ALLOWLIST",
+}
+
 export type EmailCampaign = {
   id: string;
   programId: string;
@@ -52,6 +66,9 @@ export type EmailCampaign = {
   status: EmailCampaignStatus;
   testSentAt: string | null;
   confirmedAt: string | null;
+  /** The end of the hold: nothing leaves before it. */
+  startsAt: string | null;
+  stoppedAt: string | null;
   finishedAt: string | null;
   createdAt: string;
   counts: Partial<Record<EmailRecipientStatus, number>>;

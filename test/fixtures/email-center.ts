@@ -22,6 +22,8 @@ export function emailCampaign(
     status: EmailCampaignStatus.Draft,
     testSentAt: null,
     confirmedAt: null,
+    startsAt: null,
+    stoppedAt: null,
     finishedAt: null,
     createdAt: "2026-11-23T08:00:00Z",
     counts: {},

@@ -10,6 +10,7 @@ import {
   fetchEmailTemplates,
   reviewEmailCampaign,
   sendEmailCampaign,
+  stopEmailCampaign,
   testEmailCampaign,
   unsubscribeEmail,
   updateEmailCampaign,
@@ -104,6 +105,14 @@ describe("email center backend calls", () => {
         method: "POST",
         url: `${BASE}/campaigns/id/send`,
         data: { ...confirmation, actorId: "me" },
+      },
+    ],
+    [
+      () => stopEmailCampaign("me", "id"),
+      {
+        method: "POST",
+        url: `${BASE}/campaigns/id/stop`,
+        data: { actorId: "me" },
       },
     ],
     [

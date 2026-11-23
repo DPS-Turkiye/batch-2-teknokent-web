@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 
 import { PageHeading, Panel, StatusChip } from "@/components/admin/admin-ui";
+import { EmailStopPanel } from "@/components/email-center/email-stop-panel";
 import { FormattedTextPreview } from "@/components/email-center/formatted-text-preview";
 import { RecipientList } from "@/components/email-center/recipient-list";
 import type { EmailCampaignDetail } from "@/interfaces/email-center";
@@ -59,6 +60,7 @@ export function SentEmail({
           {t(`campaignStatuses.${campaign.status}`)}
         </StatusChip>
       </div>
+      <EmailStopPanel campaign={campaign} />
       <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {statusCounts(campaign).map(({ status, count }) => (
           <div

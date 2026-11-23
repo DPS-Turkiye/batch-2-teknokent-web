@@ -2,13 +2,17 @@ import { describe, expect, it } from "vitest";
 
 import {
   EmailAudience,
+  EmailCampaignStatus,
   EmailExclusion,
   EmailRecipientStatus,
+  EmailSkipReason,
 } from "@/interfaces/email-center";
 import {
+  countdownLabel,
   EmailCenterPath,
   emailStepStates,
   findRecipients,
+  holdSecondsLeft,
   isBlankHtml,
   isDraftComplete,
   isSameDraft,
@@ -16,6 +20,7 @@ import {
   problemCount,
   recipientFilterOf,
   sentCount,
+  skipReasonOf,
   splitRecipients,
   startFromQuery,
   statusCounts,
@@ -131,6 +136,30 @@ describe("email center rules", () => {
     expect(recipientFilterOf(EmailRecipientStatus.Skipped)).toBe(
       RecipientFilter.Other,
     );
+  });
+
+  it("counts down to the end of the hold and not below zero", () => {
+    const now = new Date("2026-11-23T10:00:00Z");
+    const at = (
+      startsAt: string | null,
+      status = EmailCampaignStatus.Sending,
+    ) => holdSecondsLeft(emailCampaign({ status, startsAt }), now);
+    expect(at("2026-11-23T10:04:31.200Z")).toBe(272);
+    expect(at("2026-11-23T09:59:00Z")).toBe(0);
+    expect(at(null)).toBe(0);
+    expect(at("2026-11-23T10:04:00Z", EmailCampaignStatus.Stopped)).toBe(0);
+    expect(countdownLabel(272)).toBe("4:32");
+    expect(countdownLabel(5)).toBe("0:05");
+  });
+
+  it("names why somebody was skipped, and nothing for other rows or codes", () => {
+    const row = (status: EmailRecipientStatus, errorCode: string | null) =>
+      skipReasonOf(emailRecipient({ status, errorCode }));
+    expect(row(EmailRecipientStatus.Skipped, "EXPIRED")).toBe(
+      EmailSkipReason.Expired,
+    );
+    expect(row(EmailRecipientStatus.Skipped, "SOMETHING_NEW")).toBeNull();
+    expect(row(EmailRecipientStatus.Failed, "STOPPED")).toBeNull();
   });
 
   it("lists only the statuses somebody has", () => {

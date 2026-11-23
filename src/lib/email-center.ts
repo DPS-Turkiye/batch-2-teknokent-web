@@ -2,11 +2,13 @@ import {
   EmailAudience,
   EmailCampaignStatus,
   EmailRecipientStatus,
+  EmailSkipReason,
   type EmailCampaign,
   type EmailDraft,
   type EmailRecipient,
   type EmailTemplate,
 } from "@/interfaces/email-center";
+import { isEnumValue } from "@/lib/enum";
 import {
   EmailStep,
   EmailStepState,
@@ -62,6 +64,29 @@ export function problemCount(campaign: EmailCampaign) {
 
 export function sentCount(campaign: EmailCampaign) {
   return sumOf(campaign, ARRIVING);
+}
+
+/** Seconds until a confirmed mail starts to leave; 0 once it may, or when it is not being sent. */
+export function holdSecondsLeft(campaign: EmailCampaign, now: Date) {
+  if (
+    campaign.status !== EmailCampaignStatus.Sending ||
+    campaign.startsAt === null
+  )
+    return 0;
+  const left = Date.parse(campaign.startsAt) - now.getTime();
+  return Math.max(0, Math.ceil(left / 1000));
+}
+
+/** 272 → "4:32" */
+export function countdownLabel(seconds: number) {
+  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+}
+
+export function skipReasonOf(recipient: EmailRecipient) {
+  return recipient.status === EmailRecipientStatus.Skipped &&
+    isEnumValue(EmailSkipReason, recipient.errorCode)
+    ? recipient.errorCode
+    : null;
 }
 
 export function notReached(recipients: readonly EmailRecipient[]) {
@@ -144,6 +169,7 @@ export const CAMPAIGN_TONES: Record<EmailCampaignStatus, StatusTone> = {
   [EmailCampaignStatus.Draft]: "neutral",
   [EmailCampaignStatus.Sending]: "blue",
   [EmailCampaignStatus.Sent]: "green",
+  [EmailCampaignStatus.Stopped]: "amber",
 };
 
 export const RECIPIENT_TONES: Record<EmailRecipientStatus, StatusTone> = {

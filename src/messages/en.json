@@ -6409,7 +6409,8 @@
     "emailSaveFailed": "The draft could not be saved.",
     "emailTestSendFailed": "The test e-mail could not be sent.",
     "emailSendFailed": "The e-mail could not be sent.",
-    "unsubscribeFailed": "That did not work."
+    "unsubscribeFailed": "That did not work.",
+    "emailStopFailed": "The sending could not be stopped."
   },
   "startupStart": {
     "title": "My startup",
@@ -7459,7 +7460,7 @@
     "willNotGet": "Will not get it ({count})",
     "include": "Send to {name}",
     "sendTo": "Send to {count} people",
-    "sendStarted": "Sending has started.",
+    "sendStarted": "Confirmed. Sending starts shortly.",
     "cancel": "Cancel",
     "sendLog": "Delivery status",
     "audiences": {
@@ -7483,7 +7484,8 @@
     "campaignStatuses": {
       "DRAFT": "Draft",
       "SENDING": "Sending",
-      "SENT": "Sending finished"
+      "SENT": "Sending finished",
+      "STOPPED": "Stopped"
     },
     "statuses": {
       "EXCLUDED": "Not a recipient",
@@ -7525,7 +7527,7 @@
     "questions": {
       "SEND": {
         "title": "Send to {count} people?",
-        "text": "A sent e-mail cannot be taken back.",
+        "text": "After you confirm, sending waits a few minutes and you can still stop it. An e-mail that has left cannot be taken back.",
         "yes": "Yes, send"
       },
       "DELETE": {
@@ -7580,6 +7582,29 @@
       "other": "Other"
     },
     "nobody": "Nobody is on this list.",
-    "requiredHint": "A program, a subject and a text are needed to save."
+    "requiredHint": "A program, a subject and a text are needed to save.",
+    "stopped": "Sending was stopped.",
+    "stop": {
+      "startsIn": "Time until sending starts:",
+      "holdHint": "If you stop it before this runs out, nobody gets the e-mail.",
+      "leaving": "The e-mails are being sent.",
+      "leavingHint": "Stopping cancels the e-mails that have not left yet; the ones that left cannot be taken back.",
+      "button": "Stop",
+      "title": "Stop sending?",
+      "holdText": "Nobody will get the e-mail. A stopped e-mail cannot be resumed.",
+      "leavingText": "The e-mails that have not left yet will be cancelled. One being sent right now may still arrive. A stopped e-mail cannot be resumed.",
+      "yes": "Yes, stop"
+    },
+    "skipReasons": {
+      "STOPPED": "Stopped",
+      "EXPIRED": "Waited too long",
+      "NO_ADDRESS": "No address",
+      "SENDER_NOT_ALLOWED": "Sender is not allowed",
+      "ACCOUNT_NOT_APPROVED": "Account not approved",
+      "ADDRESS_CHANGED": "Address changed",
+      "LEFT_THE_PROGRAM": "No longer on the list",
+      "SUPPRESSED": "Gets no e-mails",
+      "NOT_ON_ALLOWLIST": "Test mode"
+    }
   }
 }

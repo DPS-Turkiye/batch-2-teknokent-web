@@ -105,6 +105,14 @@ export function sendEmailCampaign(
   });
 }
 
+export function stopEmailCampaign(actorId: string, id: string) {
+  return backendRequest<EmailCampaignDetail>({
+    method: HttpMethod.Post,
+    url: campaignUrl(id, "/stop"),
+    data: { actorId },
+  });
+}
+
 export function unsubscribeEmail(token: string) {
   return backendRequest<null>({
     method: HttpMethod.Post,

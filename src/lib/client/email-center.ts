@@ -86,6 +86,12 @@ export async function confirmEmailSend(
   );
 }
 
+export async function stopEmailSend(id: string) {
+  return requireSuccess(
+    await httpClient.post<EmailCampaignDetail>(campaignUrl(id, "/stop")),
+  );
+}
+
 export async function unsubscribeFromEmails(token: string) {
   return requireSuccess(
     await httpClient.post<null>(

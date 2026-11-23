@@ -7,6 +7,7 @@ import {
   PUT as update,
 } from "@/app/api/email-center/campaigns/[id]/route";
 import { POST as send } from "@/app/api/email-center/campaigns/[id]/send/route";
+import { POST as stop } from "@/app/api/email-center/campaigns/[id]/stop/route";
 import { POST as sendTest } from "@/app/api/email-center/campaigns/[id]/test/route";
 import {
   POST as create,
@@ -107,6 +108,7 @@ const calls = {
   remove: () => remove(get(), context),
   test: () => sendTest(get(), context),
   review: () => review(get(), context),
+  stop: () => stop(get(), context),
   send: () => send(jsonRequest(confirmation), context),
 };
 
@@ -131,6 +133,8 @@ describe("email center routes", () => {
     await calls.remove();
     await calls.test();
     await calls.review();
+    await calls.stop();
+    expect(backend.stopEmailCampaign).toHaveBeenCalledWith("signed-in", ID);
     expect(backend.fetchEmailCenterOptions).toHaveBeenCalledWith("signed-in");
     expect(backend.fetchEmailTemplates).toHaveBeenCalledWith(
       "signed-in",

@@ -11,6 +11,7 @@ import {
   reviewEmailRecipients,
   saveEmailDraft,
   sendEmailTest,
+  stopEmailSend,
   unsubscribeFromEmails,
 } from "@/lib/client/email-center";
 import { httpClient } from "@/lib/http-client";
@@ -67,11 +68,13 @@ describe("email center client", () => {
     await sendEmailTest("id");
     await reviewEmailRecipients("id");
     await confirmEmailSend("id", confirmation);
+    await stopEmailSend("id");
     await removeEmailDraft("id");
     expect(vi.mocked(httpClient.post).mock.calls).toEqual([
       ["/api/email-center/campaigns/id/test"],
       ["/api/email-center/campaigns/id/review"],
       ["/api/email-center/campaigns/id/send", confirmation],
+      ["/api/email-center/campaigns/id/stop"],
     ]);
     expect(httpClient.delete).toHaveBeenCalledWith(
       "/api/email-center/campaigns/id",
