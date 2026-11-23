@@ -1,11 +1,18 @@
 import {
   EmailAudience,
+  EmailCampaignStatus,
   EmailRecipientStatus,
   type EmailCampaign,
   type EmailDraft,
   type EmailRecipient,
   type EmailTemplate,
 } from "@/interfaces/email-center";
+import {
+  EmailStep,
+  EmailStepState,
+  RecipientFilter,
+  type StatusTone,
+} from "@/types/email-center";
 
 /** Off until a deployment turns it on; the backend has its own switch. */
 export const EMAIL_CENTER_ENABLED =
@@ -55,6 +62,10 @@ export function problemCount(campaign: EmailCampaign) {
 
 export function sentCount(campaign: EmailCampaign) {
   return sumOf(campaign, ARRIVING);
+}
+
+export function notReached(recipients: readonly EmailRecipient[]) {
+  return recipients.filter((row) => PROBLEMS.includes(row.status));
 }
 
 /** The people a mail would go to, and the ones on the audience it would not. */
@@ -127,4 +138,82 @@ export function isSameDraft(left: EmailDraft, right: EmailDraft) {
     left.subject === right.subject &&
     left.bodyHtml === right.bodyHtml
   );
+}
+
+export const CAMPAIGN_TONES: Record<EmailCampaignStatus, StatusTone> = {
+  [EmailCampaignStatus.Draft]: "neutral",
+  [EmailCampaignStatus.Sending]: "blue",
+  [EmailCampaignStatus.Sent]: "green",
+};
+
+export const RECIPIENT_TONES: Record<EmailRecipientStatus, StatusTone> = {
+  [EmailRecipientStatus.Excluded]: "neutral",
+  [EmailRecipientStatus.Reviewed]: "green",
+  [EmailRecipientStatus.Unticked]: "neutral",
+  [EmailRecipientStatus.Pending]: "blue",
+  [EmailRecipientStatus.Sending]: "blue",
+  [EmailRecipientStatus.Sent]: "green",
+  [EmailRecipientStatus.Delivered]: "green",
+  [EmailRecipientStatus.Bounced]: "red",
+  [EmailRecipientStatus.Complained]: "red",
+  [EmailRecipientStatus.Failed]: "red",
+  [EmailRecipientStatus.Skipped]: "amber",
+};
+
+/** Where the writer stands: the first step that is not done is the current one. */
+export function emailStepStates(done: {
+  isSaved: boolean;
+  isTested: boolean;
+  isReviewed: boolean;
+}): Record<EmailStep, EmailStepState> {
+  const order = [
+    { step: EmailStep.Write, isDone: done.isSaved },
+    { step: EmailStep.Test, isDone: done.isTested },
+    { step: EmailStep.Review, isDone: done.isReviewed },
+    { step: EmailStep.Send, isDone: false },
+  ];
+  const current = order.findIndex((row) => !row.isDone);
+  const stateAt = (index: number) =>
+    order[index]?.isDone
+      ? EmailStepState.Done
+      : index === current
+        ? EmailStepState.Current
+        : EmailStepState.Waiting;
+  return {
+    [EmailStep.Write]: stateAt(0),
+    [EmailStep.Test]: stateAt(1),
+    [EmailStep.Review]: stateAt(2),
+    [EmailStep.Send]: stateAt(3),
+  };
+}
+
+export function recipientFilterOf(status: EmailRecipientStatus) {
+  if (PROBLEMS.includes(status)) return RecipientFilter.NotReached;
+  if (ARRIVING.includes(status)) return RecipientFilter.Reached;
+  return RecipientFilter.Other;
+}
+
+/** By name, address or team, the way Turkish letters are cased. */
+export function findRecipients(
+  recipients: readonly EmailRecipient[],
+  search: string,
+  filter: RecipientFilter = RecipientFilter.All,
+) {
+  const needle = search.trim().toLocaleLowerCase("tr");
+  return recipients.filter(
+    (row) =>
+      (filter === RecipientFilter.All ||
+        recipientFilterOf(row.status) === filter) &&
+      [row.fullName, row.address, row.teamName].some((value) =>
+        (value ?? "").toLocaleLowerCase("tr").includes(needle),
+      ),
+  );
+}
+
+/** How many recipients have each status, in the order the statuses are declared. */
+export function statusCounts(campaign: EmailCampaign) {
+  return Object.values(EmailRecipientStatus).flatMap((status) => {
+    const count = campaign.counts[status] ?? 0;
+    return count > 0 ? [{ status, count }] : [];
+  });
 }

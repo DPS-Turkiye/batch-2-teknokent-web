@@ -4,10 +4,16 @@
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 
+import { QueryNotice, StatusChip } from "@/components/admin/admin-ui";
+import { EmptyState } from "@/components/common/empty-state";
+import { PillSelect } from "@/components/coordinator/pill-select";
+import {
+  EmailCenterHeader,
+  SOLID_LINK,
+} from "@/components/email-center/email-center-header";
 import { FormattedTextPreview } from "@/components/email-center/formatted-text-preview";
 import { useEmailTemplates } from "@/hooks/use-email-templates";
 import { templateHref, type EmailCenterPath } from "@/lib/email-center";
-import { errorMessage } from "@/lib/utils";
 
 export function EmailTemplatesView({
   basePath,
@@ -19,61 +25,53 @@ export function EmailTemplatesView({
 
   return (
     <div className="space-y-6 pb-10">
-      <header>
-        <Link href={basePath} className="text-sm text-[#676e78] underline">
-          {t("title")}
-        </Link>
-        <h1 className="mt-2 text-2xl font-semibold text-[#22262b]">
-          {t("templates.title")}
-        </h1>
-        <p className="mt-2 text-sm text-[#676e78]">{t("templates.intro")}</p>
-      </header>
+      <EmailCenterHeader basePath={basePath} onTemplates />
       {view.programs.length > 0 ? (
-        <label className="block max-w-sm text-sm">
-          {t("program")}
-          <select
-            className="mt-1 w-full rounded-xl border border-[#e4e7ea] bg-white px-4 py-2.5 text-sm"
+        <div className="flex">
+          <PillSelect
+            label={t("program")}
             value={view.programId}
-            onChange={(event) => {
-              view.pickProgram(event.target.value);
-            }}
-          >
-            {view.programs.map((program) => (
-              <option key={program.id} value={program.id}>
-                {program.name}
-              </option>
-            ))}
-          </select>
-        </label>
+            onChange={view.pickProgram}
+            options={view.programs.map((program) => ({
+              value: program.id,
+              label: program.name,
+            }))}
+          />
+        </div>
       ) : null}
-      {view.isLoading ? <p role="status">{t("loading")}</p> : null}
-      {view.error ? (
-        <p role="alert">{errorMessage(view.error, t("failed"))}</p>
+      <div role={view.error ? "alert" : "status"}>
+        <QueryNotice isLoading={view.isLoading} error={view.error} />
+      </div>
+      {view.hasNoProgram ? (
+        <EmptyState title={t("templates.noProgram")} />
       ) : null}
-      {view.hasNoProgram ? <p>{t("templates.noProgram")}</p> : null}
       <ul className="grid gap-4 lg:grid-cols-2">
         {view.templates.map((template) => (
           <li
             key={template.key}
-            className="flex flex-col gap-3 rounded-xl border border-[#e4e7ea] bg-white p-5"
+            className="flex flex-col gap-4 rounded-[28px] border border-[#e9ecef] bg-white p-6"
           >
-            <h2 className="text-lg font-semibold text-[#22262b]">
-              {template.name}
-            </h2>
-            <p className="text-xs text-[#676e78]">
-              {t("templates.line", {
-                audience: t(`audiences.${template.audience}`),
-                subject: template.subject,
-              })}
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="text-[17px] font-semibold text-[#22262b]">
+                {template.name}
+              </h2>
+              <StatusChip tone="neutral">
+                {t(`audiences.${template.audience}`)}
+              </StatusChip>
+            </div>
+            <p className="text-[13.5px] text-[#676e78]">
+              {t("templates.subjectLine", { subject: template.subject })}
             </p>
-            <FormattedTextPreview
-              html={template.bodyHtml}
-              label={t("templates.preview", { name: template.name })}
-            />
+            <div className="rounded-2xl bg-[#fafbfc] p-4">
+              <FormattedTextPreview
+                html={template.bodyHtml}
+                label={t("templates.preview", { name: template.name })}
+              />
+            </div>
             <Link
               href={templateHref(basePath, view.programId, template.key)}
               aria-label={t("templates.useNamed", { name: template.name })}
-              className="mt-auto self-start rounded-full bg-[#e86f22] px-5 py-2.5 text-sm font-semibold text-white"
+              className={`${SOLID_LINK} mt-auto`}
             >
               {t("templates.use")}
             </Link>

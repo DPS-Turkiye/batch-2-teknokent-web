@@ -97,7 +97,7 @@ export function FormattedTextEditor({
   ];
 
   return (
-    <div className="rounded-xl border border-[#e4e7ea] bg-white">
+    <div className="overflow-hidden rounded-2xl border border-[#e9ecef] bg-white focus-within:border-[#22262b]">
       <div
         role="toolbar"
         aria-label={t("toolbar")}
@@ -109,7 +109,7 @@ export function FormattedTextEditor({
             type="button"
             aria-label={label}
             onClick={run}
-            className="rounded-md p-2 text-[#515861] hover:bg-[#f4f5f6]"
+            className="grid size-9 place-items-center rounded-full text-[#676e78] hover:bg-[#f4f5f7]"
           >
             <Icon aria-hidden className="size-4" />
           </button>

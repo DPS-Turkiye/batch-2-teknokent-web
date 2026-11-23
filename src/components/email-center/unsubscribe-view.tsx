@@ -3,6 +3,8 @@
 
 import { useTranslations } from "next-intl";
 
+import { AuthShell } from "@/components/auth/auth-shell";
+import { PrimaryButton } from "@/components/common/primary-button";
 import { useUnsubscribe } from "@/hooks/use-unsubscribe";
 
 export function UnsubscribeView({ token }: { token: string | null }) {
@@ -10,26 +12,27 @@ export function UnsubscribeView({ token }: { token: string | null }) {
   const form = useUnsubscribe(token);
 
   return (
-    <main className="mx-auto max-w-md space-y-4 px-4 py-24 text-center">
-      <h1 className="text-2xl font-semibold text-[#22262b]">{t("title")}</h1>
-      {form.isMissingToken ? (
-        <p>{t("missingToken")}</p>
-      ) : form.isDone ? (
-        <p role="status">{t("done")}</p>
-      ) : (
-        <>
-          <p className="text-sm text-[#676e78]">{t("text")}</p>
-          <button
-            type="button"
-            onClick={form.confirm}
-            disabled={form.isPending}
-            className="rounded-full bg-[#e86f22] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
-          >
+    <AuthShell>
+      <div className="space-y-4 py-10 text-center">
+        <h1 className="text-xl font-bold text-[#22262b]">{t("title")}</h1>
+        <p role="status" className="text-sm leading-6 text-[#676e78]">
+          {form.isMissingToken
+            ? t("missingToken")
+            : form.isDone
+              ? t("done")
+              : t("text")}
+        </p>
+        {form.canConfirm ? (
+          <PrimaryButton onClick={form.confirm} disabled={form.isPending}>
             {t("confirm")}
-          </button>
-          {form.hasFailed ? <p role="alert">{t("failed")}</p> : null}
-        </>
-      )}
-    </main>
+          </PrimaryButton>
+        ) : null}
+        {form.hasFailed ? (
+          <p role="alert" className="text-sm text-[#d9464b]">
+            {t("failed")}
+          </p>
+        ) : null}
+      </div>
+    </AuthShell>
   );
 }

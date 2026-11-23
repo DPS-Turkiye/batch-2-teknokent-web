@@ -7426,7 +7426,6 @@
     "intro": "Write to the people of your program and see whom each e-mail reached.",
     "newEmail": "New e-mail",
     "draftTitle": "Draft",
-    "loading": "Loading…",
     "failed": "That did not work. Try again.",
     "empty": "No e-mails yet.",
     "sendingOff": "Sending is off at the moment. You can prepare a draft.",
@@ -7444,10 +7443,10 @@
     "saved": "Draft saved.",
     "delete": "Delete draft",
     "steps": {
-      "write": "1. Write the e-mail",
-      "test": "2. Send yourself a test",
-      "review": "3. Review the recipients",
-      "send": "4. Send"
+      "write": "Write the e-mail",
+      "test": "Send yourself a test",
+      "review": "Review the recipients",
+      "send": "Send"
     },
     "testHint": "Send the latest version to your own address before sending it.",
     "tested": "A test of this text was sent to you.",
@@ -7463,14 +7462,6 @@
     "sendStarted": "Sending has started.",
     "cancel": "Cancel",
     "sendLog": "Delivery status",
-    "columns": {
-      "name": "Name",
-      "address": "E-mail",
-      "team": "Team",
-      "account": "Account",
-      "status": "Status",
-      "include": "Include"
-    },
     "audiences": {
       "PARTICIPANTS": "Participants",
       "MENTORS": "Mentors",
@@ -7478,9 +7469,9 @@
       "UNJOINED": "Team members who have not signed up"
     },
     "kinds": {
-      "PARTICIPANT": "–",
+      "PARTICIPANT": "Participant",
       "MENTOR": "Mentor",
-      "UNJOINED": "–"
+      "UNJOINED": "Invited"
     },
     "accountStatuses": {
       "PENDING": "Waiting for approval",
@@ -7549,13 +7540,45 @@
       }
     },
     "templates": {
-      "title": "Templates",
       "intro": "Start from a ready text and edit it as you like before sending.",
-      "line": "{audience} · Subject: {subject}",
       "preview": "Preview of {name}",
       "use": "Use this template",
       "useNamed": "Use this template: {name}",
-      "noProgram": "The templates show here once you manage a program."
+      "noProgram": "The templates show here once you manage a program.",
+      "subjectLine": "Subject: {subject}"
+    },
+    "tabs": {
+      "label": "E-mail sections",
+      "emails": "E-mails",
+      "templates": "Templates"
+    },
+    "emptyBody": "You can start from a ready template.",
+    "pages": "E-mail pages",
+    "pagesOf": "{list}: pages",
+    "search": "Search people",
+    "searchIn": "Search in {list}",
+    "noMatch": "Nobody matches your search.",
+    "noAddress": "No address",
+    "composeIntro": "Write the e-mail, try it on yourself, check the list, then send.",
+    "backToList": "Back to the e-mails",
+    "sendHint": "Before anything is sent you will see the program, the number of people and the reply address once more.",
+    "finalCount": "Will be sent to {count} · {excluded} will not get it",
+    "recipientCount": "People",
+    "people": "{count} people",
+    "replyToLabel": "Replies",
+    "repliesGoTo": "Replies: {address}",
+    "notReached": "Not reached ({count})",
+    "text": "E-mail text",
+    "stepStates": {
+      "done": "Done",
+      "current": "Next",
+      "waiting": "Waiting"
+    },
+    "filters": {
+      "all": "All",
+      "notReached": "Not reached",
+      "reached": "Sent",
+      "other": "Other"
     }
   }
 }

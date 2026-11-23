@@ -108,6 +108,7 @@ describe("the list of mails", () => {
     expect(link).toHaveAttribute("href", `/admin/emails/${emailCampaign().id}`);
     expect(link).toHaveTextContent("4 kişiye gönderildi");
     expect(link).toHaveTextContent("1 sorun");
+    expect(link).toHaveTextContent("Gönderim tamamlandı");
     expect(screen.getByRole("link", { name: "Şablonlar" })).toHaveAttribute(
       "href",
       "/admin/emails/templates",
@@ -172,9 +173,11 @@ describe("writing a mail", () => {
     vi.mocked(client.getEmailCampaign).mockResolvedValue(ready);
     vi.mocked(client.confirmEmailSend).mockResolvedValue(ready);
     view();
-    const list = await screen.findByRole("table", { name: /alacaklar \(2\)/ });
+    const list = await screen.findByRole("region", {
+      name: /alacaklar \(2\)/,
+    });
     expect(within(list).getByText("ayse@example.test")).toBeInTheDocument();
-    const out = screen.getByRole("table", { name: /Almayacaklar \(1\)/ });
+    const out = screen.getByRole("region", { name: /Almayacaklar \(1\)/ });
     expect(
       within(out).getByText("E-posta almak istemiyor"),
     ).toBeInTheDocument();
@@ -183,6 +186,16 @@ describe("writing a mail", () => {
     );
     await userEvent.click(await button("1 kişiye gönder"));
     expect(client.confirmEmailSend).not.toHaveBeenCalled();
+    const dialog = screen.getByRole("dialog", {
+      name: "1 kişiye gönderilsin mi?",
+    });
+    for (const fact of [
+      "Build '26",
+      "Katılımcılar",
+      "1 kişi",
+      "elif@example.test",
+    ])
+      expect(within(dialog).getByText(fact)).toBeInTheDocument();
     await userEvent.click(await button("Evet, gönder"));
     await waitFor(() => {
       expect(client.confirmEmailSend).toHaveBeenCalledWith(emailCampaign().id, {
@@ -191,6 +204,34 @@ describe("writing a mail", () => {
         expectedCount: 1,
       });
     });
+  });
+
+  it("is looked through without changing who gets it", async () => {
+    vi.mocked(client.getEmailCampaign).mockResolvedValue(ready);
+    view();
+    const list = await screen.findByRole("region", {
+      name: /alacaklar \(2\)/,
+    });
+    const search = within(list).getByRole("textbox");
+    await userEvent.type(search, "CAN");
+    expect(within(list).getAllByRole("checkbox")).toHaveLength(1);
+    expect(await button("2 kişiye gönder")).toBeEnabled();
+    await userEvent.type(search, "xyz");
+    expect(
+      within(list).getByText("Aramana uyan kimse yok."),
+    ).toBeInTheDocument();
+  });
+
+  it("shows which step is next", async () => {
+    vi.mocked(client.getEmailCampaign).mockResolvedValue(emailDetail());
+    view();
+    const steps = await screen.findAllByRole("listitem");
+    expect(steps.map((step) => step.getAttribute("aria-current"))).toEqual([
+      null,
+      "step",
+      null,
+      null,
+    ]);
   });
 
   it("cannot be sent to nobody, and a tick can be put back", async () => {
@@ -208,9 +249,11 @@ describe("writing a mail", () => {
   it("hides the review and stops the sending once the text is edited", async () => {
     vi.mocked(client.getEmailCampaign).mockResolvedValue(ready);
     view();
-    await screen.findByRole("table", { name: /alacaklar/ });
+    await screen.findByRole("region", { name: /alacaklar/ });
     await userEvent.type(screen.getByLabelText("Konu"), "!");
-    expect(screen.queryByRole("table")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("region", { name: /alacaklar/ }),
+    ).not.toBeInTheDocument();
     expect(await button(/kişiye gönder/)).toBeDisabled();
     expect(await button("Kaydet")).toBeEnabled();
   });
@@ -352,7 +395,7 @@ describe("the templates", () => {
     expect(
       await screen.findByRole("heading", { name: "Davet hatırlatması" }),
     ).toBeInTheDocument();
-    expect(screen.getByText(/Konu: Kaydını tamamla/)).toBeInTheDocument();
+    expect(screen.getByText("Konu: Kaydını tamamla")).toBeInTheDocument();
     expect(
       await screen.findByRole("document", {
         name: "Davet hatırlatması önizlemesi",
@@ -471,7 +514,10 @@ describe("a mail that was sent", () => {
   it("shows what became of each recipient", async () => {
     vi.mocked(client.getEmailCampaign).mockResolvedValue(
       emailDetail({
-        campaign: emailCampaign({ status: EmailCampaignStatus.Sent }),
+        campaign: emailCampaign({
+          status: EmailCampaignStatus.Sent,
+          counts: { [EmailRecipientStatus.Bounced]: 1 },
+        }),
         recipients: [
           emailRecipient({
             status: EmailRecipientStatus.Bounced,
@@ -483,8 +529,23 @@ describe("a mail that was sent", () => {
       }),
     );
     view();
-    expect(await screen.findByText("Geri döndü")).toBeInTheDocument();
-    expect(screen.getByText("Hesabı yok")).toBeInTheDocument();
+    const missed = await screen.findByRole("region", {
+      name: "Ulaşmayanlar (1)",
+    });
+    expect(within(missed).getByText("Geri döndü")).toBeInTheDocument();
+    expect(within(missed).getByText("Hesabı yok")).toBeInTheDocument();
+    expect(within(missed).getByText("Adres yok")).toBeInTheDocument();
+    const log = screen.getByRole("region", { name: "Gönderim durumu" });
+    await userEvent.click(
+      within(log).getByRole("button", { name: "Gönderilen" }),
+    );
+    expect(
+      within(log).getByText("Aramana uyan kimse yok."),
+    ).toBeInTheDocument();
+    await userEvent.click(
+      within(log).getByRole("button", { name: "Ulaşmayan" }),
+    );
+    expect(within(log).getByText("Ayşe Kurucu")).toBeInTheDocument();
     expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
   });
 

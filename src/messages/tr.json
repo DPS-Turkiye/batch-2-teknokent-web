@@ -7428,7 +7428,6 @@
     "intro": "Programındaki kişilere e-posta gönder; her e-postanın kime ulaştığını gör.",
     "newEmail": "Yeni e-posta",
     "draftTitle": "Taslak",
-    "loading": "Yükleniyor…",
     "failed": "İşlem tamamlanamadı. Tekrar dene.",
     "empty": "Henüz e-posta yok.",
     "sendingOff": "E-posta gönderimi şu anda kapalı. Taslak hazırlayabilirsin.",
@@ -7446,10 +7445,10 @@
     "saved": "Taslak kaydedildi.",
     "delete": "Taslağı sil",
     "steps": {
-      "write": "1. E-postayı yaz",
-      "test": "2. Kendine test gönder",
-      "review": "3. Alıcıları gözden geçir",
-      "send": "4. Gönder"
+      "write": "E-postayı yaz",
+      "test": "Kendine test gönder",
+      "review": "Alıcıları gözden geçir",
+      "send": "Gönder"
     },
     "testHint": "Göndermeden önce e-postanın son halini kendi adresine gönder.",
     "tested": "Bu metnin testi sana gönderildi.",
@@ -7465,14 +7464,6 @@
     "sendStarted": "Gönderim başladı.",
     "cancel": "Vazgeç",
     "sendLog": "Gönderim durumu",
-    "columns": {
-      "name": "Ad",
-      "address": "E-posta",
-      "team": "Takım",
-      "account": "Hesap",
-      "status": "Durum",
-      "include": "Gönder"
-    },
     "audiences": {
       "PARTICIPANTS": "Katılımcılar",
       "MENTORS": "Mentorlar",
@@ -7480,9 +7471,9 @@
       "UNJOINED": "Henüz kaydolmamış ekip üyeleri"
     },
     "kinds": {
-      "PARTICIPANT": "–",
+      "PARTICIPANT": "Katılımcı",
       "MENTOR": "Mentor",
-      "UNJOINED": "–"
+      "UNJOINED": "Davet edilen"
     },
     "accountStatuses": {
       "PENDING": "Onay bekliyor",
@@ -7551,13 +7542,45 @@
       }
     },
     "templates": {
-      "title": "Şablonlar",
       "intro": "Hazır metinlerden biriyle başla; göndermeden önce istediğin gibi düzenle.",
-      "line": "{audience} · Konu: {subject}",
       "preview": "{name} önizlemesi",
       "use": "Bu şablonu kullan",
       "useNamed": "Bu şablonu kullan: {name}",
-      "noProgram": "Yönettiğin bir program olunca şablonlar burada görünür."
+      "noProgram": "Yönettiğin bir program olunca şablonlar burada görünür.",
+      "subjectLine": "Konu: {subject}"
+    },
+    "tabs": {
+      "label": "E-posta bölümleri",
+      "emails": "E-postalar",
+      "templates": "Şablonlar"
+    },
+    "emptyBody": "Hazır bir şablonla başlayabilirsin.",
+    "pages": "E-posta sayfaları",
+    "pagesOf": "{list}: sayfalar",
+    "search": "Kişi ara",
+    "searchIn": "{list}: ara",
+    "noMatch": "Aramana uyan kimse yok.",
+    "noAddress": "Adres yok",
+    "composeIntro": "E-postayı yaz, kendine dene, listeyi kontrol et, sonra gönder.",
+    "backToList": "E-postalara dön",
+    "sendHint": "Göndermeden önce programı, kişi sayısını ve yanıt adresini bir kez daha göreceksin.",
+    "finalCount": "{count} kişiye gönderilecek · {excluded} kişi almayacak",
+    "recipientCount": "Kişi sayısı",
+    "people": "{count} kişi",
+    "replyToLabel": "Yanıtlar",
+    "repliesGoTo": "Yanıtlar: {address}",
+    "notReached": "Ulaşmayanlar ({count})",
+    "text": "E-posta metni",
+    "stepStates": {
+      "done": "Tamam",
+      "current": "Sıradaki",
+      "waiting": "Bekliyor"
+    },
+    "filters": {
+      "all": "Tümü",
+      "notReached": "Ulaşmayan",
+      "reached": "Gönderilen",
+      "other": "Diğer"
     }
   }
 }

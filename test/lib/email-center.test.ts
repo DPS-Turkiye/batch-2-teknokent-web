@@ -7,15 +7,21 @@ import {
 } from "@/interfaces/email-center";
 import {
   EmailCenterPath,
+  emailStepStates,
+  findRecipients,
   isBlankHtml,
   isDraftComplete,
   isSameDraft,
+  notReached,
   problemCount,
+  recipientFilterOf,
   sentCount,
   splitRecipients,
   startFromQuery,
+  statusCounts,
   templateHref,
 } from "@/lib/email-center";
+import { EmailStepState, RecipientFilter } from "@/types/email-center";
 import { emailCampaign, emailRecipient } from "@test/fixtures/email-center";
 
 const draft = {
@@ -82,6 +88,61 @@ describe("email center rules", () => {
       programId: "",
       templateKey: "",
     });
+  });
+
+  it("makes the first unfinished step the current one", () => {
+    const { Done, Current, Waiting } = EmailStepState;
+    const states = (isSaved: boolean, isTested: boolean, isReviewed: boolean) =>
+      Object.values(emailStepStates({ isSaved, isTested, isReviewed }));
+    expect(states(false, false, false)).toEqual([
+      Current,
+      Waiting,
+      Waiting,
+      Waiting,
+    ]);
+    expect(states(true, false, true)).toEqual([Done, Current, Done, Waiting]);
+    expect(states(true, true, true)).toEqual([Done, Done, Done, Current]);
+  });
+
+  it("finds people by name, address or team in Turkish, and by outcome", () => {
+    const irem = emailRecipient({ id: "1", fullName: "İrem Işık" });
+    const bounced = emailRecipient({
+      id: "2",
+      fullName: "Can",
+      address: null,
+      teamName: null,
+      status: EmailRecipientStatus.Bounced,
+    });
+    const people = [irem, bounced];
+    expect(findRecipients(people, " irem ışık ")).toEqual([irem]);
+    expect(findRecipients(people, "GREENLOOP")).toEqual([irem]);
+    expect(findRecipients(people, "", RecipientFilter.NotReached)).toEqual([
+      bounced,
+    ]);
+    expect(notReached(people)).toEqual([bounced]);
+    expect(recipientFilterOf(EmailRecipientStatus.Delivered)).toBe(
+      RecipientFilter.Reached,
+    );
+    expect(recipientFilterOf(EmailRecipientStatus.Skipped)).toBe(
+      RecipientFilter.Other,
+    );
+  });
+
+  it("lists only the statuses somebody has", () => {
+    expect(
+      statusCounts(
+        emailCampaign({
+          counts: {
+            [EmailRecipientStatus.Failed]: 1,
+            [EmailRecipientStatus.Sent]: 4,
+            [EmailRecipientStatus.Bounced]: 0,
+          },
+        }),
+      ),
+    ).toEqual([
+      { status: EmailRecipientStatus.Sent, count: 4 },
+      { status: EmailRecipientStatus.Failed, count: 1 },
+    ]);
   });
 
   it("notices any changed field", () => {

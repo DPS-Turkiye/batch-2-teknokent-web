@@ -2,10 +2,19 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 
-import { ModalDialog } from "@/components/common/modal-dialog";
+import {
+  OutlineButton,
+  PageHeading,
+  SolidButton,
+} from "@/components/admin/admin-ui";
+import { PillSelect } from "@/components/coordinator/pill-select";
+import { SendingOffNotice } from "@/components/email-center/email-center-header";
+import { EmailQuestionDialog } from "@/components/email-center/email-question-dialog";
+import { EmailStep } from "@/components/email-center/email-step";
 import { FormattedTextEditor } from "@/components/email-center/formatted-text-editor";
-import { RecipientTable } from "@/components/email-center/recipient-table";
+import { RecipientList } from "@/components/email-center/recipient-list";
 import { useEmailDraft } from "@/hooks/use-email-draft";
 import {
   EmailAudience,
@@ -14,13 +23,10 @@ import {
 } from "@/interfaces/email-center";
 import { EMAIL_SUBJECT_MAX, type EmailCenterPath } from "@/lib/email-center";
 import { isEnumValue } from "@/lib/enum";
+import { EmailStep as Step } from "@/types/email-center";
 
 const FIELD =
-  "mt-1 w-full rounded-xl border border-[#e4e7ea] bg-white px-4 py-2.5 text-sm";
-const BUTTON =
-  "rounded-full border border-[#e4e7ea] px-5 py-2.5 text-sm font-semibold disabled:opacity-50";
-const PRIMARY =
-  "rounded-full bg-[#e86f22] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50";
+  "mt-1.5 h-10 w-full rounded-xl border border-[#e9ecef] px-3 text-[13.5px] text-[#22262b] outline-none focus:border-[#22262b]";
 
 export function EmailComposeForm({
   detail,
@@ -36,208 +42,155 @@ export function EmailComposeForm({
   const form = useEmailDraft(detail, basePath, start);
 
   return (
-    <div className="space-y-8 pb-10">
-      <h1 className="text-2xl font-semibold text-[#22262b]">
-        {form.isNew ? t("newEmail") : t("draftTitle")}
-      </h1>
-      {form.sendingOff ? (
-        <p role="status" className="rounded-xl bg-[#fff6ef] p-4 text-sm">
-          {t("sendingOff")}
-        </p>
-      ) : null}
-      <fieldset
-        disabled={form.isWaitingForSave}
-        aria-label={t("steps.write")}
-        className="space-y-4"
-      >
-        <h2 className="text-lg font-semibold">{t("steps.write")}</h2>
-        <div className="grid gap-4 sm:grid-cols-3">
-          <label className="text-sm">
-            {t("program")}
-            <select
-              className={FIELD}
-              value={form.draft.programId}
-              onChange={(event) => {
-                form.update("programId", event.target.value);
-              }}
-            >
-              <option value="">{t("choose")}</option>
-              {form.programs.map((program) => (
-                <option key={program.id} value={program.id}>
-                  {program.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="text-sm">
-            {t("audience")}
-            <select
-              className={FIELD}
-              value={form.draft.audience}
-              onChange={(event) => {
-                const { value } = event.target;
-                if (isEnumValue(EmailAudience, value))
-                  form.update("audience", value);
-              }}
-            >
-              {Object.values(EmailAudience).map((audience) => (
-                <option key={audience} value={audience}>
-                  {t(`audiences.${audience}`)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="text-sm">
-            {t("template")}
-            <select
-              className={FIELD}
-              value=""
-              disabled={form.templates.length === 0}
-              onChange={(event) => {
-                form.chooseTemplate(event.target.value);
-              }}
-            >
-              <option value="">{t("choose")}</option>
-              {form.templates.map((template) => (
-                <option key={template.key} value={template.key}>
-                  {template.name}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-        <label className="block text-sm">
-          {t("subject")}
-          <input
-            className={FIELD}
-            value={form.draft.subject}
-            maxLength={EMAIL_SUBJECT_MAX}
-            onChange={(event) => {
-              form.update("subject", event.target.value);
-            }}
-          />
-        </label>
-        <FormattedTextEditor
-          key={form.textVersion}
-          html={form.draft.bodyHtml}
-          disabled={form.isWaitingForSave}
-          onChange={(html) => {
-            form.update("bodyHtml", html);
-          }}
-        />
-        <p className="text-xs text-[#676e78]">
-          {form.replyTo
-            ? t("replyTo", { address: form.replyTo })
-            : t("replyToLater")}
-        </p>
-        <div className="flex gap-3">
-          <button
-            type="button"
-            className={PRIMARY}
-            disabled={!form.canSave}
-            onClick={form.save}
+    <div className="space-y-6 pb-10">
+      <PageHeading
+        title={form.isNew ? t("newEmail") : t("draftTitle")}
+        subtitle={t("composeIntro")}
+        actions={
+          <Link
+            href={basePath}
+            className="self-start text-[13px] font-medium text-[#676e78] underline"
           >
-            {t("save")}
-          </button>
-          {form.isNew ? null : (
-            <button
-              type="button"
-              className={BUTTON}
-              disabled={form.isBusy}
-              onClick={form.askToDelete}
-            >
-              {t("delete")}
-            </button>
-          )}
-        </div>
-      </fieldset>
-
-      <section aria-label={t("steps.test")} className="space-y-3">
-        <h2 className="text-lg font-semibold">{t("steps.test")}</h2>
-        <p className="text-sm text-[#676e78]">
-          {form.isTested ? t("tested") : t("testHint")}
-        </p>
-        <button
-          type="button"
-          className={BUTTON}
-          disabled={!form.canTest}
-          onClick={form.sendTest}
-        >
-          {t("sendTest")}
-        </button>
-      </section>
-
-      <section aria-label={t("steps.review")} className="space-y-3">
-        <h2 className="text-lg font-semibold">{t("steps.review")}</h2>
-        <p className="text-sm text-[#676e78]">{t("reviewHint")}</p>
-        <button
-          type="button"
-          className={BUTTON}
-          disabled={!form.canReview}
-          onClick={form.review}
-        >
-          {form.isReviewed ? t("reviewAgain") : t("showList")}
-        </button>
-        {form.isReviewed ? (
-          <div className="space-y-4">
-            <RecipientTable
-              caption={t("willGet", { count: form.selectedCount })}
-              recipients={form.offered}
-              isTicked={form.isTicked}
-              onToggle={form.toggle}
-            />
-            {form.excluded.length > 0 ? (
-              <RecipientTable
-                caption={t("willNotGet", { count: form.excluded.length })}
-                recipients={form.excluded}
+            {t("backToList")}
+          </Link>
+        }
+      />
+      {form.sendingOff ? <SendingOffNotice /> : null}
+      <ol className="space-y-4">
+        <EmailStep number={1} step={Step.Write} state={form.steps[Step.Write]}>
+          <fieldset disabled={form.isWaitingForSave} className="space-y-4">
+            <legend className="sr-only">{t("steps.write")}</legend>
+            <div className="flex flex-wrap gap-2">
+              <PillSelect
+                label={t("program")}
+                value={form.draft.programId}
+                onChange={(value) => {
+                  form.update("programId", value);
+                }}
+                options={[
+                  { value: "", label: t("choose") },
+                  ...form.programs.map((program) => ({
+                    value: program.id,
+                    label: program.name,
+                  })),
+                ]}
               />
-            ) : null}
+              <PillSelect
+                label={t("audience")}
+                value={form.draft.audience}
+                onChange={(value) => {
+                  if (isEnumValue(EmailAudience, value))
+                    form.update("audience", value);
+                }}
+                options={Object.values(EmailAudience).map((audience) => ({
+                  value: audience,
+                  label: t(`audiences.${audience}`),
+                }))}
+              />
+              <PillSelect
+                label={t("template")}
+                value=""
+                onChange={form.chooseTemplate}
+                options={[
+                  { value: "", label: t("choose") },
+                  ...form.templates.map((template) => ({
+                    value: template.key,
+                    label: template.name,
+                  })),
+                ]}
+              />
+            </div>
+            <label className="block text-[13px] text-[#676e78]">
+              {t("subject")}
+              <input
+                className={FIELD}
+                value={form.draft.subject}
+                maxLength={EMAIL_SUBJECT_MAX}
+                onChange={(event) => {
+                  form.update("subject", event.target.value);
+                }}
+              />
+            </label>
+            <FormattedTextEditor
+              key={form.textVersion}
+              html={form.draft.bodyHtml}
+              disabled={form.isWaitingForSave}
+              onChange={(html) => {
+                form.update("bodyHtml", html);
+              }}
+            />
+            <p className="text-[12.5px] break-words text-[#858c96]">
+              {form.replyTo
+                ? t("replyTo", { address: form.replyTo })
+                : t("replyToLater")}
+            </p>
+          </fieldset>
+          <div className="flex flex-wrap gap-2">
+            <SolidButton disabled={!form.canSave} onClick={form.save}>
+              {t("save")}
+            </SolidButton>
+            {form.isNew ? null : (
+              <OutlineButton disabled={form.isBusy} onClick={form.askToDelete}>
+                {t("delete")}
+              </OutlineButton>
+            )}
           </div>
-        ) : null}
-      </section>
+        </EmailStep>
 
-      <section aria-label={t("steps.send")} className="space-y-3">
-        <h2 className="text-lg font-semibold">{t("steps.send")}</h2>
-        <button
-          type="button"
-          className={PRIMARY}
-          disabled={!form.canSend}
-          onClick={form.askToSend}
-        >
-          {t("sendTo", { count: form.selectedCount })}
-        </button>
-      </section>
-      {form.question ? (
-        <ModalDialog
-          labelledBy="email-question-title"
-          onClose={form.cancelQuestion}
-        >
-          <h2 id="email-question-title" className="text-lg font-semibold">
-            {t(`questions.${form.question}.title`, {
-              count: form.selectedCount,
-            })}
-          </h2>
-          <p className="text-sm text-[#676e78]">
-            {t(`questions.${form.question}.text`)}
+        <EmailStep number={2} step={Step.Test} state={form.steps[Step.Test]}>
+          <p className="text-[13.5px] text-[#676e78]">
+            {form.isTested ? t("tested") : t("testHint")}
           </p>
-          <div className="flex justify-end gap-3">
-            <button
-              type="button"
-              className={BUTTON}
-              onClick={form.cancelQuestion}
-            >
-              {t("cancel")}
-            </button>
-            <button
-              type="button"
-              className={PRIMARY}
-              disabled={form.isBusy}
-              onClick={form.answerYes}
-            >
-              {t(`questions.${form.question}.yes`)}
-            </button>
-          </div>
-        </ModalDialog>
+          <OutlineButton disabled={!form.canTest} onClick={form.sendTest}>
+            {t("sendTest")}
+          </OutlineButton>
+        </EmailStep>
+
+        <EmailStep
+          number={3}
+          step={Step.Review}
+          state={form.steps[Step.Review]}
+        >
+          <p className="text-[13.5px] text-[#676e78]">{t("reviewHint")}</p>
+          <OutlineButton disabled={!form.canReview} onClick={form.review}>
+            {form.isReviewed ? t("reviewAgain") : t("showList")}
+          </OutlineButton>
+          {form.isReviewed ? (
+            <div className="space-y-6">
+              <RecipientList
+                title={t("willGet", { count: form.selectedCount })}
+                recipients={form.offered}
+                isTicked={form.isTicked}
+                onToggle={form.toggle}
+              />
+              {form.excluded.length > 0 ? (
+                <RecipientList
+                  title={t("willNotGet", { count: form.excluded.length })}
+                  recipients={form.excluded}
+                />
+              ) : null}
+              <p
+                role="status"
+                className="sticky bottom-3 z-10 rounded-full bg-[#22262b] px-5 py-3 text-center text-[13px] font-medium text-white shadow-[0_12px_32px_rgba(33,38,43,0.2)]"
+              >
+                {t("finalCount", {
+                  count: form.selectedCount,
+                  excluded: form.excluded.length,
+                })}
+              </p>
+            </div>
+          ) : null}
+        </EmailStep>
+
+        <EmailStep number={4} step={Step.Send} state={form.steps[Step.Send]}>
+          <p className="text-[13.5px] text-[#676e78]">{t("sendHint")}</p>
+          <SolidButton disabled={!form.canSend} onClick={form.askToSend}>
+            {t("sendTo", { count: form.selectedCount })}
+          </SolidButton>
+        </EmailStep>
+      </ol>
+      {form.question ? (
+        <EmailQuestionDialog form={form} question={form.question} />
       ) : null}
     </div>
   );

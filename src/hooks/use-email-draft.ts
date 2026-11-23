@@ -28,6 +28,7 @@ import {
 import {
   draftFromTemplate,
   EmailSendRefusal,
+  emailStepStates,
   EMPTY_EMAIL_DRAFT,
   isBlankHtml,
   isDraftComplete,
@@ -219,6 +220,8 @@ export function useEmailDraft(
     textVersion,
     replyTo: detail?.replyTo ?? null,
     isNew: id === null,
+    programName: detail?.campaign.programName ?? "",
+    steps: emailStepStates({ isSaved, isTested, isReviewed }),
     isBusy,
     isSaved,
     isTested,

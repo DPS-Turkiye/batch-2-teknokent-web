@@ -10,6 +10,7 @@ export function useUnsubscribe(token: string | null) {
   return {
     isMissingToken: token === null,
     isDone: unsubscribe.isSuccess,
+    canConfirm: token !== null && !unsubscribe.isSuccess,
     isPending: unsubscribe.isPending,
     hasFailed: unsubscribe.isError,
     confirm: () => {

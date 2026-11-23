@@ -3,11 +3,11 @@
 
 import { useTranslations } from "next-intl";
 
+import { QueryNotice } from "@/components/admin/admin-ui";
 import { EmailComposeForm } from "@/components/email-center/email-compose-form";
-import { RecipientTable } from "@/components/email-center/recipient-table";
+import { SentEmail } from "@/components/email-center/sent-email";
 import { useEmailCampaign } from "@/hooks/use-email-campaign";
 import type { EmailCenterPath } from "@/lib/email-center";
-import { errorMessage } from "@/lib/utils";
 
 export function EmailView({
   id,
@@ -16,25 +16,24 @@ export function EmailView({
   id: string;
   basePath: EmailCenterPath;
 }) {
-  const t = useTranslations("emailCenter");
+  const t = useTranslations("common");
   const { detail, isDraft, isLoading, error } = useEmailCampaign(id);
 
   if (error && !detail)
-    return <p role="alert">{errorMessage(error, t("failed"))}</p>;
-  if (isLoading || !detail) return <p role="status">{t("loading")}</p>;
-  if (isDraft)
-    return <EmailComposeForm key={id} detail={detail} basePath={basePath} />;
-  return (
-    <div className="space-y-6 pb-10">
-      <header>
-        <h1 className="text-2xl font-semibold text-[#22262b]">
-          {detail.campaign.subject}
-        </h1>
-        <p role="status" className="mt-2 text-sm text-[#676e78]">
-          {t(`campaignStatuses.${detail.campaign.status}`)}
-        </p>
-      </header>
-      <RecipientTable caption={t("sendLog")} recipients={detail.recipients} />
-    </div>
+    return (
+      <div role="alert">
+        <QueryNotice isLoading={false} error={error} />
+      </div>
+    );
+  if (isLoading || !detail)
+    return (
+      <p role="status" className="text-sm text-[#858c96]">
+        {t("loading")}
+      </p>
+    );
+  return isDraft ? (
+    <EmailComposeForm key={id} detail={detail} basePath={basePath} />
+  ) : (
+    <SentEmail detail={detail} basePath={basePath} />
   );
 }

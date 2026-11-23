@@ -2,6 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 
+import { useClientPagination } from "@/hooks/use-client-pagination";
+import type { EmailCampaign } from "@/interfaces/email-center";
 import {
   getEmailCampaigns,
   getEmailCenterOptions,
@@ -10,6 +12,9 @@ import { POLL_INTERVAL, polling } from "@/lib/poll";
 
 export const EMAIL_CAMPAIGNS_QUERY_KEY = ["email-campaigns"] as const;
 export const EMAIL_OPTIONS_QUERY_KEY = ["email-center-options"] as const;
+
+const PAGE_SIZE = 20;
+const NO_CAMPAIGNS: EmailCampaign[] = [];
 
 export function emailCampaignQueryKey(id: string) {
   return [...EMAIL_CAMPAIGNS_QUERY_KEY, id] as const;
@@ -29,8 +34,13 @@ export function useEmailCampaigns() {
     queryFn: getEmailCampaigns,
     ...polling(POLL_INTERVAL.background),
   });
+  const pages = useClientPagination(campaigns.data ?? NO_CAMPAIGNS, PAGE_SIZE);
   return {
-    campaigns: campaigns.data ?? [],
+    campaigns: pages.pageItems,
+    page: pages.page,
+    totalPages: pages.totalPages,
+    setPage: pages.setPage,
+    isEmpty: campaigns.data?.length === 0,
     isLoading: campaigns.isLoading,
     error: campaigns.error,
     sendingOff: options.data?.sendingOn === false,

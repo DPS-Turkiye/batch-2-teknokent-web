@@ -4,84 +4,98 @@
 import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 
+import { Panel, QueryNotice, StatusChip } from "@/components/admin/admin-ui";
+import { EmptyState } from "@/components/common/empty-state";
+import { ListPagination } from "@/components/common/list-pagination";
+import {
+  EmailCenterHeader,
+  SendingOffNotice,
+  SOLID_LINK,
+} from "@/components/email-center/email-center-header";
 import { useEmailCampaigns } from "@/hooks/use-email-campaigns";
 import {
+  CAMPAIGN_TONES,
   problemCount,
   sentCount,
   type EmailCenterPath,
 } from "@/lib/email-center";
-import { errorMessage, formatDateTime } from "@/lib/utils";
+import { formatDateTime } from "@/lib/utils";
 
 export function EmailsView({ basePath }: { basePath: EmailCenterPath }) {
   const t = useTranslations("emailCenter");
   const locale = useLocale();
-  const { campaigns, isLoading, error, sendingOff } = useEmailCampaigns();
+  const list = useEmailCampaigns();
 
   return (
     <div className="space-y-6 pb-10">
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold text-[#22262b]">
-            {t("title")}
-          </h1>
-          <p className="mt-2 text-sm text-[#676e78]">{t("intro")}</p>
-        </div>
-        <div className="flex gap-3">
-          <Link
-            href={`${basePath}/templates`}
-            className="rounded-full border border-[#e4e7ea] px-5 py-2.5 text-sm font-semibold"
-          >
-            {t("templates.title")}
-          </Link>
-          <Link
-            href={`${basePath}/new`}
-            className="rounded-full bg-[#e86f22] px-5 py-2.5 text-sm font-semibold text-white"
-          >
-            {t("newEmail")}
-          </Link>
-        </div>
-      </header>
-      {sendingOff ? (
-        <p role="status" className="rounded-xl bg-[#fff6ef] p-4 text-sm">
-          {t("sendingOff")}
-        </p>
-      ) : null}
-      {isLoading ? <p role="status">{t("loading")}</p> : null}
-      {error ? <p role="alert">{errorMessage(error, t("failed"))}</p> : null}
-      {!isLoading && !error && campaigns.length === 0 ? (
-        <p className="py-12 text-center text-sm text-[#858c96]">{t("empty")}</p>
-      ) : null}
-      <ul className="space-y-3">
-        {campaigns.map((campaign) => (
-          <li key={campaign.id}>
-            <Link
-              href={`${basePath}/${campaign.id}`}
-              className="block rounded-xl border border-[#e4e7ea] bg-white p-4"
-            >
-              <p className="font-semibold text-[#22262b]">{campaign.subject}</p>
-              <p className="mt-1 text-xs text-[#676e78]">
-                {t("campaignLine", {
-                  program: campaign.programName,
-                  audience: t(`audiences.${campaign.audience}`),
-                  sender: campaign.senderName,
-                  date: formatDateTime(campaign.createdAt, locale),
-                })}
-              </p>
-              <p className="mt-2 text-xs font-medium">
-                {t(`campaignStatuses.${campaign.status}`)}
-                {" · "}
-                {t("sentCount", { count: sentCount(campaign) })}
-                {problemCount(campaign) > 0 ? (
-                  <span className="text-[#9b2c2c]">
-                    {" · "}
-                    {t("problemCount", { count: problemCount(campaign) })}
-                  </span>
-                ) : null}
-              </p>
+      <EmailCenterHeader basePath={basePath} onTemplates={false} />
+      {list.sendingOff ? <SendingOffNotice /> : null}
+      <div role={list.error ? "alert" : "status"}>
+        <QueryNotice isLoading={list.isLoading} error={list.error} />
+      </div>
+      {list.isEmpty ? (
+        <EmptyState
+          title={t("empty")}
+          body={t("emptyBody")}
+          action={
+            <Link href={`${basePath}/templates`} className={SOLID_LINK}>
+              {t("tabs.templates")}
             </Link>
-          </li>
-        ))}
-      </ul>
+          }
+        />
+      ) : null}
+      {list.campaigns.length > 0 ? (
+        <Panel>
+          <ul
+            aria-label={t("tabs.emails")}
+            className="divide-y divide-[#f0f2f4]"
+          >
+            {list.campaigns.map((campaign) => (
+              <li key={campaign.id}>
+                <Link
+                  href={`${basePath}/${campaign.id}`}
+                  className="flex flex-col gap-3 px-5 py-4 hover:bg-[#fafbfc] sm:flex-row sm:items-center sm:justify-between sm:px-6"
+                >
+                  <span className="min-w-0">
+                    <span className="block text-[14px] font-medium break-words text-[#22262b]">
+                      {campaign.subject}
+                    </span>
+                    <span className="mt-1 block text-[12.5px] text-[#858c96]">
+                      {t("campaignLine", {
+                        program: campaign.programName,
+                        audience: t(`audiences.${campaign.audience}`),
+                        sender: campaign.senderName,
+                        date: formatDateTime(campaign.createdAt, locale),
+                      })}
+                    </span>
+                  </span>
+                  <span className="flex shrink-0 flex-wrap items-center gap-2">
+                    {sentCount(campaign) > 0 ? (
+                      <span className="text-[12.5px] text-[#676e78]">
+                        {t("sentCount", { count: sentCount(campaign) })}
+                      </span>
+                    ) : null}
+                    {problemCount(campaign) > 0 ? (
+                      <StatusChip tone="red">
+                        {t("problemCount", { count: problemCount(campaign) })}
+                      </StatusChip>
+                    ) : null}
+                    <StatusChip tone={CAMPAIGN_TONES[campaign.status]}>
+                      {t(`campaignStatuses.${campaign.status}`)}
+                    </StatusChip>
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </Panel>
+      ) : null}
+      <ListPagination
+        page={list.page}
+        totalPages={list.totalPages}
+        onPageChange={list.setPage}
+        label={t("pages")}
+      />
     </div>
   );
 }
