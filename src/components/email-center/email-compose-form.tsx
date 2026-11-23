@@ -26,7 +26,7 @@ import { isEnumValue } from "@/lib/enum";
 import { EmailStep as Step } from "@/types/email-center";
 
 const FIELD =
-  "mt-1.5 h-10 w-full rounded-xl border border-[#e9ecef] px-3 text-[13.5px] text-[#22262b] outline-none focus-visible:border-[#22262b] focus-visible:ring-2 focus-visible:ring-[#22262b]";
+  "mt-1.5 h-10 w-full rounded-xl border border-[#e9ecef] px-3 text-[13.5px] text-[#22262b] focus:border-[#22262b]";
 
 export function EmailComposeForm({
   detail,

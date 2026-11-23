@@ -9,7 +9,7 @@ import { ModalDialog } from "@/components/common/modal-dialog";
 import type { useTextLink } from "@/hooks/use-text-link";
 
 const FIELD =
-  "mt-1.5 h-10 w-full rounded-xl border border-[#e9ecef] px-3 text-[13.5px] text-[#22262b] outline-none focus-visible:border-[#22262b] focus-visible:ring-2 focus-visible:ring-[#22262b] aria-invalid:border-[#b4232a]";
+  "mt-1.5 h-10 w-full rounded-xl border border-[#e9ecef] px-3 text-[13.5px] text-[#22262b] focus:border-[#22262b] aria-invalid:border-[#b4232a]";
 
 const PANEL =
   "max-h-[calc(100dvh-2rem)] w-full max-w-md space-y-4 overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl outline-none";
