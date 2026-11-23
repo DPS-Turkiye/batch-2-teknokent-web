@@ -1124,7 +1124,8 @@
     "programLaunch": {
       "phaseNameRequired": "{n}. fazın adını gir.",
       "phaseDateMissing": "“{name}” fazının tarihlerini gir."
-    }
+    },
+    "emailTooLong": "E-posta metni veya listeden çıkarılanlar çok uzun. Metni kısalt veya daha dar bir alıcı grubu seç."
   },
   "metadata": {
     "manifestDescription": "Mentorluk görüşmelerin, görevlerin ve mesajların cebinde.",
@@ -3537,7 +3538,8 @@
       "myAppointments": "Randevularım",
       "myProfile": "Profilim",
       "appointmentRequests": "Randevu Talepleri",
-      "advisees": "Danışan Öğrencilerim"
+      "advisees": "Danışan Öğrencilerim",
+      "emails": "E-postalar"
     },
     "workspace": {
       "student": "Öğrenci",
@@ -6404,7 +6406,12 @@
     "founderChangeLoadFailed": "Takımın üyeleri yüklenemedi.",
     "founderChangeFailed": "Kurucu değiştirilemedi.",
     "teamIdInvalid": "Geçerli bir takım seçin.",
-    "inviteCodeCheckFailed": "Davet kodu şu an kontrol edilemedi."
+    "inviteCodeCheckFailed": "Davet kodu şu an kontrol edilemedi.",
+    "emailsLoadFailed": "E-postalar yüklenemedi.",
+    "emailSaveFailed": "Taslak kaydedilemedi.",
+    "emailTestSendFailed": "Test e-postası gönderilemedi.",
+    "emailSendFailed": "E-posta gönderilemedi.",
+    "unsubscribeFailed": "İşlem tamamlanamadı."
   },
   "startupStart": {
     "title": "Startup'ım",
@@ -7414,6 +7421,118 @@
       "typeLabel": "Onaylamak için startup'ın adını aynen yaz",
       "confirm": "Startup'ı kalıcı olarak sil",
       "done": "Startup silindi."
+    }
+  },
+  "emailCenter": {
+    "title": "E-postalar",
+    "intro": "Programındaki kişilere e-posta gönder; her e-postanın kime ulaştığını gör.",
+    "newEmail": "Yeni e-posta",
+    "draftTitle": "Taslak",
+    "loading": "Yükleniyor…",
+    "failed": "İşlem tamamlanamadı. Tekrar dene.",
+    "empty": "Henüz e-posta yok.",
+    "sendingOff": "E-posta gönderimi şu anda kapalı. Taslak hazırlayabilirsin.",
+    "campaignLine": "{program} · {audience} · {sender} · {date}",
+    "sentCount": "{count} kişiye gönderildi",
+    "problemCount": "{count} sorun",
+    "program": "Program",
+    "audience": "Alıcılar",
+    "template": "Şablon",
+    "choose": "Seç",
+    "subject": "Konu",
+    "replyTo": "Yanıtlar şu adrese gelir: {address}. Alıcılar bu adresi görür.",
+    "replyToLater": "Yanıt adresi taslak kaydedilince görünür.",
+    "save": "Kaydet",
+    "saved": "Taslak kaydedildi.",
+    "delete": "Taslağı sil",
+    "steps": {
+      "write": "1. E-postayı yaz",
+      "test": "2. Kendine test gönder",
+      "review": "3. Alıcıları gözden geçir",
+      "send": "4. Gönder"
+    },
+    "testHint": "Göndermeden önce e-postanın son halini kendi adresine gönder.",
+    "tested": "Bu metnin testi sana gönderildi.",
+    "sendTest": "Bana test gönder",
+    "testSent": "Test e-postası adresine gönderildi.",
+    "reviewHint": "Listeyi aç, göndermek istemediklerinin işaretini kaldır. Liste değişirse tekrar gözden geçirmen gerekir.",
+    "showList": "Alıcı listesini göster",
+    "reviewAgain": "Listeyi yenile",
+    "willGet": "E-postayı alacaklar ({count})",
+    "willNotGet": "Almayacaklar ({count})",
+    "include": "{name} kişisine gönder",
+    "sendTo": "{count} kişiye gönder",
+    "sendStarted": "Gönderim başladı.",
+    "confirmTitle": "{count} kişiye gönderilsin mi?",
+    "confirmText": "Gönderilen e-posta geri alınamaz.",
+    "confirmSend": "Evet, gönder",
+    "cancel": "Vazgeç",
+    "sendLog": "Gönderim durumu",
+    "columns": {
+      "name": "Ad",
+      "address": "E-posta",
+      "team": "Takım",
+      "account": "Hesap",
+      "status": "Durum"
+    },
+    "audiences": {
+      "PARTICIPANTS": "Katılımcılar",
+      "MENTORS": "Mentorlar",
+      "EVERYONE": "Programdaki herkes",
+      "UNJOINED": "Henüz kaydolmamış ekip üyeleri"
+    },
+    "kinds": {
+      "PARTICIPANT": "–",
+      "MENTOR": "Mentor",
+      "UNJOINED": "–"
+    },
+    "accountStatuses": {
+      "PENDING": "Onay bekliyor",
+      "APPROVED": "Onaylı",
+      "REJECTED": "Reddedildi",
+      "DELETED": "Silindi",
+      "none": "Hesabı yok"
+    },
+    "campaignStatuses": {
+      "DRAFT": "Taslak",
+      "SENDING": "Gönderiliyor",
+      "SENT": "Gönderim tamamlandı"
+    },
+    "statuses": {
+      "EXCLUDED": "Alıcı değil",
+      "REVIEWED": "Gönderilecek",
+      "UNTICKED": "Listeden çıkarıldı",
+      "PENDING": "Sırada",
+      "SENDING": "Gönderiliyor",
+      "SENT": "Gönderildi",
+      "DELIVERED": "Ulaştı",
+      "BOUNCED": "Geri döndü",
+      "COMPLAINED": "Spam olarak bildirildi",
+      "FAILED": "Gönderilemedi",
+      "SKIPPED": "Atlandı"
+    },
+    "exclusions": {
+      "ACCOUNT_NOT_APPROVED": "Hesabı onaylı değil",
+      "NO_ADDRESS": "E-posta adresi yok",
+      "NOT_ELIGIBLE": "Bu kişiye gönderilemez",
+      "UNSUBSCRIBED": "E-posta almak istemiyor",
+      "UNDELIVERABLE": "Adrese ulaşılamıyor",
+      "NOT_ON_ALLOWLIST": "Test modu: bu adrese gönderilmiyor"
+    },
+    "editor": {
+      "label": "E-posta metni",
+      "bold": "Kalın",
+      "italic": "İtalik",
+      "bulletList": "Madde listesi",
+      "orderedList": "Numaralı liste"
+    },
+    "unsubscribe": {
+      "title": "E-posta tercihi",
+      "text": "Menton programlarının duyuru e-postalarını artık almayacaksın. Hesabınla ilgili e-postalar gelmeye devam eder.",
+      "confirm": "E-postaları durdur",
+      "done": "Tamam, artık bu e-postaları almayacaksın.",
+      "missingToken": "Bu bağlantı geçersiz. E-postadaki bağlantıyı kullan.",
+      "failed": "İşlem tamamlanamadı. Biraz sonra tekrar dene."
     }
   }
 }

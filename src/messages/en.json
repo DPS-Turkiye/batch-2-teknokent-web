@@ -1122,7 +1122,8 @@
     "programLaunch": {
       "phaseNameRequired": "Enter a name for phase {n}.",
       "phaseDateMissing": "Enter the dates of “{name}”."
-    }
+    },
+    "emailTooLong": "The text or the list of people taken off is too long. Shorten the text or choose a narrower group."
   },
   "metadata": {
     "manifestDescription": "Your mentoring meetings, tasks and messages in your pocket.",
@@ -3535,7 +3536,8 @@
       "myAppointments": "My appointments",
       "myProfile": "My profile",
       "appointmentRequests": "Appointment requests",
-      "advisees": "My advisees"
+      "advisees": "My advisees",
+      "emails": "E-mails"
     },
     "workspace": {
       "student": "Student",
@@ -6402,7 +6404,12 @@
     "founderChangeLoadFailed": "Couldn't load the team's members.",
     "founderChangeFailed": "Couldn't change the founder.",
     "teamIdInvalid": "Choose a valid team.",
-    "inviteCodeCheckFailed": "The invite code could not be checked right now."
+    "inviteCodeCheckFailed": "The invite code could not be checked right now.",
+    "emailsLoadFailed": "The e-mails could not be loaded.",
+    "emailSaveFailed": "The draft could not be saved.",
+    "emailTestSendFailed": "The test e-mail could not be sent.",
+    "emailSendFailed": "The e-mail could not be sent.",
+    "unsubscribeFailed": "That did not work."
   },
   "startupStart": {
     "title": "My startup",
@@ -7412,6 +7419,118 @@
       "typeLabel": "Type the startup's exact name to confirm",
       "confirm": "Delete the startup for good",
       "done": "The startup was deleted."
+    }
+  },
+  "emailCenter": {
+    "title": "E-mails",
+    "intro": "Write to the people of your program and see whom each e-mail reached.",
+    "newEmail": "New e-mail",
+    "draftTitle": "Draft",
+    "loading": "Loading…",
+    "failed": "That did not work. Try again.",
+    "empty": "No e-mails yet.",
+    "sendingOff": "Sending is off at the moment. You can prepare a draft.",
+    "campaignLine": "{program} · {audience} · {sender} · {date}",
+    "sentCount": "sent to {count}",
+    "problemCount": "{count} problems",
+    "program": "Program",
+    "audience": "Recipients",
+    "template": "Template",
+    "choose": "Choose",
+    "subject": "Subject",
+    "replyTo": "Replies go to {address}. Recipients see this address.",
+    "replyToLater": "The reply address shows once the draft is saved.",
+    "save": "Save",
+    "saved": "Draft saved.",
+    "delete": "Delete draft",
+    "steps": {
+      "write": "1. Write the e-mail",
+      "test": "2. Send yourself a test",
+      "review": "3. Review the recipients",
+      "send": "4. Send"
+    },
+    "testHint": "Send the latest version to your own address before sending it.",
+    "tested": "A test of this text was sent to you.",
+    "sendTest": "Send me a test",
+    "testSent": "The test e-mail was sent to your address.",
+    "reviewHint": "Open the list and untick the people you do not want to write to. If the list changes you review it again.",
+    "showList": "Show the recipient list",
+    "reviewAgain": "Refresh the list",
+    "willGet": "Will get the e-mail ({count})",
+    "willNotGet": "Will not get it ({count})",
+    "include": "Send to {name}",
+    "sendTo": "Send to {count} people",
+    "sendStarted": "Sending has started.",
+    "confirmTitle": "Send to {count} people?",
+    "confirmText": "A sent e-mail cannot be taken back.",
+    "confirmSend": "Yes, send",
+    "cancel": "Cancel",
+    "sendLog": "Delivery status",
+    "columns": {
+      "name": "Name",
+      "address": "E-mail",
+      "team": "Team",
+      "account": "Account",
+      "status": "Status"
+    },
+    "audiences": {
+      "PARTICIPANTS": "Participants",
+      "MENTORS": "Mentors",
+      "EVERYONE": "Everyone in the program",
+      "UNJOINED": "Team members who have not signed up"
+    },
+    "kinds": {
+      "PARTICIPANT": "–",
+      "MENTOR": "Mentor",
+      "UNJOINED": "–"
+    },
+    "accountStatuses": {
+      "PENDING": "Waiting for approval",
+      "APPROVED": "Approved",
+      "REJECTED": "Rejected",
+      "DELETED": "Deleted",
+      "none": "No account"
+    },
+    "campaignStatuses": {
+      "DRAFT": "Draft",
+      "SENDING": "Sending",
+      "SENT": "Sending finished"
+    },
+    "statuses": {
+      "EXCLUDED": "Not a recipient",
+      "REVIEWED": "Will be sent",
+      "UNTICKED": "Taken off the list",
+      "PENDING": "In line",
+      "SENDING": "Sending",
+      "SENT": "Sent",
+      "DELIVERED": "Arrived",
+      "BOUNCED": "Bounced",
+      "COMPLAINED": "Reported as spam",
+      "FAILED": "Not sent",
+      "SKIPPED": "Skipped"
+    },
+    "exclusions": {
+      "ACCOUNT_NOT_APPROVED": "Account not approved",
+      "NO_ADDRESS": "No e-mail address",
+      "NOT_ELIGIBLE": "Cannot be written to",
+      "UNSUBSCRIBED": "Does not want e-mails",
+      "UNDELIVERABLE": "Address cannot be reached",
+      "NOT_ON_ALLOWLIST": "Test mode: not sent to this address"
+    },
+    "editor": {
+      "label": "E-mail text",
+      "bold": "Bold",
+      "italic": "Italic",
+      "bulletList": "Bullet list",
+      "orderedList": "Numbered list"
+    },
+    "unsubscribe": {
+      "title": "E-mail preference",
+      "text": "You will no longer get announcement e-mails of Menton programs. E-mails about your account keep coming.",
+      "confirm": "Stop these e-mails",
+      "done": "Done, you will no longer get these e-mails.",
+      "missingToken": "This link is not valid. Use the link in the e-mail.",
+      "failed": "That did not work. Try again in a moment."
     }
   }
 }

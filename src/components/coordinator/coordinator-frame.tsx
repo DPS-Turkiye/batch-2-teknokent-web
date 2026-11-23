@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 
 import { RoleFrame, type RoleNavItem } from "@/components/common/role-frame";
 import { UserRole } from "@/interfaces/session";
+import { EMAIL_CENTER_ENABLED, EmailCenterPath } from "@/lib/email-center";
 
 const NAV: RoleNavItem[] = [
   {
@@ -36,6 +37,16 @@ const NAV: RoleNavItem[] = [
     icon: "/admin/nav-mail.svg",
     match: (path) => path.startsWith("/coordinator/messages"),
   },
+  ...(EMAIL_CENTER_ENABLED
+    ? [
+        {
+          href: EmailCenterPath.Coordinator,
+          label: "emails" as const,
+          icon: "/admin/nav-mail.svg",
+          match: (path: string) => path.startsWith(EmailCenterPath.Coordinator),
+        },
+      ]
+    : []),
 ];
 
 const COORDINATOR_ROLES = [UserRole.Coordinator, UserRole.Admin];
