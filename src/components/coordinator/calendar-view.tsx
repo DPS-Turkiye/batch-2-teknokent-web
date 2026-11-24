@@ -435,6 +435,7 @@ function WeekGrid({
                       {entry.item.conflict
                         ? itemName(entry.item, t)
                         : itemDetail(entry.item, texts)}
+                      {entry.item.noShow ? ` · ${t("noShow")}` : ""}
                       {isRecordingFull(entry.item, capacity)
                         ? ` · ${t("recordingFullShort")}`
                         : ""}
@@ -597,6 +598,10 @@ function ListView({
                     </span>
                   </span>
                   <span className="flex gap-2 text-[12px]">
+                    {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+                    {item.noShow ? (
+                      <span className="text-[#9e4400]">{t("noShow")}</span>
+                    ) : null}
                     {item.conflict ? (
                       <span className="text-[#d9464b]">{t("conflict")}</span>
                     ) : null}

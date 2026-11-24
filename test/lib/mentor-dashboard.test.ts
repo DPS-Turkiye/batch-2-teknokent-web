@@ -361,6 +361,15 @@ describe("meetingsAwaitingReview", () => {
     expect(meetingsAwaitingReview([past], now)).toEqual([past]);
   });
 
+  it("ignores a meeting the startup missed", () => {
+    expect(
+      meetingsAwaitingReview(
+        [pastMeeting({ noShowAt: "2026-09-09T12:00:00.000Z" })],
+        now,
+      ),
+    ).toEqual([]);
+  });
+
   it("ignores meetings that are still ahead", () => {
     expect(
       meetingsAwaitingReview(

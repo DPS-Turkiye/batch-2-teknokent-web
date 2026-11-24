@@ -8,7 +8,9 @@ import { MEETINGS_QUERY_KEY, useMeetings } from "@/hooks/use-meetings";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
 import { UserRole } from "@/interfaces/session";
 import {
+  clearMeetingNoShow,
   getMeetingFeedback,
+  markMeetingNoShow,
   postMeetingFeedback,
   setMeetingHeld,
 } from "@/lib/client/meetings";
@@ -59,6 +61,20 @@ export function useMentorMeetingEvaluation(meetingId: string) {
       queryClient.invalidateQueries({ queryKey: MEETINGS_QUERY_KEY }),
   });
 
+  const [noShowOpen, setNoShowOpen] = useState(false);
+  const [noShowNote, setNoShowNote] = useState("");
+  const noShowMutation = useMutation({
+    mutationFn: (missed: boolean) =>
+      missed
+        ? markMeetingNoShow(meetingId, noShowNote.trim())
+        : clearMeetingNoShow(meetingId),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: MEETINGS_QUERY_KEY });
+      setNoShowOpen(false);
+      setNoShowNote("");
+    },
+  });
+
   const meeting = meetingsQuery.data?.find((item) => item.id === meetingId);
   const request = meeting?.mentorshipRequestId
     ? requestsQuery.data?.find(
@@ -76,6 +92,16 @@ export function useMentorMeetingEvaluation(meetingId: string) {
     held: Boolean(meeting?.heldConfirmedAt),
     heldError: heldMutation.error,
     isSavingHeld: heldMutation.isPending,
+    noShow: Boolean(meeting?.noShowAt),
+    noShowError: noShowMutation.error,
+    noShowNote,
+    noShowOpen,
+    isSavingNoShow: noShowMutation.isPending,
+    openNoShow: () => setNoShowOpen(true),
+    closeNoShow: () => setNoShowOpen(false),
+    setNoShowNote,
+    confirmNoShow: () => noShowMutation.mutate(true),
+    undoNoShow: () => noShowMutation.mutate(false),
     confirmHeld: () => heldMutation.mutate(true),
     undoHeld: () => heldMutation.mutate(false),
     isLoading: meetingsQuery.isLoading || feedbackQuery.isLoading,

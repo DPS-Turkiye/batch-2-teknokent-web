@@ -22,6 +22,11 @@ const handlers = {
   toggleQuality: vi.fn(),
   confirmHeld: vi.fn(),
   undoHeld: vi.fn(),
+  openNoShow: vi.fn(),
+  closeNoShow: vi.fn(),
+  setNoShowNote: vi.fn(),
+  confirmNoShow: vi.fn(),
+  undoNoShow: vi.fn(),
 };
 
 function state(overrides: Partial<Evaluation> = {}): Evaluation {
@@ -33,6 +38,11 @@ function state(overrides: Partial<Evaluation> = {}): Evaluation {
     held: false,
     heldError: null,
     isSavingHeld: false,
+    noShow: false,
+    noShowError: null,
+    noShowNote: "",
+    noShowOpen: false,
+    isSavingNoShow: false,
     isLoading: false,
     isSubmitting: false,
     isSent: false,
@@ -201,5 +211,88 @@ describe("MeetingEvaluationView", () => {
     ).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Geri al" }));
     expect(handlers.undoHeld).toHaveBeenCalled();
+  });
+});
+
+describe("MeetingEvaluationView when the startup did not come", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(useMentorMeetingEvaluation).mockReturnValue(state());
+  });
+
+  it("offers both outcomes", async () => {
+    const user = userEvent.setup();
+    render(<MeetingEvaluationView meetingId="m1" />);
+
+    await user.click(
+      screen.getByRole("button", { name: "Girişimci katılmadı" }),
+    );
+    await user.click(screen.getByRole("button", { name: "Görüşme yapıldı" }));
+
+    expect(handlers.openNoShow).toHaveBeenCalledOnce();
+    expect(handlers.confirmHeld).toHaveBeenCalledOnce();
+  });
+
+  it("asks for an optional note instead of the questions", async () => {
+    const user = userEvent.setup();
+    vi.mocked(useMentorMeetingEvaluation).mockReturnValue(
+      state({ noShowOpen: true }),
+    );
+    render(<MeetingEvaluationView meetingId="m1" />);
+
+    expect(
+      screen.queryByRole("button", { name: "Değerlendirmeyi gönder" }),
+    ).not.toBeInTheDocument();
+    await user.type(
+      screen.getByRole("textbox", { name: /Koordinatöre not/ }),
+      "x",
+    );
+    await user.click(
+      screen.getByRole("button", { name: "Katılmadı olarak kaydet" }),
+    );
+    await user.click(screen.getByRole("button", { name: "Vazgeç" }));
+
+    expect(handlers.setNoShowNote).toHaveBeenCalledWith("x");
+    expect(handlers.confirmNoShow).toHaveBeenCalledOnce();
+    expect(handlers.closeNoShow).toHaveBeenCalledOnce();
+  });
+
+  it("says it is marked, hides the questions and can be undone", async () => {
+    const user = userEvent.setup();
+    vi.mocked(useMentorMeetingEvaluation).mockReturnValue(
+      state({ noShow: true }),
+    );
+    render(<MeetingEvaluationView meetingId="m1" />);
+
+    expect(
+      screen.getByText("“Girişimci katılmadı” olarak işaretlendi."),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Değerlendirmeyi gönder" }),
+    ).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Geri al" }));
+
+    expect(handlers.undoNoShow).toHaveBeenCalledOnce();
+    expect(handlers.undoHeld).not.toHaveBeenCalled();
+  });
+
+  it("is not offered once the evaluation is sent", () => {
+    vi.mocked(useMentorMeetingEvaluation).mockReturnValue(
+      state({ isSent: true }),
+    );
+    render(<MeetingEvaluationView meetingId="m1" />);
+
+    expect(
+      screen.queryByRole("button", { name: "Girişimci katılmadı" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows why it could not be saved", () => {
+    vi.mocked(useMentorMeetingEvaluation).mockReturnValue(
+      state({ noShowOpen: true, noShowError: new Error("Kaydedilemedi.") }),
+    );
+    render(<MeetingEvaluationView meetingId="m1" />);
+
+    expect(screen.getByRole("alert")).toHaveTextContent("Kaydedilemedi.");
   });
 });

@@ -29,10 +29,11 @@ export function meetingTiming(meeting: MeetingItem, now = new Date()) {
     : MeetingTiming.Upcoming;
 }
 
-/** Cancelled meetings never happened, so no view lists them. */
+/** Cancelled meetings and the ones the startup missed never happened, so no view lists them. */
 export function visibleMeetings(meetings: MeetingItem[]) {
   return meetings.filter(
-    (meeting) => meeting.status !== MeetingStatus.Cancelled,
+    (meeting) =>
+      meeting.status !== MeetingStatus.Cancelled && !meeting.noShowAt,
   );
 }
 

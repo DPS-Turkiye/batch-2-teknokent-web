@@ -217,6 +217,7 @@ export function meetingsAwaitingReview(
   return meetings
     .filter((meeting) => {
       if (meeting.status === MeetingStatus.Cancelled) return false;
+      if (meeting.noShowAt) return false;
       if (Date.parse(meeting.scheduledAt) >= now.getTime()) return false;
       return !meeting.outcomes?.trim() || !meeting.notes?.trim();
     })

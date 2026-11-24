@@ -255,6 +255,23 @@ describe("CoordinatorCalendarView", () => {
     ).toBeInTheDocument();
   });
 
+  it("marks a meeting the startup missed", async () => {
+    vi.mocked(getCoordinatorCalendar).mockResolvedValue(
+      coordinatorCalendar({ items: [calendarMeeting({ noShow: true })] }),
+    );
+    const user = userEvent.setup();
+    renderWithQueryClient(<CoordinatorCalendarView />);
+
+    expect(
+      await screen.findByText(/· Girişimci katılmadı/),
+    ).toBeInTheDocument();
+    await user.click(
+      screen.getByRole("button", { name: /Liste görünümünde aç/ }),
+    );
+
+    expect(screen.getByText("Girişimci katılmadı")).toBeInTheDocument();
+  });
+
   it("adds a deadline and reloads the calendar", async () => {
     vi.mocked(createCoordinatorProgramEvent).mockResolvedValue({
       id: "event-2",

@@ -52,12 +52,15 @@ describe("meeting labels", () => {
     );
   });
 
-  it("leaves cancelled meetings out", () => {
+  it("leaves cancelled and missed meetings out", () => {
     expect(
       visibleMeetings([
         meeting("kept", "2026-09-01T09:00:00Z"),
         meeting("gone", "2026-09-02T09:00:00Z", {
           status: MeetingStatus.Cancelled,
+        }),
+        meeting("missed", "2026-09-03T09:00:00Z", {
+          noShowAt: "2026-09-03T10:00:00Z",
         }),
       ]).map((item) => item.id),
     ).toEqual(["kept"]);
