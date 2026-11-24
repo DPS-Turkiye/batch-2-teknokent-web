@@ -4,6 +4,7 @@ import { Edition } from "@/interfaces/edition";
 import { UserRole } from "@/interfaces/session";
 import {
   accountDeletedHref,
+  accountDeletionHref,
   asksForSelfDeletion,
   confirmsAccountDeletion,
   confirmsStartupDeletion,
@@ -11,6 +12,7 @@ import {
   saysAccountDeleted,
   signedInRecently,
 } from "@/lib/self-deletion";
+import { appSession } from "@test/fixtures/session";
 
 describe("confirmsAccountDeletion", () => {
   it.each(["SİL", "sil", "Sil", "SIL", "  SİL  "])("accepts %j", (typed) => {
@@ -76,5 +78,32 @@ describe("the landing page notice", () => {
     expect(saysAccountDeleted(href.slice(1))).toBe(true);
     expect(saysAccountDeleted("")).toBe(false);
     expect(saysAccountDeleted("?hesap=var")).toBe(false);
+  });
+});
+
+describe("accountDeletionHref", () => {
+  it("leads a mentee and a mentor to the danger zone of their own profile", () => {
+    expect(accountDeletionHref(appSession({ role: UserRole.Mentee }))).toBe(
+      "/profile/personal#tehlikeli-bolge",
+    );
+    expect(accountDeletionHref(appSession({ role: UserRole.Mentor }))).toBe(
+      "/mentor-profile#tehlikeli-bolge",
+    );
+  });
+
+  it("gives no link where the pages do not offer a deletion", () => {
+    expect(accountDeletionHref(null)).toBeNull();
+    for (const role of [
+      UserRole.Admin,
+      UserRole.Coordinator,
+      UserRole.Academician,
+    ]) {
+      expect(accountDeletionHref(appSession({ role }))).toBeNull();
+    }
+    expect(
+      accountDeletionHref(
+        appSession({ role: UserRole.Mentee, edition: Edition.Odtu }),
+      ),
+    ).toBeNull();
   });
 });

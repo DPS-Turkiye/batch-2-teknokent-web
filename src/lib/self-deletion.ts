@@ -1,8 +1,9 @@
 import type { Edition } from "@/interfaces/edition";
-import { UserRole } from "@/interfaces/session";
+import { UserRole, type AppSession } from "@/interfaces/session";
 import { editionOf } from "@/lib/edition";
 import { offersUserDeletion } from "@/lib/edition-screens";
 import { hasPermission } from "@/lib/permissions";
+import { roleWorkspace, workspaceForSession } from "@/lib/role-workspace";
 
 /** The word typed into the account deletion's second confirmation. */
 export const ACCOUNT_CONFIRMATION_WORD = "SİL";
@@ -73,4 +74,22 @@ export function asksForSelfDeletion(viewer: SelfDeletionViewer | null) {
     !hasPermission(viewer, UserRole.Admin) &&
     !hasPermission(viewer, UserRole.Coordinator)
   );
+}
+
+/** The id of "Tehlikeli bölge" on a profile page, so a link can lead straight to it. */
+export const DANGER_ZONE_ID = "tehlikeli-bolge";
+
+// The personal pages that show "Tehlikeli bölge"; a student's or academician's page has none.
+const DELETION_PAGES = [
+  roleWorkspace(UserRole.Mentee).personalInfoHref,
+  roleWorkspace(UserRole.Mentor).personalInfoHref,
+];
+
+/** Where the person can delete their own account, or null when their pages do not offer it. */
+export function accountDeletionHref(session: AppSession | null) {
+  if (!asksForSelfDeletion(session)) return null;
+  const { personalInfoHref } = workspaceForSession(session);
+  return personalInfoHref && DELETION_PAGES.includes(personalInfoHref)
+    ? `${personalInfoHref}#${DANGER_ZONE_ID}`
+    : null;
 }

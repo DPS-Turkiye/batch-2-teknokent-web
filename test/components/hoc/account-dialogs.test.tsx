@@ -125,6 +125,38 @@ describe("AccountSettingsDialog", () => {
       screen.getByRole("button", { name: "Şifremi sıfırla" }),
     ).toBeInTheDocument();
   });
+
+  it("links a mentee to deleting the account and opens the notification preferences", async () => {
+    const user = userEvent.setup();
+    const onClose = vi.fn();
+    const onOpenNotifications = vi.fn();
+    renderWithQueryClient(
+      <AccountSettingsDialog
+        onClose={onClose}
+        onOpenNotifications={onOpenNotifications}
+      />,
+    );
+
+    await user.click(
+      screen.getByRole("button", { name: "Bildirim tercihleri →" }),
+    );
+    expect(onOpenNotifications).toHaveBeenCalledOnce();
+
+    expect(
+      screen.getByRole("link", { name: "Hesabımı sil →" }),
+    ).toHaveAttribute("href", "/profile/personal#tehlikeli-bolge");
+  });
+
+  it("offers a coordinator neither link", () => {
+    session = { email: "koord@example.com", role: UserRole.Coordinator };
+    renderWithQueryClient(<AccountSettingsDialog onClose={vi.fn()} />);
+    expect(
+      screen.queryByRole("button", { name: "Bildirim tercihleri →" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Hesabımı sil →" }),
+    ).not.toBeInTheDocument();
+  });
 });
 
 describe("NotificationPreferencesDialog", () => {

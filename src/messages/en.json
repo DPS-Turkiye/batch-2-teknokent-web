@@ -912,6 +912,8 @@
     "resetHint": "The reset link is sent to this address.",
     "language": "Language",
     "editPersonal": "Edit personal details →",
+    "openNotifications": "Notification preferences →",
+    "deleteAccount": "Delete my account →",
     "notificationsTitle": "Notification preferences",
     "notificationsLoading": "Loading notification settings…",
     "notificationsFailed": "Notification settings could not be loaded.",

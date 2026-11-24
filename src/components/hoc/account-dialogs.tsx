@@ -12,6 +12,7 @@ import { useNotificationPreferences } from "@/hooks/use-notification-preferences
 import { usePasswordReset } from "@/hooks/use-password-reset";
 import { ENGLISH_ENABLED } from "@/lib/i18n";
 import { roleWorkspace } from "@/lib/role-workspace";
+import { accountDeletionHref } from "@/lib/self-deletion";
 
 /** The account-menu items that open a dialog instead of a page. */
 export enum AccountDialog {
@@ -54,10 +55,18 @@ function DialogFrame({
   );
 }
 
-export function AccountSettingsDialog({ onClose }: { onClose: () => void }) {
+export function AccountSettingsDialog({
+  onClose,
+  onOpenNotifications,
+}: {
+  onClose: () => void;
+  /** Opens the notification preferences instead; left out where that dialog does not exist. */
+  onOpenNotifications?: (() => void) | undefined;
+}) {
   const session = useAppSession();
   const { isSendingReset, sendPasswordReset } = usePasswordReset();
   const { personalInfoHref } = roleWorkspace(session?.role);
+  const deletionHref = accountDeletionHref(session);
   const t = useTranslations("accountDialogs");
 
   return (
@@ -103,6 +112,26 @@ export function AccountSettingsDialog({ onClose }: { onClose: () => void }) {
           className="mt-5 inline-block text-sm font-semibold text-[#1583d6] hover:underline"
         >
           {t("editPersonal")}
+        </Link>
+      ) : null}
+      {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+      {onOpenNotifications ? (
+        <button
+          type="button"
+          onClick={onOpenNotifications}
+          className="mt-3 block text-sm! font-semibold! text-[#1583d6] hover:underline"
+        >
+          {t("openNotifications")}
+        </button>
+      ) : null}
+      {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+      {deletionHref ? (
+        <Link
+          href={deletionHref}
+          onClick={onClose}
+          className="mt-3 block text-sm font-semibold text-[#c2410c] hover:underline"
+        >
+          {t("deleteAccount")}
         </Link>
       ) : null}
     </DialogFrame>

@@ -12,6 +12,16 @@ const mockLogout = vi.fn().mockResolvedValue(undefined);
 
 const mockIndividualProgram = vi.fn();
 
+vi.mock("@/hooks/use-notification-preferences", () => ({
+  useNotificationPreferences: () => ({
+    preferences: null,
+    preferencesError: false,
+    preferencesLoading: true,
+    rows: [],
+    saveFailed: false,
+    toggle: vi.fn(),
+  }),
+}));
 vi.mock("@/hooks/use-individual-program", () => ({
   useIndividualProgram: () => mockIndividualProgram(),
 }));
@@ -270,7 +280,13 @@ describe("AppShell navigation", () => {
     );
     expect(settings.getByText("ayse.kaya@novamed.demo")).toBeInTheDocument();
 
-    await user.click(settings.getByRole("button", { name: "Kapat" }));
+    await user.click(
+      settings.getByRole("button", { name: "Bildirim tercihleri →" }),
+    );
+    const notifications = within(
+      screen.getByRole("dialog", { name: "Bildirim tercihleri" }),
+    );
+    await user.click(notifications.getByRole("button", { name: "Kapat" }));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 

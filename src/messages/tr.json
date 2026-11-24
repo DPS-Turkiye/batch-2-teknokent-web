@@ -914,6 +914,8 @@
     "resetHint": "Sıfırlama bağlantısı bu adrese gönderilir.",
     "language": "Dil",
     "editPersonal": "Kişisel bilgileri düzenle →",
+    "openNotifications": "Bildirim tercihleri →",
+    "deleteAccount": "Hesabımı sil →",
     "notificationsTitle": "Bildirim tercihleri",
     "notificationsLoading": "Bildirim ayarları yükleniyor…",
     "notificationsFailed": "Bildirim ayarları yüklenemedi.",
