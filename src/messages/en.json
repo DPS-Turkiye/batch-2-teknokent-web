@@ -3149,7 +3149,7 @@
       "close": "Close",
       "preferredTitle": "Times the mentee prefers",
       "noPreferred": "This request has no preferred times.",
-      "proposeTitle": "Don't like those times? Propose your own day and time",
+      "proposeTitle": "If these times don't work for you, propose your own day and time",
       "proposeHint": "One proposal is enough; you can add more. Times must be on the hour (10:00) or half hour (10:30) and at least 4 hours from now.",
       "backToMentee": "Back to the mentee's times",
       "proposeOwn": "Propose my own time",

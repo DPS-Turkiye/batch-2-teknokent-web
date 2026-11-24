@@ -5,6 +5,7 @@ import {
   assignPreferredSlot,
   availabilityColumns,
   chosenSlotDecisionMessage,
+  counterProposalMessage,
   decisionSlotOptions,
   formatPreferredSlot,
   hasPreferredSlots,
@@ -268,15 +269,36 @@ describe("preferred day and time slots", () => {
     ]);
   });
 
+  it("declines the mentee's times politely when the mentor proposes others", () => {
+    const slots = [{ date: "2026-09-12", time: "15:00" }];
+
+    expect(
+      counterProposalMessage("preferredSlots:2026-09-10T13:00", slots),
+    ).toBe(
+      [
+        "Önerdiğiniz saatlerde maalesef uygun değilim. Sizin için de uygunsa aşağıdaki saatlerden birinde görüşebiliriz.",
+        ...proposedSlotsMessageLines(slots),
+      ].join("\n"),
+    );
+  });
+
+  it("doesn't mention the mentee's times when the request has none", () => {
+    const slots = [{ date: "2026-09-12", time: "15:00" }];
+
+    expect(counterProposalMessage("Merhaba", slots)).toBe(
+      [
+        "Görüşme için aşağıdaki saatleri öneriyorum. Sizin için uygun olan birinde görüşebiliriz.",
+        ...proposedSlotsMessageLines(slots),
+      ].join("\n"),
+    );
+  });
+
   it("round-trips mentor proposed slots through the mentor message", () => {
     const slots = [
       { date: "2026-09-12", time: "15:00" },
       { date: "2026-09-13", time: "10:30" },
     ];
-    const message = [
-      "Saatlerinizi beğenmedim; alternatif gün ve saat öneriyorum.",
-      ...proposedSlotsMessageLines(slots),
-    ].join("\n");
+    const message = counterProposalMessage(null, slots);
 
     expect(hasProposedSlots(slots)).toBe(true);
     expect(parseProposedSlotsFromMessage(message)).toEqual([

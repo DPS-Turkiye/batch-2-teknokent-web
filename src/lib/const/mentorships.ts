@@ -11,7 +11,8 @@ export const MENTOR_ACCENT_STYLE: CSSProperties = {
 
 // Saved as the message the mentee reads, so these stay Turkish like other saved texts.
 export const MENTOR_ACCEPT_MESSAGE = "Talebiniz kabul edildi.";
-export const MENTOR_DECLINE_MESSAGE = "Şu an uygun değilim.";
+export const MENTOR_DECLINE_MESSAGE =
+  "Talebiniz için teşekkür ederim; maalesef şu an uygun değilim.";
 
 export const MENTORSHIPS_ACTIVE_HREF = "/mentorships?tab=active";
 export const MENTORSHIPS_HISTORY_HREF = "/mentorships?tab=history";

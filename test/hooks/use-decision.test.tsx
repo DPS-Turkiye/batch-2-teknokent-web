@@ -225,6 +225,39 @@ describe("useDecision when no time is left to pick", () => {
     vi.useRealTimers();
   });
 
+  it.each([
+    [
+      MentorDecisionMode.Decline,
+      MentorshipRequestStatus.Declined,
+      "Talebiniz için teşekkür ederim; maalesef şu an uygun değilim.",
+    ],
+    [
+      MentorDecisionMode.AskInfo,
+      MentorshipRequestStatus.MoreInfoRequested,
+      "Detaylı bilgi rica ederim.",
+    ],
+  ])(
+    "sends the default text of %s when the mentor wrote none",
+    async (mode, status, message) => {
+      const mutateAsync = vi.fn().mockResolvedValue(request);
+      vi.mocked(useMentorRequestDecision).mockReturnValue(
+        idleMutation({ mutateAsync }),
+      );
+      const { result } = renderHook(() => useDecision(), {
+        wrapper: createWrapper(),
+      });
+      act(() => result.current.selectRequest(request));
+
+      await act(() => result.current.submitDecision(mode));
+
+      expect(mutateAsync).toHaveBeenCalledWith({
+        id: "req-1",
+        status,
+        message,
+      });
+    },
+  );
+
   it("accepts without a time when every preferred time has passed", async () => {
     freezeDate("2026-11-30T09:00:00");
     const passed = mentorshipRequest({

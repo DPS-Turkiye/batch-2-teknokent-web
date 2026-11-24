@@ -124,8 +124,23 @@ describe("MentorRequestStartupDetail opened to propose times", () => {
       id: "req-1",
       status: MentorshipRequestStatus.CounterProposed,
       message:
-        "Mentörün önerdiği saatler: 20 Kasım Cuma · 14:00\nproposedSlots:2026-11-20T14:00",
+        "Görüşme için aşağıdaki saatleri öneriyorum. Sizin için uygun olan birinde görüşebiliriz.\nMentörün önerdiği saatler: 20 Kasım Cuma · 14:00\nproposedSlots:2026-11-20T14:00",
       requestedDocuments: [],
     });
+  });
+});
+
+it("declines with a polite message", async () => {
+  decide.mockReset();
+  decide.mockResolvedValue({});
+  const user = userEvent.setup();
+  renderWithQueryClient(<MentorRequestStartupDetail requestId="req-1" />);
+
+  await user.click(screen.getByRole("button", { name: "Reddet" }));
+
+  expect(decide).toHaveBeenCalledWith({
+    id: "req-1",
+    status: MentorshipRequestStatus.Declined,
+    message: "Talebiniz için teşekkür ederim; maalesef şu an uygun değilim.",
   });
 });

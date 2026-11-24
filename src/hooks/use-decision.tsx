@@ -14,7 +14,10 @@ import {
 } from "@/interfaces/mentorship-request";
 import { ToastTone } from "@/interfaces/toast";
 import { MENTORSHIP_MEETING_DURATION_MINUTES } from "@/lib/const";
-import { MENTOR_ACCEPT_MESSAGE } from "@/lib/const/mentorships";
+import {
+  MENTOR_ACCEPT_MESSAGE,
+  MENTOR_DECLINE_MESSAGE,
+} from "@/lib/const/mentorships";
 import { formatSlotDateTime } from "@/lib/format";
 import {
   chosenSlotDecisionMessage,
@@ -27,6 +30,12 @@ const decisionStatuses: Record<MentorDecisionMode, MentorshipRequestStatus> = {
   [MentorDecisionMode.Accept]: MentorshipRequestStatus.Accepted,
   [MentorDecisionMode.AskInfo]: MentorshipRequestStatus.MoreInfoRequested,
   [MentorDecisionMode.Decline]: MentorshipRequestStatus.Declined,
+};
+
+const DEFAULT_DECISION_MESSAGES: Record<MentorDecisionMode, string> = {
+  [MentorDecisionMode.Accept]: MENTOR_ACCEPT_MESSAGE,
+  [MentorDecisionMode.AskInfo]: "Detaylı bilgi rica ederim.",
+  [MentorDecisionMode.Decline]: MENTOR_DECLINE_MESSAGE,
 };
 
 export function useDecision() {
@@ -111,10 +120,7 @@ export function useDecision() {
         message:
           accepting && selectedSlot
             ? chosenSlotDecisionMessage(selectedSlot.slot)
-            : decisionMessage ||
-              (accepting
-                ? MENTOR_ACCEPT_MESSAGE
-                : "Detaylı bilgi rica ederim."),
+            : decisionMessage || DEFAULT_DECISION_MESSAGES[activeMode],
       });
 
       if (accepting) {

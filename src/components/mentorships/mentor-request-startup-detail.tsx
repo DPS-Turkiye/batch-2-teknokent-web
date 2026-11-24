@@ -53,8 +53,8 @@ import {
 import { normalizeMeetLink } from "@/lib/meet-link";
 import {
   chosenSlotDecisionMessage,
+  counterProposalMessage,
   preferredSlotStartsAt,
-  proposedSlotsMessageLines,
   type PreferredSlot,
 } from "@/lib/mentor-availability-days";
 import {
@@ -227,7 +227,7 @@ export function MentorRequestStartupDetail({
       await decisionMutation.mutateAsync({
         id: request.id,
         status: MentorshipRequestStatus.CounterProposed,
-        message: proposedSlotsMessageLines(slots).join("\n"),
+        message: counterProposalMessage(request.requesterMessage, slots),
         requestedDocuments: normalizeDocumentTitles(requestedDocuments),
       });
       setReviewing(false);

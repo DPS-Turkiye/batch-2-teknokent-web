@@ -273,6 +273,24 @@ export function proposedSlotsMessageLines(slots: readonly PreferredSlot[]) {
   ];
 }
 
+/**
+ * The mentor's "Kendi saatimi öner" message. It is sent in the mentor's name and saved for the mentee to read, so
+ * it stays polite and Turkish; it only mentions the mentee's times when the request has some.
+ */
+export function counterProposalMessage(
+  requesterMessage: string | null | undefined,
+  slots: readonly PreferredSlot[],
+) {
+  const hasPreferredTimes =
+    parsePreferredSlotsFromMessage(requesterMessage).length > 0;
+  return [
+    hasPreferredTimes
+      ? "Önerdiğiniz saatlerde maalesef uygun değilim. Sizin için de uygunsa aşağıdaki saatlerden birinde görüşebiliriz."
+      : "Görüşme için aşağıdaki saatleri öneriyorum. Sizin için uygun olan birinde görüşebiliriz.",
+    ...proposedSlotsMessageLines(slots),
+  ].join("\n");
+}
+
 export function hasProposedSlots(slots: readonly PreferredSlot[]) {
   const valid = enteredSlots(slots);
   const unique = new Set(valid.map(preferredSlotKey)).size;
