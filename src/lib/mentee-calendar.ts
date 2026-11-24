@@ -2,13 +2,14 @@ import type { useTranslations } from "next-intl";
 
 import { ActionItemStatus } from "@/interfaces/action-item";
 import type { MemberProgramEvent } from "@/interfaces/coordinator-program";
-import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
+import type { MeetingItem } from "@/interfaces/meeting";
 import {
   CalendarFilter,
   MENTEE_WEEK_HOURS,
   shortWeekday,
   timeLabel,
 } from "@/lib/calendar";
+import { didNotTakePlace } from "@/lib/meeting-status";
 import {
   isAllDay,
   programEntryKindLabel,
@@ -82,7 +83,7 @@ export function meetingEntries(
   { t }: CalendarTexts,
 ): CalendarEntry[] {
   return meetings
-    .filter((meeting) => meeting.status !== MeetingStatus.Cancelled)
+    .filter((meeting) => !didNotTakePlace(meeting))
     .map((meeting) => ({
       id: `meeting:${meeting.id}`,
       kind: CalendarEntryKind.Mentorship,

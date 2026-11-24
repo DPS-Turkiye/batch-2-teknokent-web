@@ -2,6 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { Video, X } from "lucide-react";
+import { useTranslations } from "next-intl";
+import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import { SyncMeetingActions } from "@/components/calendar/sync-meeting-actions";
@@ -19,6 +21,7 @@ import {
   unusedProgramMentors,
   type MeetingTarget,
 } from "@/lib/meeting-targets";
+import { mentorMeetingEvaluationHref } from "@/lib/mentor-evaluation";
 
 export function MeetingDetailDialog({
   meeting,
@@ -43,6 +46,7 @@ export function MeetingDetailDialog({
   isBusy?: boolean;
   error?: Error | null;
 }) {
+  const tEvaluation = useTranslations("mentorEvaluation");
   const roomQuery = useQuery({
     queryKey: ["meeting-room", meeting.id],
     queryFn: () => getMeetingRoom(meeting.id),
@@ -161,6 +165,19 @@ export function MeetingDetailDialog({
               ))}
             </ul>
           </div>
+        ) : null}
+
+        {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+        {meeting.noShowAt ? (
+          <p className="mt-4 rounded-xl bg-[#fff4ec] px-3 py-2 text-sm text-[#9e4400]">
+            {tEvaluation("noShow")}{" "}
+            <Link
+              href={mentorMeetingEvaluationHref(meeting.id)}
+              className="font-semibold underline"
+            >
+              {tEvaluation("noShowChange")}
+            </Link>
+          </p>
         ) : null}
 
         {canEdit ? (

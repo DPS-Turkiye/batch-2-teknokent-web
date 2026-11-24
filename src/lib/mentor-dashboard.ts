@@ -2,8 +2,9 @@ import type { useTranslations } from "next-intl";
 
 import { ActionItemStatus, type ActionItem } from "@/interfaces/action-item";
 import type { DocumentRequestItem } from "@/interfaces/document-request";
-import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
+import type { MeetingItem } from "@/interfaces/meeting";
 import { formatMeetingShort } from "@/lib/format";
+import { didNotTakePlace } from "@/lib/meeting-status";
 import { mentorMeetingEvaluationHref } from "@/lib/mentor-evaluation";
 import { isMeetingEnded } from "@/lib/mentorship-workspace";
 import { formatFileSize, formatShortDate, relativeDayLabel } from "@/lib/utils";
@@ -40,11 +41,7 @@ export function mentorWeekMeetingCount(
   const end = endDay.getTime();
   return meetings.filter((meeting) => {
     const time = Date.parse(meeting.scheduledAt);
-    return (
-      meeting.status !== MeetingStatus.Cancelled &&
-      time >= start.getTime() &&
-      time < end
-    );
+    return !didNotTakePlace(meeting) && time >= start.getTime() && time < end;
   }).length;
 }
 
@@ -216,8 +213,7 @@ export function meetingsAwaitingReview(
 ) {
   return meetings
     .filter((meeting) => {
-      if (meeting.status === MeetingStatus.Cancelled) return false;
-      if (meeting.noShowAt) return false;
+      if (didNotTakePlace(meeting)) return false;
       if (Date.parse(meeting.scheduledAt) >= now.getTime()) return false;
       return !meeting.outcomes?.trim() || !meeting.notes?.trim();
     })

@@ -1,5 +1,6 @@
 // TEST UI: placeholder until the design team's screen; replace when it arrives.
 import { useTranslations } from "next-intl";
+import { useEffect, useRef } from "react";
 
 import type { useMentorMeetingEvaluation } from "@/hooks/use-mentor-meeting-evaluation";
 import { MENTOR_NO_SHOW_NOTE_MAX_LENGTH } from "@/lib/const/mentor-evaluation";
@@ -20,7 +21,10 @@ export function MeetingOutcomeCard({ evaluation }: { evaluation: Evaluation }) {
     <section className="w-full rounded-[20px] border border-[#e4e7ea] bg-white px-8 py-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium leading-5 text-[#22262b]">
+          <p
+            role="status"
+            className="text-sm font-medium leading-5 text-[#22262b]"
+          >
             {evaluation.noShow
               ? t("noShowDone")
               : evaluation.held
@@ -90,6 +94,9 @@ function OutcomeButtons({ evaluation }: { evaluation: Evaluation }) {
 
 function NoShowForm({ evaluation }: { evaluation: Evaluation }) {
   const t = useTranslations("mentorEvaluation");
+  const note = useRef<HTMLTextAreaElement>(null);
+  // The button that opened the form is gone, so keyboard and screen-reader users are taken to its note.
+  useEffect(() => note.current?.focus(), []);
   return (
     <div className="mt-4 flex flex-col gap-3">
       <label className="flex flex-col gap-2">
@@ -98,6 +105,7 @@ function NoShowForm({ evaluation }: { evaluation: Evaluation }) {
           <span className="font-normal text-[#858c96]">{t("optional")}</span>
         </span>
         <textarea
+          ref={note}
           value={evaluation.noShowNote}
           onChange={(event) => evaluation.setNoShowNote(event.target.value)}
           maxLength={MENTOR_NO_SHOW_NOTE_MAX_LENGTH}

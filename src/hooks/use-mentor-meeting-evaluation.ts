@@ -98,9 +98,16 @@ export function useMentorMeetingEvaluation(meetingId: string) {
     noShowOpen,
     isSavingNoShow: noShowMutation.isPending,
     openNoShow: () => setNoShowOpen(true),
-    closeNoShow: () => setNoShowOpen(false),
+    closeNoShow: () => {
+      setNoShowOpen(false);
+      setNoShowNote("");
+      noShowMutation.reset();
+    },
     setNoShowNote,
-    confirmNoShow: () => noShowMutation.mutate(true),
+    confirmNoShow: () => {
+      heldMutation.reset();
+      noShowMutation.mutate(true);
+    },
     undoNoShow: () => noShowMutation.mutate(false),
     confirmHeld: () => heldMutation.mutate(true),
     undoHeld: () => heldMutation.mutate(false),
