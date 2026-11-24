@@ -387,7 +387,12 @@ export function AppShell({
         </div>
       ) : null}
       {accountDialog === AccountDialog.Settings ? (
-        <AccountSettingsDialog onClose={() => setAccountDialog(null)} />
+        <AccountSettingsDialog
+          onClose={() => setAccountDialog(null)}
+          onOpenNotifications={() =>
+            setAccountDialog(AccountDialog.Notifications)
+          }
+        />
       ) : null}
       {accountDialog === AccountDialog.Notifications ? (
         <NotificationPreferencesDialog onClose={() => setAccountDialog(null)} />

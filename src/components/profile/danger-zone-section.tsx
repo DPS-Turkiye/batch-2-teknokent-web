@@ -11,8 +11,9 @@ import {
   useAccountDeletion,
   type AccountDeletion,
 } from "@/hooks/use-account-deletion";
+import { useScrollToHash } from "@/hooks/use-scroll-to-hash";
 import { AccountDeletionBlock } from "@/interfaces/self-deletion";
-import { ACCOUNT_CONFIRMATION_WORD } from "@/lib/self-deletion";
+import { ACCOUNT_CONFIRMATION_WORD, DANGER_ZONE_ID } from "@/lib/self-deletion";
 import { DeletionStep, DeletionTarget } from "@/types/self-deletion";
 
 const ROW_BUTTON =
@@ -49,11 +50,12 @@ const KEPT = {
 export function DangerZoneSection() {
   const t = useTranslations("dangerZone");
   const deletion = useAccountDeletion();
+  const scrollRef = useScrollToHash(DANGER_ZONE_ID);
   if (deletion.hidden) return null;
   const blocked = deletion.accountBlockedReason;
 
   return (
-    <ProfileCard title={t("title")}>
+    <ProfileCard id={DANGER_ZONE_ID} ref={scrollRef} title={t("title")}>
       <p className="text-[13px] leading-[1.5] text-[#676e78]">{t("intro")}</p>
       {deletion.startup ? (
         <Row

@@ -84,6 +84,22 @@ describe("DangerZoneSection", () => {
     vi.mocked(signOutOfFirebase).mockResolvedValue(undefined);
   });
 
+  it("scrolls itself into view when the address asks for it", async () => {
+    const scrollIntoView = vi.fn();
+    Element.prototype.scrollIntoView = scrollIntoView;
+    window.location.hash = "#tehlikeli-bolge";
+    const { unmount } = show(member);
+    await screen.findByRole("button", { name: "Hesabımı sil" });
+    expect(scrollIntoView).toHaveBeenCalledOnce();
+    unmount();
+
+    scrollIntoView.mockClear();
+    window.location.hash = "";
+    show(member);
+    await screen.findByRole("button", { name: "Hesabımı sil" });
+    expect(scrollIntoView).not.toHaveBeenCalled();
+  });
+
   it("offers nothing to a coordinator, and does not even ask", async () => {
     auth.session = { userId: "user-1", role: UserRole.Coordinator };
     renderWithQueryClient(<DangerZoneSection />);
