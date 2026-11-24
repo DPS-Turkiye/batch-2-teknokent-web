@@ -42,8 +42,8 @@ import { normalizeMeetLink } from "@/lib/meet-link";
 import { requestExpectedOutcome } from "@/lib/meeting-context";
 import {
   chosenSlotDecisionMessage,
+  counterProposalMessage,
   preferredSlotStartsAt,
-  proposedSlotsMessageLines,
   type PreferredSlot,
 } from "@/lib/mentor-availability-days";
 import {
@@ -135,15 +135,11 @@ export function MentorMentorshipsWorkspace() {
     requestedDocuments: string[],
   ) {
     setActionError("");
-    const message = [
-      "Saatlerinizi beğenmedim; alternatif gün ve saat öneriyorum.",
-      ...proposedSlotsMessageLines(slots),
-    ].join("\n");
     try {
       await decisionMutation.mutateAsync({
         id: request.id,
         status: MentorshipRequestStatus.CounterProposed,
-        message,
+        message: counterProposalMessage(request.requesterMessage, slots),
         requestedDocuments: normalizeDocumentTitles(requestedDocuments),
       });
       setReviewing(null);

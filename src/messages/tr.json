@@ -3151,7 +3151,7 @@
       "close": "Kapat",
       "preferredTitle": "Mentee’nin tercih ettiği saatler",
       "noPreferred": "Bu talepte tercih saati belirtilmemiş.",
-      "proposeTitle": "Saatleri beğenmediysen kendi gün ve saatini öner",
+      "proposeTitle": "Saatler sana uymuyorsa kendi gün ve saatini öner",
       "proposeHint": "En az bir öneri yeterli. Daha fazla ekleyebilirsin. Saatler tam (10:00) veya buçuk (10:30) ve en erken 4 saat sonrası olmalı.",
       "backToMentee": "Mentee saatlerine dön",
       "proposeOwn": "Kendi saatimi öner",

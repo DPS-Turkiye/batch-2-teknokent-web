@@ -352,7 +352,11 @@ describe("MentorMentorshipsWorkspace", () => {
     expect(mutateAsync).toHaveBeenCalledWith({
       id: "req-1",
       status: MentorshipRequestStatus.CounterProposed,
-      message: expect.stringContaining(`proposedSlots:${day}T15:00`),
+      message: expect.stringMatching(
+        new RegExp(
+          `^Önerdiğiniz saatlerde maalesef uygun değilim\\.[\\s\\S]*\\nproposedSlots:${day}T15:00$`,
+        ),
+      ),
       requestedDocuments: [],
     });
     expect(logMentorshipMeeting).not.toHaveBeenCalled();
