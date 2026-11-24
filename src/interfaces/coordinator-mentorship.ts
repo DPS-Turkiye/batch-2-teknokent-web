@@ -57,6 +57,9 @@ export type CoordinatorMentorshipMeeting = {
   durationMinutes: number | null;
   status: MeetingStatus;
   hasNotes: boolean;
+  /** The mentor marked that the startup did not come. */
+  noShow?: boolean;
+  noShowNote?: string | null;
 };
 
 /** The drawer. Goal titles stay between mentor and team, so only counts arrive. */

@@ -70,6 +70,23 @@ export function setMeetingHeld(id: string, mentorId: string, held: boolean) {
   });
 }
 
+export function markMeetingNoShow(id: string, mentorId: string, note: string) {
+  return backendRequest({
+    method: "POST",
+    url: `/api/meetings/${encodeURIComponent(id)}/no-show`,
+    params: { mentorId },
+    data: { note },
+  });
+}
+
+export function clearMeetingNoShow(id: string, mentorId: string) {
+  return backendRequest({
+    method: "DELETE",
+    url: `/api/meetings/${encodeURIComponent(id)}/no-show`,
+    params: { mentorId },
+  });
+}
+
 export function fetchMeetingRoom(id: string) {
   return backendRequest({
     method: "GET",

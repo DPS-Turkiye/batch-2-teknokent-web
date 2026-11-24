@@ -2,13 +2,14 @@ import {
   ProgramCalendarEntryKind,
   type MemberProgramEvent,
 } from "@/interfaces/coordinator-program";
-import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
+import type { MeetingItem } from "@/interfaces/meeting";
 import {
   monthGridCells,
   shortWeekday,
   startOfWeek,
   weekDays,
 } from "@/lib/calendar";
+import { didNotTakePlace } from "@/lib/meeting-status";
 import { mobileClock, mobileLongDay, type MobileTexts } from "@/lib/mobile";
 import { meetingTitle } from "@/lib/mobile-home";
 import {
@@ -193,7 +194,7 @@ export function agendaEntries(
 ) {
   return [
     ...meetings
-      .filter((meeting) => meeting.status !== MeetingStatus.Cancelled)
+      .filter((meeting) => !didNotTakePlace(meeting))
       .map((meeting) => meetingEntry(meeting, texts)),
     ...events.map((event) => programEntry(event, texts)),
   ].sort((left, right) => left.startsAt.getTime() - right.startsAt.getTime());

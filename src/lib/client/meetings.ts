@@ -89,6 +89,23 @@ export async function setMeetingHeld(id: string, held: boolean) {
   );
 }
 
+export async function markMeetingNoShow(id: string, note: string) {
+  return requireSuccess(
+    await httpClient.post<MeetingItem>(
+      `/api/meetings/${encodeURIComponent(id)}/no-show`,
+      { note },
+    ),
+  );
+}
+
+export async function clearMeetingNoShow(id: string) {
+  return requireSuccess(
+    await httpClient.delete<MeetingItem>(
+      `/api/meetings/${encodeURIComponent(id)}/no-show`,
+    ),
+  );
+}
+
 export async function getMeetingRoom(id: string) {
   return requireSuccess(
     await httpClient.get<MeetingItem[]>(

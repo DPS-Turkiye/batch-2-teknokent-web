@@ -32,6 +32,7 @@ import {
   useOpenTodoCounts,
   useStartupMeetingNotes,
 } from "@/hooks/use-startup-meeting-notes";
+import { MeetingStatus } from "@/interfaces/meeting";
 import { DOCUMENT_UPLOAD_ACCEPT } from "@/lib/const";
 import {
   meetingsWithSameMentor,
@@ -92,7 +93,10 @@ export function MeetingNoteRoomView({ meetingId }: MeetingNoteRoomViewProps) {
     () => visibleMeetings(meetingsQuery.data ?? []),
     [meetingsQuery.data],
   );
-  const meeting = meetings.find((item) => item.id === meetingId);
+  // A meeting the startup missed leaves the lists, but the notes already written in its room stay open.
+  const meeting = meetingsQuery.data?.find(
+    (item) => item.id === meetingId && item.status !== MeetingStatus.Cancelled,
+  );
   const otherMeetings = meeting
     ? meetingsWithSameMentor(meetings, meeting)
     : [];

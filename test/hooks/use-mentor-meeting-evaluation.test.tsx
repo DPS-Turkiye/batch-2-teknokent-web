@@ -6,8 +6,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useMentorMeetingEvaluation } from "@/hooks/use-mentor-meeting-evaluation";
 import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import {
+  clearMeetingNoShow,
   getMeetingFeedback,
   getMeetings,
+  markMeetingNoShow,
   postMeetingFeedback,
   setMeetingHeld,
   type MeetingFeedbackItem,
@@ -22,6 +24,8 @@ vi.mock("@/lib/client/meetings", () => ({
   getMeetingFeedback: vi.fn(),
   postMeetingFeedback: vi.fn(),
   setMeetingHeld: vi.fn(),
+  markMeetingNoShow: vi.fn(),
+  clearMeetingNoShow: vi.fn(),
 }));
 
 vi.mock("@/lib/client/mentor-requests", () => ({
@@ -161,5 +165,61 @@ describe("useMentorMeetingEvaluation", () => {
     await waitFor(() =>
       expect(setMeetingHeld).toHaveBeenLastCalledWith("m1", false),
     );
+  });
+
+  it("saves the trimmed note with the mark and closes the form", async () => {
+    vi.mocked(markMeetingNoShow).mockResolvedValue(meeting);
+    const { result } = renderHook(() => useMentorMeetingEvaluation("m1"), {
+      wrapper,
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    act(() => result.current.openNoShow());
+    act(() => result.current.setNoShowNote("  Haber vermedi "));
+    expect(result.current.noShowOpen).toBe(true);
+    vi.mocked(getMeetings).mockResolvedValue([
+      { ...meeting, noShowAt: "2026-09-05T12:00:00Z" },
+    ]);
+    act(() => result.current.confirmNoShow());
+
+    await waitFor(() => expect(result.current.noShow).toBe(true));
+    expect(markMeetingNoShow).toHaveBeenCalledWith("m1", "Haber vermedi");
+    expect(result.current.noShowOpen).toBe(false);
+    expect(result.current.noShowNote).toBe("");
+  });
+
+  it("undoes the mark", async () => {
+    vi.mocked(getMeetings).mockResolvedValue([
+      { ...meeting, noShowAt: "2026-09-05T12:00:00Z" },
+    ]);
+    vi.mocked(clearMeetingNoShow).mockResolvedValue(meeting);
+    const { result } = renderHook(() => useMentorMeetingEvaluation("m1"), {
+      wrapper,
+    });
+    await waitFor(() => expect(result.current.noShow).toBe(true));
+
+    vi.mocked(getMeetings).mockResolvedValue([meeting]);
+    act(() => result.current.undoNoShow());
+
+    await waitFor(() => expect(result.current.noShow).toBe(false));
+    expect(clearMeetingNoShow).toHaveBeenCalledWith("m1");
+  });
+
+  it("keeps the form and its note when saving fails", async () => {
+    vi.mocked(markMeetingNoShow).mockRejectedValue(new Error("Olmadı"));
+    const { result } = renderHook(() => useMentorMeetingEvaluation("m1"), {
+      wrapper,
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    act(() => result.current.openNoShow());
+    act(() => result.current.setNoShowNote("Haber vermedi"));
+    act(() => result.current.confirmNoShow());
+
+    await waitFor(() =>
+      expect(result.current.noShowError?.message).toBe("Olmadı"),
+    );
+    expect(result.current.noShowOpen).toBe(true);
+    expect(result.current.noShowNote).toBe("Haber vermedi");
   });
 });

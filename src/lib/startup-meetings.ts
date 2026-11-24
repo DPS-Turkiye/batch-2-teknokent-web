@@ -1,4 +1,5 @@
-import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
+import type { MeetingItem } from "@/interfaces/meeting";
+import { didNotTakePlace } from "@/lib/meeting-status";
 import { isMeetingEnded } from "@/lib/mentorship-workspace";
 
 export enum StartupMeetingView {
@@ -29,11 +30,9 @@ export function meetingTiming(meeting: MeetingItem, now = new Date()) {
     : MeetingTiming.Upcoming;
 }
 
-/** Cancelled meetings never happened, so no view lists them. */
+/** Cancelled meetings and the ones the startup missed never happened, so no view lists them. */
 export function visibleMeetings(meetings: MeetingItem[]) {
-  return meetings.filter(
-    (meeting) => meeting.status !== MeetingStatus.Cancelled,
-  );
+  return meetings.filter((meeting) => !didNotTakePlace(meeting));
 }
 
 function newestFirst(left: MeetingItem, right: MeetingItem) {

@@ -23,5 +23,7 @@ export type MeetingItem = {
   botDispatchedAt?: string | null;
   /** Set once the mentor confirms the meeting was held; only these count in the program sessions report. */
   heldConfirmedAt?: string | null;
+  /** Set once the mentor marks that the startup did not come; the meeting then counts nowhere. */
+  noShowAt?: string | null;
   status: MeetingStatus;
 };

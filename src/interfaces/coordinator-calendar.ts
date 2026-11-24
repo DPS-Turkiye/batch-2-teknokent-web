@@ -26,6 +26,8 @@ export type CoordinatorCalendarItem = {
   /** Most meeting rooms the transcript bot records at once during a MEETING, platform-wide. */
   recordingLoad: number | null;
   plan: ProgramCalendarPlanItem | null;
+  /** The mentor marked that the startup did not come to this MEETING. */
+  noShow?: boolean;
   /** Set on the client for a coordinator's proposal still waiting for both sides ("Önerilen slot"). */
   proposalId?: string;
 };

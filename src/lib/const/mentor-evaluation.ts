@@ -50,3 +50,4 @@ export const OUTCOME_CLARITY_RATINGS: Record<OutcomeClarity, number> = {
 };
 
 export const MENTOR_EVALUATION_NOTE_MAX_LENGTH = 255;
+export const MENTOR_NO_SHOW_NOTE_MAX_LENGTH = 255;

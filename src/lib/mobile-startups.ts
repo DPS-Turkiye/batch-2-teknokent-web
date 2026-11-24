@@ -1,5 +1,5 @@
 import { ActionItemStatus, type ActionItem } from "@/interfaces/action-item";
-import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
+import type { MeetingItem } from "@/interfaces/meeting";
 import {
   MentorshipRequestStatus,
   type MentorshipRequest,
@@ -9,6 +9,7 @@ import type { OrganizationMember } from "@/interfaces/organization-member";
 import type { Program } from "@/interfaces/program";
 import type { RegularMentorship } from "@/interfaces/regular-mentorship";
 import type { StartupDocument } from "@/interfaces/startup-document";
+import { didNotTakePlace } from "@/lib/meeting-status";
 import { mentorRequestStartupHref } from "@/lib/mentorship-workspace";
 import {
   MOBILE_CALENDAR,
@@ -70,7 +71,7 @@ function daysSinceLastMeeting(
     .filter(
       (meeting) =>
         meeting.organizationId === organizationId &&
-        meeting.status !== MeetingStatus.Cancelled &&
+        !didNotTakePlace(meeting) &&
         endOf(meeting) <= now.getTime(),
     )
     .map((meeting) => endOf(meeting));
@@ -251,7 +252,7 @@ export function startupDetail(input: {
     ? input.meetings.filter(
         (meeting) =>
           meeting.organizationId === input.organizationId &&
-          meeting.status !== MeetingStatus.Cancelled &&
+          !didNotTakePlace(meeting) &&
           meeting.scheduledAt <= next.scheduledAt,
       ).length
     : 0;

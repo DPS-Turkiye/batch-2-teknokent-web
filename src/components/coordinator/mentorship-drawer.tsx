@@ -411,8 +411,16 @@ function MeetingsTab({ detail }: { detail: CoordinatorMentorshipDetail }) {
                 ? formatDateTime(meeting.scheduledAt, locale)
                 : t("noDate")}
             </span>
+            {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+            {meeting.noShow && meeting.noShowNote ? (
+              <span className="block text-[12px] text-[#676e78]">
+                {meeting.noShowNote}
+              </span>
+            ) : null}
           </span>
-          {meeting.status === MeetingStatus.Cancelled ? (
+          {meeting.noShow ? (
+            <StatusChip tone="amber">{t("noShow")}</StatusChip>
+          ) : meeting.status === MeetingStatus.Cancelled ? (
             <StatusChip tone="neutral">{t("cancelled")}</StatusChip>
           ) : meeting.status === MeetingStatus.Scheduled &&
             meeting.scheduledAt &&

@@ -62,7 +62,11 @@ const deliverable = {
 describe("mentee calendar entries", () => {
   it("names a meeting by its mentor on the grid and by its agenda in lists", () => {
     const [entry] = meetingEntries(
-      [meeting(), meeting({ id: "m-2", status: MeetingStatus.Cancelled })],
+      [
+        meeting(),
+        meeting({ id: "m-2", status: MeetingStatus.Cancelled }),
+        meeting({ id: "m-3", noShowAt: "2026-09-10T12:00:00Z" }),
+      ],
       texts,
     );
 

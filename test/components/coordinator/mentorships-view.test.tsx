@@ -9,6 +9,7 @@ import {
   CoordinatorMentorshipHealth,
   MentorshipSource,
 } from "@/interfaces/coordinator-mentorship";
+import { MeetingStatus } from "@/interfaces/meeting";
 import { ProgramType } from "@/interfaces/program";
 import {
   getCoordinatorMentorship,
@@ -269,6 +270,35 @@ describe("CoordinatorMentorshipsView", () => {
 
     await user.keyboard("{Escape}");
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("marks a meeting the startup missed, with the mentor's note", async () => {
+    vi.mocked(getCoordinatorMentorship).mockResolvedValue(
+      coordinatorMentorshipDetail({
+        meetings: [
+          {
+            id: "meeting-1",
+            title: "Nakit akışı",
+            scheduledAt: "2026-09-04T09:00:00Z",
+            durationMinutes: 60,
+            status: MeetingStatus.Completed,
+            hasNotes: false,
+            noShow: true,
+            noShowNote: "Haber vermedi",
+          },
+        ],
+      }),
+    );
+    const user = userEvent.setup();
+    renderWithQueryClient(
+      <CoordinatorMentorshipsView initialSelectedId="mentorship-1" />,
+    );
+
+    await user.click(await screen.findByRole("tab", { name: /Görüşmeler/ }));
+
+    expect(screen.getByText("Girişimci katılmadı")).toBeInTheDocument();
+    expect(screen.getByText("Haber vermedi")).toBeInTheDocument();
+    expect(screen.queryByText("Not eksik")).not.toBeInTheDocument();
   });
 
   it("pages twenty rows at a time", async () => {
