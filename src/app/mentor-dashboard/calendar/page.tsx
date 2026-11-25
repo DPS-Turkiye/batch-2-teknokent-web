@@ -2,6 +2,7 @@
 
 import { ChevronLeft, ChevronRight, FileText, X } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
+import Link from "next/link";
 import { useState } from "react";
 
 import { ProgramDayRow } from "@/components/calendar/program-day-row";
@@ -30,6 +31,7 @@ import {
   createGoogleMeetEvent,
   ensureGoogleCalendarToken,
 } from "@/lib/google-calendar";
+import { mentorMeetingEvaluationHref } from "@/lib/mentor-evaluation";
 import { AppArea } from "@/types/app-area";
 
 function toDateKey(value: Date) {
@@ -61,6 +63,7 @@ function MeetingModal({
   isBusy: boolean;
 }) {
   const t = useTranslations("mentorCalendar");
+  const tEvaluation = useTranslations("mentorEvaluation");
   const locale = useLocale();
   return (
     <div
@@ -99,6 +102,18 @@ function MeetingModal({
           </div>
         </header>
         <div className="space-y-5 px-6 py-5 text-xs leading-5 text-[#4a5059]">
+          {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+          {meeting.noShowAt ? (
+            <p className="rounded-xl bg-[#fff4ec] px-3 py-2 text-sm text-[#9e4400]">
+              {tEvaluation("noShow")}{" "}
+              <Link
+                href={mentorMeetingEvaluationHref(meeting.id)}
+                className="font-semibold underline"
+              >
+                {tEvaluation("noShowChange")}
+              </Link>
+            </p>
+          ) : null}
           {meeting.agenda ? (
             <section>
               <p className="mb-1 text-[10px] font-semibold uppercase text-[#858c96]">

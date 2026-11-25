@@ -322,6 +322,30 @@ describe("MentorCalendarPage", () => {
     ).toHaveAttribute("href", "https://meet.example/abc");
   });
 
+  it("links a meeting marked as missed back to its evaluation, where the mark can be undone", async () => {
+    const user = userEvent.setup();
+    mockCalendar({
+      meetings: [meeting({ noShowAt: "2026-09-14T15:00:00.000Z" })],
+    });
+    const { unmount } = render(<MentorCalendarPage />);
+
+    await user.click(within(grid()).getByRole("button", { name: /Döngü/ }));
+
+    expect(screen.getByRole("link", { name: "Değiştir" })).toHaveAttribute(
+      "href",
+      "/mentor-dashboard/meetings/meeting-1/evaluation",
+    );
+    unmount();
+
+    mockCalendar();
+    render(<MentorCalendarPage />);
+    await user.click(within(grid()).getByRole("button", { name: /Döngü/ }));
+
+    expect(
+      screen.queryByRole("link", { name: "Değiştir" }),
+    ).not.toBeInTheDocument();
+  });
+
   it("says when a meeting has no notes yet", async () => {
     const user = userEvent.setup();
     const { agenda: _agenda, meetLink: _meetLink, ...withoutNotes } = meeting();

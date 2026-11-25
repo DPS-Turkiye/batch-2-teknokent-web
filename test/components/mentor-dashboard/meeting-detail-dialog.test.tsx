@@ -70,20 +70,6 @@ describe("MeetingDetailDialog", () => {
     vi.mocked(getMeetingRoom).mockResolvedValue([]);
   });
 
-  it("links a meeting marked as missed back to its evaluation, where the mark can be undone", () => {
-    renderWithQueryClient(
-      <MeetingDetailDialog
-        meeting={{ ...meeting, noShowAt: "2026-08-26T09:00:00.000Z" }}
-        onClose={vi.fn()}
-      />,
-    );
-
-    expect(screen.getByRole("link", { name: "Değiştir" })).toHaveAttribute(
-      "href",
-      "/mentor-dashboard/meetings/m1/evaluation",
-    );
-  });
-
   it("adds a startup from the program that is not yet in the room", async () => {
     const onAddStartup = vi.fn().mockResolvedValue(undefined);
     const user = userEvent.setup();
