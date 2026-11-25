@@ -116,8 +116,11 @@ export async function proxy(request: NextRequest) {
   // The phone app is Teknokent's alone, so the ODTÜ deployment never sends a phone there.
   const phoneUser =
     edition === Edition.Teknokent && (!user || hasMobileApp(user.role));
+  // A visitor who is not signed in came for the landing page; its sign-in button leads to the phone login.
+  const landsOnPhonePage =
+    PHONE_ENTRY_PATHS.has(pathname) && (signedIn || pathname !== "/");
   if (
-    PHONE_ENTRY_PATHS.has(pathname) &&
+    landsOnPhonePage &&
     !prefersWeb &&
     phoneUser &&
     isPhoneUserAgent(request.headers.get("user-agent"))

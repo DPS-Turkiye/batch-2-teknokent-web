@@ -16,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 // A prerendered landing page is cached by the CDN for every visitor alike, so
-// the proxy never sees a phone to send to /m. Rendering it per request keeps it
+// the proxy never sees a signed-in phone to send to /m. Rendering it per request keeps it
 // out of that cache, and reads the deployment's edition per request too.
 export const dynamic = "force-dynamic";
 
