@@ -8,6 +8,8 @@ import { useEffect, useState, type ReactNode } from "react";
 import { MentorProgramInvitations } from "@/components/dashboard/mentor-program-invitations";
 import { MyProgramsPanel } from "@/components/dashboard/my-programs-panel";
 import { AppShell } from "@/components/hoc/app-shell";
+import { MeetingBotButton } from "@/components/meeting-bot-button";
+import { MeetingJoinLink } from "@/components/meeting-join-link";
 import { MeetingProposalCards } from "@/components/meeting-proposal-cards";
 import { AssignTaskButton } from "@/components/mentor-dashboard/assign-task-button";
 import { useMentorDashboard } from "@/hooks/use-mentor-dashboard";
@@ -231,16 +233,22 @@ function NextMeetingBanner({
             <span className="flex items-center gap-1.5 text-[12.5px] leading-[18px] text-white">
               <FigmaIcon name="clock" size={14} /> {when}
             </span>
-            {meeting.joinHref ? (
-              <a
-                href={meeting.joinHref}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex min-h-[34px] items-center rounded-full bg-[#26a4ff] px-[14px] text-[12.5px]! font-medium! leading-[18px]! text-white"
-              >
-                {t("join")}
-              </a>
-            ) : null}
+            <div className="flex flex-wrap items-start justify-end gap-2">
+              {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+              <MeetingBotButton
+                meeting={nextMeeting}
+                className="inline-flex min-h-[34px] items-center rounded-full border border-white/70 px-[14px] text-[12.5px]! font-medium! leading-[18px]! text-white"
+                noticeClassName="max-w-[260px] text-right text-[11px] leading-4 text-white"
+              />
+              {meeting.joinHref ? (
+                <MeetingJoinLink
+                  href={meeting.joinHref}
+                  className="inline-flex min-h-[34px] items-center rounded-full bg-[#26a4ff] px-[14px] text-[12.5px]! font-medium! leading-[18px]! text-white"
+                >
+                  {t("join")}
+                </MeetingJoinLink>
+              ) : null}
+            </div>
           </div>
         </div>
         <div className="mt-3 flex flex-col gap-3">

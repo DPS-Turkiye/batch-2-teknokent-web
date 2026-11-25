@@ -3453,6 +3453,14 @@
     "notFound": "Meeting not found.",
     "minutes": "{count} min"
   },
+  "meetingBotButton": {
+    "add": "Add recording bot",
+    "sending": "Sending bot…",
+    "sent": "The recording bot is on its way to the meeting. It will be recorded, so let the participants know.",
+    "sentNotMarked": "The recording bot was sent, but the meeting could not be marked as recorded, so there may be no report. Turn on recording for the meeting.",
+    "failed": "The recording bot could not be sent.",
+    "hint": "The meeting is recorded and transcribed. Let the participants know."
+  },
   "assistant": {
     "brand": "Meeting",
     "brandSuffix": "assistant",
