@@ -259,6 +259,28 @@ describe("MentorMessagesPage", () => {
     ).toHaveAttribute("href", "/mentorships/requests/r1");
   });
 
+  it("points to proposing a time while the request still waits for the mentor", () => {
+    const waiting = conversation("r1", "Döngü", "Gülse Buran");
+    mockMessages({
+      active: { ...waiting, status: MentorshipRequestStatus.Pending },
+    });
+    const { unmount } = render(<MentorMessagesPage />);
+
+    expect(
+      screen.getByRole("link", { name: "Kendi saatimi öner" }),
+    ).toHaveAttribute(
+      "href",
+      expect.stringMatching(/^\/mentorships\/requests\/r1\?/),
+    );
+    unmount();
+
+    mockMessages();
+    render(<MentorMessagesPage />);
+    expect(
+      screen.queryByRole("link", { name: "Kendi saatimi öner" }),
+    ).not.toBeInTheDocument();
+  });
+
   it("notes when the mentorship has no meeting planned", () => {
     mockMessages({ activeMeeting: null, meetingLabel: null });
     render(<MentorMessagesPage />);

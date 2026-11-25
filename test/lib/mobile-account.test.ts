@@ -39,6 +39,21 @@ describe("preferenceRowsFor", () => {
     ]);
   });
 
+  it("adds the e-mail switch for everyone where the backend knows it", () => {
+    const known = {
+      messages: true,
+      meetingReminders: true,
+      meetingChanges: true,
+      newTasks: true,
+      taskDeadlines: false,
+      startupActivity: true,
+      emails: false,
+    };
+    for (const role of [UserRole.Mentee, UserRole.Mentor, UserRole.Admin]) {
+      expect(preferenceRowsFor(role, known).at(-1)?.key).toBe("emails");
+    }
+  });
+
   it("gives coordinators and admins only the message switch", () => {
     for (const role of [UserRole.Coordinator, UserRole.Admin]) {
       expect(preferenceRowsFor(role).map((row) => row.key)).toEqual([

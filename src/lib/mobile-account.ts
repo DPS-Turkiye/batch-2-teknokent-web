@@ -25,12 +25,24 @@ const MENTOR_ROWS: PreferenceRow[] = [
 // Coordinators and admins only get messages; their other notices are GENERAL, which cannot be muted.
 const STAFF_ROWS: PreferenceRow[] = [{ key: "messages" }];
 
-export function preferenceRowsFor(role?: UserRole | null) {
+// TEST UI: placeholder until the design team's screen; replace when it arrives.
+const EMAIL_ROW: PreferenceRow = { key: "emails" };
+
+function categoryRowsFor(role?: UserRole | null) {
   if (role === UserRole.Mentor) return MENTOR_ROWS;
   if (role === UserRole.Coordinator || role === UserRole.Admin) {
     return STAFF_ROWS;
   }
   return MENTEE_ROWS;
+}
+
+/** The role's switches; the e-mail one only where the backend knows it. */
+export function preferenceRowsFor(
+  role?: UserRole | null,
+  preferences?: NotificationPreferences | null,
+) {
+  const rows = categoryRowsFor(role);
+  return preferences?.emails === undefined ? rows : [...rows, EMAIL_ROW];
 }
 
 export function toggledPreferences(
