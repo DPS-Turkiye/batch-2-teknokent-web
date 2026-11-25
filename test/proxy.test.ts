@@ -208,11 +208,20 @@ describe("proxy on a phone", () => {
     return response.headers.get("location");
   }
 
-  it("sends a signed-out phone from the landing page and login to the phone login", async () => {
-    for (const path of ["/", "/login"]) {
-      const response = await request(path, undefined, IPHONE);
-      expect(location(response)).toBe("http://localhost:3000/m/login");
-    }
+  it("shows a signed-out phone the landing page", async () => {
+    const response = await request("/", undefined, IPHONE);
+    expect(response.status).toBe(200);
+    expect(location(response)).toBeNull();
+  });
+
+  it("sends a signed-in phone from the landing page to the phone app", async () => {
+    const response = await request("/", signedIn, IPHONE);
+    expect(location(response)).toBe("http://localhost:3000/m");
+  });
+
+  it("sends a signed-out phone from login to the phone login", async () => {
+    const response = await request("/login", undefined, IPHONE);
+    expect(location(response)).toBe("http://localhost:3000/m/login");
   });
 
   // A failed OTG start lands on /login?otg=hata; on a phone the alert must survive the hop to /m/login.

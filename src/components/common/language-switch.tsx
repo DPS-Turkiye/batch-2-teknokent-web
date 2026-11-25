@@ -7,16 +7,21 @@ import { ENGLISH_ENABLED, Locale } from "@/lib/i18n";
 
 const LOCALES = [Locale.Tr, Locale.En] as const;
 
-/** Türkçe / English; hidden until English is switched on for this environment. */
+/**
+ * Türkçe / English; hidden until English is switched on for this environment. `shortOnPhones` shows TR / EN on a
+ * phone's width, for a bar with no room for the names.
+ */
 export function LanguageSwitch({
   enabled = ENGLISH_ENABLED,
+  shortOnPhones = false,
 }: {
   enabled?: boolean;
+  shortOnPhones?: boolean;
 }) {
-  return enabled ? <LanguageButtons /> : null;
+  return enabled ? <LanguageButtons shortOnPhones={shortOnPhones} /> : null;
 }
 
-function LanguageButtons() {
+function LanguageButtons({ shortOnPhones }: { shortOnPhones: boolean }) {
   const t = useTranslations("language");
   const { locale, setLocale } = useLanguageSwitch();
   return (
@@ -30,12 +35,22 @@ function LanguageButtons() {
           key={option}
           type="button"
           aria-pressed={locale === option}
+          aria-label={t(option)}
           onClick={() => setLocale(option)}
-          className={`rounded-full px-3 py-1 ${
+          className={`rounded-full py-1 ${shortOnPhones ? "px-2 sm:px-3" : "px-3"} ${
             locale === option ? "bg-[#22262b] text-white!" : "text-[#676e78]!"
           }`}
         >
-          {t(option)}
+          {shortOnPhones ? (
+            <>
+              <span className="uppercase sm:hidden" lang="en">
+                {option}
+              </span>
+              <span className="max-sm:hidden">{t(option)}</span>
+            </>
+          ) : (
+            t(option)
+          )}
         </button>
       ))}
     </div>
