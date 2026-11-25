@@ -377,33 +377,51 @@ export function CreateMeetingDialog({
               </label>
             </div>
 
-            {error ? (
-              <div className="mt-3 space-y-2">
+            {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+            <div className="mt-4">
+              <label className="block text-sm font-semibold text-[#22262b]">
+                {t("meetLink")}
+                <input
+                  type="url"
+                  value={manualMeetLink}
+                  onChange={(event) => {
+                    setManualMeetLink(event.target.value);
+                    setLinkError("");
+                  }}
+                  aria-invalid={Boolean(linkError)}
+                  aria-describedby={
+                    linkError
+                      ? "create-meeting-link-hint create-meeting-link-error"
+                      : "create-meeting-link-hint"
+                  }
+                  placeholder="https://meet.google.com/xxx-yyyy-zzz"
+                  className="mt-1 w-full rounded-lg border border-[#e4e7ea] px-2 py-1.5 text-sm font-normal text-[#22262b] outline-none focus:border-[#e86f22]"
+                />
+              </label>
+              <p
+                id="create-meeting-link-hint"
+                className="mt-1 text-[11px] text-[#858c96]"
+              >
+                {t("meetLinkHint")}
+              </p>
+              {linkError ? (
                 <p
+                  id="create-meeting-link-error"
                   role="alert"
-                  className="rounded-lg bg-[#fdeaea] px-3 py-2 text-xs text-[#b42318]"
+                  className="mt-1 text-xs text-[#b42318]"
                 >
-                  {manualMeetLink.trim()
-                    ? error.message
-                    : t("autoMeetFailed", { error: error.message })}
+                  {linkError}
                 </p>
-                <label className="block text-sm font-semibold text-[#22262b]">
-                  {t("meetLink")}
-                  <input
-                    type="url"
-                    value={manualMeetLink}
-                    onChange={(event) => {
-                      setManualMeetLink(event.target.value);
-                      setLinkError("");
-                    }}
-                    placeholder="https://meet.google.com/xxx-yyyy-zzz"
-                    className="mt-1 w-full rounded-lg border border-[#e4e7ea] px-2 py-1.5 text-sm font-normal text-[#22262b] outline-none focus:border-[#e86f22]"
-                  />
-                </label>
-                {linkError ? (
-                  <p className="text-xs text-[#b42318]">{linkError}</p>
-                ) : null}
-              </div>
+              ) : null}
+            </div>
+
+            {error ? (
+              <p
+                role="alert"
+                className="mt-3 rounded-lg bg-[#fdeaea] px-3 py-2 text-xs text-[#b42318]"
+              >
+                {error.message}
+              </p>
             ) : null}
 
             <TranscribeRequestedField

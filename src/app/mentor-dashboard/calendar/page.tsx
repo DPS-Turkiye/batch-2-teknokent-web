@@ -27,10 +27,6 @@ import {
   timeLabel,
   weekRangeLabel,
 } from "@/lib/calendar";
-import {
-  createGoogleMeetEvent,
-  ensureGoogleCalendarToken,
-} from "@/lib/google-calendar";
 import { mentorMeetingEvaluationHref } from "@/lib/mentor-evaluation";
 import { AppArea } from "@/types/app-area";
 
@@ -215,23 +211,13 @@ export default function MentorCalendarPage() {
     setCreateError(null);
     setIsCreating(true);
     try {
-      let meetLink = batch.meetLink;
-      if (!meetLink) {
-        const { token } = await ensureGoogleCalendarToken();
-        meetLink = await createGoogleMeetEvent({
-          accessToken: token,
-          title: batch.agenda,
-          startIso: batch.scheduledAt,
-          durationMinutes: batch.durationMinutes,
-        });
-      }
       for (const recipient of batch.recipients) {
         await calendar.addMeeting({
           ...recipient,
           scheduledAt: batch.scheduledAt,
           durationMinutes: batch.durationMinutes,
           agenda: batch.agenda,
-          meetLink,
+          ...(batch.meetLink ? { meetLink: batch.meetLink } : {}),
           transcribeRequested: batch.transcribeRequested,
           requestedDocuments: batch.requestedDocuments,
         });

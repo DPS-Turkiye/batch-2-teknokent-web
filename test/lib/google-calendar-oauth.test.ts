@@ -3,8 +3,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MeetingStatus } from "@/interfaces/meeting";
 import {
   authenticateWithGoogle,
-  createGoogleMeetEvent,
-  ensureGoogleCalendarToken,
   fetchGoogleCalendarEvents,
   getGoogleClientId,
   parseGoogleMeetLink,
@@ -300,94 +298,6 @@ describe("authenticateWithGoogle", () => {
     postFromOrigin(ORIGIN, { type: "GOOGLE_OAUTH_TOKEN", token: "late" });
     expect(sessionStorage.getItem(TOKEN_KEY)).toBeNull();
     expect(vi.getTimerCount()).toBe(0);
-  });
-});
-
-describe("ensureGoogleCalendarToken", () => {
-  beforeEach(() => {
-    vi.stubEnv("NEXT_PUBLIC_GOOGLE_CLIENT_ID", "client-1");
-  });
-
-  it("reuses a stored token", async () => {
-    storeToken("stored-token", Date.now() + 10 * 60_000);
-
-    await expect(ensureGoogleCalendarToken()).resolves.toEqual({
-      token: "stored-token",
-    });
-  });
-
-  it("signs in with Google when no token is stored", async () => {
-    const { popup } = fakePopup();
-    openReturns(popup);
-
-    const pending = ensureGoogleCalendarToken();
-    postFromOrigin(ORIGIN, { type: "GOOGLE_OAUTH_TOKEN", token: "fresh" });
-
-    await expect(pending).resolves.toEqual({ token: "fresh" });
-  });
-});
-
-describe("createGoogleMeetEvent", () => {
-  const input = {
-    accessToken: "ya29.access",
-    title: "Mentorluk",
-    startIso: "2026-09-04T10:00:00.000Z",
-    durationMinutes: 30,
-  };
-
-  it("falls back to the video entry point when Google sends no hangoutLink", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async () =>
-        jsonResponse({
-          conferenceData: {
-            entryPoints: [
-              { entryPointType: "phone", uri: "tel:+90-555" },
-              { entryPointType: "video", uri: "https://meet.google.com/v" },
-            ],
-          },
-        }),
-      ),
-    );
-
-    await expect(createGoogleMeetEvent(input)).resolves.toBe(
-      "https://meet.google.com/v",
-    );
-  });
-
-  it("rejects when the event comes back without any Meet link", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async () => jsonResponse({ id: "e1" })),
-    );
-
-    await expect(createGoogleMeetEvent(input)).rejects.toThrow(
-      "Google Meet bağlantısı alınamadı.",
-    );
-  });
-
-  it("shows Google's own reason when it refuses the event", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async () =>
-        jsonResponse({ error: { message: "Insufficient Permission" } }, 403),
-      ),
-    );
-
-    await expect(createGoogleMeetEvent(input)).rejects.toThrow(
-      "Insufficient Permission",
-    );
-  });
-
-  it("shows a readable message when the refusal has no JSON body", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async () => new Response("<html>", { status: 500 })),
-    );
-
-    await expect(createGoogleMeetEvent(input)).rejects.toThrow(
-      "Google Meet etkinliği oluşturulamadı.",
-    );
   });
 });
 

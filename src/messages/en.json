@@ -991,9 +991,6 @@
     },
     "googleCalendar": {
       "popupBlocked": "The pop-up was blocked. Allow pop-ups in your browser and try again.",
-      "missingClientId": "Set NEXT_PUBLIC_GOOGLE_CLIENT_ID to create Google Meet links.",
-      "meetCreateFailed": "Couldn't create the Google Meet event. Check the Google permission.",
-      "meetLinkMissing": "Couldn't get a Google Meet link.",
       "fetchFailed": "Couldn't read events from the Google Calendar API. Check your access token."
     },
     "profile": {
@@ -3069,8 +3066,8 @@
       "nextDays": "Next 7 days",
       "pickable": "Time you can pick",
       "summary": "Request summary",
-      "autoMeetFailed": "Couldn't create the Google Meet automatically. {error} You can create the link yourself and paste it below.",
-      "meetLink": "Google Meet link",
+      "meetLink": "Google Meet link (optional)",
+      "meetLinkHint": "Leave it empty and Menton makes the link; it shows in the calendar within a few minutes.",
       "invalidLink": "Paste a valid Google Meet link.",
       "sending": "Sending...",
       "send": "Send"
