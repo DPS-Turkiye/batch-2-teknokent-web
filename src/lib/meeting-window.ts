@@ -1,15 +1,17 @@
-const MIN_WIDTH = 640;
+const MIN_WIDTH = 480;
 const MAX_WIDTH = 1100;
 
-/** A window over the right of the browser (so on the same monitor), leaving the page it came from visible beside it. */
+/**
+ * A window over the left half of the browser (so on the same monitor): the join and recording-bot buttons sit on the
+ * right half of the page and stay in reach.
+ */
 function windowFeatures(): string {
-  const { availWidth, availHeight } = window.screen;
+  const { screenX, screenY, outerWidth, outerHeight } = window;
   const width = Math.round(
-    Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, availWidth * 0.6)),
+    Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, outerWidth / 2)),
   );
-  const height = Math.round(availHeight * 0.85);
-  const left = window.screenX + Math.max(0, window.outerWidth - width);
-  return `popup=yes,width=${width},height=${height},left=${left},top=${window.screenY}`;
+  const height = Math.round(outerHeight * 0.85);
+  return `popup=yes,resizable=yes,width=${width},height=${height},left=${screenX},top=${screenY}`;
 }
 
 /** Phones and tablets have no second window to put beside the page, so the meeting stays a normal link there. */
