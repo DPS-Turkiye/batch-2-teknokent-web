@@ -9,6 +9,7 @@ import { MentorProgramInvitations } from "@/components/dashboard/mentor-program-
 import { MyProgramsPanel } from "@/components/dashboard/my-programs-panel";
 import { AppShell } from "@/components/hoc/app-shell";
 import { MeetingBotButton } from "@/components/meeting-bot-button";
+import { MeetingJoinLink } from "@/components/meeting-join-link";
 import { MeetingProposalCards } from "@/components/meeting-proposal-cards";
 import { AssignTaskButton } from "@/components/mentor-dashboard/assign-task-button";
 import { useMentorDashboard } from "@/hooks/use-mentor-dashboard";
@@ -240,14 +241,12 @@ function NextMeetingBanner({
                 noticeClassName="max-w-[260px] text-right text-[11px] leading-4 text-white"
               />
               {meeting.joinHref ? (
-                <a
+                <MeetingJoinLink
                   href={meeting.joinHref}
-                  target="_blank"
-                  rel="noreferrer"
                   className="inline-flex min-h-[34px] items-center rounded-full bg-[#26a4ff] px-[14px] text-[12.5px]! font-medium! leading-[18px]! text-white"
                 >
                   {t("join")}
-                </a>
+                </MeetingJoinLink>
               ) : null}
             </div>
           </div>
