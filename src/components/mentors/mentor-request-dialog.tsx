@@ -23,6 +23,7 @@ import {
   preferredSlotKey,
   preferredSlotsIssue,
   slotFromStartsAt,
+  slotsOutsideAvailability,
   slotTimeLabel,
   upcomingPreferenceDays,
 } from "@/lib/mentor-availability-days";
@@ -92,6 +93,7 @@ export function MentorRequestDialog({
     mentor.professionalTitle;
   const slotsIssue = preferredSlotsIssue(preferredSlots);
   const canSend = slotsIssue === null;
+  const outsideTimes = slotsOutsideAvailability(preferredSlots, slots);
   const durationMinutes =
     slots.find((slot) => !slot.booked)?.durationMinutes ?? 45;
   const summaryWhen = preferredSlots
@@ -311,6 +313,16 @@ export function MentorRequestDialog({
                   </div>
                 ))}
               </div>
+              {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+              <p role="status" className="mt-2 text-[11px] text-[#9e4400]">
+                {outsideTimes.length > 0
+                  ? t("outsideAvailability", {
+                      when: outsideTimes
+                        .map((slot) => formatPreferredSlot(slot, locale))
+                        .join(", "),
+                    })
+                  : null}
+              </p>
             </div>
           </section>
 

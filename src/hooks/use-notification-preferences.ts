@@ -61,7 +61,7 @@ export function useNotificationPreferences() {
     preferences: preferences.data ?? null,
     preferencesError: Boolean(preferences.error),
     preferencesLoading: preferences.isLoading,
-    rows: preferenceRowsFor(session?.role),
+    rows: preferenceRowsFor(session?.role, preferences.data),
     saveFailed: Boolean(save.error),
     toggle,
   };

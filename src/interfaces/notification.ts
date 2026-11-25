@@ -10,7 +10,7 @@ export enum NotificationCategory {
   Badge = "BADGE",
 }
 
-/** One switch per muteable category; GENERAL notifications are always sent. */
+/** One switch per muteable category (GENERAL notifications are always sent), and one for every e-mail. */
 export type NotificationPreferences = {
   messages: boolean;
   meetingReminders: boolean;
@@ -18,6 +18,8 @@ export type NotificationPreferences = {
   newTasks: boolean;
   taskDeadlines: boolean;
   startupActivity: boolean;
+  /** Missing from a backend released before the e-mail switch. */
+  emails?: boolean;
 };
 
 export type NotificationPreferenceKey = keyof NotificationPreferences;

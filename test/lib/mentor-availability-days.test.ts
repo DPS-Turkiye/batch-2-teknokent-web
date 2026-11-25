@@ -23,6 +23,7 @@ import {
   requestOutcomeFromMessage,
   slotDayLabel,
   slotFromStartsAt,
+  slotsOutsideAvailability,
   slotTimeLabel,
   timeFromStartsAt,
   upcomingPreferenceDays,
@@ -392,5 +393,46 @@ describe("decisionSlotOptions with a repeated time", () => {
         new Date("2026-11-18T09:00:00"),
       ).map((option) => option.key),
     ).toEqual(["2026-11-24T10:00"]);
+  });
+});
+
+describe("slotsOutsideAvailability", () => {
+  const wanted = { date: "2026-09-12", time: "15:00" };
+
+  it("keeps times a free slot covers, also inside it, and lists the others", () => {
+    const inside = { date: "2026-09-12", time: "15:30" };
+    const after = { date: "2026-09-12", time: "16:00" };
+
+    expect(
+      slotsOutsideAvailability(
+        [wanted, inside, after, { date: "", time: "" }],
+        [slot("a", "2026-09-12T15:00:00")],
+      ),
+    ).toEqual([after]);
+  });
+
+  it("lists every time when all published slots are taken", () => {
+    expect(
+      slotsOutsideAvailability(
+        [wanted],
+        [slot("a", "2026-09-12T15:00:00", true)],
+      ),
+    ).toEqual([wanted]);
+  });
+
+  it("counts a booked slot as taken", () => {
+    expect(
+      slotsOutsideAvailability(
+        [wanted],
+        [
+          slot("a", "2026-09-12T15:00:00", true),
+          slot("b", "2026-09-13T15:00:00"),
+        ],
+      ),
+    ).toEqual([wanted]);
+  });
+
+  it("says nothing while the mentor published no hours", () => {
+    expect(slotsOutsideAvailability([wanted], [])).toEqual([]);
   });
 });

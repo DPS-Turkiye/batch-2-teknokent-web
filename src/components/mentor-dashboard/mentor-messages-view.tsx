@@ -21,7 +21,11 @@ import type { ProgramThreads } from "@/hooks/use-program-threads";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 import { DOCUMENT_UPLOAD_ACCEPT } from "@/lib/const";
 import { withoutSlotLines } from "@/lib/mentor-availability-days";
-import { mentorRequestStartupHref } from "@/lib/mentorship-workspace";
+import {
+  awaitsMentorDecision,
+  mentorRequestProposeHref,
+  mentorRequestStartupHref,
+} from "@/lib/mentorship-workspace";
 import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
 
@@ -276,6 +280,18 @@ function ActiveConversation({
             })
           )}
         </div>
+        {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+        {awaitsMentorDecision(request.status) ? (
+          <p className="mt-4 rounded-lg bg-[#fff9f5] px-3.5 py-2.5 text-[11.5px] leading-[17px] text-[#a65a15]">
+            {t("proposeHint")}{" "}
+            <Link
+              href={mentorRequestProposeHref(request.id)}
+              className="font-medium underline"
+            >
+              {t("proposeLink")}
+            </Link>
+          </p>
+        ) : null}
         <form
           onSubmit={(event) => {
             event.preventDefault();
