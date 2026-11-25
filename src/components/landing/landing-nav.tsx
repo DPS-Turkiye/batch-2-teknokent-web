@@ -39,7 +39,7 @@ export function LandingNav({
             ))}
           </nav>
           <div className={cx("nav-actions")}>
-            <LanguageSwitch />
+            <LanguageSwitch shortOnPhones />
             <div className={cx("nav-auth-links")}>
               <Link className={cx("btn", "btn-or")} href={login.href}>
                 {login.label}

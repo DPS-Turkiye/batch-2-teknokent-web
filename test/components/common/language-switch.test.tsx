@@ -38,6 +38,15 @@ describe("LanguageSwitch", () => {
     expect(refresh).toHaveBeenCalledOnce();
   });
 
+  it("shows the short codes where a phone's bar has no room, under the full names", () => {
+    render(<LanguageSwitch enabled shortOnPhones />);
+
+    expect(screen.getByText("tr")).toBeInTheDocument();
+    expect(screen.getByText("en")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Türkçe" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "English" })).toBeInTheDocument();
+  });
+
   it("still switches when the language cannot be saved for notifications", async () => {
     vi.mocked(saveLanguage).mockRejectedValueOnce(new Error("offline"));
     const user = userEvent.setup();
