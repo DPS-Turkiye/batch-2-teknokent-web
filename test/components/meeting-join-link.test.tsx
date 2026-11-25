@@ -68,6 +68,19 @@ describe("MeetingJoinLink", () => {
     expect(open).not.toHaveBeenCalled();
   });
 
+  it("does not also click the card it sits in", () => {
+    const onCard = vi.fn();
+    render(
+      <div onClick={onCard}>
+        <MeetingJoinLink href={HREF} className="">
+          Katıl
+        </MeetingJoinLink>
+      </div>,
+    );
+    fireEvent.click(screen.getByRole("link", { name: "Katıl" }));
+    expect(onCard).not.toHaveBeenCalled();
+  });
+
   it("never opens an address that is not a web link in the window", () => {
     expect(clickLink("meet.google.com/abc").click.defaultPrevented).toBe(false);
     expect(open).not.toHaveBeenCalled();
