@@ -249,6 +249,14 @@ export function mentorshipRequestAllowsMessaging(
   );
 }
 
+/** The statuses the mentor can still answer, so also propose another time on. */
+export function awaitsMentorDecision(status: MentorshipRequestStatus) {
+  return (
+    status === MentorshipRequestStatus.Pending ||
+    status === MentorshipRequestStatus.MoreInfoRequested
+  );
+}
+
 export function mentorRequestStartupHref(id: string) {
   return `/mentorships/requests/${encodeURIComponent(id)}`;
 }

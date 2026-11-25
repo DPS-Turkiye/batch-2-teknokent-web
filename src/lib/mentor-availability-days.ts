@@ -233,6 +233,29 @@ export function preferredSlotsIssue(
   return PreferredSlotsIssue.Missing;
 }
 
+/**
+ * The entered times that none of the mentor's free slots covers. Empty when the mentor published no slot at all:
+ * their hours are then unknown, not wrong.
+ */
+export function slotsOutsideAvailability(
+  preferred: readonly PreferredSlot[],
+  slots: readonly MentorAvailabilitySlot[],
+) {
+  const free = slots
+    .filter((slot) => !slot.booked)
+    .map((slot) => {
+      const start = Date.parse(slot.startsAt);
+      return { start, end: start + slot.durationMinutes * 60_000 };
+    });
+  if (free.length === 0) return [];
+  return preferred.filter((slot) => {
+    const startsAt = preferredSlotStartsAt(slot);
+    if (!startsAt) return false;
+    const at = Date.parse(startsAt);
+    return !free.some(({ start, end }) => at >= start && at < end);
+  });
+}
+
 export const PREFERRED_TIMES_LINE_PREFIX = "Tercih edilen saatler:";
 export const PREFERRED_SLOTS_LINE_PREFIX = "preferredSlots:";
 export const PROPOSED_TIMES_LINE_PREFIX = "Mentörün önerdiği saatler:";

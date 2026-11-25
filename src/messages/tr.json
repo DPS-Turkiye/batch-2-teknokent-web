@@ -944,6 +944,10 @@
       "startupActivity": {
         "label": "Startup aktiviteleri",
         "hint": "dosya yükleme, görev tamamlama"
+      },
+      "emails": {
+        "label": "E-posta bildirimleri",
+        "hint": "yeni talep, mesaj ve görüşme e-postaları"
       }
     },
     "resetSent": "Şifre sıfırlama bağlantısı e-postana gönderildi.",
@@ -1663,6 +1667,7 @@
     "whenEmpty": "Bir gün ve saat seçtiğinde burada görünür",
     "whenDetails": "{when} · {minutes} dk · {mode}",
     "onlineFallback": "Online",
+    "outsideAvailability": "Şu saatler mentorun müsait saatleri dışında: {when}. Yine de gönderebilirsin; mentor başka bir saat önerebilir.",
     "needSlots": "En az bir tercih için gün ve tam/buçuk saat seç; en erken 4 saat sonrası.",
     "slotsIssue": {
       "missing": "Göndermek için en az bir tercih günü ve saati gir.",
@@ -3099,6 +3104,8 @@
     "noMeeting": "Planlanmış görüşme yok",
     "openMentorship": "Mentorluk detayına git →",
     "noMessages": "Bu mentorlukta henüz mesaj yok.",
+    "proposeHint": "Farklı bir saat mi önereceksin? Mesajla yazılan saat onaylanamaz; buradan önerirsen girişimci onaylar ve sana bildirim gelir:",
+    "proposeLink": "Kendi saatimi öner",
     "placeholder": "Mesaj yaz…",
     "pickFile": "Dosya seç",
     "send": "Gönder"

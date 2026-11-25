@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MentorRequestDialog } from "@/components/mentors/mentor-request-dialog";
+import type { MentorAvailabilitySlot } from "@/interfaces/mentor";
 import { UserRole } from "@/interfaces/session";
 import { upcomingPreferenceDays } from "@/lib/mentor-availability-days";
 import { writeNeedDraft } from "@/lib/mentor-request-need";
@@ -36,13 +37,13 @@ const startup = {
   confirmedProfile: false,
 };
 
-function renderDialog() {
+function renderDialog(slots: MentorAvailabilitySlot[] = []) {
   const onClose = vi.fn();
   const onSent = vi.fn();
   renderWithQueryClient(
     <MentorRequestDialog
       mentor={mentorProfile}
-      slots={[]}
+      slots={slots}
       startup={startup}
       onClose={onClose}
       onSent={onSent}
@@ -81,6 +82,29 @@ describe("MentorRequestDialog", () => {
     expect(send).toHaveAccessibleDescription(
       "Tercih saatlerin en erken 4 saat sonrası olmalı.",
     );
+  });
+
+  it("warns about a time outside the mentor's hours but still lets it be sent", () => {
+    const day = upcomingPreferenceDays()[0]?.value ?? "";
+    renderDialog([
+      {
+        id: "slot-1",
+        startsAt: `${day}T12:00:00`,
+        durationMinutes: 60,
+        booked: false,
+      },
+    ]);
+
+    fillPreference(1, day, "12:30");
+    expect(
+      screen.queryByText(/mentorun müsait saatleri dışında/),
+    ).not.toBeInTheDocument();
+
+    fillPreference(2, day, "15:00");
+    expect(
+      screen.getByText(/mentorun müsait saatleri dışında: .*15:00\./),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Talebi gönder" })).toBeEnabled();
   });
 
   it("tells a mentor without open hours that a typed preference is enough", () => {

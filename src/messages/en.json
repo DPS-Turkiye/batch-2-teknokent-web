@@ -942,6 +942,10 @@
       "startupActivity": {
         "label": "Startup activity",
         "hint": "file uploads, completed tasks"
+      },
+      "emails": {
+        "label": "E-mail notifications",
+        "hint": "e-mails about new requests, messages and meetings"
       }
     },
     "resetSent": "A password reset link was sent to your e-mail.",
@@ -1661,6 +1665,7 @@
     "whenEmpty": "Shows here once you pick a day and time",
     "whenDetails": "{when} · {minutes} min · {mode}",
     "onlineFallback": "Online",
+    "outsideAvailability": "These times are outside the mentor's available hours: {when}. You can still send the request; the mentor may suggest another time.",
     "needSlots": "Pick a day and an on-the-hour or half-hour time for at least one choice, at least 4 hours from now.",
     "slotsIssue": {
       "missing": "To send, enter at least one preferred day and time.",
@@ -3097,6 +3102,8 @@
     "noMeeting": "No meeting planned",
     "openMentorship": "Go to the mentorship →",
     "noMessages": "No messages in this mentorship yet.",
+    "proposeHint": "Suggesting another time? A time written in a message can't be accepted; suggest it here and the startup accepts it and you are notified:",
+    "proposeLink": "Propose my own time",
     "placeholder": "Write a message…",
     "pickFile": "Choose a file",
     "send": "Send"

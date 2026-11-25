@@ -188,6 +188,29 @@ describe("NotificationPreferencesDialog", () => {
     expect(tasks).toHaveAttribute("aria-checked", "true");
   });
 
+  it("offers the e-mail switch once the backend sends it", async () => {
+    const user = userEvent.setup();
+    vi.mocked(getNotificationPreferences).mockResolvedValue({
+      ...preferences,
+      emails: true,
+    });
+    vi.mocked(saveNotificationPreferences).mockImplementation(
+      async (next) => next,
+    );
+    renderWithQueryClient(<NotificationPreferencesDialog onClose={vi.fn()} />);
+
+    const emails = await screen.findByRole("switch", {
+      name: "E-posta bildirimleri",
+    });
+    expect(emails).toHaveAttribute("aria-checked", "true");
+    await user.click(emails);
+
+    expect(saveNotificationPreferences).toHaveBeenCalledWith(
+      { ...preferences, emails: false },
+      expect.anything(),
+    );
+  });
+
   it("names a mentor's switches and hints in English", async () => {
     session = { email: "mentor@example.com", role: UserRole.Mentor };
     vi.mocked(getNotificationPreferences).mockResolvedValue(preferences);
