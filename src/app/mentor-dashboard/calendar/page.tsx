@@ -8,6 +8,7 @@ import { useState } from "react";
 import { ProgramDayRow } from "@/components/calendar/program-day-row";
 import { ProgramEntryDialog } from "@/components/calendar/program-entry-dialog";
 import { AppShell } from "@/components/hoc/app-shell";
+import { MeetingBotButton } from "@/components/meeting-bot-button";
 import {
   CreateMeetingDialog,
   type CreateMeetingBatch,
@@ -158,14 +159,22 @@ function MeetingModal({
             />
           </span>
           {meeting.meetLink ? (
-            <a
-              href={meeting.meetLink}
-              target="_blank"
-              rel="noreferrer"
-              className="rounded-full bg-[#26a4ff] px-5 py-2.5 text-[12.5px] text-white"
-            >
-              {t("modal.join")}
-            </a>
+            <span className="flex flex-wrap items-start justify-end gap-2">
+              {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+              <MeetingBotButton
+                meeting={meeting}
+                className="rounded-full border border-[#26a4ff] px-5 py-2.5 text-[12.5px] text-[#26a4ff]"
+                noticeClassName="max-w-[220px] text-right text-[11px] leading-4 text-[#676e78]"
+              />
+              <a
+                href={meeting.meetLink}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-full bg-[#26a4ff] px-5 py-2.5 text-[12.5px] text-white"
+              >
+                {t("modal.join")}
+              </a>
+            </span>
           ) : (
             <span className="text-[11px] text-[#858c96]">
               {t("modal.noLink")}

@@ -3458,6 +3458,13 @@
     "notFound": "Görüşme bulunamadı.",
     "minutes": "{count} dk"
   },
+  "meetingBotButton": {
+    "add": "Kayıt botu ekle",
+    "sending": "Bot gönderiliyor…",
+    "sent": "Kayıt botu görüşmeye gönderildi.",
+    "failed": "Kayıt botu gönderilemedi.",
+    "hint": "Görüşme kaydedilir ve transkripti çıkarılır. Katılımcılara haber verin."
+  },
   "assistant": {
     "brand": "Toplantı",
     "brandSuffix": "asistanı",

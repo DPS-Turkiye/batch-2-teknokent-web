@@ -17,6 +17,14 @@ vi.mock("@/components/reschedule-meeting-button", () => ({
   RescheduleMeetingButton: () => <button type="button">Yeni saat öner</button>,
 }));
 
+vi.mock("@/components/meeting-bot-button", () => ({
+  MeetingBotButton: ({ meeting }: { meeting: { id: string } }) => (
+    <button type="button" data-meeting-id={meeting.id}>
+      Kayıt botu ekle
+    </button>
+  ),
+}));
+
 vi.mock("@/components/hoc/app-shell", () => ({
   AppShell: ({ children }: { children: React.ReactNode }) => (
     <div>{children}</div>
