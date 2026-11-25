@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import MentorCalendarPage from "@/app/mentor-dashboard/calendar/page";
+import type { CreateMeetingBatch } from "@/components/mentor-dashboard/create-meeting-dialog";
 import { useMentorCalendar } from "@/hooks/use-mentor-calendar";
 import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import { Weekday } from "@/interfaces/mentor";
@@ -39,15 +40,31 @@ vi.mock("@/components/providers/session-provider", () => ({
   }),
 }));
 
-vi.mock("@/lib/google-calendar", () => ({
-  ensureGoogleCalendarToken: vi.fn(async () => ({ token: "ya29.test" })),
-  createGoogleMeetEvent: vi.fn(
-    async () => "https://meet.google.com/abc-defg-hij",
-  ),
-}));
-
 vi.mock("@/components/mentor-dashboard/create-meeting-dialog", () => ({
-  CreateMeetingDialog: () => <div data-testid="create-meeting-dialog" />,
+  CreateMeetingDialog: ({
+    onSubmit,
+  }: {
+    onSubmit: (batch: CreateMeetingBatch) => void;
+  }) => (
+    <div data-testid="create-meeting-dialog">
+      <button
+        type="button"
+        onClick={() => {
+          onSubmit(newMeeting());
+        }}
+      >
+        Gönder
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          onSubmit({ ...newMeeting(), meetLink: OWN_LINK });
+        }}
+      >
+        Kendi linkimle gönder
+      </button>
+    </div>
+  ),
 }));
 
 vi.mock("@/components/mentor-dashboard/regular-mentorship-week-checks", () => ({
@@ -61,6 +78,18 @@ vi.mock("@/hooks/use-mentor-calendar", async (importOriginal) => {
     await importOriginal<typeof import("@/hooks/use-mentor-calendar")>();
   return { ...actual, useMentorCalendar: vi.fn() };
 });
+
+const OWN_LINK = "https://meet.google.com/abc-defg-hij";
+
+function newMeeting(): CreateMeetingBatch {
+  return {
+    scheduledAt: "2026-09-18T11:00:00.000Z",
+    durationMinutes: 45,
+    agenda: "Ürün",
+    transcribeRequested: false,
+    recipients: [{ mentorshipRequestId: "r1", organizationId: "org-1" }],
+  };
+}
 
 const WEEK = [14, 15, 16, 17, 18].map((d) => new Date(`2026-09-${d}T00:00:00`));
 
@@ -449,6 +478,26 @@ describe("MentorCalendarPage", () => {
     );
 
     expect(screen.getByTestId("create-meeting-dialog")).toBeInTheDocument();
+  });
+
+  it("leaves the link to Menton unless the mentor gives one", async () => {
+    const user = userEvent.setup();
+    const addMeeting = vi
+      .fn<MentorCalendar["addMeeting"]>()
+      .mockRejectedValue(new Error("stop"));
+    mockCalendar({ addMeeting });
+    render(<MentorCalendarPage />);
+
+    await user.click(
+      screen.getByRole("button", { name: "Yeni toplantı oluştur" }),
+    );
+    await user.click(screen.getByRole("button", { name: "Gönder" }));
+    expect(addMeeting.mock.lastCall?.[0]).not.toHaveProperty("meetLink");
+
+    await user.click(
+      screen.getByRole("button", { name: "Kendi linkimle gönder" }),
+    );
+    expect(addMeeting.mock.lastCall?.[0]).toHaveProperty("meetLink", OWN_LINK);
   });
 
   it("opens the create-meeting dialog from a free availability slot", async () => {
