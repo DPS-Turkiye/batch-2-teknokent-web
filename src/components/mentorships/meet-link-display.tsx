@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 
+import { MeetingJoinLink } from "@/components/meeting-join-link";
 import { meetLinkHref } from "@/lib/meet-link";
 
 export function MeetLinkDisplay({
@@ -21,14 +22,11 @@ export function MeetLinkDisplay({
   }
 
   return (
-    <a
+    <MeetingJoinLink
       href={meetLinkHref(meetLink)}
-      target="_blank"
-      rel="noopener noreferrer"
       className={`block truncate text-[13px] font-medium text-[var(--ms-accent,#e86f22)] hover:underline ${className}`}
-      onClick={(event) => event.stopPropagation()}
     >
       {meetLink}
-    </a>
+    </MeetingJoinLink>
   );
 }

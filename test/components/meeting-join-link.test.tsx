@@ -29,6 +29,10 @@ describe("MeetingJoinLink", () => {
     popup.location.replace.mockReset();
     open.mockReset().mockReturnValue(popup);
     vi.stubGlobal("open", open);
+    vi.stubGlobal("screenX", 40);
+    vi.stubGlobal("screenY", 20);
+    vi.stubGlobal("outerWidth", 1440);
+    vi.stubGlobal("outerHeight", 900);
     screenHasRoom(true);
   });
   afterEach(() => vi.unstubAllGlobals());
@@ -39,9 +43,7 @@ describe("MeetingJoinLink", () => {
     expect(open).toHaveBeenCalledWith(
       "",
       "_blank",
-      expect.stringMatching(
-        /^popup=yes,width=\d+,height=\d+,left=\d+,top=\d+$/,
-      ),
+      "popup=yes,resizable=yes,width=720,height=765,left=40,top=20",
     );
     expect(popup.opener).toBeNull();
     expect(popup.location.replace).toHaveBeenCalledWith(HREF);
@@ -66,6 +68,19 @@ describe("MeetingJoinLink", () => {
       false,
     );
     expect(open).not.toHaveBeenCalled();
+  });
+
+  it("does not also click the card it sits in", () => {
+    const onCard = vi.fn();
+    render(
+      <div onClick={onCard}>
+        <MeetingJoinLink href={HREF} className="">
+          Katıl
+        </MeetingJoinLink>
+      </div>,
+    );
+    fireEvent.click(screen.getByRole("link", { name: "Katıl" }));
+    expect(onCard).not.toHaveBeenCalled();
   });
 
   it("never opens an address that is not a web link in the window", () => {

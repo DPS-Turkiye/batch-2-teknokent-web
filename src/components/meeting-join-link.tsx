@@ -16,6 +16,8 @@ export function MeetingJoinLink({
   children: ReactNode;
 }) {
   const join = (event: MouseEvent<HTMLAnchorElement>) => {
+    // The link can sit inside a card that is itself clickable.
+    event.stopPropagation();
     const asked = event.metaKey || event.ctrlKey || event.shiftKey;
     const target = httpUrlOrNull(href);
     if (asked || event.altKey || !target) return;

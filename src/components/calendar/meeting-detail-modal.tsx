@@ -6,6 +6,7 @@ import Link from "next/link";
 
 import { SyncMeetingActions } from "@/components/calendar/sync-meeting-actions";
 import { ModalDialog } from "@/components/common/modal-dialog";
+import { MeetingJoinLink } from "@/components/meeting-join-link";
 import type { MeetingItem } from "@/interfaces/meeting";
 import { meetingNotebookHref } from "@/lib/startup-meetings";
 
@@ -63,14 +64,12 @@ export function MeetingDetailModal({
       </div>
 
       {meetLink ? (
-        <a
+        <MeetingJoinLink
           href={meetLink}
-          target="_blank"
-          rel="noreferrer"
           className="block truncate rounded-lg border border-[#e4e7ea] bg-[#f8f9fa] p-2.5 font-mono text-xs text-[#2f7ff0] underline"
         >
           {meetLink}
-        </a>
+        </MeetingJoinLink>
       ) : (
         <p className="text-xs text-[#676e78]">{t("noLink")}</p>
       )}
