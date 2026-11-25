@@ -33,7 +33,7 @@ export function useMeetingBotButton(meeting: MeetingItem) {
   const { showToast } = useToast();
   const queryClient = useQueryClient();
   const updateMeeting = useUpdateMeeting(meeting.id);
-  const [sent, setSent] = useState(false);
+  const [sentTo, setSentTo] = useState<string | null>(null);
 
   const target = toAssistantMeeting(meeting, { meetingFallback: "", locale });
   const canSend =
@@ -43,25 +43,39 @@ export function useMeetingBotButton(meeting: MeetingItem) {
   const bookedBotMayBeThere =
     target.status === MeetingStatus.Active ||
     target.status === MeetingStatus.Joining;
-  const { botNotice } = useMeetingBotState(
-    canSend && (sent || bookedBotMayBeThere) ? target : null,
+  const sent = sentTo !== null && sentTo === target.nativeMeetingId;
+  const { botNotice: latestNotice } = useMeetingBotState(
+    canSend && (sent || bookedBotMayBeThere || meeting.transcribeRequested)
+      ? target
+      : null,
   );
+  const isInMeeting =
+    latestNotice !== null && IN_THE_MEETING.includes(latestNotice);
+  // A reused room still answers with the bot of an earlier meeting, so before the start only a live bot is shown.
+  const botNotice =
+    sent || bookedBotMayBeThere || isInMeeting ? latestNotice : null;
 
   const send = useMutation({
     mutationFn: async () => {
       await addMeetingBot(meeting.meetLink?.trim() ?? "");
-      if (meeting.transcribeRequested) return;
+      if (meeting.transcribeRequested) return { marked: true };
       // Recorded meetings are the ones the backend follows to the end and writes a report for. It is not marked as
       // sent here: the backend does that at the start time, so a bot sent days early does not replace that visit.
       try {
         await updateMeeting.mutateAsync({ transcribeRequested: true });
+        return { marked: true };
       } catch (error) {
         console.error("Failed to mark the meeting as recorded", error);
+        return { marked: false };
       }
     },
-    onSuccess: async () => {
-      setSent(true);
-      showToast({ message: t("sent"), tone: ToastTone.Success });
+    onSuccess: async ({ marked }) => {
+      setSentTo(target.nativeMeetingId);
+      showToast(
+        marked
+          ? { message: t("sent"), tone: ToastTone.Success }
+          : { message: t("sentNotMarked"), tone: ToastTone.Error },
+      );
       await queryClient.invalidateQueries({
         queryKey: meetingBotStateQueryKey(
           target.platformKey,
@@ -80,7 +94,7 @@ export function useMeetingBotButton(meeting: MeetingItem) {
     canSend,
     send: () => send.mutate(),
     isSending: send.isPending,
-    isInMeeting: botNotice !== null && IN_THE_MEETING.includes(botNotice),
+    isInMeeting,
     botNotice,
   };
 }

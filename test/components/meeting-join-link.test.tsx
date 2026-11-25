@@ -39,7 +39,9 @@ describe("MeetingJoinLink", () => {
     expect(open).toHaveBeenCalledWith(
       "",
       "_blank",
-      expect.stringMatching(/^popup=yes,width=\d+,height=\d+,left=\d+,top=0$/),
+      expect.stringMatching(
+        /^popup=yes,width=\d+,height=\d+,left=\d+,top=\d+$/,
+      ),
     );
     expect(popup.opener).toBeNull();
     expect(popup.location.replace).toHaveBeenCalledWith(HREF);

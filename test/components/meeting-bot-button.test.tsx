@@ -19,6 +19,7 @@ vi.mock("@/lib/client/meetings", () => ({ updateMeeting: vi.fn() }));
 
 const LINK = "https://meet.google.com/abc-defg-hij";
 const ADD = "Kayıt botu ekle";
+const SENT = /^Kayıt botu görüşmeye gönderildi\./;
 
 function meeting(overrides: Partial<MeetingItem> = {}): MeetingItem {
   return {
@@ -33,14 +34,16 @@ function meeting(overrides: Partial<MeetingItem> = {}): MeetingItem {
 }
 
 function renderButton(item: MeetingItem) {
-  return render(
+  const queryClient = createTestQueryClient();
+  render(
     <InLocale locale="tr">
-      <QueryClientProvider client={createTestQueryClient()}>
+      <QueryClientProvider client={queryClient}>
         <MeetingBotButton meeting={item} className="" noticeClassName="" />
         <Toaster />
       </QueryClientProvider>
     </InLocale>,
   );
+  return { queryClient };
 }
 
 function botIs(state: MeetingBotState) {
@@ -86,14 +89,13 @@ describe("MeetingBotButton", () => {
   });
 
   it("changes nothing on a meeting that is already recorded", async () => {
+    botIs(MeetingBotState.None);
     renderButton(meeting({ transcribeRequested: true }));
 
     await userEvent.click(screen.getByRole("button", { name: ADD }));
 
     await waitFor(() => expect(addMeetingBot).toHaveBeenCalledTimes(1));
-    expect(
-      await screen.findByText("Kayıt botu görüşmeye gönderildi."),
-    ).toBeInTheDocument();
+    expect(await screen.findByText(SENT)).toBeInTheDocument();
     expect(updateMeeting).not.toHaveBeenCalled();
   });
 
@@ -112,7 +114,7 @@ describe("MeetingBotButton", () => {
     expect(screen.getByRole("button", { name: ADD })).toBeEnabled();
   });
 
-  it("still counts the bot as sent when the recording mark is refused", async () => {
+  it("says so when the bot was sent but the recording mark is refused", async () => {
     vi.spyOn(console, "error").mockImplementation(() => undefined);
     vi.mocked(updateMeeting).mockRejectedValue(new Error("Dolu."));
     renderButton(meeting());
@@ -120,8 +122,43 @@ describe("MeetingBotButton", () => {
     await userEvent.click(screen.getByRole("button", { name: ADD }));
 
     expect(
-      await screen.findByText("Kayıt botu görüşmeye gönderildi."),
+      await screen.findByText(/kayıtlı olarak işaretlenemedi/),
     ).toBeInTheDocument();
+    expect(screen.queryByText(SENT)).not.toBeInTheDocument();
+  });
+
+  it("still shows the bot it sent early when the page is opened again", async () => {
+    botIs(MeetingBotState.WaitingForAdmission);
+    renderButton(meeting({ transcribeRequested: true }));
+
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: ADD })).toBeDisabled(),
+    );
+  });
+
+  it("does not show an earlier meeting's bot before a meeting in the same room", async () => {
+    botIs(MeetingBotState.Completed);
+    const { queryClient } = renderButton(
+      meeting({ transcribeRequested: true }),
+    );
+
+    await waitFor(() =>
+      expect(queryClient.getQueryCache().getAll()[0]?.state.status).toBe(
+        "success",
+      ),
+    );
+    expect(screen.getByRole("button", { name: ADD })).toBeEnabled();
+    expect(
+      screen.queryByText("Kayıt botu toplantıdan ayrıldı."),
+    ).not.toBeInTheDocument();
+  });
+
+  it("tells every reader that the meeting is recorded", () => {
+    renderButton(meeting());
+
+    expect(
+      screen.getByRole("button", { name: ADD }),
+    ).toHaveAccessibleDescription(/Katılımcılara haber verin/);
   });
 
   it("shows the bot that joined by itself during the meeting", async () => {

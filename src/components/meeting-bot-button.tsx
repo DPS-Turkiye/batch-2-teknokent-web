@@ -2,6 +2,7 @@
 
 // TEST UI: placeholder until the design team's screen; replace when it arrives.
 import { useTranslations } from "next-intl";
+import { useId } from "react";
 
 import { useMeetingBotButton } from "@/hooks/use-meeting-bot-button";
 import type { MeetingItem } from "@/interfaces/meeting";
@@ -20,6 +21,7 @@ export function MeetingBotButton({
   const t = useTranslations("meetingBotButton");
   const tNotice = useTranslations("assistant.botNotice");
   const bot = useMeetingBotButton(meeting);
+  const hintId = useId();
   if (!bot.canSend) return null;
   return (
     <span className="flex flex-col items-end gap-1">
@@ -28,10 +30,14 @@ export function MeetingBotButton({
         onClick={bot.send}
         disabled={bot.isSending || bot.isInMeeting}
         title={t("hint")}
+        aria-describedby={hintId}
         className={`${className} disabled:cursor-default disabled:opacity-60`}
       >
         {bot.isSending ? t("sending") : t("add")}
       </button>
+      <span id={hintId} hidden>
+        {t("hint")}
+      </span>
       <span
         role="status"
         className={bot.botNotice ? noticeClassName : "sr-only"}
