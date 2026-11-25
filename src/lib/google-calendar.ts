@@ -26,7 +26,7 @@ function googleErrorMessage(body: unknown) {
   return typeof error.message === "string" ? error.message : null;
 }
 
-export type GoogleCalendarEvent = {
+type GoogleCalendarEvent = {
   id: string;
   summary?: string;
   description?: string;
@@ -36,9 +36,6 @@ export type GoogleCalendarEvent = {
   start?: { dateTime?: string; date?: string };
   end?: { dateTime?: string; date?: string };
   status?: string;
-  conferenceData?: {
-    entryPoints?: Array<{ entryPointType?: string; uri?: string }>;
-  };
 };
 
 /** The events of a Calendar API list response; Google's event shape is trusted as documented. */
@@ -210,74 +207,6 @@ export async function authenticateWithGoogle(
       window.removeEventListener("message", messageHandler);
     }
   });
-}
-
-export async function ensureGoogleCalendarToken(): Promise<{ token: string }> {
-  if (!getGoogleClientId()) {
-    throw new Error(clientText("googleCalendar.missingClientId"));
-  }
-  const stored = readStoredAccessToken();
-  if (stored) return { token: stored };
-  const result = await authenticateWithGoogle();
-  if (result.token.startsWith("simulated-oauth-token")) {
-    throw new Error(clientText("googleCalendar.missingClientId"));
-  }
-  return { token: result.token };
-}
-
-export async function createGoogleMeetEvent(input: {
-  accessToken: string;
-  title: string;
-  startIso: string;
-  durationMinutes: number;
-}): Promise<string> {
-  if (input.accessToken.startsWith("simulated-oauth-token")) {
-    throw new Error(clientText("googleCalendar.missingClientId"));
-  }
-
-  const start = new Date(input.startIso);
-  const end = new Date(start.getTime() + input.durationMinutes * 60_000);
-  const url =
-    "https://www.googleapis.com/calendar/v3/calendars/primary/events?conferenceDataVersion=1";
-
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${input.accessToken}`,
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      summary: input.title,
-      start: { dateTime: start.toISOString() },
-      end: { dateTime: end.toISOString() },
-      conferenceData: {
-        createRequest: {
-          requestId: crypto.randomUUID(),
-          conferenceSolutionKey: { type: "hangoutsMeet" },
-        },
-      },
-    }),
-  });
-
-  const body = (await res.json().catch(() => ({}))) as GoogleCalendarEvent & {
-    error?: { message?: string };
-  };
-
-  if (!res.ok) {
-    throw new Error(
-      body.error?.message ?? clientText("googleCalendar.meetCreateFailed"),
-    );
-  }
-
-  const fromEntry = body.conferenceData?.entryPoints?.find(
-    (entry) => entry.entryPointType === "video" && entry.uri,
-  )?.uri;
-  const meetLink = body.hangoutLink || fromEntry;
-  if (!meetLink) {
-    throw new Error(clientText("googleCalendar.meetLinkMissing"));
-  }
-  return meetLink;
 }
 
 export async function fetchGoogleCalendarEvents(accessToken: string) {

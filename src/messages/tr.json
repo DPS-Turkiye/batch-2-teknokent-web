@@ -993,9 +993,6 @@
     },
     "googleCalendar": {
       "popupBlocked": "Açılır pencere engellendi. Tarayıcında açılır pencerelere izin verip tekrar dene.",
-      "missingClientId": "Google Meet oluşturmak için NEXT_PUBLIC_GOOGLE_CLIENT_ID tanımlayın.",
-      "meetCreateFailed": "Google Meet etkinliği oluşturulamadı. Google iznini kontrol edin.",
-      "meetLinkMissing": "Google Meet bağlantısı alınamadı.",
       "fetchFailed": "Google Takvim API'sinden takvim verileri çekilemedi. Lütfen erişim tokenınızı kontrol edin."
     },
     "profile": {
@@ -3071,8 +3068,8 @@
       "nextDays": "Önümüzdeki 7 gün",
       "pickable": "Seçilebilir saat",
       "summary": "İstek Özeti",
-      "autoMeetFailed": "Otomatik Google Meet oluşturulamadı. {error} Linki kendin oluşturup aşağıya yapıştırabilirsin.",
-      "meetLink": "Google Meet linki",
+      "meetLink": "Google Meet linki (isteğe bağlı)",
+      "meetLinkHint": "Boş bırakırsan Menton bağlantıyı kendisi oluşturur; birkaç dakika içinde takvimde görünür.",
       "invalidLink": "Geçerli bir Google Meet linki yapıştırın.",
       "sending": "Gönderiliyor...",
       "send": "Gönder"
