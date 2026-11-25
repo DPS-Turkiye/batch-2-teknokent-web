@@ -411,6 +411,15 @@ describe("slotsOutsideAvailability", () => {
     ).toEqual([after]);
   });
 
+  it("lists every time when all published slots are taken", () => {
+    expect(
+      slotsOutsideAvailability(
+        [wanted],
+        [slot("a", "2026-09-12T15:00:00", true)],
+      ),
+    ).toEqual([wanted]);
+  });
+
   it("counts a booked slot as taken", () => {
     expect(
       slotsOutsideAvailability(

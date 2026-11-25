@@ -247,7 +247,7 @@ export function slotsOutsideAvailability(
       const start = Date.parse(slot.startsAt);
       return { start, end: start + slot.durationMinutes * 60_000 };
     });
-  if (free.length === 0) return [];
+  if (slots.length === 0) return [];
   return preferred.filter((slot) => {
     const startsAt = preferredSlotStartsAt(slot);
     if (!startsAt) return false;

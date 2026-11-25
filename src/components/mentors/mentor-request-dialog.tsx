@@ -314,15 +314,15 @@ export function MentorRequestDialog({
                 ))}
               </div>
               {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
-              {outsideTimes.length > 0 ? (
-                <p role="status" className="mt-2 text-[11px] text-[#9e4400]">
-                  {t("outsideAvailability", {
-                    when: outsideTimes
-                      .map((slot) => formatPreferredSlot(slot, locale))
-                      .join(", "),
-                  })}
-                </p>
-              ) : null}
+              <p role="status" className="mt-2 text-[11px] text-[#9e4400]">
+                {outsideTimes.length > 0
+                  ? t("outsideAvailability", {
+                      when: outsideTimes
+                        .map((slot) => formatPreferredSlot(slot, locale))
+                        .join(", "),
+                    })
+                  : null}
+              </p>
             </div>
           </section>
 
