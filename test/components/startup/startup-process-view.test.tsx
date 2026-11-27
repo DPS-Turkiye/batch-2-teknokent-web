@@ -137,6 +137,7 @@ function state(overrides: Partial<Process> = {}): Process {
     cancelUpload,
     uploadingAssignmentId: null,
     uploadPercent: null,
+    isAnyUploading: false,
     markDone,
     markingAssignmentId: null,
     ...overrides,
@@ -354,7 +355,11 @@ describe("StartupProcessView", () => {
 
   it("shows how much of the Ödev's file has gone out", () => {
     vi.mocked(useStartupProcess).mockReturnValue(
-      state({ uploadingAssignmentId: "finance", uploadPercent: 42 }),
+      state({
+        uploadingAssignmentId: "finance",
+        isAnyUploading: true,
+        uploadPercent: 42,
+      }),
     );
     renderWithQueryClient(<StartupProcessView />);
 
@@ -366,9 +371,32 @@ describe("StartupProcessView", () => {
     ).toHaveAttribute("value", "42");
   });
 
+  it("holds every other Ödev's picker while one upload runs", () => {
+    vi.mocked(useStartupProcess).mockReturnValue(
+      state({
+        assignments: [
+          assignment("finance", "Finansal model taslağı"),
+          assignment("market", "Pazar araştırması"),
+        ],
+        uploadingAssignmentId: "finance",
+        isAnyUploading: true,
+        uploadPercent: 30,
+      }),
+    );
+    renderWithQueryClient(<StartupProcessView />);
+
+    expect(
+      screen.getByLabelText("Pazar araştırması için ödev yükle"),
+    ).toBeDisabled();
+  });
+
   it("stops the running upload from its row", async () => {
     vi.mocked(useStartupProcess).mockReturnValue(
-      state({ uploadingAssignmentId: "finance", uploadPercent: 10 }),
+      state({
+        uploadingAssignmentId: "finance",
+        isAnyUploading: true,
+        uploadPercent: 10,
+      }),
     );
     renderWithQueryClient(<StartupProcessView />);
 
@@ -393,6 +421,7 @@ describe("StartupProcessView", () => {
           }),
         ],
         uploadingAssignmentId: "finance",
+        isAnyUploading: true,
       }),
     );
     renderWithQueryClient(<StartupProcessView />);
@@ -461,7 +490,7 @@ describe("StartupProcessView", () => {
     expect(uploadAssignment).toHaveBeenCalledWith("finance", file);
 
     vi.mocked(useStartupProcess).mockReturnValue(
-      state({ uploadingAssignmentId: "finance" }),
+      state({ uploadingAssignmentId: "finance", isAnyUploading: true }),
     );
     rerender(<StartupProcessView />);
 

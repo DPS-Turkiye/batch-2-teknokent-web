@@ -111,6 +111,7 @@ export async function postUpload<T>(
     const controller = new AbortController();
     const cancel = () => controller.abort();
     signal?.addEventListener("abort", cancel, { once: true });
+    if (signal?.aborted) cancel();
     const watch = { sent: false, settled: false };
     let timer: ReturnType<typeof setTimeout> | undefined;
     const giveUpAfter = (ms: number) => {

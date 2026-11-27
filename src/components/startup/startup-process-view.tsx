@@ -183,6 +183,7 @@ function AssignmentRow({
   source,
   focused,
   isUploading,
+  isAnyUploading,
   uploadPercent,
   onUpload,
   onReplace,
@@ -195,6 +196,8 @@ function AssignmentRow({
   /** Opened from a link to this Ödev (home "Yapılacaklar"): scrolled into view and outlined. */
   focused: boolean;
   isUploading: boolean;
+  /** Another row's upload is running; only one runs at a time. */
+  isAnyUploading: boolean;
   /** The share of this row's upload sent so far, 0–100, while it runs. */
   uploadPercent: number | null;
   onUpload: (file: File) => void;
@@ -280,7 +283,7 @@ function AssignmentRow({
                   : t("uploadOptional")
             }
             ariaLabel={t("uploadLabel", { title: assignment.title })}
-            disabled={isUploading}
+            disabled={isAnyUploading}
             onPick={onUpload}
           />
         ) : null}
@@ -298,7 +301,7 @@ function AssignmentRow({
           <FilePickButton
             label={isUploading ? uploadingLabel : t("replace")}
             ariaLabel={t("replaceLabel", { title: assignment.title })}
-            disabled={isUploading}
+            disabled={isAnyUploading}
             onPick={onReplace}
           />
         ) : null}
@@ -523,6 +526,7 @@ export function StartupProcessView({
                     .join(" · ")}
                   focused={process.focusedAssignmentId === assignment.id}
                   isUploading={process.uploadingAssignmentId === assignment.id}
+                  isAnyUploading={process.isAnyUploading}
                   uploadPercent={
                     process.uploadingAssignmentId === assignment.id
                       ? process.uploadPercent
