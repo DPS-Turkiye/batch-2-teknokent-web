@@ -11,6 +11,7 @@ import type {
   ProcessPhase,
 } from "@/interfaces/startup-process";
 import { HOME_TASK_DISMISS_STORAGE_KEY } from "@/lib/const/mentee-home";
+import { isOpenActionItem } from "@/lib/mentor-dashboard";
 import {
   meetingFeedbackHref,
   requestHasConfirmedMeeting,
@@ -18,7 +19,6 @@ import {
 import {
   assignmentPhaseName,
   assignmentSourceKind,
-  isOpenAssignment,
   processAssignmentHref,
 } from "@/lib/startup-process";
 import { calendarDay } from "@/lib/utils";
@@ -242,7 +242,7 @@ export function buildHomeTasks({
   // An Ödev is also an action item; it shows once, as its Ödev card.
   const assignmentIds = new Set(assignments.map((assignment) => assignment.id));
 
-  const homework = assignments.filter(isOpenAssignment).map((assignment) => {
+  const homework = assignments.filter(isOpenActionItem).map((assignment) => {
     const due = dueState(assignment.dueDate, texts, now);
     return {
       sortKey: assignment.dueDate ?? "",

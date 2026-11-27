@@ -329,6 +329,8 @@ describe("StartupProcessView", () => {
     ).getAllByRole("listitem");
     expect(scrollIntoView).toHaveBeenCalledTimes(1);
     expect(scrollIntoView.mock.contexts[0]).toBe(focused);
+    expect(focused).toHaveAttribute("aria-current", "true");
+    expect(focused).toHaveFocus();
     scrollIntoView.mockRestore();
   });
 

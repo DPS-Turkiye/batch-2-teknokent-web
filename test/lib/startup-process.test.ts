@@ -17,7 +17,6 @@ import {
   focusedSelection,
   formatRoundRange,
   formatStageRange,
-  isOpenAssignment,
   phaseCards,
   processAssignmentHref,
   roundForPhase,
@@ -261,20 +260,7 @@ describe("processAssignmentHref", () => {
   });
 });
 
-describe("isOpenAssignment and assignmentPhaseName", () => {
-  it("counts only Ödevler still waiting for a hand-in as open", () => {
-    expect(isOpenAssignment(assignment())).toBe(true);
-    expect(
-      isOpenAssignment(assignment({ status: ActionItemStatus.InProgress })),
-    ).toBe(true);
-    expect(
-      isOpenAssignment(assignment({ status: ActionItemStatus.Completed })),
-    ).toBe(false);
-    expect(
-      isOpenAssignment(assignment({ status: ActionItemStatus.Cancelled })),
-    ).toBe(false);
-  });
-
+describe("assignmentPhaseName", () => {
   it("names the Ödev's phase, or nothing when no phase covers it", () => {
     const phases = [processPhase("ph-1", "Problem")];
 

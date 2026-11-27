@@ -170,11 +170,15 @@ function AssignmentRow({
     assignment.status === ActionItemStatus.InProgress;
   const rowRef = useRef<HTMLLIElement>(null);
   useEffect(() => {
-    if (focused) rowRef.current?.scrollIntoView({ block: "center" });
+    if (!focused) return;
+    rowRef.current?.scrollIntoView({ block: "center" });
+    rowRef.current?.focus({ preventScroll: true });
   }, [focused]);
   return (
     <li
       ref={rowRef}
+      tabIndex={focused ? -1 : undefined}
+      aria-current={focused ? "true" : undefined}
       className={`flex flex-wrap items-center justify-between gap-3 rounded-[10px] border px-4 py-3.5 ${focused ? "border-[#e86f22] ring-2 ring-[#fdebdd]" : "border-[#e4e7ea]"}`}
     >
       <div className="flex min-w-0 items-center gap-3">
@@ -301,7 +305,7 @@ export function StartupProcessView({
 }: {
   /** An Ödev a link points at; Süreç opens on its phase. */
   focusAssignmentId?: string | null;
-} = {}) {
+}) {
   const t = useTranslations("startupProcess");
   const locale = useLocale();
   const process = useStartupProcess(focusAssignmentId);

@@ -17,6 +17,7 @@ import type {
   ProcessPhase,
 } from "@/interfaces/startup-process";
 import { meetingEndedAt } from "@/lib/mentee-home";
+import { isOpenActionItem } from "@/lib/mentor-dashboard";
 import { meetingFeedbackHref } from "@/lib/mentorship-workspace";
 import {
   mobileChatHref,
@@ -65,12 +66,6 @@ export function dueTone(dueAt: Date | null, today: Date) {
 
 function isDone(status: ActionItemStatus) {
   return status === ActionItemStatus.Completed;
-}
-
-function isOpen(status: ActionItemStatus) {
-  return (
-    status === ActionItemStatus.Open || status === ActionItemStatus.InProgress
-  );
 }
 
 function withDue(
@@ -227,12 +222,12 @@ export function collectTasks(
         .filter(
           (item) =>
             !processIds.has(item.id) &&
-            (isOpen(item.status) || isDone(item.status)),
+            (isOpenActionItem(item) || isDone(item.status)),
         )
         .map((item) => mentorshipTask(item, request, today, texts)),
     ),
     ...input.assignments
-      .filter((item) => isOpen(item.status) || isDone(item.status))
+      .filter((item) => isOpenActionItem(item) || isDone(item.status))
       .map((item) => processTask(item, today, texts, input.phases)),
     ...input.deadlines
       .filter(

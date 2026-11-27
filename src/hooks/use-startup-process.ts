@@ -152,7 +152,9 @@ export function useStartupProcess(focusAssignmentId: string | null = null) {
       roundId ? (roundNames.get(roundId) ?? null) : null,
     hasPhases,
     phaseCards: cards,
+    // Outlined only while the link still decides what is shown.
     focusedAssignmentId:
+      !focusReleased &&
       focusAssignmentId &&
       allAssignments.some((assignment) => assignment.id === focusAssignmentId)
         ? focusAssignmentId

@@ -139,6 +139,7 @@ describe("useStartupProcess", () => {
 
     act(() => result.current.selectPhase("market"));
     expect(result.current.selectedPhaseId).toBe("market");
+    expect(result.current.focusedAssignmentId).toBeNull();
   });
 
   it("opens Fazsız görevler for a linked Ödev no phase covers", async () => {

@@ -145,27 +145,22 @@ export function unphasedAssignments(
   return assignments.filter((assignment) => assignment.phaseId === null);
 }
 
-/** The Süreç page opened on one Ödev: its phase is shown and its row brought into view. */
-export function processAssignmentHref(assignmentId: string) {
-  return `/startup/process?${PROCESS_FOCUS_PARAM}=${encodeURIComponent(assignmentId)}`;
-}
-
+/** The Süreç search parameter naming the Ödev a link points at. */
 export const PROCESS_FOCUS_PARAM = "assignment";
 
-/** An Ödev still waiting for the team's hand-in. */
-export function isOpenAssignment(assignment: ProcessAssignment) {
-  return (
-    assignment.status === ActionItemStatus.Open ||
-    assignment.status === ActionItemStatus.InProgress
-  );
+/** The Süreç page opened on one Ödev: its phase is shown and its row brought into view. */
+export function processAssignmentHref(assignmentId: string): string {
+  return `/startup/process?${PROCESS_FOCUS_PARAM}=${encodeURIComponent(assignmentId)}`;
 }
 
 /** The name of the phase an Ödev belongs to, or null for one no phase covers. */
 export function assignmentPhaseName(
   assignment: ProcessAssignment,
   phases: readonly ProcessPhase[],
-) {
-  return phases.find((phase) => phase.id === assignment.phaseId)?.name ?? null;
+): string | null {
+  const { phaseId } = assignment;
+  if (phaseId === null) return null;
+  return phases.find((phase) => phase.id === phaseId)?.name ?? null;
 }
 
 /**
