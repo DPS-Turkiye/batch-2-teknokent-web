@@ -49,6 +49,7 @@ const replaceSubmission = vi.fn();
 const askWithdraw = vi.fn();
 const cancelWithdraw = vi.fn();
 const confirmWithdraw = vi.fn();
+const cancelUpload = vi.fn();
 const markDone = vi.fn();
 const toggleShowAll = vi.fn();
 const selectPhase = vi.fn();
@@ -141,7 +142,9 @@ function state(overrides: Partial<Process> = {}): Process {
     cancelWithdraw,
     confirmWithdraw,
     isWithdrawing: false,
+    cancelUpload,
     uploadingAssignmentId: null,
+    uploadPercent: null,
     markDone,
     markingAssignmentId: null,
     ...overrides,
@@ -355,6 +358,35 @@ describe("StartupProcessView", () => {
 
     expect(replaceSubmission).toHaveBeenCalledWith("finance", file);
     expect(uploadAssignment).not.toHaveBeenCalled();
+  });
+
+  it("shows how much of the Ödev's file has gone out", () => {
+    vi.mocked(useStartupProcess).mockReturnValue(
+      state({ uploadingAssignmentId: "finance", uploadPercent: 42 }),
+    );
+    renderWithQueryClient(<StartupProcessView />);
+
+    expect(screen.getByText("Yükleniyor %42")).toBeInTheDocument();
+    expect(
+      screen.getByRole("progressbar", {
+        name: "Finansal model taslağı yükleniyor",
+      }),
+    ).toHaveAttribute("value", "42");
+  });
+
+  it("stops the running upload from its row", async () => {
+    vi.mocked(useStartupProcess).mockReturnValue(
+      state({ uploadingAssignmentId: "finance", uploadPercent: 10 }),
+    );
+    renderWithQueryClient(<StartupProcessView />);
+
+    await userEvent.click(
+      screen.getByRole("button", {
+        name: "Finansal model taslağı yüklemesini iptal et",
+      }),
+    );
+
+    expect(cancelUpload).toHaveBeenCalledTimes(1);
   });
 
   it("disables the swap while the new file is going up", () => {

@@ -21,6 +21,8 @@ import { itemAt } from "@test/fixtures/list-assertions";
 vi.mock("@/lib/http-client", () => ({
   httpClient: { post: vi.fn() },
   UPLOAD_TIMEOUT_MS: 120000,
+  UPLOAD_STALL_MS: 20000,
+  UPLOAD_RESPONSE_TIMEOUT_MS: 60000,
 }));
 
 vi.mock("@/lib/firebase/auth", () => ({
