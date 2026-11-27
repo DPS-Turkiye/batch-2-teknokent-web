@@ -6,6 +6,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 
+import { DangerButton } from "@/components/common/danger-button";
+import { ModalDialog } from "@/components/common/modal-dialog";
+import { SecondaryButton } from "@/components/common/secondary-button";
 import { ProgramPastWeeks } from "@/components/startup/program-past-weeks";
 import { ProgramUpcomingWeeks } from "@/components/startup/program-upcoming-weeks";
 import { ProgramWeekCard } from "@/components/startup/program-week-card";
@@ -187,6 +190,7 @@ function AssignmentRow({
   uploadPercent,
   onUpload,
   onReplace,
+  onWithdraw,
   onCancelUpload,
   isMarking,
   onMarkDone,
@@ -202,6 +206,7 @@ function AssignmentRow({
   uploadPercent: number | null;
   onUpload: (file: File) => void;
   onReplace: (file: File) => void;
+  onWithdraw: () => void;
   onCancelUpload: () => void;
   isMarking: boolean;
   onMarkDone: () => void;
@@ -304,6 +309,17 @@ function AssignmentRow({
             disabled={isAnyUploading}
             onPick={onReplace}
           />
+        ) : null}
+        {canReplace ? (
+          <button
+            type="button"
+            onClick={onWithdraw}
+            disabled={isAnyUploading}
+            aria-label={t("withdrawLabel", { title: assignment.title })}
+            className="text-[12px] font-medium text-[#c24135] hover:underline disabled:opacity-60"
+          >
+            {t("withdraw")}
+          </button>
         ) : null}
       </div>
       {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
@@ -538,6 +554,7 @@ export function StartupProcessView({
                   onReplace={(file) =>
                     process.replaceSubmission(assignment.id, file)
                   }
+                  onWithdraw={() => process.askWithdraw(assignment.id)}
                   onCancelUpload={process.cancelUpload}
                   isMarking={process.markingAssignmentId === assignment.id}
                   onMarkDone={() => process.markDone(assignment.id)}
@@ -592,6 +609,50 @@ export function StartupProcessView({
           )}
         </section>
       </div>
+      {process.withdrawTarget ? (
+        <WithdrawDialog
+          filename={process.withdrawTarget.submissionFilename ?? ""}
+          isWithdrawing={process.isWithdrawing}
+          onConfirm={process.confirmWithdraw}
+          onCancel={process.cancelWithdraw}
+        />
+      ) : null}
     </StartupPageFrame>
+  );
+}
+
+// TEST UI: placeholder until the design team's screen; replace when it arrives.
+function WithdrawDialog({
+  filename,
+  isWithdrawing,
+  onConfirm,
+  onCancel,
+}: {
+  filename: string;
+  isWithdrawing: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  const t = useTranslations("startupProcess");
+  return (
+    <ModalDialog labelledBy="withdraw-submission-title" onClose={onCancel}>
+      <h2
+        id="withdraw-submission-title"
+        className="text-base font-semibold text-[#22262b]"
+      >
+        {t("withdrawTitle")}
+      </h2>
+      <p className="text-sm text-[#515861]">
+        {t("withdrawBody", { name: filename })}
+      </p>
+      <div className="flex justify-end gap-2">
+        <SecondaryButton onClick={onCancel} disabled={isWithdrawing}>
+          {t("withdrawKeep")}
+        </SecondaryButton>
+        <DangerButton onClick={onConfirm} disabled={isWithdrawing}>
+          {isWithdrawing ? t("withdrawing") : t("withdrawConfirm")}
+        </DangerButton>
+      </div>
+    </ModalDialog>
   );
 }

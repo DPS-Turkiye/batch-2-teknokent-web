@@ -4,6 +4,7 @@ import {
   getStartupProcess,
   getTeamProcess,
   submitAssignment,
+  withdrawSubmission,
 } from "@/lib/client/startup-process";
 import {
   itSendsEachClientCall,
@@ -47,6 +48,12 @@ const calls: ClientCall[] = [
       "/api/startup/process/assignments/as%2F1/submission",
       { documentId: null },
     ],
+  },
+  {
+    title: "withdrawSubmission deletes the encoded assignment's submission",
+    call: () => withdrawSubmission("as/1"),
+    method: "delete",
+    args: ["/api/startup/process/assignments/as%2F1/submission"],
   },
   {
     title: "getTeamProcess reads a program team's process",

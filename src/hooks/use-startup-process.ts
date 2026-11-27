@@ -14,6 +14,7 @@ import {
 import {
   getStartupProcess,
   submitAssignment,
+  withdrawSubmission,
 } from "@/lib/client/startup-process";
 import {
   completedPhases,
@@ -121,6 +122,28 @@ export function useStartupProcess(focusAssignmentId: string | null = null) {
     },
   });
 
+  // The Ödev whose file "Kaldır" is asking to remove; the confirmation is open while it is set.
+  const [withdrawingId, setWithdrawingId] = useState<string | null>(null);
+  const withdraw = useMutation({
+    mutationFn: (assignmentId: string) => withdrawSubmission(assignmentId),
+    onSuccess: (process) => {
+      queryClient.setQueryData(STARTUP_PROCESS_QUERY_KEY, process);
+      setWithdrawingId(null);
+      showToast({ message: t("withdrawn"), tone: ToastTone.Success });
+    },
+    onError: (error) => {
+      setWithdrawingId(null);
+      showToast({
+        message: errorMessage(error, t("withdrawFailed")),
+        tone: ToastTone.Error,
+      });
+      // A refusal after the due day leaves a stale Kaldır; reload so it goes.
+      void queryClient.invalidateQueries({
+        queryKey: STARTUP_PROCESS_QUERY_KEY,
+      });
+    },
+  });
+
   const markDone = useMutation({
     mutationFn: (assignmentId: string) => submitAssignment(assignmentId, null),
     onSuccess: (process) => {
@@ -152,6 +175,10 @@ export function useStartupProcess(focusAssignmentId: string | null = null) {
     process?.phases[0]?.id ??
     null;
   const allAssignments = useMemo(() => process?.assignments ?? [], [process]);
+  // A target gone after a refetch closes the question, and Dosyayı kaldır can no longer reach it.
+  const withdrawTarget =
+    allAssignments.find((assignment) => assignment.id === withdrawingId) ??
+    null;
   const unphased = useMemo(
     () => unphasedAssignments(allAssignments),
     [allAssignments],
@@ -250,5 +277,15 @@ export function useStartupProcess(focusAssignmentId: string | null = null) {
     /** A program Ödev that asks for no file is handed in by marking it done. */
     markDone: (assignmentId: string) => markDone.mutate(assignmentId),
     markingAssignmentId: markDone.isPending ? markDone.variables : null,
+    /** The Ödev "Kaldır" asks about, or null while no confirmation is open. */
+    withdrawTarget,
+    askWithdraw: (assignmentId: string) => setWithdrawingId(assignmentId),
+    cancelWithdraw: () => {
+      if (!withdraw.isPending) setWithdrawingId(null);
+    },
+    confirmWithdraw: () => {
+      if (withdrawTarget) withdraw.mutate(withdrawTarget.id);
+    },
+    isWithdrawing: withdraw.isPending,
   };
 }

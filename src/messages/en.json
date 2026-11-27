@@ -2334,6 +2334,15 @@
     "replaceLabel": "Replace the uploaded file for {title}",
     "replaced": "Assignment file replaced.",
     "replaceFailed": "Couldn't replace the assignment file.",
+    "withdraw": "Remove",
+    "withdrawLabel": "Remove the uploaded file for {title}",
+    "withdrawTitle": "Remove the uploaded file?",
+    "withdrawBody": "“{name}” is removed and the assignment opens again. You can upload a new file until the due date.",
+    "withdrawConfirm": "Remove file",
+    "withdrawing": "Removing…",
+    "withdrawKeep": "Keep it",
+    "withdrawn": "File removed; the assignment is open again.",
+    "withdrawFailed": "Couldn't remove the file.",
     "uploadingPercent": "Uploading {percent}%",
     "uploadProgressLabel": "Uploading {title}",
     "cancelUpload": "Cancel",
@@ -6459,7 +6468,8 @@
     "emailTestSendFailed": "The test e-mail could not be sent.",
     "emailSendFailed": "The e-mail could not be sent.",
     "unsubscribeFailed": "That did not work.",
-    "emailStopFailed": "The sending could not be stopped."
+    "emailStopFailed": "The sending could not be stopped.",
+    "assignmentWithdrawFailed": "Couldn't remove the assignment file."
   },
   "startupStart": {
     "title": "My startup",
