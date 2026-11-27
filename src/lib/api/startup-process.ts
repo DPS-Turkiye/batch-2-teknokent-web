@@ -27,3 +27,16 @@ export function submitProcessAssignment(
     data: { actorId, documentId },
   });
 }
+
+/** "Kaldır": takes a handed-in file back while it could still be replaced; the Ödev is open again. */
+export function withdrawProcessSubmission(
+  organizationId: string,
+  assignmentId: string,
+  actorId: string,
+) {
+  return backendRequest({
+    method: HttpMethod.Delete,
+    url: `${processUrl(organizationId)}/assignments/${encodeURIComponent(assignmentId)}/submission`,
+    params: { actorId },
+  });
+}

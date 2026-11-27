@@ -10,6 +10,7 @@ import { uploadDocument } from "@/lib/client/documents";
 import {
   getStartupProcess,
   submitAssignment,
+  withdrawSubmission,
 } from "@/lib/client/startup-process";
 import {
   completedPhases,
@@ -87,6 +88,28 @@ export function useStartupProcess(focusAssignmentId: string | null = null) {
           queryKey: STARTUP_PROCESS_QUERY_KEY,
         });
       }
+    },
+  });
+
+  // The Ödev whose file "Kaldır" is asking to remove; the confirmation is open while it is set.
+  const [withdrawingId, setWithdrawingId] = useState<string | null>(null);
+  const withdraw = useMutation({
+    mutationFn: (assignmentId: string) => withdrawSubmission(assignmentId),
+    onSuccess: (process) => {
+      queryClient.setQueryData(STARTUP_PROCESS_QUERY_KEY, process);
+      setWithdrawingId(null);
+      showToast({ message: t("withdrawn"), tone: ToastTone.Success });
+    },
+    onError: (error) => {
+      setWithdrawingId(null);
+      showToast({
+        message: errorMessage(error, t("withdrawFailed")),
+        tone: ToastTone.Error,
+      });
+      // A refusal after the due day leaves a stale Kaldır; reload so it goes.
+      void queryClient.invalidateQueries({
+        queryKey: STARTUP_PROCESS_QUERY_KEY,
+      });
     },
   });
 
@@ -210,5 +233,17 @@ export function useStartupProcess(focusAssignmentId: string | null = null) {
     /** A program Ödev that asks for no file is handed in by marking it done. */
     markDone: (assignmentId: string) => markDone.mutate(assignmentId),
     markingAssignmentId: markDone.isPending ? markDone.variables : null,
+    /** The Ödev "Kaldır" asks about, or null while no confirmation is open. */
+    withdrawTarget:
+      allAssignments.find((assignment) => assignment.id === withdrawingId) ??
+      null,
+    askWithdraw: (assignmentId: string) => setWithdrawingId(assignmentId),
+    cancelWithdraw: () => {
+      if (!withdraw.isPending) setWithdrawingId(null);
+    },
+    confirmWithdraw: () => {
+      if (withdrawingId) withdraw.mutate(withdrawingId);
+    },
+    isWithdrawing: withdraw.isPending,
   };
 }

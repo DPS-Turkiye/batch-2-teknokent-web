@@ -2332,7 +2332,16 @@
     "replace": "Değiştir",
     "replaceLabel": "{title} için yüklenen dosyayı değiştir",
     "replaced": "Ödev dosyası değiştirildi.",
-    "replaceFailed": "Ödev dosyası değiştirilemedi."
+    "replaceFailed": "Ödev dosyası değiştirilemedi.",
+    "withdraw": "Kaldır",
+    "withdrawLabel": "{title} için yüklenen dosyayı kaldır",
+    "withdrawTitle": "Yüklenen dosya kaldırılsın mı?",
+    "withdrawBody": "“{name}” kaldırılır ve ödev yeniden açılır. Teslim tarihine kadar yeni bir dosya yükleyebilirsin.",
+    "withdrawConfirm": "Dosyayı kaldır",
+    "withdrawing": "Kaldırılıyor…",
+    "withdrawKeep": "Vazgeç",
+    "withdrawn": "Dosya kaldırıldı; ödev yeniden açık.",
+    "withdrawFailed": "Dosya kaldırılamadı."
   },
   "personalProfile": {
     "comingSoon": "Bu bölüm yakında eklenecek.",
@@ -6454,7 +6463,8 @@
     "emailTestSendFailed": "Test e-postası gönderilemedi.",
     "emailSendFailed": "E-posta gönderilemedi.",
     "unsubscribeFailed": "İşlem tamamlanamadı.",
-    "emailStopFailed": "Gönderim durdurulamadı."
+    "emailStopFailed": "Gönderim durdurulamadı.",
+    "assignmentWithdrawFailed": "Ödev dosyası kaldırılamadı."
   },
   "startupStart": {
     "title": "Startup'ım",
