@@ -14,6 +14,9 @@ import {
 } from "@/lib/client/action-items";
 import { getMeetingTodos } from "@/lib/client/meeting-notes";
 import { getMyMeetingProposals } from "@/lib/client/meeting-proposals";
+import { getStartupProcess } from "@/lib/client/startup-process";
+import { processAssignment } from "@test/fixtures/process-assignments";
+import { processPhase, startupProcess } from "@test/fixtures/startup-process";
 import { createTestQueryClient } from "@test/test-utils";
 
 const mockUseSession = vi.fn();
@@ -60,6 +63,10 @@ vi.mock("@/lib/client/meeting-proposals", () => ({
 
 vi.mock("@/lib/client/meetings", () => ({
   getRatedMeetingIds: vi.fn().mockResolvedValue([]),
+}));
+
+vi.mock("@/lib/client/startup-process", () => ({
+  getStartupProcess: vi.fn().mockResolvedValue(null),
 }));
 
 vi.mock("@/lib/client/meeting-notes", () => ({
@@ -360,4 +367,43 @@ it("shows handed-over tasks without a mentorship only for their recipient", asyn
   expect(
     result.current.homeTasks.some((item) => item.title === "Other member task"),
   ).toBe(false);
+});
+
+it("lists the team's open Ödev on home as an upload card", async () => {
+  mockUseSession.mockReturnValue({ session: denizSession() });
+  mockUseMeetings.mockReturnValue({ data: [], isLoading: false, error: null });
+  mockUseMentorshipRequests.mockReturnValue({
+    data: [],
+    isLoading: false,
+    error: null,
+  });
+  vi.mocked(getStartupProcess).mockResolvedValueOnce(
+    startupProcess({
+      phases: [processPhase("ph-1", "Doğrulama")],
+      assignments: [
+        processAssignment({
+          id: "as-1",
+          title: "Pazar araştırması",
+          phaseId: "ph-1",
+        }),
+        processAssignment({
+          id: "as-2",
+          title: "Teslim edildi",
+          status: ActionItemStatus.Completed,
+        }),
+      ],
+    }),
+  );
+
+  const { result } = renderHook(() => useDashboardData(), { wrapper });
+
+  await waitFor(() =>
+    expect(result.current.homeTasks.map((task) => task.title)).toEqual([
+      "Pazar araştırması",
+    ]),
+  );
+  expect(result.current.homeTasks[0]).toMatchObject({
+    subtitle: "Girişim ödevi · Doğrulama",
+    href: "/startup/process?assignment=as-1",
+  });
 });

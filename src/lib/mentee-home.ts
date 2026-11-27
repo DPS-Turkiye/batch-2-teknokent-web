@@ -6,11 +6,21 @@ import {
   MentorshipRequestStatus,
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
+import type {
+  ProcessAssignment,
+  ProcessPhase,
+} from "@/interfaces/startup-process";
 import { HOME_TASK_DISMISS_STORAGE_KEY } from "@/lib/const/mentee-home";
+import { isOpenActionItem } from "@/lib/mentor-dashboard";
 import {
   meetingFeedbackHref,
   requestHasConfirmedMeeting,
 } from "@/lib/mentorship-workspace";
+import {
+  assignmentPhaseName,
+  assignmentSourceKind,
+  processAssignmentHref,
+} from "@/lib/startup-process";
 import { calendarDay } from "@/lib/utils";
 import { DueTone, HomeTaskKind, SentRequestState } from "@/types/mentee-home";
 
@@ -149,6 +159,7 @@ export type HomeTask = {
 export function homeTaskId(kind: HomeTaskKind, entityId: string) {
   if (kind === HomeTaskKind.RequestReply) return `request-${entityId}`;
   if (kind === HomeTaskKind.MeetingFeedback) return `feedback-${entityId}`;
+  if (kind === HomeTaskKind.Homework) return `homework-${entityId}`;
   return `action-${entityId}`;
 }
 
@@ -186,6 +197,8 @@ export function buildHomeTasks({
   actionItems,
   actionItemRequestIds,
   feedbackMeetings = [],
+  assignments = [],
+  phases = [],
   dismissedTaskIds = [],
   texts,
   now = new Date(),
@@ -195,6 +208,9 @@ export function buildHomeTasks({
   actionItems: ActionItem[];
   actionItemRequestIds: Record<string, string>;
   feedbackMeetings?: MeetingItem[];
+  /** The team's Süreç Ödevler; the open ones become "Yükle" cards. */
+  assignments?: ProcessAssignment[];
+  phases?: ProcessPhase[];
   dismissedTaskIds?: string[];
   texts: HomeTexts;
   now?: Date;
@@ -223,37 +239,66 @@ export function buildHomeTasks({
       },
     }));
 
-  const items = actionItems.map((item) => {
-    const requestId = actionItemRequestIds[item.id];
-    const request = requestId ? requestsById.get(requestId) : undefined;
-    const due = dueState(item.dueDate, texts, now);
+  // An Ödev is also an action item; it shows once, as its Ödev card.
+  const assignmentIds = new Set(assignments.map((assignment) => assignment.id));
+
+  const homework = assignments.filter(isOpenActionItem).map((assignment) => {
+    const due = dueState(assignment.dueDate, texts, now);
     return {
-      sortKey: item.dueDate ?? "",
+      sortKey: assignment.dueDate ?? "",
       task: {
-        id: homeTaskId(HomeTaskKind.ActionItem, item.id),
-        kind: HomeTaskKind.ActionItem,
-        title: item.title,
+        id: homeTaskId(HomeTaskKind.Homework, assignment.id),
+        kind: HomeTaskKind.Homework,
+        title: assignment.title,
         subtitle: [
-          request?.mentorName ?? item.ownerName,
-          request?.supportArea ?? t("tasks.taskFallback"),
-          item.previousOwnerName
-            ? t("tasks.handedOver", { name: item.previousOwnerName })
-            : null,
+          t(
+            `tasks.homeworkSource.${assignmentSourceKind(assignment.createdByRole)}`,
+          ),
+          assignmentPhaseName(assignment, phases),
         ]
           .filter(Boolean)
           .join(" · "),
         dueTone: due.tone,
         dueLabel: due.label,
-        actionLabel: t("tasks.openTask"),
-        href: requestId
-          ? requestStatusHref(requestId)
-          : item.ownerLeftAt
-            ? "/startup/process"
-            : "/mentorships",
-        requestId,
+        actionLabel: t("tasks.homeworkAction"),
+        href: processAssignmentHref(assignment.id),
       },
     };
   });
+
+  const items = actionItems
+    .filter((item) => !assignmentIds.has(item.id))
+    .map((item) => {
+      const requestId = actionItemRequestIds[item.id];
+      const request = requestId ? requestsById.get(requestId) : undefined;
+      const due = dueState(item.dueDate, texts, now);
+      return {
+        sortKey: item.dueDate ?? "",
+        task: {
+          id: homeTaskId(HomeTaskKind.ActionItem, item.id),
+          kind: HomeTaskKind.ActionItem,
+          title: item.title,
+          subtitle: [
+            request?.mentorName ?? item.ownerName,
+            request?.supportArea ?? t("tasks.taskFallback"),
+            item.previousOwnerName
+              ? t("tasks.handedOver", { name: item.previousOwnerName })
+              : null,
+          ]
+            .filter(Boolean)
+            .join(" · "),
+          dueTone: due.tone,
+          dueLabel: due.label,
+          actionLabel: t("tasks.openTask"),
+          href: requestId
+            ? requestStatusHref(requestId)
+            : item.ownerLeftAt
+              ? "/startup/process"
+              : "/mentorships",
+          requestId,
+        },
+      };
+    });
 
   const evaluations = feedbackMeetings.map((meeting) => {
     const request = meeting.mentorshipRequestId
@@ -283,7 +328,7 @@ export function buildHomeTasks({
     };
   });
 
-  return [...replies, ...items, ...evaluations]
+  return [...replies, ...homework, ...items, ...evaluations]
     .filter(({ task }) => !hidden.has(task.id))
     .sort(
       (left, right) =>

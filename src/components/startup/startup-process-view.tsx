@@ -4,6 +4,7 @@ import { Check, ChevronRight, Code } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useRef } from "react";
 
 import { ProgramPastWeeks } from "@/components/startup/program-past-weeks";
 import { ProgramUpcomingWeeks } from "@/components/startup/program-upcoming-weeks";
@@ -146,6 +147,7 @@ function PhaseCardButton({
 function AssignmentRow({
   assignment,
   source,
+  focused,
   isUploading,
   onUpload,
   isMarking,
@@ -153,6 +155,8 @@ function AssignmentRow({
 }: {
   assignment: ProcessAssignment;
   source: string;
+  /** Opened from a link to this Ödev (home "Yapılacaklar"): scrolled into view and outlined. */
+  focused: boolean;
   isUploading: boolean;
   onUpload: (file: File) => void;
   isMarking: boolean;
@@ -164,8 +168,19 @@ function AssignmentRow({
   const canUpload =
     assignment.status === ActionItemStatus.Open ||
     assignment.status === ActionItemStatus.InProgress;
+  const rowRef = useRef<HTMLLIElement>(null);
+  useEffect(() => {
+    if (!focused) return;
+    rowRef.current?.scrollIntoView({ block: "center" });
+    rowRef.current?.focus({ preventScroll: true });
+  }, [focused]);
   return (
-    <li className="flex flex-wrap items-center justify-between gap-3 rounded-[10px] border border-[#e4e7ea] px-4 py-3.5">
+    <li
+      ref={rowRef}
+      tabIndex={focused ? -1 : undefined}
+      aria-current={focused ? "true" : undefined}
+      className={`flex flex-wrap items-center justify-between gap-3 rounded-[10px] border px-4 py-3.5 ${focused ? "border-[#e86f22] ring-2 ring-[#fdebdd]" : "border-[#e4e7ea]"}`}
+    >
       <div className="flex min-w-0 items-center gap-3">
         <Image src="/startup/done-ring.svg" alt="" width={17} height={17} />
         <div className="min-w-0 space-y-[3px]">
@@ -285,10 +300,15 @@ function SoftwareDevelopmentCard() {
   );
 }
 
-export function StartupProcessView() {
+export function StartupProcessView({
+  focusAssignmentId = null,
+}: {
+  /** An Ödev a link points at; Süreç opens on its phase. */
+  focusAssignmentId?: string | null;
+}) {
   const t = useTranslations("startupProcess");
   const locale = useLocale();
-  const process = useStartupProcess();
+  const process = useStartupProcess(focusAssignmentId);
 
   if (process.isLoading) {
     return (
@@ -427,6 +447,7 @@ export function StartupProcessView() {
                   ]
                     .filter(Boolean)
                     .join(" · ")}
+                  focused={process.focusedAssignmentId === assignment.id}
                   isUploading={process.uploadingAssignmentId === assignment.id}
                   onUpload={(file) =>
                     process.uploadAssignment(assignment.id, file)
