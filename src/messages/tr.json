@@ -2321,7 +2321,12 @@
         "UPCOMING": "Henüz başlamadı"
       },
       "link": "Mentorluklarım →"
-    }
+    },
+    "submittedFile": "Yüklenen dosya: {name}",
+    "replace": "Değiştir",
+    "replaceLabel": "{title} için yüklenen dosyayı değiştir",
+    "replaced": "Ödev dosyası değiştirildi.",
+    "replaceFailed": "Ödev dosyası değiştirilemedi."
   },
   "personalProfile": {
     "comingSoon": "Bu bölüm yakında eklenecek.",

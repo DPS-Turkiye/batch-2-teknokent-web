@@ -49,6 +49,7 @@ function assignment(
     createdAt: "2026-09-01T10:00:00Z",
     programAssignmentId: null,
     fileRequired: true,
+    replaceable: false,
     ...overrides,
   };
 }
