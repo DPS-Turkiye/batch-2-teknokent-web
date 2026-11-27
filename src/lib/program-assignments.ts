@@ -88,6 +88,11 @@ export function editDraftUnchanged(
   );
 }
 
+/** Teams whose handed-in file goes too when the Ödev is deleted. */
+export function teamsWithFiles(assignment: ProgramAssignment): number {
+  return assignment.teams.filter((team) => team.documentId !== null).length;
+}
+
 export function assignmentInput(
   draft: ProgramAssignmentDraft,
 ): CreateProgramAssignmentInput {

@@ -43,3 +43,15 @@ export function updateProgramAssignment(
     data: { actorId, ...input },
   });
 }
+
+export function deleteProgramAssignment(
+  actorId: string,
+  programId: string,
+  assignmentId: string,
+) {
+  return backendRequest<null>({
+    method: HttpMethod.Delete,
+    url: `${programUrl(programId)}/${encodeURIComponent(assignmentId)}`,
+    params: { actorId },
+  });
+}

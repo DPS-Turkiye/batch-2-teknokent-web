@@ -2,6 +2,7 @@ import { beforeEach, describe, vi } from "vitest";
 
 import {
   createProgramAssignment,
+  deleteProgramAssignment,
   getProgramAssignments,
   updateProgramAssignment,
 } from "@/lib/client/program-assignments";
@@ -54,6 +55,13 @@ const calls: ClientCall[] = [
       "/api/coordinator/programs/prog%2F1/assignments/odev%2F1",
       { title: "Pazar analizi", description: null, dueDate: "2026-12-05" },
     ],
+  },
+  {
+    title: "deleteProgramAssignment removes the Ödev",
+    call: () => deleteProgramAssignment("prog/1", "odev/1"),
+    method: "delete",
+    args: ["/api/coordinator/programs/prog%2F1/assignments/odev%2F1"],
+    returnsNothing: true,
   },
 ];
 

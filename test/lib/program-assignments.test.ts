@@ -11,6 +11,7 @@ import {
   EMPTY_ASSIGNMENT_DRAFT,
   phaseNameOf,
   SUBMISSION_STATE_TONES,
+  teamsWithFiles,
 } from "@/lib/program-assignments";
 import { programAssignment } from "@test/fixtures/program-assignments";
 
@@ -174,5 +175,10 @@ describe("program assignments", () => {
         programAssignment({ description: "" }),
       ),
     ).toBe(true);
+  });
+
+  it("counts the teams whose handed-in file a delete takes too", () => {
+    expect(teamsWithFiles(programAssignment())).toBe(1);
+    expect(teamsWithFiles(programAssignment({ teams: [] }))).toBe(0);
   });
 });

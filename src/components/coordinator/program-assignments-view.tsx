@@ -1,7 +1,7 @@
 // TEST UI: placeholder until the design team's screen; replace when it arrives.
 "use client";
 
-import { ChevronDown, ChevronRight, Pencil, Plus } from "lucide-react";
+import { ChevronDown, ChevronRight, Pencil, Plus, Trash2 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useId } from "react";
 
@@ -13,8 +13,10 @@ import {
   SolidButton,
   StatusChip,
 } from "@/components/admin/admin-ui";
+import { ProgramAssignmentDeleteDialog } from "@/components/coordinator/program-assignment-delete-dialog";
 import { ProgramAssignmentEditDialog } from "@/components/coordinator/program-assignment-edit-dialog";
 import { ProgramDetailFrame } from "@/components/coordinator/program-detail-frame";
+import { useProgramAssignmentDelete } from "@/hooks/use-program-assignment-delete";
 import { useProgramAssignmentEdit } from "@/hooks/use-program-assignment-edit";
 import {
   useProgramAssignments,
@@ -58,6 +60,7 @@ function AssignmentsBody({
   const t = useTranslations("programAssignments");
   const assignments = useProgramAssignments(programId);
   const edit = useProgramAssignmentEdit(programId);
+  const remove = useProgramAssignmentDelete(programId);
 
   return (
     <div className="space-y-5">
@@ -102,11 +105,13 @@ function AssignmentsBody({
               onToggle={() => assignments.toggle(assignment.id)}
               onOpenSubmission={assignments.openSubmission}
               onEdit={archived ? null : () => edit.start(assignment)}
+              onDelete={archived ? null : () => remove.start(assignment)}
             />
           ))}
         </ul>
       )}
       <ProgramAssignmentEditDialog edit={edit} />
+      <ProgramAssignmentDeleteDialog remove={remove} />
     </div>
   );
 }
@@ -223,6 +228,7 @@ function AssignmentCard({
   onToggle,
   onOpenSubmission,
   onEdit,
+  onDelete,
 }: {
   assignment: ProgramAssignment;
   phaseName: string | null;
@@ -231,6 +237,8 @@ function AssignmentCard({
   onOpenSubmission: (documentId: string) => void;
   /** Null once the program is archived: its Ödevler can no longer be edited. */
   onEdit: (() => void) | null;
+  /** Null once the program is archived, as with Düzenle. */
+  onDelete: (() => void) | null;
 }) {
   const t = useTranslations("programAssignments");
   const locale = useLocale();
@@ -283,10 +291,22 @@ function AssignmentCard({
             type="button"
             onClick={onEdit}
             aria-label={t("editLabel", { title: assignment.title })}
-            className="mt-3 mr-4 inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#e9ecef] px-3 py-1.5 text-[12.5px] font-medium text-[#22262b]"
+            className="mt-3 mr-2 inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#e9ecef] px-3 py-1.5 text-[12.5px] font-medium text-[#22262b]"
           >
             <Pencil aria-hidden className="size-3.5" />
             {t("edit")}
+          </button>
+        ) : null}
+        {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+        {onDelete ? (
+          <button
+            type="button"
+            onClick={onDelete}
+            aria-label={t("deleteLabel", { title: assignment.title })}
+            className="mt-3 mr-4 inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#e9ecef] px-3 py-1.5 text-[12.5px] font-medium text-[#d9464b]"
+          >
+            <Trash2 aria-hidden className="size-3.5" />
+            {t("delete")}
           </button>
         ) : null}
       </div>
