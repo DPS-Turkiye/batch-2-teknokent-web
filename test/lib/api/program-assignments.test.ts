@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   createProgramAssignment,
+  deleteProgramAssignment,
   fetchProgramAssignments,
   updateProgramAssignment,
 } from "@/lib/api/program-assignments";
@@ -62,6 +63,15 @@ const cases: RequestCase[] = [
         description: null,
         dueDate: null,
       },
+    },
+  ],
+  [
+    "deletes an encoded Ödev of an encoded program with the actor as a query",
+    () => deleteProgramAssignment("coord-1", "prog/1", "odev/1"),
+    {
+      method: "DELETE",
+      url: "/api/coordinator/programs/prog%2F1/assignments/odev%2F1",
+      params: { actorId: "coord-1" },
     },
   ],
 ];

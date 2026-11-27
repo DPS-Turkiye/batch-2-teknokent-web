@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { PUT as edit } from "@/app/api/coordinator/programs/[id]/assignments/[assignmentId]/route";
+import {
+  PUT as edit,
+  DELETE as remove,
+} from "@/app/api/coordinator/programs/[id]/assignments/[assignmentId]/route";
 import {
   POST as give,
   GET as list,
@@ -8,6 +11,7 @@ import {
 import { UserRole } from "@/interfaces/session";
 import {
   createProgramAssignment,
+  deleteProgramAssignment,
   fetchProgramAssignments,
   updateProgramAssignment,
 } from "@/lib/api/program-assignments";
@@ -21,6 +25,7 @@ import { appSession } from "@test/fixtures/session";
 
 vi.mock("@/lib/api/program-assignments", () => ({
   createProgramAssignment: vi.fn(),
+  deleteProgramAssignment: vi.fn(),
   fetchProgramAssignments: vi.fn(),
   updateProgramAssignment: vi.fn(),
 }));
@@ -51,6 +56,7 @@ describe("program assignment routes", () => {
     answerEachWith(
       [
         createProgramAssignment,
+        deleteProgramAssignment,
         fetchProgramAssignments,
         updateProgramAssignment,
       ],
@@ -136,5 +142,35 @@ describe("program assignment routes", () => {
       (await edit(editRequest({ title: "Pazar analizi" }), editParams)).status,
     ).toBe(403);
     expect(updateProgramAssignment).not.toHaveBeenCalled();
+  });
+
+  it("deletes an Ödev as the session's coordinator", async () => {
+    const response = await remove(
+      new Request("http://localhost", { method: "DELETE" }),
+      editParams,
+    );
+
+    expect(response.ok).toBe(true);
+    expect(deleteProgramAssignment).toHaveBeenCalledWith(
+      "coordinator-1",
+      "program-1",
+      "odev-1",
+    );
+  });
+
+  it("refuses a delete from anyone who is not a coordinator or an admin", async () => {
+    vi.mocked(requireCoordinatorOrAdminSession).mockResolvedValue(
+      guardRefusal(403),
+    );
+
+    expect(
+      (
+        await remove(
+          new Request("http://localhost", { method: "DELETE" }),
+          editParams,
+        )
+      ).status,
+    ).toBe(403);
+    expect(deleteProgramAssignment).not.toHaveBeenCalled();
   });
 });

@@ -1,4 +1,7 @@
-import { updateProgramAssignment } from "@/lib/api/program-assignments";
+import {
+  deleteProgramAssignment,
+  updateProgramAssignment,
+} from "@/lib/api/program-assignments";
 import {
   apiErrorResponse,
   apiText,
@@ -28,6 +31,21 @@ export async function PUT(request: Request, { params }: Params) {
   } catch (error) {
     return apiErrorResponse(error, {
       message: await apiText("programAssignmentUpdateFailed"),
+    });
+  }
+}
+
+export async function DELETE(_request: Request, { params }: Params) {
+  try {
+    const auth = await requireCoordinatorOrAdminSession();
+    if (!auth.ok) return auth.response;
+    const { id, assignmentId } = await params;
+    return backendResponse(
+      await deleteProgramAssignment(auth.session.userId, id, assignmentId),
+    );
+  } catch (error) {
+    return apiErrorResponse(error, {
+      message: await apiText("programAssignmentDeleteFailed"),
     });
   }
 }

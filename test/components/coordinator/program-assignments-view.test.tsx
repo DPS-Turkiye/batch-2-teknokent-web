@@ -52,6 +52,18 @@ vi.mock("@/hooks/use-program-assignment-edit", () => ({
   }),
 }));
 
+const startDelete = vi.fn();
+vi.mock("@/hooks/use-program-assignment-delete", () => ({
+  useProgramAssignmentDelete: () => ({
+    deleting: null,
+    teamsWithFiles: 0,
+    start: startDelete,
+    cancel: vi.fn(),
+    confirm: vi.fn(),
+    removing: false,
+  }),
+}));
+
 const openForm = vi.fn();
 const closeForm = vi.fn();
 const setField = vi.fn();
@@ -167,6 +179,17 @@ describe("ProgramAssignmentsView", () => {
     expect(toggle).not.toHaveBeenCalled();
   });
 
+  it("asks before deleting an Ödev from its Sil button", async () => {
+    const user = userEvent.setup();
+    renderWithQueryClient(<ProgramAssignmentsView programId="program-1" />);
+
+    await user.click(
+      screen.getByRole("button", { name: "Pazar araştırması ödevini sil" }),
+    );
+    expect(startDelete).toHaveBeenCalledWith(programAssignment());
+    expect(toggle).not.toHaveBeenCalled();
+  });
+
   it("opens the form from Ödev ver", async () => {
     const user = userEvent.setup();
     renderWithQueryClient(<ProgramAssignmentsView programId="program-1" />);
@@ -240,7 +263,7 @@ describe("ProgramAssignmentsView", () => {
     ).toBeInTheDocument();
   });
 
-  it("offers no Düzenle on an archived program's Ödevler", () => {
+  it("offers no Düzenle or Sil on an archived program's Ödevler", () => {
     detail = coordinatorProgramDetail();
     detail.program.lifecycle = ProgramLifecycle.Completed;
     renderWithQueryClient(<ProgramAssignmentsView programId="program-1" />);
@@ -248,6 +271,9 @@ describe("ProgramAssignmentsView", () => {
     expect(screen.getByText("Pazar araştırması")).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /ödevini düzenle/ }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /ödevini sil/ }),
     ).not.toBeInTheDocument();
   });
 });

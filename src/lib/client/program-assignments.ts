@@ -36,3 +36,14 @@ export async function updateProgramAssignment(
     ),
   );
 }
+
+export async function deleteProgramAssignment(
+  programId: string,
+  assignmentId: string,
+) {
+  requireSuccess(
+    await httpClient.delete<null>(
+      `${programUrl(programId)}/${encodeURIComponent(assignmentId)}`,
+    ),
+  );
+}
