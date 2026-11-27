@@ -124,6 +124,52 @@ describe("useStartupProcess", () => {
     ]);
   });
 
+  it("opens on a linked Ödev's phase until another view is picked", async () => {
+    vi.mocked(getStartupProcess).mockResolvedValue(process());
+    const { result } = renderHook(() => useStartupProcess("problem"), {
+      wrapper,
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.selectedPhaseId).toBe("problem");
+    expect(result.current.focusedAssignmentId).toBe("problem");
+    expect(result.current.assignments.map((item) => item.id)).toEqual([
+      "problem",
+    ]);
+
+    act(() => result.current.selectPhase("market"));
+    expect(result.current.selectedPhaseId).toBe("market");
+  });
+
+  it("opens Fazsız görevler for a linked Ödev no phase covers", async () => {
+    vi.mocked(getStartupProcess).mockResolvedValue(process());
+    const { result } = renderHook(() => useStartupProcess("loose"), {
+      wrapper,
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.showUnphased).toBe(true);
+    expect(result.current.selectedPhaseId).toBeNull();
+    expect(result.current.assignments.map((item) => item.id)).toEqual([
+      "loose",
+    ]);
+
+    act(() => result.current.toggleShowAll());
+    expect(result.current.showUnphased).toBe(false);
+    expect(result.current.assignments).toHaveLength(3);
+  });
+
+  it("ignores a link to an Ödev the team does not have", async () => {
+    vi.mocked(getStartupProcess).mockResolvedValue(process());
+    const { result } = renderHook(() => useStartupProcess("not-ours"), {
+      wrapper,
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.selectedPhaseId).toBe("mvp");
+    expect(result.current.focusedAssignmentId).toBeNull();
+  });
+
   it("starts on the first phase when today falls in none", async () => {
     vi.mocked(getStartupProcess).mockResolvedValue(
       process({ currentPhaseId: null, currentRound: null }),

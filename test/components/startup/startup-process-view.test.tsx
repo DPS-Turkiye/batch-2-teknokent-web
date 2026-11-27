@@ -104,6 +104,7 @@ function state(overrides: Partial<Process> = {}): Process {
       },
     ],
     error: null,
+    focusedAssignmentId: null,
     isLoading: false,
     roundName: (roundId) => (roundId === "round-1" ? "MVP test turu" : null),
     hasPhases: true,
@@ -312,6 +313,23 @@ describe("StartupProcessView", () => {
     expect(
       screen.queryByLabelText("B2B2C hipotezi için ödev yükle"),
     ).not.toBeInTheDocument();
+  });
+
+  it("opens on the Ödev a link points at and brings its row into view", () => {
+    const scrollIntoView = vi.spyOn(Element.prototype, "scrollIntoView");
+    vi.mocked(useStartupProcess).mockReturnValue(
+      state({ focusedAssignmentId: "finance" }),
+    );
+
+    renderWithQueryClient(<StartupProcessView focusAssignmentId="finance" />);
+
+    expect(useStartupProcess).toHaveBeenLastCalledWith("finance");
+    const [focused] = within(
+      screen.getByRole("region", { name: "Bu fazdaki ödevlerin" }),
+    ).getAllByRole("listitem");
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
+    expect(scrollIntoView.mock.contexts[0]).toBe(focused);
+    scrollIntoView.mockRestore();
   });
 
   it("uploads an open Ödev and shows the upload in progress on its row", async () => {

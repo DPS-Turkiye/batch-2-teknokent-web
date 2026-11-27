@@ -145,6 +145,47 @@ export function unphasedAssignments(
   return assignments.filter((assignment) => assignment.phaseId === null);
 }
 
+/** The Süreç page opened on one Ödev: its phase is shown and its row brought into view. */
+export function processAssignmentHref(assignmentId: string) {
+  return `/startup/process?${PROCESS_FOCUS_PARAM}=${encodeURIComponent(assignmentId)}`;
+}
+
+export const PROCESS_FOCUS_PARAM = "assignment";
+
+/** An Ödev still waiting for the team's hand-in. */
+export function isOpenAssignment(assignment: ProcessAssignment) {
+  return (
+    assignment.status === ActionItemStatus.Open ||
+    assignment.status === ActionItemStatus.InProgress
+  );
+}
+
+/** The name of the phase an Ödev belongs to, or null for one no phase covers. */
+export function assignmentPhaseName(
+  assignment: ProcessAssignment,
+  phases: readonly ProcessPhase[],
+) {
+  return phases.find((phase) => phase.id === assignment.phaseId)?.name ?? null;
+}
+
+/**
+ * Where Süreç opens for a linked Ödev: its phase, or "Fazsız görevler" when no phase covers it. Null when the
+ * link names no Ödev of the team (or there are no phases to pick from).
+ */
+export function focusedSelection(
+  process: StartupProcess,
+  assignmentId: string | null,
+): { phaseId: string | null; unphased: boolean } | null {
+  if (!assignmentId || process.phases.length === 0) return null;
+  const assignment = process.assignments.find(
+    (item) => item.id === assignmentId,
+  );
+  if (!assignment) return null;
+  return assignment.phaseId === null
+    ? { phaseId: null, unphased: true }
+    : { phaseId: assignment.phaseId, unphased: false };
+}
+
 /** The phase today falls in, or null. */
 export function currentPhase(process: StartupProcess): ProcessPhase | null {
   return (

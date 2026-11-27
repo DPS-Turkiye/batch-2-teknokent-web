@@ -1,7 +1,9 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
+import { ActionItemStatus } from "@/interfaces/action-item";
 import { MeetingStatus } from "@/interfaces/meeting";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
+import { UserRole } from "@/interfaces/session";
 import {
   activeMentorshipFooter,
   buildHomeTasks,
@@ -20,6 +22,8 @@ import {
   menteeMeetingFixture as meeting,
   menteeRequestFixture as request,
 } from "@test/fixtures/mentee-home";
+import { processAssignment } from "@test/fixtures/process-assignments";
+import { processPhase } from "@test/fixtures/startup-process";
 import { translatorIn } from "@test/translators";
 
 const now = new Date(2026, 8, 14, 10, 0);
@@ -370,5 +374,119 @@ describe("activeMentorshipFooter", () => {
     expect(activeMentorshipFooter(1, null, homeTexts("en")).label).toBe(
       "1 open action",
     );
+  });
+});
+
+describe("buildHomeTasks with Ödevler", () => {
+  const phases = [processPhase("ph-1", "Doğrulama")];
+
+  it("turns an open Ödev into an upload card that opens Süreç on it", () => {
+    const tasks = buildHomeTasks({
+      requests: [],
+      meetings: [],
+      actionItems: [],
+      actionItemRequestIds: {},
+      assignments: [
+        processAssignment({
+          id: "as-1",
+          title: "Pazar araştırması",
+          createdByRole: UserRole.Coordinator,
+          phaseId: "ph-1",
+          dueDate: "2026-09-14",
+        }),
+      ],
+      phases,
+      texts,
+      now,
+    });
+
+    expect(tasks).toEqual([
+      {
+        id: "homework-as-1",
+        kind: HomeTaskKind.Homework,
+        title: "Pazar araştırması",
+        subtitle: "Program ödevi · Doğrulama",
+        dueTone: DueTone.Today,
+        dueLabel: "Bugün",
+        actionLabel: "Yükle",
+        href: "/startup/process?assignment=as-1",
+      },
+    ]);
+  });
+
+  it("dates a late Ödev, names a mentor's or the startup's own, and leaves an undated one last", () => {
+    const tasks = buildHomeTasks({
+      requests: [],
+      meetings: [],
+      actionItems: [],
+      actionItemRequestIds: {},
+      assignments: [
+        processAssignment({ id: "none", createdByRole: null }),
+        processAssignment({
+          id: "late",
+          createdByRole: UserRole.Mentor,
+          dueDate: "2026-09-10",
+        }),
+      ],
+      phases,
+      texts,
+      now,
+    });
+
+    expect(
+      tasks.map((task) => [task.id, task.dueLabel, task.subtitle]),
+    ).toEqual([
+      ["homework-late", "Gecikti", "Mentor ödevi"],
+      ["homework-none", "Tarih yok", "Girişim ödevi"],
+    ]);
+  });
+
+  it("drops a handed-in Ödev and one the mentee dismissed", () => {
+    const tasks = buildHomeTasks({
+      requests: [],
+      meetings: [],
+      actionItems: [],
+      actionItemRequestIds: {},
+      assignments: [
+        processAssignment({ id: "done", status: ActionItemStatus.Completed }),
+        processAssignment({ id: "hidden" }),
+      ],
+      dismissedTaskIds: ["homework-hidden"],
+      texts,
+      now,
+    });
+
+    expect(tasks).toEqual([]);
+  });
+
+  it("shows an Ödev that is also a mentorship task once, as its Ödev card", () => {
+    const tasks = buildHomeTasks({
+      requests: [],
+      meetings: [],
+      actionItems: [actionItem({ id: "as-1" })],
+      actionItemRequestIds: { "as-1": "" },
+      assignments: [processAssignment({ id: "as-1" })],
+      texts,
+      now,
+    });
+
+    expect(tasks.map((task) => task.id)).toEqual(["homework-as-1"]);
+  });
+
+  it("writes the card in English", () => {
+    const [task] = buildHomeTasks({
+      requests: [],
+      meetings: [],
+      actionItems: [],
+      actionItemRequestIds: {},
+      assignments: [processAssignment({ createdByRole: UserRole.Mentor })],
+      texts: homeTexts("en"),
+      now,
+    });
+
+    expect(task).toMatchObject({
+      subtitle: "Mentor assignment",
+      actionLabel: "Upload",
+    });
   });
 });

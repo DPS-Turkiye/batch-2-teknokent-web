@@ -22,6 +22,45 @@ function task(overrides: Partial<HomeTask> = {}): HomeTask {
 }
 
 describe("TaskList", () => {
+  it("links an Ödev card to Süreç, even when a notebook opener is given, and dismisses it", async () => {
+    const onOpenTask = vi.fn<(task: HomeTask) => void>();
+    const onDismiss = vi.fn<(taskId: string) => void>();
+    render(
+      <TaskList
+        tasks={[
+          task({
+            id: "homework-as-1",
+            kind: HomeTaskKind.Homework,
+            title: "Pazar araştırması",
+            subtitle: "Program ödevi · Doğrulama",
+            dueTone: DueTone.Today,
+            dueLabel: "Bugün",
+            actionLabel: "Yükle",
+            href: "/startup/process?assignment=as-1",
+            requestId: "r1",
+          }),
+        ]}
+        loading={false}
+        onOpenTask={onOpenTask}
+        onDismiss={onDismiss}
+      />,
+    );
+
+    expect(
+      screen.getByRole("link", { name: "Yükle: Pazar araştırması" }),
+    ).toHaveAttribute("href", "/startup/process?assignment=as-1");
+    expect(screen.getByText("Program ödevi · Doğrulama")).toBeInTheDocument();
+    expect(screen.getByText("Bugün")).toBeInTheDocument();
+
+    await userEvent.click(
+      screen.getByRole("button", {
+        name: "Listeden kaldır: Pazar araştırması",
+      }),
+    );
+    expect(onDismiss).toHaveBeenCalledWith("homework-as-1");
+    expect(onOpenTask).not.toHaveBeenCalled();
+  });
+
   it("lists each task with its subtitle, due chip and action", () => {
     render(
       <TaskList
