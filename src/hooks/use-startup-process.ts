@@ -144,6 +144,10 @@ export function useStartupProcess(focusAssignmentId: string | null = null) {
     process?.phases[0]?.id ??
     null;
   const allAssignments = useMemo(() => process?.assignments ?? [], [process]);
+  // A target gone after a refetch closes the question, and Dosyayı kaldır can no longer reach it.
+  const withdrawTarget =
+    allAssignments.find((assignment) => assignment.id === withdrawingId) ??
+    null;
   const unphased = useMemo(
     () => unphasedAssignments(allAssignments),
     [allAssignments],
@@ -234,15 +238,13 @@ export function useStartupProcess(focusAssignmentId: string | null = null) {
     markDone: (assignmentId: string) => markDone.mutate(assignmentId),
     markingAssignmentId: markDone.isPending ? markDone.variables : null,
     /** The Ödev "Kaldır" asks about, or null while no confirmation is open. */
-    withdrawTarget:
-      allAssignments.find((assignment) => assignment.id === withdrawingId) ??
-      null,
+    withdrawTarget,
     askWithdraw: (assignmentId: string) => setWithdrawingId(assignmentId),
     cancelWithdraw: () => {
       if (!withdraw.isPending) setWithdrawingId(null);
     },
     confirmWithdraw: () => {
-      if (withdrawingId) withdraw.mutate(withdrawingId);
+      if (withdrawTarget) withdraw.mutate(withdrawTarget.id);
     },
     isWithdrawing: withdraw.isPending,
   };
