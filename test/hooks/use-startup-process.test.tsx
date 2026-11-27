@@ -363,6 +363,39 @@ describe("useStartupProcess", () => {
     expect(submitAssignment).not.toHaveBeenCalled();
   });
 
+  it("drops the bar and İptal once the file is out and the hand-in is being saved", async () => {
+    let submitted: (value: StartupProcess) => void = () => undefined;
+    vi.mocked(getStartupProcess).mockResolvedValue(process());
+    vi.mocked(uploadDocumentWithProgress).mockResolvedValue({
+      id: "doc-1",
+      kind: DocumentKind.Homework,
+      originalFilename: "model.pdf",
+      sizeBytes: 8,
+    });
+    vi.mocked(submitAssignment).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          submitted = resolve;
+        }),
+    );
+    const { result } = renderHook(() => useStartupProcess(), { wrapper });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    act(() =>
+      result.current.uploadAssignment(
+        "mvp",
+        new File(["%PDF-1.4"], "model.pdf", { type: "application/pdf" }),
+      ),
+    );
+    await waitFor(() => expect(submitAssignment).toHaveBeenCalled());
+
+    expect(result.current.uploadPercent).toBeNull();
+    expect(result.current.isAnyUploading).toBe(true);
+    act(() => result.current.cancelUpload());
+    act(() => submitted(process()));
+    expect(await screen.findByText("Ödev yüklendi.")).toBeInTheDocument();
+  });
+
   it("clears the upload progress when the upload fails", async () => {
     vi.mocked(getStartupProcess).mockResolvedValue(process());
     vi.mocked(uploadDocumentWithProgress).mockImplementation(
