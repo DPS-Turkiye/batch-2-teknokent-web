@@ -14,6 +14,15 @@ export const REQUEST_TIMEOUT_MS = 30_000;
 /** Uploads carry a PDF of up to 50 MB, which legitimately outlasts the default. */
 export const UPLOAD_TIMEOUT_MS = 120_000;
 
+/**
+ * A browser upload is given up once no byte has gone out for this long. A big file on a slow line keeps
+ * reporting progress, so only a stalled one is cut off, and the person hears it in seconds rather than minutes.
+ */
+export const UPLOAD_STALL_MS = 20_000;
+
+/** Once the whole file is sent, the wait for the stored answer; CloudFront gives the backend 60 s. */
+export const UPLOAD_RESPONSE_TIMEOUT_MS = 60_000;
+
 export const httpClient = axios.create({
   headers: {
     Accept: "application/json",

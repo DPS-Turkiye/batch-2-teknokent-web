@@ -134,6 +134,7 @@ function state(overrides: Partial<Process> = {}): Process {
     uploadAssignment,
     replaceSubmission,
     uploadingAssignmentId: null,
+    uploadPercent: null,
     markDone,
     markingAssignmentId: null,
     ...overrides,
@@ -347,6 +348,20 @@ describe("StartupProcessView", () => {
 
     expect(replaceSubmission).toHaveBeenCalledWith("finance", file);
     expect(uploadAssignment).not.toHaveBeenCalled();
+  });
+
+  it("shows how much of the Ödev's file has gone out", () => {
+    vi.mocked(useStartupProcess).mockReturnValue(
+      state({ uploadingAssignmentId: "finance", uploadPercent: 42 }),
+    );
+    renderWithQueryClient(<StartupProcessView />);
+
+    expect(screen.getByText("Yükleniyor %42")).toBeInTheDocument();
+    expect(
+      screen.getByRole("progressbar", {
+        name: "Finansal model taslağı yükleniyor",
+      }),
+    ).toHaveAttribute("value", "42");
   });
 
   it("disables the swap while the new file is going up", () => {

@@ -11,7 +11,7 @@ import {
   StartupStageState,
   type StartupProcess,
 } from "@/interfaces/startup-process";
-import { uploadDocument } from "@/lib/client/documents";
+import { uploadDocumentWithProgress } from "@/lib/client/documents";
 import {
   getStartupProcess,
   submitAssignment,
@@ -26,7 +26,7 @@ vi.mock("@/lib/client/startup-process", () => ({
 }));
 
 vi.mock("@/lib/client/documents", () => ({
-  uploadDocument: vi.fn(),
+  uploadDocumentWithProgress: vi.fn(),
 }));
 
 function wrapper({ children }: { children: ReactNode }) {
@@ -228,7 +228,7 @@ describe("useStartupProcess", () => {
       assignments: [assignment("mvp", "mvp", ActionItemStatus.Completed)],
     });
     vi.mocked(getStartupProcess).mockResolvedValue(process());
-    vi.mocked(uploadDocument).mockResolvedValue({
+    vi.mocked(uploadDocumentWithProgress).mockResolvedValue({
       id: "doc-1",
       kind: DocumentKind.Homework,
       originalFilename: "model.pdf",
@@ -245,9 +245,52 @@ describe("useStartupProcess", () => {
         ActionItemStatus.Completed,
       ),
     );
-    expect(uploadDocument).toHaveBeenCalledWith(file, DocumentKind.Homework);
+    expect(uploadDocumentWithProgress).toHaveBeenCalledWith(
+      file,
+      DocumentKind.Homework,
+      expect.any(Function),
+    );
     expect(submitAssignment).toHaveBeenCalledWith("mvp", "doc-1");
     expect(result.current.uploadingAssignmentId).toBeNull();
+  });
+
+  it("reports how much of the file has gone out while it uploads", async () => {
+    let report: (sent: number) => void = () => undefined;
+    let finish: (
+      stored: Awaited<ReturnType<typeof uploadDocumentWithProgress>>,
+    ) => void = () => undefined;
+    vi.mocked(getStartupProcess).mockResolvedValue(process());
+    vi.mocked(uploadDocumentWithProgress).mockImplementation(
+      (_file, _kind, onProgress) => {
+        report = onProgress;
+        return new Promise((resolve) => {
+          finish = resolve;
+        });
+      },
+    );
+    vi.mocked(submitAssignment).mockResolvedValue(process());
+    const { result } = renderHook(() => useStartupProcess(), { wrapper });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    act(() =>
+      result.current.uploadAssignment(
+        "mvp",
+        new File(["%PDF-1.4"], "model.pdf", { type: "application/pdf" }),
+      ),
+    );
+    await waitFor(() => expect(result.current.uploadPercent).toBe(0));
+    act(() => report(0.426));
+    expect(result.current.uploadPercent).toBe(43);
+
+    act(() =>
+      finish({
+        id: "doc-1",
+        kind: DocumentKind.Homework,
+        originalFilename: "model.pdf",
+        sizeBytes: 8,
+      }),
+    );
+    await waitFor(() => expect(result.current.uploadPercent).toBeNull());
   });
 
   it("swaps a handed-in file and says it was replaced", async () => {
@@ -255,7 +298,7 @@ describe("useStartupProcess", () => {
       type: "application/pdf",
     });
     vi.mocked(getStartupProcess).mockResolvedValue(process());
-    vi.mocked(uploadDocument).mockResolvedValue({
+    vi.mocked(uploadDocumentWithProgress).mockResolvedValue({
       id: "doc-2",
       kind: DocumentKind.Homework,
       originalFilename: "model-v2.pdf",
@@ -270,13 +313,17 @@ describe("useStartupProcess", () => {
     expect(
       await screen.findByText("Ödev dosyası değiştirildi."),
     ).toBeInTheDocument();
-    expect(uploadDocument).toHaveBeenCalledWith(file, DocumentKind.Homework);
+    expect(uploadDocumentWithProgress).toHaveBeenCalledWith(
+      file,
+      DocumentKind.Homework,
+      expect.any(Function),
+    );
     expect(submitAssignment).toHaveBeenCalledWith("mvp", "doc-2");
   });
 
   it("shows the backend's reason when a replace comes after the due day", async () => {
     vi.mocked(getStartupProcess).mockResolvedValue(process());
-    vi.mocked(uploadDocument).mockResolvedValue({
+    vi.mocked(uploadDocumentWithProgress).mockResolvedValue({
       id: "doc-2",
       kind: DocumentKind.Homework,
       originalFilename: "model-v2.pdf",
@@ -323,7 +370,7 @@ describe("useStartupProcess", () => {
       ),
     );
     expect(submitAssignment).toHaveBeenCalledWith("mvp", null);
-    expect(uploadDocument).not.toHaveBeenCalled();
+    expect(uploadDocumentWithProgress).not.toHaveBeenCalled();
     expect(result.current.markingAssignmentId).toBeNull();
     expect(await screen.findByText("Ödev teslim edildi.")).toBeInTheDocument();
   });

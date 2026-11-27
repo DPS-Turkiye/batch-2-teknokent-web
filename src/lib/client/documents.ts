@@ -9,7 +9,14 @@ import {
 } from "@/lib/client/api";
 import { getPublicBackendUrl } from "@/lib/const";
 import { currentIdToken } from "@/lib/firebase/auth";
-import { httpClient, UPLOAD_TIMEOUT_MS } from "@/lib/http-client";
+import {
+  httpClient,
+  UPLOAD_RESPONSE_TIMEOUT_MS,
+  UPLOAD_STALL_MS,
+} from "@/lib/http-client";
+
+/** How much of the file has gone out, from 0 to 1. */
+export type UploadProgress = (sent: number) => void;
 
 export type StoredDocument = {
   id: string;
@@ -66,17 +73,50 @@ export async function postUpload<T>(
   path: string,
   data: FormData,
   idToken?: string,
+  onProgress?: UploadProgress,
 ): Promise<T> {
   const token = idToken ?? (await currentIdToken());
   if (!token) {
     throw new Error(clientText("sessionExpired"));
   }
 
-  const post = (url: string) =>
-    httpClient.post<T>(url, data, {
-      headers: { Authorization: `Bearer ${token}` },
-      timeout: UPLOAD_TIMEOUT_MS,
-    });
+  // No fixed total timeout: the request is aborted only when no progress arrives for UPLOAD_STALL_MS, or
+  // when the answer takes longer than UPLOAD_RESPONSE_TIMEOUT_MS once the whole file is out.
+  const post = async (url: string) => {
+    // Only the stall timer aborts it, so an aborted signal means the upload stalled.
+    const controller = new AbortController();
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const giveUpAfter = (ms: number) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => controller.abort(), ms);
+    };
+    giveUpAfter(UPLOAD_STALL_MS);
+    try {
+      return await httpClient.post<T>(url, data, {
+        headers: { Authorization: `Bearer ${token}` },
+        timeout: 0,
+        signal: controller.signal,
+        onUploadProgress: (event) => {
+          const sent = event.total
+            ? Math.min(1, event.loaded / event.total)
+            : (event.progress ?? 0);
+          onProgress?.(sent);
+          giveUpAfter(sent >= 1 ? UPLOAD_RESPONSE_TIMEOUT_MS : UPLOAD_STALL_MS);
+        },
+      });
+    } catch (error) {
+      if (controller.signal.aborted) {
+        throw new ClientApiError(
+          clientText("uploadStalled"),
+          0,
+          ClientErrorCode.Timeout,
+        );
+      }
+      throw error;
+    } finally {
+      clearTimeout(timer);
+    }
+  };
 
   try {
     return uploaded(await post(`${getPublicBackendUrl()}${path}`));
@@ -105,17 +145,39 @@ export async function postUpload<T>(
   }
 }
 
+function documentForm(file: File, kind: DocumentKind, meetingId?: string) {
+  const data = new FormData();
+  data.set("file", file);
+  data.set("kind", kind);
+  if (meetingId) data.set("meetingId", meetingId);
+  return data;
+}
+
 export async function uploadDocument(
   file: File,
   kind: DocumentKind,
   idToken?: string,
   meetingId?: string,
 ) {
-  const data = new FormData();
-  data.set("file", file);
-  data.set("kind", kind);
-  if (meetingId) data.set("meetingId", meetingId);
-  return postUpload<StoredDocument>("/api/documents", data, idToken);
+  return postUpload<StoredDocument>(
+    "/api/documents",
+    documentForm(file, kind, meetingId),
+    idToken,
+  );
+}
+
+/** As uploadDocument, reporting how much of the file has gone out (the signed-in person's own token). */
+export async function uploadDocumentWithProgress(
+  file: File,
+  kind: DocumentKind,
+  onProgress: UploadProgress,
+) {
+  return postUpload<StoredDocument>(
+    "/api/documents",
+    documentForm(file, kind),
+    undefined,
+    onProgress,
+  );
 }
 
 /** The signed-in person's own files, newest first, through their session. */
