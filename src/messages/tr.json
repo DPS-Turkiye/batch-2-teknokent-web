@@ -1128,7 +1128,10 @@
       "phaseNameRequired": "{n}. fazın adını gir.",
       "phaseDateMissing": "“{name}” fazının tarihlerini gir."
     },
-    "emailTooLong": "E-posta metni veya listeden çıkarılanlar çok uzun. Metni kısalt veya daha dar bir alıcı grubu seç."
+    "emailTooLong": "E-posta metni veya listeden çıkarılanlar çok uzun. Metni kısalt veya daha dar bir alıcı grubu seç.",
+    "uploadStalled": "Yükleme ilerlemiyor; bağlantın yavaş ya da kesilmiş olabilir. Tekrar dene.",
+    "uploadNoAnswer": "Dosya gönderildi ama sunucu yanıt vermedi. Tekrar denemeden önce dosyalarına bak; yüklenmiş olabilir.",
+    "uploadCanceled": "Yükleme iptal edildi."
   },
   "metadata": {
     "manifestDescription": "Mentorluk görüşmelerin, görevlerin ve mesajların cebinde.",
@@ -2332,7 +2335,12 @@
     "replace": "Değiştir",
     "replaceLabel": "{title} için yüklenen dosyayı değiştir",
     "replaced": "Ödev dosyası değiştirildi.",
-    "replaceFailed": "Ödev dosyası değiştirilemedi."
+    "replaceFailed": "Ödev dosyası değiştirilemedi.",
+    "uploadingPercent": "Yükleniyor %{percent}",
+    "uploadProgressLabel": "{title} yükleniyor",
+    "cancelUpload": "İptal",
+    "cancelUploadLabel": "{title} yüklemesini iptal et",
+    "uploadCanceled": "Yükleme iptal edildi."
   },
   "personalProfile": {
     "comingSoon": "Bu bölüm yakında eklenecek.",

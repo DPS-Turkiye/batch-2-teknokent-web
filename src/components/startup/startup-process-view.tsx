@@ -183,8 +183,10 @@ function AssignmentRow({
   source,
   focused,
   isUploading,
+  uploadPercent,
   onUpload,
   onReplace,
+  onCancelUpload,
   isMarking,
   onMarkDone,
 }: {
@@ -193,8 +195,11 @@ function AssignmentRow({
   /** Opened from a link to this Ödev (home "Yapılacaklar"): scrolled into view and outlined. */
   focused: boolean;
   isUploading: boolean;
+  /** The share of this row's upload sent so far, 0–100, while it runs. */
+  uploadPercent: number | null;
   onUpload: (file: File) => void;
   onReplace: (file: File) => void;
+  onCancelUpload: () => void;
   isMarking: boolean;
   onMarkDone: () => void;
 }) {
@@ -211,6 +216,10 @@ function AssignmentRow({
     rowRef.current?.focus({ preventScroll: true });
   }, [focused]);
   const canReplace = canReplaceSubmission(assignment);
+  const uploadingLabel =
+    uploadPercent === null
+      ? t("uploading")
+      : t("uploadingPercent", { percent: uploadPercent });
   return (
     <li
       ref={rowRef}
@@ -265,7 +274,7 @@ function AssignmentRow({
           <FilePickButton
             label={
               isUploading
-                ? t("uploading")
+                ? uploadingLabel
                 : assignment.fileRequired
                   ? t("upload")
                   : t("uploadOptional")
@@ -287,13 +296,32 @@ function AssignmentRow({
         ) : null}
         {canReplace ? (
           <FilePickButton
-            label={isUploading ? t("uploading") : t("replace")}
+            label={isUploading ? uploadingLabel : t("replace")}
             ariaLabel={t("replaceLabel", { title: assignment.title })}
             disabled={isUploading}
             onPick={onReplace}
           />
         ) : null}
       </div>
+      {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+      {isUploading && uploadPercent !== null ? (
+        <div className="flex basis-full items-center gap-3">
+          <progress
+            max={100}
+            value={uploadPercent}
+            aria-label={t("uploadProgressLabel", { title: assignment.title })}
+            className="h-1.5 flex-1 overflow-hidden rounded-full accent-[#e86f22]"
+          />
+          <button
+            type="button"
+            onClick={onCancelUpload}
+            aria-label={t("cancelUploadLabel", { title: assignment.title })}
+            className="text-[12px] font-medium text-[#676e78] hover:text-[#22262b]"
+          >
+            {t("cancelUpload")}
+          </button>
+        </div>
+      ) : null}
     </li>
   );
 }
@@ -495,12 +523,18 @@ export function StartupProcessView({
                     .join(" · ")}
                   focused={process.focusedAssignmentId === assignment.id}
                   isUploading={process.uploadingAssignmentId === assignment.id}
+                  uploadPercent={
+                    process.uploadingAssignmentId === assignment.id
+                      ? process.uploadPercent
+                      : null
+                  }
                   onUpload={(file) =>
                     process.uploadAssignment(assignment.id, file)
                   }
                   onReplace={(file) =>
                     process.replaceSubmission(assignment.id, file)
                   }
+                  onCancelUpload={process.cancelUpload}
                   isMarking={process.markingAssignmentId === assignment.id}
                   onMarkDone={() => process.markDone(assignment.id)}
                 />

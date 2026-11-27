@@ -8,6 +8,8 @@ import { Locale } from "@/lib/i18n";
 export const ClientErrorCode = {
   Timeout: "TIMEOUT",
   Network: "NETWORK",
+  /** The person stopped it themselves (an upload's İptal). */
+  Canceled: "CANCELED",
 } as const;
 
 export class ClientApiError extends Error {

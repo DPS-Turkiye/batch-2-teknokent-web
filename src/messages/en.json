@@ -1126,7 +1126,10 @@
       "phaseNameRequired": "Enter a name for phase {n}.",
       "phaseDateMissing": "Enter the dates of “{name}”."
     },
-    "emailTooLong": "The text or the list of people taken off is too long. Shorten the text or choose a narrower group."
+    "emailTooLong": "The text or the list of people taken off is too long. Shorten the text or choose a narrower group.",
+    "uploadStalled": "The upload stopped moving; your connection may be slow or down. Try again.",
+    "uploadNoAnswer": "The file was sent but the server did not answer. Check your files before trying again; it may already be there.",
+    "uploadCanceled": "Upload canceled."
   },
   "metadata": {
     "manifestDescription": "Your mentoring meetings, tasks and messages in your pocket.",
@@ -2330,7 +2333,12 @@
     "replace": "Replace",
     "replaceLabel": "Replace the uploaded file for {title}",
     "replaced": "Assignment file replaced.",
-    "replaceFailed": "Couldn't replace the assignment file."
+    "replaceFailed": "Couldn't replace the assignment file.",
+    "uploadingPercent": "Uploading {percent}%",
+    "uploadProgressLabel": "Uploading {title}",
+    "cancelUpload": "Cancel",
+    "cancelUploadLabel": "Cancel the upload for {title}",
+    "uploadCanceled": "Upload canceled."
   },
   "personalProfile": {
     "comingSoon": "This section is coming soon.",
