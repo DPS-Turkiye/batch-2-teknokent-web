@@ -39,6 +39,13 @@ export interface ProgramAssignment {
   teams: ProgramAssignmentTeam[];
 }
 
+/** "Düzenle": all three fields on every save, so a null due date clears it. */
+export interface UpdateProgramAssignmentInput {
+  title: string;
+  description: string | null;
+  dueDate: string | null;
+}
+
 export interface CreateProgramAssignmentInput {
   title: string;
   description: string | null;

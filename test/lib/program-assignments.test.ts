@@ -5,10 +5,14 @@ import {
   AssignmentDraftProblem,
   assignmentDraftProblem,
   assignmentInput,
+  editDraftOf,
+  editDraftUnchanged,
+  editInput,
   EMPTY_ASSIGNMENT_DRAFT,
   phaseNameOf,
   SUBMISSION_STATE_TONES,
 } from "@/lib/program-assignments";
+import { programAssignment } from "@test/fixtures/program-assignments";
 
 const TODAY = "2026-11-16";
 
@@ -105,5 +109,70 @@ describe("program assignments", () => {
     expect(SUBMISSION_STATE_TONES[ProgramAssignmentSubmissionState.Open]).toBe(
       "neutral",
     );
+  });
+
+  it("lets an edit keep the date already set once it has passed, but not move to another past day", () => {
+    const draft = { title: "Pazar", dueDate: "2026-11-10" };
+    expect(assignmentDraftProblem(draft, TODAY, "2026-11-10")).toBeNull();
+    expect(
+      assignmentDraftProblem(
+        { ...draft, dueDate: "2026-11-12" },
+        TODAY,
+        "2026-11-10",
+      ),
+    ).toBe(AssignmentDraftProblem.DuePassed);
+    expect(
+      assignmentDraftProblem({ ...draft, dueDate: "" }, TODAY, "2026-11-10"),
+    ).toBeNull();
+    expect(
+      assignmentDraftProblem({ ...draft, title: " " }, TODAY, "2026-11-10"),
+    ).toBe(AssignmentDraftProblem.TitleRequired);
+  });
+
+  it("fills the edit form from the Ödev and sends all three fields, blanks as null", () => {
+    const assignment = programAssignment({ description: null, dueDate: null });
+    expect(editDraftOf(assignment)).toEqual({
+      title: "Pazar araştırması",
+      description: "",
+      dueDate: "",
+    });
+    expect(
+      editInput({ title: "  Pazar analizi ", description: "  ", dueDate: "" }),
+    ).toEqual({ title: "Pazar analizi", description: null, dueDate: null });
+    expect(
+      editInput({
+        title: "Pazar",
+        description: " Rakipler ",
+        dueDate: "2026-12-05",
+      }),
+    ).toEqual({
+      title: "Pazar",
+      description: "Rakipler",
+      dueDate: "2026-12-05",
+    });
+  });
+
+  it("tells an edit that changes nothing from one that does", () => {
+    const assignment = programAssignment();
+    const draft = editDraftOf(assignment);
+    expect(editDraftUnchanged(draft, assignment)).toBe(true);
+    expect(
+      editDraftUnchanged({ ...draft, title: ` ${draft.title} ` }, assignment),
+    ).toBe(true);
+    expect(editDraftUnchanged({ ...draft, title: "Yeni" }, assignment)).toBe(
+      false,
+    );
+    expect(editDraftUnchanged({ ...draft, description: "" }, assignment)).toBe(
+      false,
+    );
+    expect(editDraftUnchanged({ ...draft, dueDate: "" }, assignment)).toBe(
+      false,
+    );
+    expect(
+      editDraftUnchanged(
+        { ...draft, description: "" },
+        programAssignment({ description: "" }),
+      ),
+    ).toBe(true);
   });
 });

@@ -36,6 +36,21 @@ vi.mock("@/components/coordinator/program-detail-frame", () => ({
 vi.mock("@/hooks/use-program-assignments", () => ({
   useProgramAssignments: vi.fn(),
 }));
+const startEdit = vi.fn();
+vi.mock("@/hooks/use-program-assignment-edit", () => ({
+  useProgramAssignmentEdit: () => ({
+    editing: null,
+    draft: null,
+    minDueDate: "2026-11-16",
+    start: startEdit,
+    cancel: vi.fn(),
+    setField: vi.fn(),
+    problem: null,
+    canSave: false,
+    save: vi.fn(),
+    saving: false,
+  }),
+}));
 
 const openForm = vi.fn();
 const closeForm = vi.fn();
@@ -89,7 +104,12 @@ describe("ProgramAssignmentsView", () => {
         "1 teslim etti · 0 geç teslim · 0 teslim etmedi · 1 bekleniyor",
       ),
     ).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: /Pazar araştırması/ }));
+    await user.click(
+      screen.getByRole("button", {
+        name: /Pazar araştırması/,
+        expanded: false,
+      }),
+    );
     expect(toggle).toHaveBeenCalledWith("odev-1");
   });
 
@@ -122,7 +142,9 @@ describe("ProgramAssignmentsView", () => {
 
     expect(screen.getByText("Hedef pazarı anlat.")).toBeInTheDocument();
     const rows = within(
-      screen.getByRole("button", { name: /Pazar araştırması/ }).parentElement!,
+      screen
+        .getByRole("button", { name: /Pazar araştırması/, expanded: true })
+        .closest("li")!,
     ).getAllByRole("listitem");
     expect(within(rows[0]!).getByText("Geç teslim")).toBeInTheDocument();
     expect(within(rows[1]!).getByText("Teslim etmedi")).toBeInTheDocument();
@@ -132,6 +154,17 @@ describe("ProgramAssignmentsView", () => {
       }),
     );
     expect(openSubmission).toHaveBeenCalledWith("doc-1");
+  });
+
+  it("opens the edit dialog on an Ödev from its Düzenle button", async () => {
+    const user = userEvent.setup();
+    renderWithQueryClient(<ProgramAssignmentsView programId="program-1" />);
+
+    await user.click(
+      screen.getByRole("button", { name: "Pazar araştırması ödevini düzenle" }),
+    );
+    expect(startEdit).toHaveBeenCalledWith(programAssignment());
+    expect(toggle).not.toHaveBeenCalled();
   });
 
   it("opens the form from Ödev ver", async () => {
@@ -205,5 +238,16 @@ describe("ProgramAssignmentsView", () => {
     expect(
       screen.getByText("Bu programda henüz ödev verilmedi."),
     ).toBeInTheDocument();
+  });
+
+  it("offers no Düzenle on an archived program's Ödevler", () => {
+    detail = coordinatorProgramDetail();
+    detail.program.lifecycle = ProgramLifecycle.Completed;
+    renderWithQueryClient(<ProgramAssignmentsView programId="program-1" />);
+
+    expect(screen.getByText("Pazar araştırması")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /ödevini düzenle/ }),
+    ).not.toBeInTheDocument();
   });
 });

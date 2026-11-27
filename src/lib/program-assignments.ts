@@ -2,6 +2,8 @@ import type { ProgramPhase } from "@/interfaces/coordinator-program";
 import {
   ProgramAssignmentSubmissionState,
   type CreateProgramAssignmentInput,
+  type ProgramAssignment,
+  type UpdateProgramAssignmentInput,
 } from "@/interfaces/program-assignment";
 
 /** The backend's limits on an Ödev's title and description. */
@@ -31,16 +33,59 @@ export enum AssignmentDraftProblem {
   DuePassed = "duePassed",
 }
 
-/** The first problem with the draft, or null; `today` is a yyyy-mm-dd day. */
+/**
+ * The first problem with the draft, or null; `today` is a yyyy-mm-dd day. `keptDueDate` is the date an edited Ödev
+ * already has: it stays valid once passed, so an overdue Ödev's text can still be fixed.
+ */
 export function assignmentDraftProblem(
-  draft: ProgramAssignmentDraft,
+  draft: Pick<ProgramAssignmentDraft, "title" | "dueDate">,
   today: string,
+  keptDueDate: string | null = null,
 ): AssignmentDraftProblem | null {
   if (!draft.title.trim()) return AssignmentDraftProblem.TitleRequired;
-  if (draft.dueDate && draft.dueDate < today) {
+  if (draft.dueDate && draft.dueDate !== keptDueDate && draft.dueDate < today) {
     return AssignmentDraftProblem.DuePassed;
   }
   return null;
+}
+
+/** The "Düzenle" form; empty strings stand for fields left out. */
+export type ProgramAssignmentEditDraft = Pick<
+  ProgramAssignmentDraft,
+  "title" | "description" | "dueDate"
+>;
+
+export function editDraftOf(
+  assignment: ProgramAssignment,
+): ProgramAssignmentEditDraft {
+  return {
+    title: assignment.title,
+    description: assignment.description ?? "",
+    dueDate: assignment.dueDate ?? "",
+  };
+}
+
+export function editInput(
+  draft: ProgramAssignmentEditDraft,
+): UpdateProgramAssignmentInput {
+  return {
+    title: draft.title.trim(),
+    description: draft.description.trim() || null,
+    dueDate: draft.dueDate || null,
+  };
+}
+
+/** True when saving would change nothing, so the save button can stay off. */
+export function editDraftUnchanged(
+  draft: ProgramAssignmentEditDraft,
+  assignment: ProgramAssignment,
+): boolean {
+  const input = editInput(draft);
+  return (
+    input.title === assignment.title &&
+    input.description === (assignment.description || null) &&
+    input.dueDate === assignment.dueDate
+  );
 }
 
 export function assignmentInput(

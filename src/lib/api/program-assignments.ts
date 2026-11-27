@@ -3,6 +3,7 @@ import "server-only";
 import type {
   CreateProgramAssignmentInput,
   ProgramAssignment,
+  UpdateProgramAssignmentInput,
 } from "@/interfaces/program-assignment";
 import { HttpMethod } from "@/lib/http-method";
 import { backendRequest } from "@/lib/server/backend-client";
@@ -26,6 +27,19 @@ export function createProgramAssignment(
   return backendRequest<ProgramAssignment>({
     method: HttpMethod.Post,
     url: programUrl(programId),
+    data: { actorId, ...input },
+  });
+}
+
+export function updateProgramAssignment(
+  actorId: string,
+  programId: string,
+  assignmentId: string,
+  input: UpdateProgramAssignmentInput,
+) {
+  return backendRequest<ProgramAssignment>({
+    method: HttpMethod.Put,
+    url: `${programUrl(programId)}/${encodeURIComponent(assignmentId)}`,
     data: { actorId, ...input },
   });
 }

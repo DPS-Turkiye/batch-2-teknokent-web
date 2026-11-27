@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   createProgramAssignment,
   fetchProgramAssignments,
+  updateProgramAssignment,
 } from "@/lib/api/program-assignments";
 import { backendRequest } from "@/lib/server/backend-client";
 
@@ -42,6 +43,25 @@ const cases: RequestCase[] = [
       method: "POST",
       url: "/api/coordinator/programs/prog%2F1/assignments",
       data: { actorId: "coord-1", ...input },
+    },
+  ],
+  [
+    "edits an encoded Ödev of an encoded program with the actor first",
+    () =>
+      updateProgramAssignment("coord-1", "prog/1", "odev/1", {
+        title: "Pazar analizi",
+        description: null,
+        dueDate: null,
+      }),
+    {
+      method: "PUT",
+      url: "/api/coordinator/programs/prog%2F1/assignments/odev%2F1",
+      data: {
+        actorId: "coord-1",
+        title: "Pazar analizi",
+        description: null,
+        dueDate: null,
+      },
     },
   ],
 ];

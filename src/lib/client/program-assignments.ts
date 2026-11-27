@@ -1,6 +1,7 @@
 import type {
   CreateProgramAssignmentInput,
   ProgramAssignment,
+  UpdateProgramAssignmentInput,
 } from "@/interfaces/program-assignment";
 import { requireSuccess } from "@/lib/client/api";
 import { httpClient } from "@/lib/http-client";
@@ -20,5 +21,18 @@ export async function createProgramAssignment(
 ) {
   return requireSuccess(
     await httpClient.post<ProgramAssignment>(programUrl(programId), input),
+  );
+}
+
+export async function updateProgramAssignment(
+  programId: string,
+  assignmentId: string,
+  input: UpdateProgramAssignmentInput,
+) {
+  return requireSuccess(
+    await httpClient.put<ProgramAssignment>(
+      `${programUrl(programId)}/${encodeURIComponent(assignmentId)}`,
+      input,
+    ),
   );
 }

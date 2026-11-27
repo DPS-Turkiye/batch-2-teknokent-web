@@ -5,6 +5,7 @@ import { POST as addNoteRoute } from "@/app/api/coordinator/mentorships/[id]/not
 import { POST as announceRoute } from "@/app/api/coordinator/programs/[id]/announcements/route";
 import { POST as decideApprovalRoute } from "@/app/api/coordinator/programs/[id]/approvals/[kind]/[targetId]/route";
 import { PUT as archiveRoute } from "@/app/api/coordinator/programs/[id]/archive/route";
+import { PUT as editAssignmentRoute } from "@/app/api/coordinator/programs/[id]/assignments/[assignmentId]/route";
 import { POST as giveAssignmentRoute } from "@/app/api/coordinator/programs/[id]/assignments/route";
 import { POST as revokeBadgeRoute } from "@/app/api/coordinator/programs/[id]/badges/awards/[awardId]/revoke/route";
 import { POST as awardBadgeRoute } from "@/app/api/coordinator/programs/[id]/badges/awards/route";
@@ -375,6 +376,25 @@ const cases: BodyCase[] = [
         title: "Pazar araştırması",
         fileRequired: "evet",
       },
+    },
+  },
+  {
+    route: "PUT /api/coordinator/programs/[id]/assignments/[assignmentId]",
+    send: (request) =>
+      editAssignmentRoute(request, {
+        params: Promise.resolve({ id: "program-1", assignmentId: "odev-1" }),
+      }),
+    valid: { title: "Pazar analizi", dueDate: "2026-12-05" },
+    backend: programAssignments.updateProgramAssignment,
+    expected: [
+      ME,
+      "program-1",
+      "odev-1",
+      { title: "Pazar analizi", description: null, dueDate: "2026-12-05" },
+    ],
+    invalid: {
+      "a missing title": { dueDate: "2026-12-05" },
+      "a due date that is not text": { title: "Pazar analizi", dueDate: 5 },
     },
   },
   {
