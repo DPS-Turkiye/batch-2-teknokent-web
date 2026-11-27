@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 
 import { useSession } from "@/components/providers/session-provider";
@@ -14,13 +14,12 @@ import { useMeetingsAwaitingFeedback } from "@/hooks/use-meetings-awaiting-feedb
 import { useMemberProgramEvents } from "@/hooks/use-member-program-events";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
 import { useMobileTexts } from "@/hooks/use-mobile-texts";
-import { STARTUP_PROCESS_QUERY_KEY } from "@/hooks/use-startup-process";
+import { useTeamProcessQuery } from "@/hooks/use-startup-process";
 import { ActionItemStatus } from "@/interfaces/action-item";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { MobileTaskSource, type MobileTask } from "@/interfaces/mobile";
 import { UserRole } from "@/interfaces/session";
 import { changeActionItemStatus } from "@/lib/client/action-items";
-import { getStartupProcess } from "@/lib/client/startup-process";
 import { homeTaskId } from "@/lib/mentee-home";
 import {
   collectTasks,
@@ -66,12 +65,7 @@ export function useMobileTasks() {
   const actionItems = useActionItemsForRequests(
     accepted.map((request) => request.id),
   );
-  // A mentee outside a startup has no process; that is not an error here.
-  const process = useQuery({
-    queryKey: STARTUP_PROCESS_QUERY_KEY,
-    queryFn: getStartupProcess,
-    retry: false,
-  });
+  const process = useTeamProcessQuery();
   const deadlines = useMemberProgramEvents(range);
   // Home hides a rating the mentee dismissed on the web, so this list does too.
   const { session } = useSession();
@@ -96,6 +90,7 @@ export function useMobileTasks() {
             items: actionItems.byRequest[index] ?? [],
           })),
           assignments: process.data?.assignments ?? [],
+          phases: process.data?.phases ?? [],
           deadlines: deadlines.data ?? [],
           feedbackMeetings: unratedMeetings,
         },

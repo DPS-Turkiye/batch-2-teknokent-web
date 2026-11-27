@@ -13,6 +13,7 @@ import {
 } from "@/lib/client/startup-process";
 import {
   completedPhases,
+  focusedSelection,
   phaseCards,
   roundForPhase,
   unphasedAssignments,
@@ -23,16 +24,30 @@ import { useToast } from "@/stores/toast-store";
 export const STARTUP_PROCESS_QUERY_KEY = ["startup-process"] as const;
 
 /**
+ * The team's Süreç for lists that only read it (home, phone tasks). A mentee outside a startup has no process;
+ * that is not an error there, so it is not retried.
+ */
+export function useTeamProcessQuery() {
+  return useQuery({
+    queryKey: STARTUP_PROCESS_QUERY_KEY,
+    queryFn: getStartupProcess,
+    retry: false,
+  });
+}
+
+/**
  * The Süreç tab: one card per phase of the team's program, the chosen phase's round and its Ödevler. Without
  * phases the Ödevler are one flat list; those no phase covers are listed under "Fazsız görevler".
  */
-export function useStartupProcess() {
+export function useStartupProcess(focusAssignmentId: string | null = null) {
   const t = useTranslations("startupProcess");
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   const [showAll, setShowAll] = useState(false);
   const [pickedPhaseId, setPickedPhaseId] = useState<string | null>(null);
   const [showUnphased, setShowUnphased] = useState(false);
+  // A linked Ödev picks the phase until the user picks another view themselves.
+  const [focusReleased, setFocusReleased] = useState(false);
   const query = useQuery({
     queryKey: STARTUP_PROCESS_QUERY_KEY,
     queryFn: getStartupProcess,
@@ -90,12 +105,21 @@ export function useStartupProcess() {
 
   const process = query.data ?? null;
   const hasPhases = (process?.phases.length ?? 0) > 0;
+  const focus =
+    process && !focusReleased
+      ? focusedSelection(process, focusAssignmentId)
+      : null;
+  const unphasedShown = showUnphased || (focus?.unphased ?? false);
   // The current phase is open until a card is picked; a picked phase that is gone falls back to it.
   const picked = process?.phases.some((phase) => phase.id === pickedPhaseId)
     ? pickedPhaseId
     : null;
   const selectedPhaseId =
-    picked ?? process?.currentPhaseId ?? process?.phases[0]?.id ?? null;
+    picked ??
+    focus?.phaseId ??
+    process?.currentPhaseId ??
+    process?.phases[0]?.id ??
+    null;
   const allAssignments = useMemo(() => process?.assignments ?? [], [process]);
   const unphased = useMemo(
     () => unphasedAssignments(allAssignments),
@@ -103,7 +127,7 @@ export function useStartupProcess() {
   );
   const assignments = useMemo(() => {
     if (!hasPhases || showAll) return allAssignments;
-    if (showUnphased) return unphased;
+    if (unphasedShown) return unphased;
     return allAssignments.filter(
       (assignment) => assignment.phaseId === selectedPhaseId,
     );
@@ -112,7 +136,7 @@ export function useStartupProcess() {
     hasPhases,
     selectedPhaseId,
     showAll,
-    showUnphased,
+    unphasedShown,
     unphased,
   ]);
   const roundNames = useMemo(
@@ -129,7 +153,7 @@ export function useStartupProcess() {
   const assignmentsTitle =
     !hasPhases || showAll
       ? t("allAssignmentsTitle")
-      : showUnphased
+      : unphasedShown
         ? t("unphasedTitle")
         : t("assignments");
 
@@ -143,23 +167,33 @@ export function useStartupProcess() {
       roundId ? (roundNames.get(roundId) ?? null) : null,
     hasPhases,
     phaseCards: cards,
+    // Outlined only while the link still decides what is shown.
+    focusedAssignmentId:
+      !focusReleased &&
+      focusAssignmentId &&
+      allAssignments.some((assignment) => assignment.id === focusAssignmentId)
+        ? focusAssignmentId
+        : null,
     selectPhase: (phaseId: string) => {
+      setFocusReleased(true);
       setPickedPhaseId(phaseId);
       setShowAll(false);
       setShowUnphased(false);
     },
-    selectedPhaseId: showUnphased ? null : selectedPhaseId,
+    selectedPhaseId: unphasedShown ? null : selectedPhaseId,
     selectedRound:
-      process && selectedPhaseId && !showUnphased
+      process && selectedPhaseId && !unphasedShown
         ? roundForPhase(process, selectedPhaseId)
         : null,
     showAll,
-    showUnphased,
+    showUnphased: unphasedShown,
     selectUnphased: () => {
+      setFocusReleased(true);
       setShowUnphased(true);
       setShowAll(false);
     },
     toggleShowAll: () => {
+      setFocusReleased(true);
       setShowAll((current) => !current);
       setShowUnphased(false);
     },

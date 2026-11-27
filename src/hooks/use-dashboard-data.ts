@@ -14,6 +14,7 @@ import { useMeetings } from "@/hooks/use-meetings";
 import { useMeetingsAwaitingFeedback } from "@/hooks/use-meetings-awaiting-feedback";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
 import { useOpenTodoCounts } from "@/hooks/use-startup-meeting-notes";
+import { useTeamProcessQuery } from "@/hooks/use-startup-process";
 import type { MeetingItem } from "@/interfaces/meeting";
 import {
   MentorshipRequestStatus,
@@ -84,6 +85,7 @@ export function useDashboardData() {
   const { byRequest, isLoading: isLoadingActionItems } =
     useActionItemsForRequests(activeRequests.map((request) => request.id));
   const organizationItems = useOrganizationActionItems(session?.organizationId);
+  const teamProcess = useTeamProcessQuery();
   const { actionItems, actionItemRequestIds } = useMemo(() => {
     const requestIds: Record<string, string> = {};
     const items = [...byRequest.flat()];
@@ -150,6 +152,8 @@ export function useDashboardData() {
       actionItems: openActionItems,
       actionItemRequestIds,
       feedbackMeetings,
+      assignments: teamProcess.data?.assignments ?? [],
+      phases: teamProcess.data?.phases ?? [],
       dismissedTaskIds,
       texts: { t, locale },
     }),

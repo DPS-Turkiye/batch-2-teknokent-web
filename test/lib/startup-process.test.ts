@@ -9,14 +9,17 @@ import {
 } from "@/interfaces/startup-process";
 import {
   ASSIGNMENT_STATUS_TONES,
+  assignmentPhaseName,
   assignmentSourceKind,
   canReplaceSubmission,
   ChipTone,
   completedPhases,
   currentPhase,
+  focusedSelection,
   formatRoundRange,
   formatStageRange,
   phaseCards,
+  processAssignmentHref,
   roundForPhase,
   softwareDevelopmentCard,
   STAGE_STATE_TONES,
@@ -276,5 +279,63 @@ describe("canReplaceSubmission", () => {
         assignment({ ...handedIn, status: ActionItemStatus.Open }),
       ),
     ).toBe(false);
+  });
+});
+
+describe("processAssignmentHref", () => {
+  it("links Süreç to one Ödev, escaping the id", () => {
+    expect(processAssignmentHref("as 1")).toBe(
+      "/startup/process?assignment=as%201",
+    );
+  });
+});
+
+describe("assignmentPhaseName", () => {
+  it("names the Ödev's phase, or nothing when no phase covers it", () => {
+    const phases = [processPhase("ph-1", "Problem")];
+
+    expect(assignmentPhaseName(assignment({ phaseId: "ph-1" }), phases)).toBe(
+      "Problem",
+    );
+    expect(assignmentPhaseName(assignment({ phaseId: null }), phases)).toBe(
+      null,
+    );
+  });
+});
+
+describe("focusedSelection", () => {
+  const phases = [processPhase("ph-1", "Problem"), processPhase("ph-2", "MVP")];
+
+  it("opens the linked Ödev's phase", () => {
+    const process = startupProcess({
+      phases,
+      assignments: [assignment({ id: "as-2", phaseId: "ph-2" })],
+    });
+
+    expect(focusedSelection(process, "as-2")).toEqual({
+      phaseId: "ph-2",
+      unphased: false,
+    });
+  });
+
+  it("opens Fazsız görevler for a linked Ödev no phase covers", () => {
+    const process = startupProcess({
+      phases,
+      assignments: [assignment({ id: "as-3", phaseId: null })],
+    });
+
+    expect(focusedSelection(process, "as-3")).toEqual({
+      phaseId: null,
+      unphased: true,
+    });
+  });
+
+  it("ignores a link to an Ödev the team does not have, or a process without phases", () => {
+    const withPhases = startupProcess({ phases, assignments: [assignment()] });
+    const flat = startupProcess({ assignments: [assignment()] });
+
+    expect(focusedSelection(withPhases, "someone-else")).toBeNull();
+    expect(focusedSelection(withPhases, null)).toBeNull();
+    expect(focusedSelection(flat, assignment().id)).toBeNull();
   });
 });

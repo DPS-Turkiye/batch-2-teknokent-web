@@ -12,8 +12,12 @@ import {
   type MobileTask,
   type MobileTaskGroup,
 } from "@/interfaces/mobile";
-import type { ProcessAssignment } from "@/interfaces/startup-process";
+import type {
+  ProcessAssignment,
+  ProcessPhase,
+} from "@/interfaces/startup-process";
 import { meetingEndedAt } from "@/lib/mentee-home";
+import { isOpenActionItem } from "@/lib/mentor-dashboard";
 import { meetingFeedbackHref } from "@/lib/mentorship-workspace";
 import {
   mobileChatHref,
@@ -21,10 +25,14 @@ import {
   webHref,
   type MobileTexts,
 } from "@/lib/mobile";
+import {
+  assignmentPhaseName,
+  assignmentSourceKind,
+  processAssignmentHref,
+} from "@/lib/startup-process";
 import { calendarDay, relativeDayLabel } from "@/lib/utils";
 
 const DAY_MS = 86_400_000;
-const PROCESS_WEB_PATH = "/startup/process";
 
 function startOfDay(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -58,12 +66,6 @@ export function dueTone(dueAt: Date | null, today: Date) {
 
 function isDone(status: ActionItemStatus) {
   return status === ActionItemStatus.Completed;
-}
-
-function isOpen(status: ActionItemStatus) {
-  return (
-    status === ActionItemStatus.Open || status === ActionItemStatus.InProgress
-  );
 }
 
 function withDue(
@@ -113,12 +115,14 @@ export function mentorshipTask(
   );
 }
 
-/** A startup-process assignment; it is handed in with a file, on the web. */
+/** A startup-process assignment; it is handed in with a file, on the web, where Süreç opens on it. */
 export function processTask(
   assignment: ProcessAssignment,
   today: Date,
   texts: MobileTexts,
+  phases: readonly ProcessPhase[] = [],
 ): MobileTask {
+  const phase = assignmentPhaseName(assignment, phases);
   return withDue(
     {
       id: `process:${assignment.id}`,
@@ -128,11 +132,16 @@ export function processTask(
       dueAt: assignment.dueDate ? calendarDay(assignment.dueDate) : null,
       assignedBy: assignment.createdByName,
       assignedOn: mobileDayMonth(new Date(assignment.createdAt), texts.locale),
-      chips: [texts.t("tasks.processChip")],
+      chips: [
+        texts.t(
+          `tasks.processSource.${assignmentSourceKind(assignment.createdByRole)}`,
+        ),
+        ...(phase ? [phase] : []),
+      ],
       completed: isDone(assignment.status),
       requestId: null,
       chatHref: null,
-      webHref: webHref(PROCESS_WEB_PATH),
+      webHref: webHref(processAssignmentHref(assignment.id)),
     },
     assignment.createdByName,
     today,
@@ -198,6 +207,7 @@ export function collectTasks(
   input: {
     actionItemsByRequest: { request: MentorshipRequest; items: ActionItem[] }[];
     assignments: ProcessAssignment[];
+    phases?: ProcessPhase[];
     deadlines: MemberProgramEvent[];
     feedbackMeetings: MeetingItem[];
   },
@@ -212,13 +222,13 @@ export function collectTasks(
         .filter(
           (item) =>
             !processIds.has(item.id) &&
-            (isOpen(item.status) || isDone(item.status)),
+            (isOpenActionItem(item) || isDone(item.status)),
         )
         .map((item) => mentorshipTask(item, request, today, texts)),
     ),
     ...input.assignments
-      .filter((item) => isOpen(item.status) || isDone(item.status))
-      .map((item) => processTask(item, today, texts)),
+      .filter((item) => isOpenActionItem(item) || isDone(item.status))
+      .map((item) => processTask(item, today, texts, input.phases)),
     ...input.deadlines
       .filter(
         (event) =>
