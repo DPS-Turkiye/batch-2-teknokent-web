@@ -46,6 +46,9 @@ function softwareCard(overrides: Partial<SoftwareCard> = {}): SoftwareCard {
 
 const uploadAssignment = vi.fn();
 const replaceSubmission = vi.fn();
+const askWithdraw = vi.fn();
+const cancelWithdraw = vi.fn();
+const confirmWithdraw = vi.fn();
 const cancelUpload = vi.fn();
 const markDone = vi.fn();
 const toggleShowAll = vi.fn();
@@ -134,6 +137,11 @@ function state(overrides: Partial<Process> = {}): Process {
     totalAssignments: 7,
     uploadAssignment,
     replaceSubmission,
+    withdrawTarget: null,
+    askWithdraw,
+    cancelWithdraw,
+    confirmWithdraw,
+    isWithdrawing: false,
     cancelUpload,
     uploadingAssignmentId: null,
     uploadPercent: null,
@@ -434,6 +442,42 @@ describe("StartupProcessView", () => {
     ).toBeDisabled();
   });
 
+  it("offers Kaldır beside Değiştir and asks before removing the file", async () => {
+    const user = userEvent.setup();
+    const handedIn = assignment("finance", "Finansal model taslağı", {
+      status: ActionItemStatus.Completed,
+      submissionDocumentId: "doc-1",
+      submissionFilename: "model.pdf",
+      replaceable: true,
+    });
+    vi.mocked(useStartupProcess).mockReturnValue(
+      state({ assignments: [handedIn] }),
+    );
+    const { rerender } = renderWithQueryClient(<StartupProcessView />);
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Finansal model taslağı için yüklenen dosyayı kaldır",
+      }),
+    );
+    expect(askWithdraw).toHaveBeenCalledWith("finance");
+
+    vi.mocked(useStartupProcess).mockReturnValue(
+      state({ assignments: [handedIn], withdrawTarget: handedIn }),
+    );
+    rerender(<StartupProcessView />);
+    const dialog = screen.getByRole("dialog", {
+      name: "Yüklenen dosya kaldırılsın mı?",
+    });
+    expect(within(dialog).getByText(/model\.pdf/)).toBeInTheDocument();
+    await user.click(
+      within(dialog).getByRole("button", { name: "Dosyayı kaldır" }),
+    );
+    expect(confirmWithdraw).toHaveBeenCalledTimes(1);
+    await user.click(within(dialog).getByRole("button", { name: "Vazgeç" }));
+    expect(cancelWithdraw).toHaveBeenCalled();
+  });
+
   it("keeps a handed-in file's name but offers no swap once the due day is over", () => {
     vi.mocked(useStartupProcess).mockReturnValue(
       state({
@@ -454,6 +498,11 @@ describe("StartupProcessView", () => {
       screen.queryByLabelText(
         "Finansal model taslağı için yüklenen dosyayı değiştir",
       ),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", {
+        name: "Finansal model taslağı için yüklenen dosyayı kaldır",
+      }),
     ).not.toBeInTheDocument();
   });
 

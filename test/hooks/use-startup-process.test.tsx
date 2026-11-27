@@ -18,6 +18,7 @@ import {
 import {
   getStartupProcess,
   submitAssignment,
+  withdrawSubmission,
 } from "@/lib/client/startup-process";
 import { processAssignment } from "@test/fixtures/process-assignments";
 import { processPhase, startupProcess } from "@test/fixtures/startup-process";
@@ -26,6 +27,7 @@ import { createTestQueryClient } from "@test/test-utils";
 vi.mock("@/lib/client/startup-process", () => ({
   getStartupProcess: vi.fn(),
   submitAssignment: vi.fn(),
+  withdrawSubmission: vi.fn(),
 }));
 
 vi.mock("@/lib/client/documents", async (importOriginal) => ({
@@ -416,6 +418,71 @@ describe("useStartupProcess", () => {
 
     expect(await screen.findByText("Yükleme ilerlemiyor.")).toBeInTheDocument();
     expect(result.current.uploadPercent).toBeNull();
+  });
+
+  it("asks before Kaldır and reopens the Ödev once confirmed", async () => {
+    const handedIn = process({
+      assignments: [
+        processAssignment({
+          id: "mvp",
+          phaseId: "mvp",
+          status: ActionItemStatus.Completed,
+          submissionDocumentId: "doc-1",
+          submissionFilename: "model.pdf",
+          replaceable: true,
+        }),
+      ],
+    });
+    vi.mocked(getStartupProcess).mockResolvedValue(handedIn);
+    vi.mocked(withdrawSubmission).mockResolvedValue(process());
+    const { result } = renderHook(() => useStartupProcess(), { wrapper });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    act(() => result.current.askWithdraw("mvp"));
+    expect(result.current.withdrawTarget?.submissionFilename).toBe("model.pdf");
+    expect(withdrawSubmission).not.toHaveBeenCalled();
+    act(() => result.current.confirmWithdraw());
+
+    expect(
+      await screen.findByText("Dosya kaldırıldı; ödev yeniden açık."),
+    ).toBeInTheDocument();
+    expect(withdrawSubmission).toHaveBeenCalledWith("mvp");
+    expect(result.current.withdrawTarget).toBeNull();
+    expect(result.current.assignments[0]?.status).toBe(ActionItemStatus.Open);
+  });
+
+  it("closes the Kaldır question without removing anything on Vazgeç", async () => {
+    vi.mocked(getStartupProcess).mockResolvedValue(process());
+    const { result } = renderHook(() => useStartupProcess(), { wrapper });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    act(() => result.current.askWithdraw("mvp"));
+    act(() => result.current.cancelWithdraw());
+
+    expect(result.current.withdrawTarget).toBeNull();
+    expect(withdrawSubmission).not.toHaveBeenCalled();
+  });
+
+  it("shows the backend's reason when Kaldır comes after the due day, and reloads", async () => {
+    vi.mocked(getStartupProcess).mockResolvedValue(process());
+    vi.mocked(withdrawSubmission).mockRejectedValue(
+      new Error(
+        "Teslim tarihi geçtiği için bu ödevin dosyası artık değiştirilemez.",
+      ),
+    );
+    const { result } = renderHook(() => useStartupProcess(), { wrapper });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    act(() => result.current.askWithdraw("mvp"));
+    act(() => result.current.confirmWithdraw());
+
+    expect(
+      await screen.findByText(
+        "Teslim tarihi geçtiği için bu ödevin dosyası artık değiştirilemez.",
+      ),
+    ).toBeInTheDocument();
+    await waitFor(() => expect(getStartupProcess).toHaveBeenCalledTimes(2));
+    expect(result.current.withdrawTarget).toBeNull();
   });
 
   it("swaps a handed-in file and says it was replaced", async () => {

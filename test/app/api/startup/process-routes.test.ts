@@ -1,11 +1,15 @@
 import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { PUT } from "@/app/api/startup/process/assignments/[id]/submission/route";
+import {
+  DELETE,
+  PUT,
+} from "@/app/api/startup/process/assignments/[id]/submission/route";
 import { GET } from "@/app/api/startup/process/route";
 import {
   fetchStartupProcess,
   submitProcessAssignment,
+  withdrawProcessSubmission,
 } from "@/lib/api/startup-process";
 import { SessionRequiredError } from "@/lib/server/session-error";
 import { getSessionIds } from "@/lib/session";
@@ -13,6 +17,7 @@ import { getSessionIds } from "@/lib/session";
 vi.mock("@/lib/api/startup-process", () => ({
   fetchStartupProcess: vi.fn(),
   submitProcessAssignment: vi.fn(),
+  withdrawProcessSubmission: vi.fn(),
 }));
 
 vi.mock("@/lib/session", () => ({
@@ -65,6 +70,40 @@ describe("startup process routes", () => {
       "user-1",
       "doc-1",
     );
+  });
+
+  it("withdraws an Ödev's file as the session user of the session startup", async () => {
+    vi.mocked(withdrawProcessSubmission).mockResolvedValue(ok);
+
+    const response = await DELETE(
+      new NextRequest(
+        "http://localhost/api/startup/process/assignments/odev-1/submission",
+        { method: "DELETE" },
+      ),
+      { params: Promise.resolve({ id: "odev-1" }) },
+    );
+
+    expect(response.status).toBe(200);
+    expect(withdrawProcessSubmission).toHaveBeenCalledWith(
+      "org-1",
+      "odev-1",
+      "user-1",
+    );
+  });
+
+  it("refuses to withdraw without a session", async () => {
+    vi.mocked(getSessionIds).mockRejectedValue(new SessionRequiredError());
+
+    const response = await DELETE(
+      new NextRequest(
+        "http://localhost/api/startup/process/assignments/odev-1/submission",
+        { method: "DELETE" },
+      ),
+      { params: Promise.resolve({ id: "odev-1" }) },
+    );
+
+    expect(response.status).toBe(401);
+    expect(withdrawProcessSubmission).not.toHaveBeenCalled();
   });
 
   it("hands in an Ödev without a file as a null document", async () => {

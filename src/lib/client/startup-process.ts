@@ -21,6 +21,15 @@ export async function submitAssignment(
   );
 }
 
+/** "Kaldır": takes a handed-in file back while it could still be replaced; the Ödev is open again. */
+export async function withdrawSubmission(assignmentId: string) {
+  return requireSuccess(
+    await httpClient.delete<StartupProcess>(
+      `/api/startup/process/assignments/${encodeURIComponent(assignmentId)}/submission`,
+    ),
+  );
+}
+
 function teamProcessUrl(programId: string, organizationId: string) {
   return `/api/coordinator/programs/${encodeURIComponent(programId)}/team-details/${encodeURIComponent(organizationId)}/stage`;
 }
