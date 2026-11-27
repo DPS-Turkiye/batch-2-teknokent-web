@@ -54,6 +54,8 @@ export interface ProcessAssignment {
   programAssignmentId: string | null;
   /** Handed in only with a file; false only for a program Ödev that asks for none. */
   fileRequired: boolean;
+  /** Whether its handed-in file may still be swapped: until the end of the due day, always without one. */
+  replaceable: boolean;
 }
 
 export interface StartupProcess {

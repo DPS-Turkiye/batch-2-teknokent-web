@@ -20,6 +20,7 @@ export function processAssignment(
     createdAt: "2026-08-10T09:00:00Z",
     programAssignmentId: null,
     fileRequired: true,
+    replaceable: false,
     ...overrides,
   };
 }

@@ -2325,7 +2325,12 @@
         "UPCOMING": "Not started yet"
       },
       "link": "My mentorships →"
-    }
+    },
+    "submittedFile": "Uploaded file: {name}",
+    "replace": "Replace",
+    "replaceLabel": "Replace the uploaded file for {title}",
+    "replaced": "Assignment file replaced.",
+    "replaceFailed": "Couldn't replace the assignment file."
   },
   "personalProfile": {
     "comingSoon": "This section is coming soon.",

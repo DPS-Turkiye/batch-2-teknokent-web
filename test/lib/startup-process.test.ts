@@ -11,6 +11,7 @@ import {
   ASSIGNMENT_STATUS_TONES,
   assignmentPhaseName,
   assignmentSourceKind,
+  canReplaceSubmission,
   ChipTone,
   completedPhases,
   currentPhase,
@@ -45,6 +46,7 @@ function assignment(
     createdAt: "2026-08-10T09:00:00Z",
     programAssignmentId: null,
     fileRequired: true,
+    replaceable: false,
     ...overrides,
   };
 }
@@ -249,6 +251,34 @@ describe("softwareDevelopmentCard", () => {
       [StartupStageState.Completed]: ChipTone.Green,
       [StartupStageState.Upcoming]: ChipTone.Gray,
     });
+  });
+});
+
+describe("canReplaceSubmission", () => {
+  const handedIn = {
+    status: ActionItemStatus.Completed,
+    submissionDocumentId: "doc-1",
+    replaceable: true,
+  };
+
+  it("offers a swap only for a handed-in file the backend still takes", () => {
+    expect(canReplaceSubmission(assignment(handedIn))).toBe(true);
+    expect(
+      canReplaceSubmission(assignment({ ...handedIn, replaceable: false })),
+    ).toBe(false);
+  });
+
+  it("offers no swap without a file, or before the Ödev is handed in", () => {
+    expect(
+      canReplaceSubmission(
+        assignment({ ...handedIn, submissionDocumentId: null }),
+      ),
+    ).toBe(false);
+    expect(
+      canReplaceSubmission(
+        assignment({ ...handedIn, status: ActionItemStatus.Open }),
+      ),
+    ).toBe(false);
   });
 });
 

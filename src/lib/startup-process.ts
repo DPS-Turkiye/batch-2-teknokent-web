@@ -138,6 +138,16 @@ export function roundForPhase(
   );
 }
 
+/** A handed-in file the team may still swap for another (the backend closes this after the due day). */
+export function canReplaceSubmission(assignment: ProcessAssignment): boolean {
+  return (
+    assignment.status === ActionItemStatus.Completed &&
+    assignment.submissionDocumentId !== null &&
+    // A backend without the field leaves it out; falsy, so the swap stays hidden.
+    assignment.replaceable
+  );
+}
+
 /** Ödevler no phase covers: they are listed under "Fazsız görevler". */
 export function unphasedAssignments(
   assignments: readonly ProcessAssignment[],

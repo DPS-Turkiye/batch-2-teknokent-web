@@ -45,6 +45,7 @@ function softwareCard(overrides: Partial<SoftwareCard> = {}): SoftwareCard {
 }
 
 const uploadAssignment = vi.fn();
+const replaceSubmission = vi.fn();
 const markDone = vi.fn();
 const toggleShowAll = vi.fn();
 const selectPhase = vi.fn();
@@ -70,6 +71,7 @@ function assignment(
     createdAt: "2026-08-10T09:00:00Z",
     programAssignmentId: null,
     fileRequired: true,
+    replaceable: false,
     ...overrides,
   };
 }
@@ -130,6 +132,7 @@ function state(overrides: Partial<Process> = {}): Process {
     unphasedCount: 0,
     totalAssignments: 7,
     uploadAssignment,
+    replaceSubmission,
     uploadingAssignmentId: null,
     markDone,
     markingAssignmentId: null,
@@ -312,6 +315,84 @@ describe("StartupProcessView", () => {
     expect(within(done).getByText("Tamamlandı")).toBeInTheDocument();
     expect(
       screen.queryByLabelText("B2B2C hipotezi için ödev yükle"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows a handed-in file's name and swaps it while the due day has not passed", async () => {
+    const user = userEvent.setup();
+    const file = new File(["%PDF-1.4"], "model-v2.pdf", {
+      type: "application/pdf",
+    });
+    vi.mocked(useStartupProcess).mockReturnValue(
+      state({
+        assignments: [
+          assignment("finance", "Finansal model taslağı", {
+            status: ActionItemStatus.Completed,
+            submissionDocumentId: "doc-1",
+            submissionFilename: "model.pdf",
+            replaceable: true,
+          }),
+        ],
+      }),
+    );
+    renderWithQueryClient(<StartupProcessView />);
+
+    expect(screen.getByText("Yüklenen dosya: model.pdf")).toBeInTheDocument();
+    await user.upload(
+      screen.getByLabelText(
+        "Finansal model taslağı için yüklenen dosyayı değiştir",
+      ),
+      file,
+    );
+
+    expect(replaceSubmission).toHaveBeenCalledWith("finance", file);
+    expect(uploadAssignment).not.toHaveBeenCalled();
+  });
+
+  it("disables the swap while the new file is going up", () => {
+    vi.mocked(useStartupProcess).mockReturnValue(
+      state({
+        assignments: [
+          assignment("finance", "Finansal model taslağı", {
+            status: ActionItemStatus.Completed,
+            submissionDocumentId: "doc-1",
+            submissionFilename: "model.pdf",
+            replaceable: true,
+          }),
+        ],
+        uploadingAssignmentId: "finance",
+      }),
+    );
+    renderWithQueryClient(<StartupProcessView />);
+
+    expect(screen.getByText("Yükleniyor…")).toBeInTheDocument();
+    expect(
+      screen.getByLabelText(
+        "Finansal model taslağı için yüklenen dosyayı değiştir",
+      ),
+    ).toBeDisabled();
+  });
+
+  it("keeps a handed-in file's name but offers no swap once the due day is over", () => {
+    vi.mocked(useStartupProcess).mockReturnValue(
+      state({
+        assignments: [
+          assignment("finance", "Finansal model taslağı", {
+            status: ActionItemStatus.Completed,
+            submissionDocumentId: "doc-1",
+            submissionFilename: "model.pdf",
+            replaceable: false,
+          }),
+        ],
+      }),
+    );
+    renderWithQueryClient(<StartupProcessView />);
+
+    expect(screen.getByText("Yüklenen dosya: model.pdf")).toBeInTheDocument();
+    expect(
+      screen.queryByLabelText(
+        "Finansal model taslağı için yüklenen dosyayı değiştir",
+      ),
     ).not.toBeInTheDocument();
   });
 

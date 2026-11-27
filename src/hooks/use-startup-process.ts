@@ -60,19 +60,34 @@ export function useStartupProcess(focusAssignmentId: string | null = null) {
     }: {
       assignmentId: string;
       file: File;
+      /** A handed-in file being swapped for this one. */
+      replacing: boolean;
     }) => {
       const stored = await uploadDocument(file, DocumentKind.Homework);
       return submitAssignment(assignmentId, stored.id);
     },
-    onSuccess: (process) => {
+    onSuccess: (process, { replacing }) => {
       queryClient.setQueryData(STARTUP_PROCESS_QUERY_KEY, process);
-      showToast({ message: t("uploaded"), tone: ToastTone.Success });
-    },
-    onError: (error) =>
       showToast({
-        message: error instanceof Error ? error.message : t("uploadFailed"),
+        message: replacing ? t("replaced") : t("uploaded"),
+        tone: ToastTone.Success,
+      });
+    },
+    onError: (error, { replacing }) => {
+      showToast({
+        message: errorMessage(
+          error,
+          replacing ? t("replaceFailed") : t("uploadFailed"),
+        ),
         tone: ToastTone.Error,
-      }),
+      });
+      // A swap refused after the due day leaves a stale "Değiştir"; reload so it goes.
+      if (replacing) {
+        void queryClient.invalidateQueries({
+          queryKey: STARTUP_PROCESS_QUERY_KEY,
+        });
+      }
+    },
   });
 
   const markDone = useMutation({
@@ -185,7 +200,10 @@ export function useStartupProcess(focusAssignmentId: string | null = null) {
     unphasedCount: hasPhases ? unphased.length : 0,
     totalAssignments: allAssignments.length,
     uploadAssignment: (assignmentId: string, file: File) =>
-      upload.mutate({ assignmentId, file }),
+      upload.mutate({ assignmentId, file, replacing: false }),
+    /** Swaps a handed-in file; the backend refuses once the due day is over. */
+    replaceSubmission: (assignmentId: string, file: File) =>
+      upload.mutate({ assignmentId, file, replacing: true }),
     uploadingAssignmentId: upload.isPending
       ? upload.variables.assignmentId
       : null,

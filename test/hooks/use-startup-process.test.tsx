@@ -250,6 +250,62 @@ describe("useStartupProcess", () => {
     expect(result.current.uploadingAssignmentId).toBeNull();
   });
 
+  it("swaps a handed-in file and says it was replaced", async () => {
+    const file = new File(["%PDF-1.4"], "model-v2.pdf", {
+      type: "application/pdf",
+    });
+    vi.mocked(getStartupProcess).mockResolvedValue(process());
+    vi.mocked(uploadDocument).mockResolvedValue({
+      id: "doc-2",
+      kind: DocumentKind.Homework,
+      originalFilename: "model-v2.pdf",
+      sizeBytes: 8,
+    });
+    vi.mocked(submitAssignment).mockResolvedValue(process());
+    const { result } = renderHook(() => useStartupProcess(), { wrapper });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    act(() => result.current.replaceSubmission("mvp", file));
+
+    expect(
+      await screen.findByText("Ödev dosyası değiştirildi."),
+    ).toBeInTheDocument();
+    expect(uploadDocument).toHaveBeenCalledWith(file, DocumentKind.Homework);
+    expect(submitAssignment).toHaveBeenCalledWith("mvp", "doc-2");
+  });
+
+  it("shows the backend's reason when a replace comes after the due day", async () => {
+    vi.mocked(getStartupProcess).mockResolvedValue(process());
+    vi.mocked(uploadDocument).mockResolvedValue({
+      id: "doc-2",
+      kind: DocumentKind.Homework,
+      originalFilename: "model-v2.pdf",
+      sizeBytes: 8,
+    });
+    vi.mocked(submitAssignment).mockRejectedValue(
+      new Error(
+        "Teslim tarihi geçtiği için bu ödevin dosyası artık değiştirilemez.",
+      ),
+    );
+    const { result } = renderHook(() => useStartupProcess(), { wrapper });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    act(() =>
+      result.current.replaceSubmission(
+        "mvp",
+        new File(["%PDF-1.4"], "late.pdf", { type: "application/pdf" }),
+      ),
+    );
+
+    expect(
+      await screen.findByText(
+        "Teslim tarihi geçtiği için bu ödevin dosyası artık değiştirilemez.",
+      ),
+    ).toBeInTheDocument();
+    // The refusal reloads Süreç so the stale "Değiştir" goes away.
+    await waitFor(() => expect(getStartupProcess).toHaveBeenCalledTimes(2));
+  });
+
   it("marks a program Ödev that asks for no file done without uploading", async () => {
     const done = process({
       assignments: [assignment("mvp", "mvp", ActionItemStatus.Completed)],

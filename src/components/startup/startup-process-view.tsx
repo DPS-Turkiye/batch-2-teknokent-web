@@ -25,6 +25,7 @@ import { DOCUMENT_UPLOAD_ACCEPT } from "@/lib/const";
 import {
   ASSIGNMENT_STATUS_TONES,
   assignmentSourceKind,
+  canReplaceSubmission,
   ChipTone,
   formatRoundRange,
   formatStageRange,
@@ -144,12 +145,46 @@ function PhaseCardButton({
   );
 }
 
+/** A button-styled file picker; the picked file is handed over and the input cleared for the next pick. */
+function FilePickButton({
+  label,
+  ariaLabel,
+  disabled,
+  onPick,
+}: {
+  label: string;
+  ariaLabel: string;
+  disabled: boolean;
+  onPick: (file: File) => void;
+}) {
+  return (
+    <label
+      className={`${startupPrimaryActionClass} focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-border-selected ${disabled ? "cursor-default opacity-60" : "cursor-pointer"}`}
+    >
+      {label}
+      <input
+        type="file"
+        className="sr-only"
+        accept={DOCUMENT_UPLOAD_ACCEPT}
+        disabled={disabled}
+        aria-label={ariaLabel}
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          event.target.value = "";
+          if (file) onPick(file);
+        }}
+      />
+    </label>
+  );
+}
+
 function AssignmentRow({
   assignment,
   source,
   focused,
   isUploading,
   onUpload,
+  onReplace,
   isMarking,
   onMarkDone,
 }: {
@@ -159,6 +194,7 @@ function AssignmentRow({
   focused: boolean;
   isUploading: boolean;
   onUpload: (file: File) => void;
+  onReplace: (file: File) => void;
   isMarking: boolean;
   onMarkDone: () => void;
 }) {
@@ -174,6 +210,7 @@ function AssignmentRow({
     rowRef.current?.scrollIntoView({ block: "center" });
     rowRef.current?.focus({ preventScroll: true });
   }, [focused]);
+  const canReplace = canReplaceSubmission(assignment);
   return (
     <li
       ref={rowRef}
@@ -225,27 +262,36 @@ function AssignmentRow({
           </button>
         ) : null}
         {canUpload ? (
-          <label
-            className={`${startupPrimaryActionClass} cursor-pointer ${isUploading ? "opacity-60" : ""}`}
+          <FilePickButton
+            label={
+              isUploading
+                ? t("uploading")
+                : assignment.fileRequired
+                  ? t("upload")
+                  : t("uploadOptional")
+            }
+            ariaLabel={t("uploadLabel", { title: assignment.title })}
+            disabled={isUploading}
+            onPick={onUpload}
+          />
+        ) : null}
+        {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+        {assignment.status === ActionItemStatus.Completed &&
+        assignment.submissionFilename ? (
+          <span
+            title={assignment.submissionFilename}
+            className="max-w-[220px] truncate text-[11.5px] leading-[17px] text-[#676e78]"
           >
-            {isUploading
-              ? t("uploading")
-              : assignment.fileRequired
-                ? t("upload")
-                : t("uploadOptional")}
-            <input
-              type="file"
-              className="sr-only"
-              accept={DOCUMENT_UPLOAD_ACCEPT}
-              disabled={isUploading}
-              aria-label={t("uploadLabel", { title: assignment.title })}
-              onChange={(event) => {
-                const file = event.target.files?.[0];
-                event.target.value = "";
-                if (file) onUpload(file);
-              }}
-            />
-          </label>
+            {t("submittedFile", { name: assignment.submissionFilename })}
+          </span>
+        ) : null}
+        {canReplace ? (
+          <FilePickButton
+            label={isUploading ? t("uploading") : t("replace")}
+            ariaLabel={t("replaceLabel", { title: assignment.title })}
+            disabled={isUploading}
+            onPick={onReplace}
+          />
         ) : null}
       </div>
     </li>
@@ -451,6 +497,9 @@ export function StartupProcessView({
                   isUploading={process.uploadingAssignmentId === assignment.id}
                   onUpload={(file) =>
                     process.uploadAssignment(assignment.id, file)
+                  }
+                  onReplace={(file) =>
+                    process.replaceSubmission(assignment.id, file)
                   }
                   isMarking={process.markingAssignmentId === assignment.id}
                   onMarkDone={() => process.markDone(assignment.id)}
