@@ -80,6 +80,9 @@ export function useStartupProcess(focusAssignmentId: string | null = null) {
       );
       // Stopped after the file went out: it is not handed in.
       if (controller.signal.aborted) throw uploadCanceledError();
+      // From here on İptal can no longer stop anything, so it and the bar go.
+      if (uploadAbort.current === controller) uploadAbort.current = null;
+      setUploadSent(null);
       return submitAssignment(assignmentId, stored.id);
     },
     onMutate: () => setUploadSent(0),
@@ -96,7 +99,10 @@ export function useStartupProcess(focusAssignmentId: string | null = null) {
     },
     onError: (error, { replacing }) => {
       if (isUploadCanceled(error)) {
-        showToast({ message: t("uploadCanceled"), tone: ToastTone.Info });
+        showToast({
+          message: errorMessage(error, t("uploadFailed")),
+          tone: ToastTone.Info,
+        });
         return;
       }
       showToast({
@@ -232,6 +238,8 @@ export function useStartupProcess(focusAssignmentId: string | null = null) {
     uploadingAssignmentId: upload.isPending
       ? upload.variables.assignmentId
       : null,
+    /** True while any Ödev's file is going up: one upload runs at a time, so every picker waits. */
+    isAnyUploading: upload.isPending,
     /** Stops the running upload; nothing is handed in. */
     cancelUpload: () => uploadAbort.current?.abort(),
     /** The share of the running upload sent so far, 0–100; null when nothing is uploading. */
