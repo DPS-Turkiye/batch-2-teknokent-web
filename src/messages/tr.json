@@ -2348,8 +2348,7 @@
     "uploadingPercent": "Yükleniyor %{percent}",
     "uploadProgressLabel": "{title} yükleniyor",
     "cancelUpload": "İptal",
-    "cancelUploadLabel": "{title} yüklemesini iptal et",
-    "uploadCanceled": "Yükleme iptal edildi."
+    "cancelUploadLabel": "{title} yüklemesini iptal et"
   },
   "personalProfile": {
     "comingSoon": "Bu bölüm yakında eklenecek.",
