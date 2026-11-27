@@ -2,11 +2,15 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 import { DocumentKind } from "@/interfaces/startup-document";
 import { ToastTone } from "@/interfaces/toast";
-import { uploadDocumentWithProgress } from "@/lib/client/documents";
+import {
+  isUploadCanceled,
+  uploadCanceledError,
+  uploadDocumentWithProgress,
+} from "@/lib/client/documents";
 import {
   getStartupProcess,
   submitAssignment,
@@ -50,6 +54,8 @@ export function useStartupProcess(focusAssignmentId: string | null = null) {
   const [focusReleased, setFocusReleased] = useState(false);
   // How much of the file being uploaded has gone out (0–1), while an upload runs.
   const [uploadSent, setUploadSent] = useState<number | null>(null);
+  // Stops the running upload (İptal); one upload runs at a time.
+  const uploadAbort = useRef<AbortController | null>(null);
   const query = useQuery({
     queryKey: STARTUP_PROCESS_QUERY_KEY,
     queryFn: getStartupProcess,
@@ -65,15 +71,22 @@ export function useStartupProcess(focusAssignmentId: string | null = null) {
       /** A handed-in file being swapped for this one. */
       replacing: boolean;
     }) => {
-      setUploadSent(0);
+      const controller = new AbortController();
+      uploadAbort.current = controller;
       const stored = await uploadDocumentWithProgress(
         file,
         DocumentKind.Homework,
-        setUploadSent,
+        { onProgress: setUploadSent, signal: controller.signal },
       );
+      // Stopped after the file went out: it is not handed in.
+      if (controller.signal.aborted) throw uploadCanceledError();
       return submitAssignment(assignmentId, stored.id);
     },
-    onSettled: () => setUploadSent(null),
+    onMutate: () => setUploadSent(0),
+    onSettled: () => {
+      setUploadSent(null);
+      uploadAbort.current = null;
+    },
     onSuccess: (process, { replacing }) => {
       queryClient.setQueryData(STARTUP_PROCESS_QUERY_KEY, process);
       showToast({
@@ -82,6 +95,10 @@ export function useStartupProcess(focusAssignmentId: string | null = null) {
       });
     },
     onError: (error, { replacing }) => {
+      if (isUploadCanceled(error)) {
+        showToast({ message: t("uploadCanceled"), tone: ToastTone.Info });
+        return;
+      }
       showToast({
         message: errorMessage(
           error,
@@ -215,6 +232,8 @@ export function useStartupProcess(focusAssignmentId: string | null = null) {
     uploadingAssignmentId: upload.isPending
       ? upload.variables.assignmentId
       : null,
+    /** Stops the running upload; nothing is handed in. */
+    cancelUpload: () => uploadAbort.current?.abort(),
     /** The share of the running upload sent so far, 0–100; null when nothing is uploading. */
     uploadPercent:
       upload.isPending && uploadSent !== null

@@ -46,6 +46,7 @@ function softwareCard(overrides: Partial<SoftwareCard> = {}): SoftwareCard {
 
 const uploadAssignment = vi.fn();
 const replaceSubmission = vi.fn();
+const cancelUpload = vi.fn();
 const markDone = vi.fn();
 const toggleShowAll = vi.fn();
 const selectPhase = vi.fn();
@@ -133,6 +134,7 @@ function state(overrides: Partial<Process> = {}): Process {
     totalAssignments: 7,
     uploadAssignment,
     replaceSubmission,
+    cancelUpload,
     uploadingAssignmentId: null,
     uploadPercent: null,
     markDone,
@@ -362,6 +364,21 @@ describe("StartupProcessView", () => {
         name: "Finansal model taslağı yükleniyor",
       }),
     ).toHaveAttribute("value", "42");
+  });
+
+  it("stops the running upload from its row", async () => {
+    vi.mocked(useStartupProcess).mockReturnValue(
+      state({ uploadingAssignmentId: "finance", uploadPercent: 10 }),
+    );
+    renderWithQueryClient(<StartupProcessView />);
+
+    await userEvent.click(
+      screen.getByRole("button", {
+        name: "Finansal model taslağı yüklemesini iptal et",
+      }),
+    );
+
+    expect(cancelUpload).toHaveBeenCalledTimes(1);
   });
 
   it("disables the swap while the new file is going up", () => {

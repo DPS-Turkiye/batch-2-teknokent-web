@@ -20,6 +20,9 @@ export const UPLOAD_TIMEOUT_MS = 120_000;
  */
 export const UPLOAD_STALL_MS = 20_000;
 
+/** Before the first byte goes out (DNS, TLS, the CORS preflight) a weak line is allowed a little longer. */
+export const UPLOAD_CONNECT_MS = 30_000;
+
 /** Once the whole file is sent, the wait for the stored answer; CloudFront gives the backend 60 s. */
 export const UPLOAD_RESPONSE_TIMEOUT_MS = 60_000;
 

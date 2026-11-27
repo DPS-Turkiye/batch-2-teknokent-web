@@ -186,6 +186,7 @@ function AssignmentRow({
   uploadPercent,
   onUpload,
   onReplace,
+  onCancelUpload,
   isMarking,
   onMarkDone,
 }: {
@@ -198,6 +199,7 @@ function AssignmentRow({
   uploadPercent: number | null;
   onUpload: (file: File) => void;
   onReplace: (file: File) => void;
+  onCancelUpload: () => void;
   isMarking: boolean;
   onMarkDone: () => void;
 }) {
@@ -303,12 +305,22 @@ function AssignmentRow({
       </div>
       {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
       {isUploading && uploadPercent !== null ? (
-        <progress
-          max={100}
-          value={uploadPercent}
-          aria-label={t("uploadProgressLabel", { title: assignment.title })}
-          className="h-1.5 basis-full overflow-hidden rounded-full accent-[#e86f22]"
-        />
+        <div className="flex basis-full items-center gap-3">
+          <progress
+            max={100}
+            value={uploadPercent}
+            aria-label={t("uploadProgressLabel", { title: assignment.title })}
+            className="h-1.5 flex-1 overflow-hidden rounded-full accent-[#e86f22]"
+          />
+          <button
+            type="button"
+            onClick={onCancelUpload}
+            aria-label={t("cancelUploadLabel", { title: assignment.title })}
+            className="text-[12px] font-medium text-[#676e78] hover:text-[#22262b]"
+          >
+            {t("cancelUpload")}
+          </button>
+        </div>
       ) : null}
     </li>
   );
@@ -522,6 +534,7 @@ export function StartupProcessView({
                   onReplace={(file) =>
                     process.replaceSubmission(assignment.id, file)
                   }
+                  onCancelUpload={process.cancelUpload}
                   isMarking={process.markingAssignmentId === assignment.id}
                   onMarkDone={() => process.markDone(assignment.id)}
                 />

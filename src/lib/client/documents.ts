@@ -11,12 +11,34 @@ import { getPublicBackendUrl } from "@/lib/const";
 import { currentIdToken } from "@/lib/firebase/auth";
 import {
   httpClient,
+  UPLOAD_CONNECT_MS,
   UPLOAD_RESPONSE_TIMEOUT_MS,
   UPLOAD_STALL_MS,
 } from "@/lib/http-client";
 
 /** How much of the file has gone out, from 0 to 1. */
 export type UploadProgress = (sent: number) => void;
+
+export type UploadOptions = {
+  onProgress?: UploadProgress;
+  /** Aborting it stops the upload (İptal); the call then fails with ClientErrorCode.Canceled. */
+  signal?: AbortSignal;
+};
+
+/** The error an upload stopped by its own İptal fails with. */
+export function uploadCanceledError() {
+  return new ClientApiError(
+    clientText("uploadCanceled"),
+    0,
+    ClientErrorCode.Canceled,
+  );
+}
+
+export function isUploadCanceled(error: unknown) {
+  return (
+    error instanceof ClientApiError && error.code === ClientErrorCode.Canceled
+  );
+}
 
 export type StoredDocument = {
   id: string;
@@ -73,48 +95,61 @@ export async function postUpload<T>(
   path: string,
   data: FormData,
   idToken?: string,
-  onProgress?: UploadProgress,
+  { onProgress, signal }: UploadOptions = {},
 ): Promise<T> {
   const token = idToken ?? (await currentIdToken());
   if (!token) {
     throw new Error(clientText("sessionExpired"));
   }
+  if (signal?.aborted) throw uploadCanceledError();
 
-  // No fixed total timeout: the request is aborted only when no progress arrives for UPLOAD_STALL_MS, or
-  // when the answer takes longer than UPLOAD_RESPONSE_TIMEOUT_MS once the whole file is out.
+  // No fixed total timeout: the request is aborted only when no progress arrives for UPLOAD_STALL_MS (longer
+  // before the first byte), or when the answer takes longer than UPLOAD_RESPONSE_TIMEOUT_MS once the whole
+  // file is out.
   const post = async (url: string) => {
-    // Only the stall timer aborts it, so an aborted signal means the upload stalled.
+    // Only the watchdog aborts it, so an aborted signal means it gave up; `sent` says in which phase.
     const controller = new AbortController();
+    const cancel = () => controller.abort();
+    signal?.addEventListener("abort", cancel, { once: true });
+    const watch = { sent: false, settled: false };
     let timer: ReturnType<typeof setTimeout> | undefined;
     const giveUpAfter = (ms: number) => {
       clearTimeout(timer);
-      timer = setTimeout(() => controller.abort(), ms);
+      if (!watch.settled) timer = setTimeout(() => controller.abort(), ms);
     };
-    giveUpAfter(UPLOAD_STALL_MS);
+    giveUpAfter(UPLOAD_CONNECT_MS);
     try {
       return await httpClient.post<T>(url, data, {
         headers: { Authorization: `Bearer ${token}` },
         timeout: 0,
         signal: controller.signal,
         onUploadProgress: (event) => {
+          if (watch.settled) return;
           const sent = event.total
             ? Math.min(1, event.loaded / event.total)
             : (event.progress ?? 0);
+          watch.sent = sent >= 1;
           onProgress?.(sent);
-          giveUpAfter(sent >= 1 ? UPLOAD_RESPONSE_TIMEOUT_MS : UPLOAD_STALL_MS);
+          giveUpAfter(
+            watch.sent ? UPLOAD_RESPONSE_TIMEOUT_MS : UPLOAD_STALL_MS,
+          );
         },
       });
     } catch (error) {
+      if (signal?.aborted) throw uploadCanceledError();
       if (controller.signal.aborted) {
+        // A file that was fully sent may already be stored, so a blind retry could store it twice.
         throw new ClientApiError(
-          clientText("uploadStalled"),
+          clientText(watch.sent ? "uploadNoAnswer" : "uploadStalled"),
           0,
           ClientErrorCode.Timeout,
         );
       }
       throw error;
     } finally {
+      watch.settled = true;
       clearTimeout(timer);
+      signal?.removeEventListener("abort", cancel);
     }
   };
 
@@ -166,17 +201,20 @@ export async function uploadDocument(
   );
 }
 
-/** As uploadDocument, reporting how much of the file has gone out (the signed-in person's own token). */
+/**
+ * As uploadDocument, with the signed-in person's own token, reporting how much of the file has gone out and
+ * stoppable through `signal`.
+ */
 export async function uploadDocumentWithProgress(
   file: File,
   kind: DocumentKind,
-  onProgress: UploadProgress,
+  options: UploadOptions,
 ) {
   return postUpload<StoredDocument>(
     "/api/documents",
     documentForm(file, kind),
     undefined,
-    onProgress,
+    options,
   );
 }
 
