@@ -58,14 +58,21 @@ export function useStartupProcess() {
         tone: ToastTone.Success,
       });
     },
-    onError: (error, { replacing }) =>
+    onError: (error, { replacing }) => {
       showToast({
         message: errorMessage(
           error,
           replacing ? t("replaceFailed") : t("uploadFailed"),
         ),
         tone: ToastTone.Error,
-      }),
+      });
+      // A swap refused after the due day leaves a stale "Değiştir"; reload so it goes.
+      if (replacing) {
+        void queryClient.invalidateQueries({
+          queryKey: STARTUP_PROCESS_QUERY_KEY,
+        });
+      }
+    },
   });
 
   const markDone = useMutation({

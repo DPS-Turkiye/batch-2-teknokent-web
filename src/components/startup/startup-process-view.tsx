@@ -158,7 +158,7 @@ function FilePickButton({
 }) {
   return (
     <label
-      className={`${startupPrimaryActionClass} cursor-pointer ${disabled ? "opacity-60" : ""}`}
+      className={`${startupPrimaryActionClass} focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-border-selected ${disabled ? "cursor-default opacity-60" : "cursor-pointer"}`}
     >
       {label}
       <input
@@ -263,7 +263,10 @@ function AssignmentRow({
         {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
         {assignment.status === ActionItemStatus.Completed &&
         assignment.submissionFilename ? (
-          <span className="max-w-[220px] truncate text-[11.5px] leading-[17px] text-[#676e78]">
+          <span
+            title={assignment.submissionFilename}
+            className="max-w-[220px] truncate text-[11.5px] leading-[17px] text-[#676e78]"
+          >
             {t("submittedFile", { name: assignment.submissionFilename })}
           </span>
         ) : null}

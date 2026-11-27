@@ -348,6 +348,30 @@ describe("StartupProcessView", () => {
     expect(uploadAssignment).not.toHaveBeenCalled();
   });
 
+  it("disables the swap while the new file is going up", () => {
+    vi.mocked(useStartupProcess).mockReturnValue(
+      state({
+        assignments: [
+          assignment("finance", "Finansal model taslağı", {
+            status: ActionItemStatus.Completed,
+            submissionDocumentId: "doc-1",
+            submissionFilename: "model.pdf",
+            replaceable: true,
+          }),
+        ],
+        uploadingAssignmentId: "finance",
+      }),
+    );
+    renderWithQueryClient(<StartupProcessView />);
+
+    expect(screen.getByText("Yükleniyor…")).toBeInTheDocument();
+    expect(
+      screen.getByLabelText(
+        "Finansal model taslağı için yüklenen dosyayı değiştir",
+      ),
+    ).toBeDisabled();
+  });
+
   it("keeps a handed-in file's name but offers no swap once the due day is over", () => {
     vi.mocked(useStartupProcess).mockReturnValue(
       state({

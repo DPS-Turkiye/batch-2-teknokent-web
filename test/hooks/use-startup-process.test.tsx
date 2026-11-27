@@ -255,6 +255,8 @@ describe("useStartupProcess", () => {
         "Teslim tarihi geçtiği için bu ödevin dosyası artık değiştirilemez.",
       ),
     ).toBeInTheDocument();
+    // The refusal reloads Süreç so the stale "Değiştir" goes away.
+    await waitFor(() => expect(getStartupProcess).toHaveBeenCalledTimes(2));
   });
 
   it("marks a program Ödev that asks for no file done without uploading", async () => {
