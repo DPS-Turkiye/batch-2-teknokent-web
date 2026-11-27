@@ -9,6 +9,7 @@ export enum HomeTaskKind {
   RequestReply = "request-reply",
   ActionItem = "action-item",
   MeetingFeedback = "meeting-feedback",
+  Homework = "homework",
 }
 
 export enum SentRequestState {

@@ -1208,7 +1208,13 @@
         "COUNTER_PROPOSED": "New time proposed",
         "ACCEPTED": "Pick a time"
       },
-      "handedOver": "handed over from {name}, who left the team"
+      "handedOver": "handed over from {name}, who left the team",
+      "homeworkAction": "Upload",
+      "homeworkSource": {
+        "mentor": "Mentor assignment",
+        "program": "Program assignment",
+        "startup": "Startup assignment"
+      }
     },
     "upcoming": {
       "title": "Upcoming meetings",
@@ -2319,7 +2325,12 @@
         "UPCOMING": "Not started yet"
       },
       "link": "My mentorships →"
-    }
+    },
+    "submittedFile": "Uploaded file: {name}",
+    "replace": "Replace",
+    "replaceLabel": "Replace the uploaded file for {title}",
+    "replaced": "Assignment file replaced.",
+    "replaceFailed": "Couldn't replace the assignment file."
   },
   "personalProfile": {
     "comingSoon": "This section is coming soon.",
@@ -5872,7 +5883,6 @@
       "messageMentor": "Message your mentor",
       "noDate": "No date",
       "mentorshipChip": "{topic} mentorship",
-      "processChip": "Process task",
       "feedbackTitle": "Rate the meeting",
       "groups": {
         "overdue": "Overdue",
@@ -5881,6 +5891,11 @@
         "later": "Later",
         "feedback": "Ratings",
         "program": "Program"
+      },
+      "processSource": {
+        "mentor": "Mentor assignment",
+        "program": "Program assignment",
+        "startup": "Startup assignment"
       }
     },
     "startups": {

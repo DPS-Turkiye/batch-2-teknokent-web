@@ -45,6 +45,7 @@ function softwareCard(overrides: Partial<SoftwareCard> = {}): SoftwareCard {
 }
 
 const uploadAssignment = vi.fn();
+const replaceSubmission = vi.fn();
 const markDone = vi.fn();
 const toggleShowAll = vi.fn();
 const selectPhase = vi.fn();
@@ -70,6 +71,7 @@ function assignment(
     createdAt: "2026-08-10T09:00:00Z",
     programAssignmentId: null,
     fileRequired: true,
+    replaceable: false,
     ...overrides,
   };
 }
@@ -104,6 +106,7 @@ function state(overrides: Partial<Process> = {}): Process {
       },
     ],
     error: null,
+    focusedAssignmentId: null,
     isLoading: false,
     roundName: (roundId) => (roundId === "round-1" ? "MVP test turu" : null),
     hasPhases: true,
@@ -129,6 +132,7 @@ function state(overrides: Partial<Process> = {}): Process {
     unphasedCount: 0,
     totalAssignments: 7,
     uploadAssignment,
+    replaceSubmission,
     uploadingAssignmentId: null,
     markDone,
     markingAssignmentId: null,
@@ -312,6 +316,103 @@ describe("StartupProcessView", () => {
     expect(
       screen.queryByLabelText("B2B2C hipotezi için ödev yükle"),
     ).not.toBeInTheDocument();
+  });
+
+  it("shows a handed-in file's name and swaps it while the due day has not passed", async () => {
+    const user = userEvent.setup();
+    const file = new File(["%PDF-1.4"], "model-v2.pdf", {
+      type: "application/pdf",
+    });
+    vi.mocked(useStartupProcess).mockReturnValue(
+      state({
+        assignments: [
+          assignment("finance", "Finansal model taslağı", {
+            status: ActionItemStatus.Completed,
+            submissionDocumentId: "doc-1",
+            submissionFilename: "model.pdf",
+            replaceable: true,
+          }),
+        ],
+      }),
+    );
+    renderWithQueryClient(<StartupProcessView />);
+
+    expect(screen.getByText("Yüklenen dosya: model.pdf")).toBeInTheDocument();
+    await user.upload(
+      screen.getByLabelText(
+        "Finansal model taslağı için yüklenen dosyayı değiştir",
+      ),
+      file,
+    );
+
+    expect(replaceSubmission).toHaveBeenCalledWith("finance", file);
+    expect(uploadAssignment).not.toHaveBeenCalled();
+  });
+
+  it("disables the swap while the new file is going up", () => {
+    vi.mocked(useStartupProcess).mockReturnValue(
+      state({
+        assignments: [
+          assignment("finance", "Finansal model taslağı", {
+            status: ActionItemStatus.Completed,
+            submissionDocumentId: "doc-1",
+            submissionFilename: "model.pdf",
+            replaceable: true,
+          }),
+        ],
+        uploadingAssignmentId: "finance",
+      }),
+    );
+    renderWithQueryClient(<StartupProcessView />);
+
+    expect(screen.getByText("Yükleniyor…")).toBeInTheDocument();
+    expect(
+      screen.getByLabelText(
+        "Finansal model taslağı için yüklenen dosyayı değiştir",
+      ),
+    ).toBeDisabled();
+  });
+
+  it("keeps a handed-in file's name but offers no swap once the due day is over", () => {
+    vi.mocked(useStartupProcess).mockReturnValue(
+      state({
+        assignments: [
+          assignment("finance", "Finansal model taslağı", {
+            status: ActionItemStatus.Completed,
+            submissionDocumentId: "doc-1",
+            submissionFilename: "model.pdf",
+            replaceable: false,
+          }),
+        ],
+      }),
+    );
+    renderWithQueryClient(<StartupProcessView />);
+
+    expect(screen.getByText("Yüklenen dosya: model.pdf")).toBeInTheDocument();
+    expect(
+      screen.queryByLabelText(
+        "Finansal model taslağı için yüklenen dosyayı değiştir",
+      ),
+    ).not.toBeInTheDocument();
+  });
+
+  it("opens on the Ödev a link points at and brings its row into view", () => {
+    const scrollIntoView = vi.spyOn(Element.prototype, "scrollIntoView");
+    vi.mocked(useStartupProcess).mockReturnValue(
+      state({ focusedAssignmentId: "finance" }),
+    );
+
+    renderWithQueryClient(<StartupProcessView focusAssignmentId="finance" />);
+
+    expect(useStartupProcess).toHaveBeenLastCalledWith("finance");
+    const [focused] = within(
+      screen.getByRole("region", { name: "Bu fazdaki ödevlerin" }),
+    ).getAllByRole("listitem");
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
+    expect(scrollIntoView.mock.contexts[0]).toBe(focused);
+    expect(focused).toHaveAttribute("aria-current", "true");
+    expect(focused).toHaveFocus();
+    scrollIntoView.mockRestore();
   });
 
   it("uploads an open Ödev and shows the upload in progress on its row", async () => {

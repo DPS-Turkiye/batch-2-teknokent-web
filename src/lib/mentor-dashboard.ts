@@ -45,7 +45,8 @@ export function mentorWeekMeetingCount(
   }).length;
 }
 
-export function isOpenActionItem(item: ActionItem) {
+/** Still waiting on its owner: open or in progress. Süreç Ödevler share the action-item statuses. */
+export function isOpenActionItem(item: Pick<ActionItem, "status">) {
   return (
     item.status === ActionItemStatus.Open ||
     item.status === ActionItemStatus.InProgress

@@ -124,6 +124,53 @@ describe("useStartupProcess", () => {
     ]);
   });
 
+  it("opens on a linked Ödev's phase until another view is picked", async () => {
+    vi.mocked(getStartupProcess).mockResolvedValue(process());
+    const { result } = renderHook(() => useStartupProcess("problem"), {
+      wrapper,
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.selectedPhaseId).toBe("problem");
+    expect(result.current.focusedAssignmentId).toBe("problem");
+    expect(result.current.assignments.map((item) => item.id)).toEqual([
+      "problem",
+    ]);
+
+    act(() => result.current.selectPhase("market"));
+    expect(result.current.selectedPhaseId).toBe("market");
+    expect(result.current.focusedAssignmentId).toBeNull();
+  });
+
+  it("opens Fazsız görevler for a linked Ödev no phase covers", async () => {
+    vi.mocked(getStartupProcess).mockResolvedValue(process());
+    const { result } = renderHook(() => useStartupProcess("loose"), {
+      wrapper,
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.showUnphased).toBe(true);
+    expect(result.current.selectedPhaseId).toBeNull();
+    expect(result.current.assignments.map((item) => item.id)).toEqual([
+      "loose",
+    ]);
+
+    act(() => result.current.toggleShowAll());
+    expect(result.current.showUnphased).toBe(false);
+    expect(result.current.assignments).toHaveLength(3);
+  });
+
+  it("ignores a link to an Ödev the team does not have", async () => {
+    vi.mocked(getStartupProcess).mockResolvedValue(process());
+    const { result } = renderHook(() => useStartupProcess("not-ours"), {
+      wrapper,
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.selectedPhaseId).toBe("mvp");
+    expect(result.current.focusedAssignmentId).toBeNull();
+  });
+
   it("starts on the first phase when today falls in none", async () => {
     vi.mocked(getStartupProcess).mockResolvedValue(
       process({ currentPhaseId: null, currentRound: null }),
@@ -201,6 +248,62 @@ describe("useStartupProcess", () => {
     expect(uploadDocument).toHaveBeenCalledWith(file, DocumentKind.Homework);
     expect(submitAssignment).toHaveBeenCalledWith("mvp", "doc-1");
     expect(result.current.uploadingAssignmentId).toBeNull();
+  });
+
+  it("swaps a handed-in file and says it was replaced", async () => {
+    const file = new File(["%PDF-1.4"], "model-v2.pdf", {
+      type: "application/pdf",
+    });
+    vi.mocked(getStartupProcess).mockResolvedValue(process());
+    vi.mocked(uploadDocument).mockResolvedValue({
+      id: "doc-2",
+      kind: DocumentKind.Homework,
+      originalFilename: "model-v2.pdf",
+      sizeBytes: 8,
+    });
+    vi.mocked(submitAssignment).mockResolvedValue(process());
+    const { result } = renderHook(() => useStartupProcess(), { wrapper });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    act(() => result.current.replaceSubmission("mvp", file));
+
+    expect(
+      await screen.findByText("Ödev dosyası değiştirildi."),
+    ).toBeInTheDocument();
+    expect(uploadDocument).toHaveBeenCalledWith(file, DocumentKind.Homework);
+    expect(submitAssignment).toHaveBeenCalledWith("mvp", "doc-2");
+  });
+
+  it("shows the backend's reason when a replace comes after the due day", async () => {
+    vi.mocked(getStartupProcess).mockResolvedValue(process());
+    vi.mocked(uploadDocument).mockResolvedValue({
+      id: "doc-2",
+      kind: DocumentKind.Homework,
+      originalFilename: "model-v2.pdf",
+      sizeBytes: 8,
+    });
+    vi.mocked(submitAssignment).mockRejectedValue(
+      new Error(
+        "Teslim tarihi geçtiği için bu ödevin dosyası artık değiştirilemez.",
+      ),
+    );
+    const { result } = renderHook(() => useStartupProcess(), { wrapper });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    act(() =>
+      result.current.replaceSubmission(
+        "mvp",
+        new File(["%PDF-1.4"], "late.pdf", { type: "application/pdf" }),
+      ),
+    );
+
+    expect(
+      await screen.findByText(
+        "Teslim tarihi geçtiği için bu ödevin dosyası artık değiştirilemez.",
+      ),
+    ).toBeInTheDocument();
+    // The refusal reloads Süreç so the stale "Değiştir" goes away.
+    await waitFor(() => expect(getStartupProcess).toHaveBeenCalledTimes(2));
   });
 
   it("marks a program Ödev that asks for no file done without uploading", async () => {

@@ -1210,7 +1210,13 @@
         "COUNTER_PROPOSED": "Saat önerisi",
         "ACCEPTED": "Saat seç"
       },
-      "handedOver": "{name} ekipten ayrıldı, sana devredildi"
+      "handedOver": "{name} ekipten ayrıldı, sana devredildi",
+      "homeworkAction": "Yükle",
+      "homeworkSource": {
+        "mentor": "Mentor ödevi",
+        "program": "Program ödevi",
+        "startup": "Girişim ödevi"
+      }
     },
     "upcoming": {
       "title": "Yaklaşan görüşmeler",
@@ -2321,7 +2327,12 @@
         "UPCOMING": "Henüz başlamadı"
       },
       "link": "Mentorluklarım →"
-    }
+    },
+    "submittedFile": "Yüklenen dosya: {name}",
+    "replace": "Değiştir",
+    "replaceLabel": "{title} için yüklenen dosyayı değiştir",
+    "replaced": "Ödev dosyası değiştirildi.",
+    "replaceFailed": "Ödev dosyası değiştirilemedi."
   },
   "personalProfile": {
     "comingSoon": "Bu bölüm yakında eklenecek.",
@@ -5874,7 +5885,6 @@
       "messageMentor": "Mentora mesaj gönder",
       "noDate": "Tarih yok",
       "mentorshipChip": "{topic} mentorluğu",
-      "processChip": "Süreç görevi",
       "feedbackTitle": "Toplantıyı değerlendir",
       "groups": {
         "overdue": "Gecikmiş",
@@ -5883,6 +5893,11 @@
         "later": "Daha sonra",
         "feedback": "Değerlendirmeler",
         "program": "Program"
+      },
+      "processSource": {
+        "mentor": "Mentor ödevi",
+        "program": "Program ödevi",
+        "startup": "Girişim ödevi"
       }
     },
     "startups": {

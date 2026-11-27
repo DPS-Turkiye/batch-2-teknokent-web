@@ -4,6 +4,7 @@ import { ActionItemStatus } from "@/interfaces/action-item";
 import { ProgramCalendarEntryKind } from "@/interfaces/coordinator-program";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { MobileTaskSource, MobileTaskTone } from "@/interfaces/mobile";
+import { UserRole } from "@/interfaces/session";
 import type { ProcessAssignment } from "@/interfaces/startup-process";
 import {
   collectTasks,
@@ -11,12 +12,14 @@ import {
   dueLabel,
   groupOpenTasks,
   meetingFeedbackTask,
+  processTask,
 } from "@/lib/mobile-tasks";
 import {
   menteeActionItemFixture,
   menteeMeetingFixture,
   menteeRequestFixture,
 } from "@test/fixtures/mentee-home";
+import { processPhase } from "@test/fixtures/startup-process";
 import { mobileTexts } from "@test/mobile-texts";
 
 // Wednesday 23 September 2026.
@@ -49,6 +52,7 @@ function assignment(
     createdAt: "2026-09-01T10:00:00Z",
     programAssignmentId: null,
     fileRequired: true,
+    replaceable: false,
     ...overrides,
   };
 }
@@ -167,13 +171,34 @@ describe("collectTasks", () => {
     });
   });
 
-  it("sends a process task to the web to be handed in", () => {
+  it("sends a process task to the web, opened on that Ödev", () => {
     const process = TASKS.find(
       (task) => task.source === MobileTaskSource.Process,
     );
 
-    expect(process?.webHref).toBe("/startup/process?web=1");
+    expect(process?.webHref).toBe("/startup/process?assignment=p1&web=1");
     expect(process?.chatHref).toBeNull();
+  });
+
+  it("labels a process task with who set it and its phase, as home does", () => {
+    const task = processTask(
+      assignment({ createdByRole: UserRole.Coordinator, phaseId: "ph-1" }),
+      TODAY,
+      TR,
+      [processPhase("ph-1", "Doğrulama")],
+    );
+
+    expect(task.chips).toEqual(["Program ödevi", "Doğrulama"]);
+  });
+
+  it("leaves the phase out of a process task no phase covers", () => {
+    const task = processTask(
+      assignment({ createdByRole: UserRole.Mentor }),
+      TODAY,
+      EN,
+    );
+
+    expect(task.chips).toEqual(["Mentor assignment"]);
   });
 });
 
