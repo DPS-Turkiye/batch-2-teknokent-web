@@ -314,7 +314,7 @@ function AssignmentRow({
           <button
             type="button"
             onClick={onWithdraw}
-            disabled={isUploading}
+            disabled={isAnyUploading}
             aria-label={t("withdrawLabel", { title: assignment.title })}
             className="text-[12px] font-medium text-[#c24135] hover:underline disabled:opacity-60"
           >
