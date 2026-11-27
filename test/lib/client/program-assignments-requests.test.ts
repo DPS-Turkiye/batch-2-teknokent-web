@@ -3,6 +3,7 @@ import { beforeEach, describe, vi } from "vitest";
 import {
   createProgramAssignment,
   getProgramAssignments,
+  updateProgramAssignment,
 } from "@/lib/client/program-assignments";
 import {
   itSendsEachClientCall,
@@ -39,6 +40,20 @@ const calls: ClientCall[] = [
     call: () => createProgramAssignment("prog/1", input),
     method: "post",
     args: ["/api/coordinator/programs/prog%2F1/assignments", input],
+  },
+  {
+    title: "updateProgramAssignment puts the edited Ödev",
+    call: () =>
+      updateProgramAssignment("prog/1", "odev/1", {
+        title: "Pazar analizi",
+        description: null,
+        dueDate: "2026-12-05",
+      }),
+    method: "put",
+    args: [
+      "/api/coordinator/programs/prog%2F1/assignments/odev%2F1",
+      { title: "Pazar analizi", description: null, dueDate: "2026-12-05" },
+    ],
   },
 ];
 

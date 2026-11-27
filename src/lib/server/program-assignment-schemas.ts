@@ -12,6 +12,13 @@ export const createProgramAssignmentSchema = z.object({
   fileRequired: z.boolean().default(false),
 });
 
+/** "Düzenle": a program Ödev's text and due date; a null date clears it. */
+export const updateProgramAssignmentSchema = z.object({
+  title: z.string(),
+  description: stringOrNullSchema,
+  dueDate: stringOrNullSchema,
+});
+
 /** A Süreç hand-in: the uploaded file, or none for an Ödev that asks for no file. */
 export const processSubmissionSchema = z.object({
   documentId: stringOrNullSchema,

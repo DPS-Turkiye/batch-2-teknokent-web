@@ -1,7 +1,7 @@
 // TEST UI: placeholder until the design team's screen; replace when it arrives.
 "use client";
 
-import { ChevronDown, ChevronRight, Plus } from "lucide-react";
+import { ChevronDown, ChevronRight, Pencil, Plus } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useId } from "react";
 
@@ -13,7 +13,9 @@ import {
   SolidButton,
   StatusChip,
 } from "@/components/admin/admin-ui";
+import { ProgramAssignmentEditDialog } from "@/components/coordinator/program-assignment-edit-dialog";
 import { ProgramDetailFrame } from "@/components/coordinator/program-detail-frame";
+import { useProgramAssignmentEdit } from "@/hooks/use-program-assignment-edit";
 import {
   useProgramAssignments,
   type ProgramAssignments,
@@ -55,6 +57,7 @@ function AssignmentsBody({
 }) {
   const t = useTranslations("programAssignments");
   const assignments = useProgramAssignments(programId);
+  const edit = useProgramAssignmentEdit(programId);
 
   return (
     <div className="space-y-5">
@@ -98,10 +101,12 @@ function AssignmentsBody({
               expanded={assignments.expandedId === assignment.id}
               onToggle={() => assignments.toggle(assignment.id)}
               onOpenSubmission={assignments.openSubmission}
+              onEdit={archived ? null : () => edit.start(assignment)}
             />
           ))}
         </ul>
       )}
+      <ProgramAssignmentEditDialog edit={edit} />
     </div>
   );
 }
@@ -217,12 +222,15 @@ function AssignmentCard({
   expanded,
   onToggle,
   onOpenSubmission,
+  onEdit,
 }: {
   assignment: ProgramAssignment;
   phaseName: string | null;
   expanded: boolean;
   onToggle: () => void;
   onOpenSubmission: (documentId: string) => void;
+  /** Null once the program is archived: its Ödevler can no longer be edited. */
+  onEdit: (() => void) | null;
 }) {
   const t = useTranslations("programAssignments");
   const locale = useLocale();
@@ -239,35 +247,49 @@ function AssignmentCard({
   ].filter(Boolean);
   return (
     <li className="rounded-2xl border border-[#e9ecef] bg-white">
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-expanded={expanded}
-        aria-controls={panelId}
-        className="flex w-full items-start justify-between gap-3 px-5 py-4 text-left"
-      >
-        <span className="min-w-0 space-y-1">
-          <span className="block text-[14.5px] font-medium text-[#22262b]">
-            {assignment.title}
+      <div className="flex items-start">
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-expanded={expanded}
+          aria-controls={panelId}
+          className="flex min-w-0 flex-1 items-start justify-between gap-3 px-5 py-4 text-left"
+        >
+          <span className="min-w-0 space-y-1">
+            <span className="block text-[14.5px] font-medium text-[#22262b]">
+              {assignment.title}
+            </span>
+            <span className="block text-[12.5px] text-[#858c96]">
+              {meta.join(" · ")}
+            </span>
+            <span className="block text-[12.5px] text-[#676e78]">
+              {t("summary", {
+                submitted: assignment.submittedCount,
+                late: assignment.lateCount,
+                overdue: assignment.overdueCount,
+                open: assignment.openCount,
+              })}
+            </span>
           </span>
-          <span className="block text-[12.5px] text-[#858c96]">
-            {meta.join(" · ")}
-          </span>
-          <span className="block text-[12.5px] text-[#676e78]">
-            {t("summary", {
-              submitted: assignment.submittedCount,
-              late: assignment.lateCount,
-              overdue: assignment.overdueCount,
-              open: assignment.openCount,
-            })}
-          </span>
-        </span>
-        {expanded ? (
-          <ChevronDown aria-hidden className="mt-1 size-4 shrink-0" />
-        ) : (
-          <ChevronRight aria-hidden className="mt-1 size-4 shrink-0" />
-        )}
-      </button>
+          {expanded ? (
+            <ChevronDown aria-hidden className="mt-1 size-4 shrink-0" />
+          ) : (
+            <ChevronRight aria-hidden className="mt-1 size-4 shrink-0" />
+          )}
+        </button>
+        {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+        {onEdit ? (
+          <button
+            type="button"
+            onClick={onEdit}
+            aria-label={t("editLabel", { title: assignment.title })}
+            className="mt-3 mr-4 inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#e9ecef] px-3 py-1.5 text-[12.5px] font-medium text-[#22262b]"
+          >
+            <Pencil aria-hidden className="size-3.5" />
+            {t("edit")}
+          </button>
+        ) : null}
+      </div>
       {expanded ? (
         <div
           id={panelId}
