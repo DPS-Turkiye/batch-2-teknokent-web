@@ -12,21 +12,31 @@ import { teamsWithFiles } from "@/lib/program-assignments";
 import { errorMessage } from "@/lib/utils";
 import { useToast } from "@/stores/toast-store";
 
-/** Program › Ödevler › "Sil": the Ödev, every team's copy and their uploaded files, after a confirm. */
-export function useProgramAssignmentDelete(programId: string) {
+/**
+ * Program › Ödevler › "Sil": the Ödev, every team's copy and their uploaded files, after a confirm. The confirm reads
+ * the Ödev from the live list, refetched on open, so its count of teams with a file is current.
+ */
+export function useProgramAssignmentDelete(
+  programId: string,
+  assignments: ProgramAssignment[],
+) {
   const t = useTranslations("programAssignments");
   const queryClient = useQueryClient();
   const { showToast } = useToast();
-  const [deleting, setDeleting] = useState<ProgramAssignment | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const deleting =
+    assignments.find((assignment) => assignment.id === deletingId) ?? null;
+  const refresh = () =>
+    queryClient.invalidateQueries({
+      queryKey: [...PROGRAM_ASSIGNMENTS_QUERY_KEY, programId],
+    });
 
   const remove = useMutation({
     mutationFn: (assignment: ProgramAssignment) =>
       deleteProgramAssignment(programId, assignment.id),
     onSuccess: () => {
-      setDeleting(null);
-      void queryClient.invalidateQueries({
-        queryKey: [...PROGRAM_ASSIGNMENTS_QUERY_KEY, programId],
-      });
+      setDeletingId(null);
+      void refresh();
       showToast({ message: t("deleted"), tone: ToastTone.Success });
     },
     onError: (error) =>
@@ -39,9 +49,12 @@ export function useProgramAssignmentDelete(programId: string) {
   return {
     deleting,
     teamsWithFiles: deleting ? teamsWithFiles(deleting) : 0,
-    start: (assignment: ProgramAssignment) => setDeleting(assignment),
+    start: (assignment: ProgramAssignment) => {
+      setDeletingId(assignment.id);
+      void refresh();
+    },
     cancel: () => {
-      if (!remove.isPending) setDeleting(null);
+      if (!remove.isPending) setDeletingId(null);
     },
     confirm: () => {
       if (deleting && !remove.isPending) remove.mutate(deleting);

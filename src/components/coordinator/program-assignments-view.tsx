@@ -60,7 +60,7 @@ function AssignmentsBody({
   const t = useTranslations("programAssignments");
   const assignments = useProgramAssignments(programId);
   const edit = useProgramAssignmentEdit(programId);
-  const remove = useProgramAssignmentDelete(programId);
+  const remove = useProgramAssignmentDelete(programId, assignments.assignments);
 
   return (
     <div className="space-y-5">

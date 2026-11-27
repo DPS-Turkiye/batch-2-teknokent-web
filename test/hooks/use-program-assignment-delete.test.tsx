@@ -6,22 +6,32 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Toaster } from "@/components/common/toaster";
 import { useProgramAssignmentDelete } from "@/hooks/use-program-assignment-delete";
 import { deleteProgramAssignment } from "@/lib/client/program-assignments";
-import { programAssignment } from "@test/fixtures/program-assignments";
+import {
+  programAssignment,
+  programAssignmentTeam,
+} from "@test/fixtures/program-assignments";
 import { createTestQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/program-assignments", () => ({
   deleteProgramAssignment: vi.fn(),
 }));
 
-function renderDelete(client = createTestQueryClient()) {
-  return renderHook(() => useProgramAssignmentDelete("program-1"), {
-    wrapper: ({ children }: { children: ReactNode }) => (
-      <QueryClientProvider client={client}>
-        {children}
-        <Toaster />
-      </QueryClientProvider>
-    ),
-  });
+function renderDelete(
+  client = createTestQueryClient(),
+  assignments = [programAssignment()],
+) {
+  return renderHook(
+    ({ list }) => useProgramAssignmentDelete("program-1", list),
+    {
+      initialProps: { list: assignments },
+      wrapper: ({ children }: { children: ReactNode }) => (
+        <QueryClientProvider client={client}>
+          {children}
+          <Toaster />
+        </QueryClientProvider>
+      ),
+    },
+  );
 }
 
 describe("useProgramAssignmentDelete", () => {
@@ -43,6 +53,36 @@ describe("useProgramAssignmentDelete", () => {
 
     act(() => result.current.cancel());
     expect(result.current.deleting).toBeNull();
+    expect(deleteProgramAssignment).not.toHaveBeenCalled();
+  });
+
+  it("refetches on open and counts from the live list, closing if the Ödev is gone", () => {
+    const client = createTestQueryClient();
+    const invalidate = vi.spyOn(client, "invalidateQueries");
+    const { result, rerender } = renderDelete(client);
+    act(() => result.current.start(programAssignment()));
+    expect(invalidate).toHaveBeenCalledWith({
+      queryKey: ["program-assignments", "program-1"],
+    });
+
+    rerender({
+      list: [
+        programAssignment({
+          teams: [
+            ...programAssignment().teams,
+            programAssignmentTeam({
+              assignmentId: "copy-3",
+              documentId: "doc-3",
+            }),
+          ],
+        }),
+      ],
+    });
+    expect(result.current.teamsWithFiles).toBe(2);
+
+    rerender({ list: [] });
+    expect(result.current.deleting).toBeNull();
+    act(() => result.current.confirm());
     expect(deleteProgramAssignment).not.toHaveBeenCalled();
   });
 

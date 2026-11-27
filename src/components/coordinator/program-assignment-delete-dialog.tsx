@@ -2,6 +2,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { useId } from "react";
 
 import { AdminOverlay, OutlineButton } from "@/components/admin/admin-ui";
 import type { ProgramAssignmentDelete } from "@/hooks/use-program-assignment-delete";
@@ -13,14 +14,19 @@ export function ProgramAssignmentDeleteDialog({
   remove: ProgramAssignmentDelete;
 }) {
   const t = useTranslations("programAssignments");
+  const warningId = useId();
   if (!remove.deleting) return null;
   return (
-    <AdminOverlay label={t("deleteTitle")} onClose={remove.cancel}>
+    <AdminOverlay
+      label={t("deleteTitle")}
+      describedBy={warningId}
+      onClose={remove.cancel}
+    >
       <div
         onClick={(event) => event.stopPropagation()}
         className="w-full max-w-[480px] space-y-4 rounded-[28px] bg-white p-7 shadow-[0px_16px_48px_0px_rgba(33,38,43,0.14)]"
       >
-        <div className="space-y-2">
+        <div id={warningId} className="space-y-2">
           <h2 className="text-[20px] font-semibold text-[#22262b]">
             {t("deleteTitle")}
           </h2>
@@ -32,7 +38,12 @@ export function ProgramAssignmentDeleteDialog({
           </p>
         </div>
         <div className="flex justify-end gap-2">
-          <OutlineButton onClick={remove.cancel} disabled={remove.removing}>
+          {/* Focus starts on the safe choice, so a stray Enter deletes nothing. */}
+          <OutlineButton
+            onClick={remove.cancel}
+            disabled={remove.removing}
+            autoFocus
+          >
             {t("cancel")}
           </OutlineButton>
           <button

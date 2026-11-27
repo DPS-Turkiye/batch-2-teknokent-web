@@ -13,11 +13,14 @@ type AdminIconProps = {
 
 export function AdminOverlay({
   label,
+  describedBy,
   onClose,
   className = "z-50",
   children,
 }: {
   label: string;
+  /** Id of the text a screen reader reads out with the label, as a confirm's warning. */
+  describedBy?: string;
   onClose: () => void;
   className?: string;
   children: ReactNode;
@@ -38,6 +41,7 @@ export function AdminOverlay({
       role="dialog"
       aria-modal="true"
       aria-label={label}
+      aria-describedby={describedBy}
       className={`fixed inset-0 grid place-items-center bg-black/30 p-4 ${className}`}
       onClick={onClose}
     >
@@ -257,16 +261,19 @@ export function OutlineButton({
   children,
   onClick,
   disabled = false,
+  autoFocus = false,
 }: {
   children: ReactNode;
   onClick?: () => void;
   disabled?: boolean;
+  autoFocus?: boolean;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
+      autoFocus={autoFocus}
       className="inline-flex h-9 shrink-0 items-center justify-center rounded-full border border-[#e9ecef] bg-white px-3.5 text-[12.5px] font-medium text-[#22262b] disabled:opacity-50"
     >
       {children}
