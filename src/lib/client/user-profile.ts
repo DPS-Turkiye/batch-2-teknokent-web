@@ -1,12 +1,22 @@
 import type { UserProfile, UserProfileInput } from "@/interfaces/user-profile";
 import { requireSuccess } from "@/lib/client/api";
-import { httpClient } from "@/lib/http-client";
+import {
+  backendHttp,
+  signedInUserId,
+  withToken,
+} from "@/lib/client/backend-http";
 
+async function ownProfilePath(idToken?: string) {
+  const userId = await signedInUserId(idToken);
+  return `/api/users/${encodeURIComponent(userId)}/profile`;
+}
+
+/** The signed-in person's own profile. Onboarding passes the token it just got, before the session exists. */
 export async function getUserProfile(idToken?: string) {
   return requireSuccess(
-    await httpClient.get<UserProfile>(
-      "/api/users/profile",
-      idToken ? { headers: { Authorization: `Bearer ${idToken}` } } : undefined,
+    await backendHttp.get<UserProfile>(
+      await ownProfilePath(idToken),
+      withToken(idToken),
     ),
   );
 }
@@ -16,10 +26,10 @@ export async function saveUserProfile(
   idToken?: string,
 ) {
   return requireSuccess(
-    await httpClient.put<UserProfile>(
-      "/api/users/profile",
+    await backendHttp.put<UserProfile>(
+      await ownProfilePath(idToken),
       profile,
-      idToken ? { headers: { Authorization: `Bearer ${idToken}` } } : undefined,
+      withToken(idToken),
     ),
   );
 }

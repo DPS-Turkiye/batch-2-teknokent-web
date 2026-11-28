@@ -23,7 +23,7 @@ export const UPLOAD_STALL_MS = 20_000;
 /** Before the first byte goes out (DNS, TLS, the CORS preflight) a weak line is allowed a little longer. */
 export const UPLOAD_CONNECT_MS = 30_000;
 
-/** Once the whole file is sent, the wait for the stored answer; CloudFront gives the backend 60 s. */
+/** Once the whole file is sent, the wait for the stored answer from the backend. */
 export const UPLOAD_RESPONSE_TIMEOUT_MS = 60_000;
 
 export const httpClient = axios.create({
@@ -40,7 +40,7 @@ export const httpClient = axios.create({
  * request, or no network at all. Axios words those for developers ("timeout of
  * 30000ms exceeded"); this turns them into something a user can act on.
  */
-httpClient.interceptors.response.use(undefined, (error: unknown) => {
+export function toTransportError(error: unknown): never {
   if (error instanceof AxiosError) {
     if (
       error.code === AxiosError.ECONNABORTED ||
@@ -61,4 +61,6 @@ httpClient.interceptors.response.use(undefined, (error: unknown) => {
     }
   }
   throw error;
-});
+}
+
+httpClient.interceptors.response.use(undefined, toTransportError);

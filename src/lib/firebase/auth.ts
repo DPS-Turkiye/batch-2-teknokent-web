@@ -206,6 +206,13 @@ export async function currentSignedInAccount(): Promise<
   return { email, fullName, verified, otg: uid.startsWith(OTG_UID_PREFIX) };
 }
 
+/** The Firebase uid signed in to this tab, once Firebase has restored any saved session; null when nobody is. */
+export async function currentFirebaseUid(): Promise<string | null> {
+  const auth = firebaseAuth();
+  await auth.authStateReady();
+  return auth.currentUser?.uid ?? null;
+}
+
 export async function currentIdToken(): Promise<string | null> {
   const auth = firebaseAuth();
   // Right after a page load currentUser is null until Firebase restores the saved session.
