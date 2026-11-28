@@ -16,17 +16,9 @@ import { POST as startMentorshipRoute } from "@/app/api/mentorships/route";
 import { PATCH as updateMemberRoute } from "@/app/api/organization-members/[memberId]/route";
 import { POST as addMemberRoute } from "@/app/api/organization-members/route";
 import { POST as joinStartupRoute } from "@/app/api/organizations/join/route";
-import { PUT as peerProfileRoute } from "@/app/api/peer-mentoring/profile/route";
-import { POST as peerRequestRoute } from "@/app/api/peer-mentoring/requests/route";
 import { POST as shareDocumentRoute } from "@/app/api/startup/documents/[id]/shares/route";
 import { PUT as submitAssignmentRoute } from "@/app/api/startup/process/assignments/[id]/submission/route";
 import { POST as leaveTeamRoute } from "@/app/api/team-changes/leave/route";
-import { POST as trainingAttemptRoute } from "@/app/api/training/peer/attempts/route";
-import {
-  PeerExperienceKind,
-  PeerTopicCategory,
-  PeerTopicLevel,
-} from "@/interfaces/peer-mentoring";
 import * as conversations from "@/lib/api/coordinator-conversations";
 import * as documentRequests from "@/lib/api/document-requests";
 import * as proposals from "@/lib/api/meeting-proposals";
@@ -35,11 +27,9 @@ import * as mentorRequests from "@/lib/api/mentor-requests";
 import * as mentorships from "@/lib/api/mentorships";
 import * as organization from "@/lib/api/organization";
 import * as members from "@/lib/api/organization-members";
-import * as peerMentoring from "@/lib/api/peer-mentoring";
 import * as startupDocuments from "@/lib/api/startup-documents";
 import * as startupProcess from "@/lib/api/startup-process";
 import * as teamChanges from "@/lib/api/team-changes";
-import * as training from "@/lib/api/training";
 import {
   getSessionIds,
   getSessionMentorId,
@@ -62,38 +52,15 @@ vi.mock("@/lib/api/mentor-requests");
 vi.mock("@/lib/api/mentorships");
 vi.mock("@/lib/api/organization");
 vi.mock("@/lib/api/organization-members");
-vi.mock("@/lib/api/peer-mentoring");
 vi.mock("@/lib/api/startup-documents");
 vi.mock("@/lib/api/startup-process");
 vi.mock("@/lib/api/team-changes");
-vi.mock("@/lib/api/training");
 vi.mock("@/lib/session");
 
 const sessionIds = { userId: "user-1", organizationId: "org-1" };
 const signedIn = appSession({ userId: "user-1", organizationId: "org-1" });
 const withId = (id: string) => ({ params: Promise.resolve({ id }) });
 const mentorship = withId("mentorship-1");
-
-const peerProfile = {
-  categories: [PeerTopicCategory.International],
-  subTopics: ["Erasmus"],
-  strongCourses: ["MATH119"],
-  projects: [],
-  erasmus: "Lizbon",
-  helpWith: "Başvuru",
-  linkedinUrl: "",
-  levels: { [PeerTopicCategory.International]: PeerTopicLevel.Basic },
-  experiences: [
-    {
-      kind: PeerExperienceKind.Other,
-      title: "Kulüp başkanı",
-      organization: "IEEE ODTÜ",
-      startedOn: "2024-09",
-      endedOn: null,
-      summary: null,
-    },
-  ],
-};
 
 const cases: BodyCase[] = [
   {
@@ -337,90 +304,6 @@ const cases: BodyCase[] = [
     invalid: { "a document id of the wrong type": { storedDocumentId: 5 } },
   },
   {
-    route: "PUT /api/peer-mentoring/profile",
-    method: "PUT",
-    send: (request) => peerProfileRoute(request),
-    valid: peerProfile,
-    backend: peerMentoring.savePeerMentorProfile,
-    expected: ["user-1", peerProfile],
-    invalid: {
-      "an unknown category": { ...peerProfile, categories: ["NOT_A_CATEGORY"] },
-      "a missing field (once saved as empty)": {
-        ...peerProfile,
-        erasmus: undefined,
-      },
-      "an unknown level": {
-        ...peerProfile,
-        levels: { [PeerTopicCategory.International]: "EXPERT" },
-      },
-      "a month written as a date": {
-        ...peerProfile,
-        experiences: [
-          { ...peerProfile.experiences[0], startedOn: "2024-09-01" },
-        ],
-      },
-      "a thirteenth month": {
-        ...peerProfile,
-        experiences: [{ ...peerProfile.experiences[0], endedOn: "2024-13" }],
-      },
-      "a level for an unknown category": {
-        ...peerProfile,
-        levels: { ASTRONOMY: PeerTopicLevel.Basic },
-      },
-      "a card without a title": {
-        ...peerProfile,
-        experiences: [{ ...peerProfile.experiences[0], title: "  " }],
-      },
-      "eleven cards": {
-        ...peerProfile,
-        experiences: Array.from(
-          { length: 11 },
-          () => peerProfile.experiences[0],
-        ),
-      },
-    },
-  },
-  {
-    route: "POST /api/peer-mentoring/requests",
-    send: (request) => peerRequestRoute(request),
-    valid: {
-      mentorId: "mentor-1",
-      category: PeerTopicCategory.International,
-      message: "Erasmus başvurusu",
-    },
-    backend: peerMentoring.createPeerMentoringRequest,
-    expected: [
-      "user-1",
-      {
-        mentorId: "mentor-1",
-        category: PeerTopicCategory.International,
-        message: "Erasmus başvurusu",
-      },
-    ],
-    invalid: {
-      "an unknown category": {
-        mentorId: "mentor-1",
-        category: "NOT_A_CATEGORY",
-        message: "",
-      },
-      "a missing category": { mentorId: "mentor-1", message: "" },
-    },
-  },
-  {
-    route: "POST /api/training/peer/attempts",
-    send: (request) => trainingAttemptRoute(request),
-    valid: { version: 3, answers: { "question-1": 2 } },
-    backend: training.submitTrainingAttempt,
-    expected: ["user-1", 3, { "question-1": 2 }],
-    invalid: {
-      "a version sent as text": { version: "3", answers: {} },
-      "an answer that is not a whole number": {
-        version: 3,
-        answers: { "question-1": 1.5 },
-      },
-    },
-  },
-  {
     route: "POST /api/organizations/join",
     send: (request) => joinStartupRoute(request),
     valid: { inviteCode: "KAVSAK-26" },
@@ -460,11 +343,9 @@ function signIn() {
     mentorships,
     organization,
     members,
-    peerMentoring,
     startupDocuments,
     startupProcess,
     teamChanges,
-    training,
   );
 }
 

@@ -1,5 +1,6 @@
 import { beforeEach, describe, vi } from "vitest";
 
+import { backendHttp } from "@/lib/client/backend-http";
 import {
   getStudentTraining,
   getTrainingForEditor,
@@ -13,6 +14,9 @@ import {
   type ClientCall,
 } from "@test/fixtures/client-calls";
 
+vi.mock("@/lib/client/backend-http", async () =>
+  (await import("@test/mocks/backend-http")).backendHttpMock(),
+);
 vi.mock("@/lib/http-client", () => ({
   httpClient: {
     get: vi.fn(),
@@ -47,6 +51,10 @@ const calls: ClientCall[] = [
     method: "put",
     args: ["/api/coordinator/programs/prog%2F1/training", training],
   },
+];
+
+/** The student's own training goes straight to the backend; the editor still goes through the app's route. */
+const studentCalls: ClientCall[] = [
   {
     title: "getStudentTraining reads the student's training",
     call: () => getStudentTraining(),
@@ -79,4 +87,5 @@ describe("training client", () => {
   });
 
   itSendsEachClientCall(calls);
+  itSendsEachClientCall(studentCalls, backendHttp);
 });
