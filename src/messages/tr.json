@@ -1131,7 +1131,16 @@
     "emailTooLong": "E-posta metni veya listeden çıkarılanlar çok uzun. Metni kısalt veya daha dar bir alıcı grubu seç.",
     "uploadStalled": "Yükleme ilerlemiyor; bağlantın yavaş ya da kesilmiş olabilir. Tekrar dene.",
     "uploadNoAnswer": "Dosya gönderildi ama sunucu yanıt vermedi. Tekrar denemeden önce dosyalarına bak; yüklenmiş olabilir.",
-    "uploadCanceled": "Yükleme iptal edildi."
+    "uploadCanceled": "Yükleme iptal edildi.",
+    "session": {
+      "registrationIncomplete": "Bu hesabın kaydı tamamlanmamış.",
+      "signInIncomplete": "Giriş tamamlanamadı.",
+      "applicationRejected": "Başvurunuz onaylanmadı.",
+      "accountAwaitingApproval": "Hesabınız koordinatör onayı bekliyor.",
+      "workspaceNotReady": "Bu hesap için çalışma alanı hazır değil.",
+      "workspaceNotAvailable": "Bu hesap o çalışma alanını açamıyor.",
+      "sessionUnavailable": "Oturum servisine ulaşılamıyor."
+    }
   },
   "metadata": {
     "manifestDescription": "Mentorluk görüşmelerin, görevlerin ve mesajların cebinde.",

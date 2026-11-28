@@ -1,8 +1,6 @@
-import { unsealData } from "iron-session";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { Edition } from "@/interfaces/edition";
-import type { AppSession, SessionData } from "@/interfaces/session";
 import { EDITION_CLOSED_PATH, isPathOpenIn, parseEdition } from "@/lib/edition";
 import {
   hasMobileApp,
@@ -16,20 +14,17 @@ import {
 } from "@/lib/mobile";
 import { OTG_FAILURE_PARAM, otgLoginFailure } from "@/lib/otg-login";
 import {
-  currentSessionUser,
   isAttendancePath,
   isPublicPath,
   loginPathFor,
   safeNextPath,
-  SESSION_COOKIE,
 } from "@/lib/public-paths";
+import { SIGNED_IN_HINT_COOKIE, signedInHintRole } from "@/lib/session-hint";
 
 /** Signing in again while already signed in is never what the visitor wants. */
 const SIGNED_OUT_ONLY_PATHS = new Set(["/login", "/signup", MOBILE_LOGIN]);
 
 const PREFER_WEB_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
-
-type SessionRead = { signedIn: boolean; user?: AppSession };
 
 /**
  * The phone login a signed-out phone is sent to from /login. Only a known OTG failure is carried over, so the
@@ -55,29 +50,7 @@ function isPageLoad(request: NextRequest) {
   return (request.headers.get("sec-fetch-dest") ?? "document") === "document";
 }
 
-/**
- * A cookie that is merely present is not a session: an expired one, or one
- * sealed with a rotated password, unseals to nothing. Treating it as signed in
- * rendered the app to a stranger as "Kullanıcı", and sent them away from /login.
- * The account re-check is left to getSessionUser: a backend call per page load
- * is too costly, and every page fetches /api/session and its data through it.
- */
-async function readSession(seal: string | undefined): Promise<SessionRead> {
-  if (!seal) return { signedIn: false };
-  const password = process.env.SESSION_PASSWORD;
-  // Without the password this cannot tell; the pages still ask /api/session.
-  if (!password) return { signedIn: true };
-  try {
-    const user = currentSessionUser(
-      await unsealData<SessionData>(seal, { password }),
-    );
-    return user ? { signedIn: true, user } : { signedIn: false };
-  } catch {
-    return { signedIn: false };
-  }
-}
-
-export async function proxy(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
   if (pathname.startsWith("/api/")) {
     return NextResponse.next();
@@ -89,8 +62,11 @@ export async function proxy(request: NextRequest) {
     return NextResponse.rewrite(new URL(EDITION_CLOSED_PATH, request.url));
   }
 
-  const seal = request.cookies.get(SESSION_COOKIE)?.value;
-  const { signedIn, user } = await readSession(seal);
+  // Only the browser's hint (lib/session-hint): the API's session cookie lives on the API's host, out of sight.
+  // It picks which page loads first and nothing else; the page and every backend call check the real session.
+  const hint = request.cookies.get(SIGNED_IN_HINT_COOKIE)?.value;
+  const role = signedInHintRole(hint);
+  const signedIn = role !== null;
   const mobile = isMobilePath(pathname);
   const asksForWeb = searchParams.get(PREFER_WEB_PARAM) === "1";
   const savesWebChoice = asksForWeb && isPageLoad(request);
@@ -98,7 +74,9 @@ export async function proxy(request: NextRequest) {
     asksForWeb || request.cookies.get(PREFER_WEB_COOKIE)?.value === "1";
 
   const respond = (response: NextResponse) => {
-    if (seal && !signedIn) response.cookies.delete(SESSION_COOKIE);
+    if (hint !== undefined && !signedIn) {
+      response.cookies.delete(SIGNED_IN_HINT_COOKIE);
+    }
     if (savesWebChoice) {
       response.cookies.set(PREFER_WEB_COOKIE, "1", {
         path: "/",
@@ -115,7 +93,7 @@ export async function proxy(request: NextRequest) {
 
   // The phone app is Teknokent's alone, so the ODTÜ deployment never sends a phone there.
   const phoneUser =
-    edition === Edition.Teknokent && (!user || hasMobileApp(user.role));
+    edition === Edition.Teknokent && (!signedIn || hasMobileApp(role));
   // A visitor who is not signed in came for the landing page; its sign-in button leads to the phone login.
   const landsOnPhonePage =
     PHONE_ENTRY_PATHS.has(pathname) && (signedIn || pathname !== "/");

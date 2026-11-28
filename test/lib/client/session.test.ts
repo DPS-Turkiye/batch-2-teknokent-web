@@ -1,0 +1,266 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { Edition } from "@/interfaces/edition";
+import { UserAccountStatus, UserRole } from "@/interfaces/session";
+import { Workspace } from "@/interfaces/workspace";
+import { ACCOUNT_TYPE_COOKIE } from "@/lib/account-type";
+import {
+  backendHttp,
+  endBackendSession,
+  startBackendSession,
+} from "@/lib/client/backend-http";
+import {
+  readSession,
+  signIn,
+  signOut,
+  switchSessionWorkspace,
+} from "@/lib/client/session";
+import {
+  ACCOUNT_NOT_APPROVED,
+  FORBIDDEN,
+  REGISTRATION_REQUIRED,
+  SESSION_REQUIRED,
+} from "@/lib/const";
+import { Locale } from "@/lib/i18n";
+import { LAST_WORKSPACE_KEY } from "@/lib/last-workspace";
+import { SIGNED_IN_HINT_COOKIE } from "@/lib/session-hint";
+import { createMentorResponse } from "@test/fixtures/mentors";
+import { backendUser } from "@test/fixtures/session";
+
+vi.mock("@/lib/client/backend-http", async () =>
+  (await import("@test/mocks/backend-http")).backendHttpMock(),
+);
+
+const TOKEN = { headers: { Authorization: "Bearer id-token" } };
+
+/** Both a mentor and a startup's mentee, so there are two workspaces to choose between. */
+const mentorAndFounder = backendUser({
+  id: "user-7",
+  fullName: "Leyla Aksoy",
+  role: UserRole.Mentee,
+  permissions: [UserRole.Mentee, UserRole.Mentor],
+  organizationId: "org-1",
+  organizationName: "Döngü",
+  status: UserAccountStatus.Approved,
+});
+
+function answerMe(status: number, data: unknown = mentorAndFounder) {
+  vi.mocked(backendHttp.get).mockResolvedValue(
+    createMentorResponse(data, status),
+  );
+}
+
+function cookie(name: string) {
+  return document.cookie
+    .split("; ")
+    .find((entry) => entry.startsWith(`${name}=`))
+    ?.slice(name.length + 1);
+}
+
+function clearCookies() {
+  for (const name of [SIGNED_IN_HINT_COOKIE, ACCOUNT_TYPE_COOKIE]) {
+    document.cookie = `${name}=; path=/; max-age=0`;
+  }
+}
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  vi.stubEnv("NEXT_PUBLIC_APP_EDITION", "TEKNOKENT");
+  vi.mocked(backendHttp.put).mockResolvedValue(createMentorResponse(null, 204));
+  vi.mocked(startBackendSession).mockResolvedValue(true);
+});
+
+afterEach(() => {
+  clearCookies();
+  localStorage.clear();
+});
+
+describe("signIn", () => {
+  it("reads the account with the sign-in's token, starts the API session and marks the browser signed in", async () => {
+    answerMe(200);
+
+    const session = await signIn("id-token", true);
+
+    expect(backendHttp.get).toHaveBeenCalledWith("/api/auth/me", TOKEN);
+    expect(startBackendSession).toHaveBeenCalledWith("id-token", true);
+    expect(session).toMatchObject({
+      userId: "user-7",
+      role: UserRole.Mentee,
+      organizationId: "org-1",
+      edition: Edition.Teknokent,
+    });
+    expect(cookie(SIGNED_IN_HINT_COOKIE)).toBe(UserRole.Mentee);
+    expect(cookie(ACCOUNT_TYPE_COOKIE)).toBeDefined();
+  });
+
+  it("saves the screen's language with the token, and signs in even when that fails", async () => {
+    answerMe(200);
+    vi.mocked(backendHttp.put).mockRejectedValue(new Error("offline"));
+
+    await expect(signIn("id-token")).resolves.toMatchObject({
+      userId: "user-7",
+    });
+    expect(backendHttp.put).toHaveBeenCalledWith(
+      "/api/auth/me/language",
+      { language: Locale.Tr },
+      TOKEN,
+    );
+    expect(startBackendSession).toHaveBeenCalledWith("id-token", false);
+  });
+
+  it("opens the workspace last switched to in this browser", async () => {
+    localStorage.setItem(LAST_WORKSPACE_KEY, Workspace.GirisimMentor);
+    answerMe(200);
+
+    await expect(signIn("id-token")).resolves.toMatchObject({
+      activeWorkspace: Workspace.GirisimMentor,
+    });
+  });
+
+  it("ignores a remembered workspace the account cannot open", async () => {
+    localStorage.setItem(LAST_WORKSPACE_KEY, Workspace.Admin);
+    answerMe(200);
+
+    const session = await signIn("id-token");
+
+    expect(session.activeWorkspace).toBeUndefined();
+  });
+
+  it("sends a login without an account to registration, without a session", async () => {
+    answerMe(401, {});
+
+    await expect(signIn("id-token")).rejects.toMatchObject({
+      status: 401,
+      code: REGISTRATION_REQUIRED,
+    });
+    expect(startBackendSession).not.toHaveBeenCalled();
+    expect(backendHttp.put).not.toHaveBeenCalled();
+    expect(cookie(SIGNED_IN_HINT_COOKIE)).toBeUndefined();
+  });
+
+  it("refuses a sign-in the backend could not check, with its status", async () => {
+    answerMe(503, {});
+
+    await expect(signIn("id-token")).rejects.toMatchObject({
+      status: 503,
+      code: SESSION_REQUIRED,
+    });
+    expect(startBackendSession).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    [UserAccountStatus.Pending, "Hesabınız koordinatör onayı bekliyor."],
+    [UserAccountStatus.Rejected, "Başvurunuz onaylanmadı."],
+  ])(
+    "keeps a %s account out, after saving its language for the decision mail",
+    async (status, message) => {
+      answerMe(200, { ...mentorAndFounder, status });
+
+      await expect(signIn("id-token")).rejects.toMatchObject({
+        status: 403,
+        code: ACCOUNT_NOT_APPROVED,
+        message,
+      });
+      expect(backendHttp.put).toHaveBeenCalled();
+      expect(startBackendSession).not.toHaveBeenCalled();
+      expect(cookie(SIGNED_IN_HINT_COOKIE)).toBeUndefined();
+    },
+  );
+
+  it("fails when the API will not start its session, leaving the browser signed out", async () => {
+    answerMe(200);
+    vi.mocked(startBackendSession).mockResolvedValue(false);
+
+    await expect(signIn("id-token")).rejects.toMatchObject({
+      code: SESSION_REQUIRED,
+    });
+    expect(cookie(SIGNED_IN_HINT_COOKIE)).toBeUndefined();
+  });
+});
+
+describe("readSession", () => {
+  it("reads the account on the API's own cookie, naming nobody", async () => {
+    answerMe(200);
+
+    await expect(readSession()).resolves.toMatchObject({ userId: "user-7" });
+    expect(backendHttp.get).toHaveBeenCalledWith("/api/auth/me");
+  });
+
+  it("gives a session resumed without signing in here its hint back", async () => {
+    answerMe(200);
+
+    await readSession();
+
+    expect(cookie(SIGNED_IN_HINT_COOKIE)).toBe(UserRole.Mentee);
+  });
+
+  it("is null on a 401 and drops the hint, so the proxy stops treating the browser as signed in", async () => {
+    document.cookie = `${SIGNED_IN_HINT_COOKIE}=${UserRole.Mentee}; path=/`;
+    answerMe(401, {});
+
+    await expect(readSession()).resolves.toBeNull();
+    expect(cookie(SIGNED_IN_HINT_COOKIE)).toBeUndefined();
+  });
+
+  it("is null for an account that is no longer approved", async () => {
+    answerMe(200, { ...mentorAndFounder, status: UserAccountStatus.Rejected });
+
+    await expect(readSession()).resolves.toBeNull();
+  });
+
+  it("throws on any other failure, so a hiccup never reads as signed out", async () => {
+    answerMe(503, {});
+
+    await expect(readSession()).rejects.toMatchObject({ status: 503 });
+  });
+
+  it("builds the session under this deployment's edition", async () => {
+    vi.stubEnv("NEXT_PUBLIC_APP_EDITION", "ODTU");
+    answerMe(200, { ...mentorAndFounder, edition: Edition.Teknokent });
+
+    await expect(readSession()).resolves.toMatchObject({
+      edition: Edition.Odtu,
+    });
+  });
+});
+
+describe("switchSessionWorkspace", () => {
+  it("opens a workspace the account can open and remembers it here", async () => {
+    answerMe(200);
+
+    await expect(
+      switchSessionWorkspace(Workspace.GirisimMentor),
+    ).resolves.toMatchObject({ activeWorkspace: Workspace.GirisimMentor });
+    expect(localStorage.getItem(LAST_WORKSPACE_KEY)).toBe(
+      Workspace.GirisimMentor,
+    );
+  });
+
+  it("refuses a workspace the account cannot open", async () => {
+    answerMe(200);
+
+    await expect(switchSessionWorkspace(Workspace.Admin)).rejects.toMatchObject(
+      { status: 403, code: FORBIDDEN },
+    );
+    expect(localStorage.getItem(LAST_WORKSPACE_KEY)).toBeNull();
+  });
+
+  it("refuses without a session", async () => {
+    answerMe(401, {});
+
+    await expect(
+      switchSessionWorkspace(Workspace.GirisimMentor),
+    ).rejects.toMatchObject({ status: 401, code: SESSION_REQUIRED });
+  });
+});
+
+describe("signOut", () => {
+  it("ends the API's session and drops the hint", async () => {
+    document.cookie = `${SIGNED_IN_HINT_COOKIE}=${UserRole.Mentee}; path=/`;
+
+    await signOut();
+
+    expect(endBackendSession).toHaveBeenCalled();
+    expect(cookie(SIGNED_IN_HINT_COOKIE)).toBeUndefined();
+  });
+});

@@ -1,85 +1,69 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { OnboardingDraftKind } from "@/interfaces/onboarding-draft";
+import { backendHttp } from "@/lib/client/backend-http";
 import {
   clearOnboardingDraft,
   fetchOnboardingDraft,
   saveOnboardingDraft,
 } from "@/lib/client/onboarding-draft";
-import { httpClient } from "@/lib/http-client";
+import {
+  itSendsEachClientCall,
+  type ClientCall,
+} from "@test/fixtures/client-calls";
+import { createMentorResponse } from "@test/fixtures/mentors";
 
-vi.mock("@/lib/http-client", () => ({
-  httpClient: {
-    get: vi.fn(),
-    put: vi.fn(),
-    delete: vi.fn(),
+vi.mock("@/lib/client/backend-http", async () =>
+  (await import("@test/mocks/backend-http")).backendHttpMock(),
+);
+
+// Onboarding runs before any session exists: every call carries the Firebase token it is given.
+const TOKEN = { headers: { Authorization: "Bearer id-token" } };
+const draft = {
+  kind: OnboardingDraftKind.MentorOnboarding,
+  step: "3",
+  payload: { expertise: ["Finans"] },
+};
+
+const calls: ClientCall[] = [
+  {
+    title: "fetchOnboardingDraft reads the token's own draft",
+    call: () => fetchOnboardingDraft("id-token"),
+    method: "get",
+    args: ["/api/onboarding/draft", TOKEN],
   },
-}));
+  {
+    title: "saveOnboardingDraft saves the draft with the token",
+    call: () => saveOnboardingDraft("id-token", draft),
+    method: "put",
+    args: ["/api/onboarding/draft", draft, TOKEN],
+  },
+  {
+    title: "clearOnboardingDraft deletes the token's own draft",
+    call: () => clearOnboardingDraft("id-token"),
+    method: "delete",
+    args: ["/api/onboarding/draft", TOKEN],
+    returnsNothing: true,
+  },
+];
 
 describe("onboarding draft client", () => {
-  beforeEach(() => {
-    vi.mocked(httpClient.get).mockReset();
-    vi.mocked(httpClient.put).mockReset();
-    vi.mocked(httpClient.delete).mockReset();
-  });
+  beforeEach(() => vi.clearAllMocks());
 
-  it("returns null when nothing is stored", async () => {
-    vi.mocked(httpClient.get).mockResolvedValue({
-      status: 204,
-      data: "",
-    });
+  itSendsEachClientCall(calls, backendHttp);
+
+  it.each([204, 404])("reads %s as no draft", async (status) => {
+    vi.mocked(backendHttp.get).mockResolvedValue(
+      createMentorResponse("", status),
+    );
 
     await expect(fetchOnboardingDraft("id-token")).resolves.toBeNull();
   });
 
-  it("returns the stored draft", async () => {
-    vi.mocked(httpClient.get).mockResolvedValue({
-      status: 200,
-      data: { kind: "signup-wizard", step: "2", payload: { bio: "Kurucu" } },
-    });
-
-    await expect(fetchOnboardingDraft("id-token")).resolves.toEqual({
-      kind: "signup-wizard",
-      step: "2",
-      payload: { bio: "Kurucu" },
-    });
-    expect(httpClient.get).toHaveBeenCalledWith(
-      "/api/onboarding/draft",
-      expect.objectContaining({
-        headers: { Authorization: "Bearer id-token" },
-      }),
+  it.each([204, 404])("treats %s as already cleared", async (status) => {
+    vi.mocked(backendHttp.delete).mockResolvedValue(
+      createMentorResponse("", status),
     );
-  });
-
-  it("saves the draft", async () => {
-    vi.mocked(httpClient.put).mockResolvedValue({
-      status: 200,
-      data: { kind: "mentor-onboarding", step: "3", payload: {} },
-    });
-
-    await saveOnboardingDraft("id-token", {
-      kind: "mentor-onboarding",
-      step: "3",
-      payload: { expertise: ["Finans"] },
-    });
-
-    expect(httpClient.put).toHaveBeenCalledWith(
-      "/api/onboarding/draft",
-      {
-        kind: "mentor-onboarding",
-        step: "3",
-        payload: { expertise: ["Finans"] },
-      },
-      expect.objectContaining({
-        headers: { Authorization: "Bearer id-token" },
-      }),
-    );
-  });
-
-  it("treats a missing draft as already cleared", async () => {
-    vi.mocked(httpClient.delete).mockResolvedValue({
-      status: 204,
-      data: "",
-    });
 
     await expect(clearOnboardingDraft("id-token")).resolves.toBeUndefined();
   });

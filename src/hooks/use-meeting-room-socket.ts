@@ -9,7 +9,7 @@ import {
   MeetingRoomEventType,
   type MeetingRoomEvent,
 } from "@/interfaces/meeting-note";
-import { postRealtimeToken } from "@/lib/client/meeting-notes";
+import { postRealtimeToken } from "@/lib/client/realtime-token";
 import {
   getMeetingDocumentDestination,
   getMeetingPresenceDestination,
