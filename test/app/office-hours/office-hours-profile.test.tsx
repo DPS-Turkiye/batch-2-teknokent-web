@@ -1,60 +1,84 @@
-import { render, screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import OfficeHoursProfilePage from "@/app/office-hours/profile/page";
-import { fetchOfficeHoursAvailability } from "@/lib/api/lti";
-import { getOfficeHoursUser } from "@/lib/server/office-hours-session";
-import { answerEachWith, backendRefusal } from "@test/fixtures/route-handlers";
+import { OfficeHoursProfileScreen } from "@/components/office-hours/office-hours-profile-screen";
+import { ClientApiError } from "@/lib/client/api";
+import { getOfficeHoursAvailability } from "@/lib/client/office-hours";
+import { officeHoursSession } from "@/lib/client/office-hours-session";
+import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
-vi.mock("@/lib/api/lti", () => ({ fetchOfficeHoursAvailability: vi.fn() }));
-vi.mock("@/lib/server/office-hours-session", () => ({
-  getOfficeHoursUser: vi.fn(),
+vi.mock("@/lib/client/office-hours", () => ({
+  getOfficeHoursAvailability: vi.fn(),
+}));
+vi.mock("@/lib/client/office-hours-session", () => ({
+  officeHoursSession: vi.fn(),
 }));
 vi.mock("@/components/office-hours/academic-profile-view", () => ({
   AcademicProfileView: ({ fullName }: { fullName: string }) => (
     <p>profile of {fullName}</p>
   ),
 }));
-vi.mock("next/navigation", () => ({
-  redirect: (path: string) => {
-    throw new Error("REDIRECT:" + path);
-  },
-}));
+const replace = vi.fn();
+vi.mock("next/navigation", () => ({ useRouter: () => ({ replace }) }));
+
+function renderProfile() {
+  return renderWithQueryClient(
+    <InLocale locale="tr">
+      <OfficeHoursProfileScreen />
+    </InLocale>,
+  );
+}
 
 describe("office-hours profile page", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(getOfficeHoursUser).mockResolvedValue({
+    vi.mocked(officeHoursSession).mockResolvedValue({
       userId: "user-1",
       fullName: "Ali Kaya",
     });
   });
 
-  it("opens an academic's own page", async () => {
-    answerEachWith([fetchOfficeHoursAvailability]);
+  it("shows an academic their profile", async () => {
+    vi.mocked(getOfficeHoursAvailability).mockResolvedValue({
+      rules: [],
+      exceptions: [],
+      menteeCapacity: null,
+      defaultMeetingDurationMinutes: 45,
+      meetingBufferMinutes: 15,
+    });
 
-    render(await OfficeHoursProfilePage());
+    renderProfile();
 
-    expect(fetchOfficeHoursAvailability).toHaveBeenCalledWith("user-1");
-    expect(screen.getByText("profile of Ali Kaya")).toBeInTheDocument();
+    expect(await screen.findByText("profile of Ali Kaya")).toBeInTheDocument();
   });
 
-  it("sends a student to the explanation, since only academics have office hours", async () => {
-    vi.mocked(fetchOfficeHoursAvailability).mockResolvedValue(
-      backendRefusal(403),
+  // Students have no office hours of their own; the backend says who is an academic.
+  it("sends a student, whom the backend refuses, to the no-role explanation", async () => {
+    vi.mocked(getOfficeHoursAvailability).mockRejectedValue(
+      new ClientApiError("no", 403),
     );
 
-    await expect(OfficeHoursProfilePage()).rejects.toThrow(
-      "REDIRECT:/office-hours/launch-error?reason=no-role",
+    renderProfile();
+
+    await waitFor(() =>
+      expect(replace).toHaveBeenCalledWith(
+        "/office-hours/launch-error?reason=no-role",
+      ),
     );
   });
 
-  it("needs an office-hours session", async () => {
-    vi.mocked(getOfficeHoursUser).mockResolvedValue(null);
-
-    await expect(OfficeHoursProfilePage()).rejects.toThrow(
-      "REDIRECT:/office-hours/launch-error?reason=expired",
+  it("sends someone without an office-hours session to the expired explanation", async () => {
+    vi.mocked(officeHoursSession).mockRejectedValue(
+      new ClientApiError("gone", 401),
     );
-    expect(fetchOfficeHoursAvailability).not.toHaveBeenCalled();
+
+    renderProfile();
+
+    await waitFor(() =>
+      expect(replace).toHaveBeenCalledWith(
+        "/office-hours/launch-error?reason=expired",
+      ),
+    );
+    expect(getOfficeHoursAvailability).not.toHaveBeenCalled();
   });
 });

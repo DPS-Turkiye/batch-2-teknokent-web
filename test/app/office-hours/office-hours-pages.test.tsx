@@ -1,16 +1,14 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import OfficeHoursCoursePage from "@/app/office-hours/courses/[courseId]/page";
 import OfficeHoursLaunchErrorPage from "@/app/office-hours/launch-error/page";
+import { OfficeHoursCourseScreen } from "@/components/office-hours/office-hours-course-screen";
 import { OfficeHoursRole } from "@/interfaces/office-hours";
-import { fetchOfficeHoursCourse } from "@/lib/api/lti";
-import { getOfficeHoursUser } from "@/lib/server/office-hours-session";
+import { ClientApiError } from "@/lib/client/api";
+import { getOfficeHoursCourse } from "@/lib/client/office-hours";
+import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
-vi.mock("@/lib/api/lti", () => ({ fetchOfficeHoursCourse: vi.fn() }));
-vi.mock("@/lib/server/office-hours-session", () => ({
-  getOfficeHoursUser: vi.fn(),
-}));
+vi.mock("@/lib/client/office-hours", () => ({ getOfficeHoursCourse: vi.fn() }));
 vi.mock("@/components/office-hours/course-office-hours", () => ({
   CourseOfficeHours: ({
     courseId,
@@ -24,50 +22,43 @@ vi.mock("@/components/office-hours/course-office-hours", () => ({
     </p>
   ),
 }));
-vi.mock("next/navigation", () => ({
-  redirect: (path: string) => {
-    throw new Error("REDIRECT:" + path);
-  },
-}));
+const replace = vi.fn();
+vi.mock("next/navigation", () => ({ useRouter: () => ({ replace }) }));
 
-const params = { params: Promise.resolve({ courseId: "course-1" }) };
-
-function course(
-  role: OfficeHoursRole,
-): Awaited<ReturnType<typeof fetchOfficeHoursCourse>> {
+function course(role: OfficeHoursRole) {
   return {
-    status: 200,
-    headers: {},
-    data: {
-      courseId: "course-1",
-      title: "Introduction to Computing",
-      shortName: "CENG 101",
-      role,
-      userFullName: "Ali Kaya",
-    },
+    courseId: "course-1",
+    title: "Introduction to Computing",
+    shortName: "CENG 101",
+    role,
+    userFullName: "Ali Kaya",
   };
+}
+
+function renderCourse() {
+  return renderWithQueryClient(
+    <InLocale locale="tr">
+      <OfficeHoursCourseScreen courseId="course-1" />
+    </InLocale>,
+  );
 }
 
 describe("office-hours course page", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(getOfficeHoursUser).mockResolvedValue({
-      userId: "user-1",
-      fullName: "Ali Kaya",
-    });
   });
 
   it("shows an instructor their course and their office hours", async () => {
-    vi.mocked(fetchOfficeHoursCourse).mockResolvedValue(
+    vi.mocked(getOfficeHoursCourse).mockResolvedValue(
       course(OfficeHoursRole.Instructor),
     );
 
-    render(await OfficeHoursCoursePage(params));
+    renderCourse();
 
-    expect(fetchOfficeHoursCourse).toHaveBeenCalledWith("user-1", "course-1");
     expect(
-      screen.getByRole("heading", { name: "Introduction to Computing" }),
+      await screen.findByRole("heading", { name: "Introduction to Computing" }),
     ).toBeInTheDocument();
+    expect(getOfficeHoursCourse).toHaveBeenCalledWith("course-1");
     expect(screen.getByText("CENG 101")).toBeInTheDocument();
     expect(screen.getByText("Akademisyen")).toBeInTheDocument();
     expect(
@@ -77,48 +68,38 @@ describe("office-hours course page", () => {
       "href",
       "/office-hours/profile",
     );
-    expect(screen.getByText("Ali Kaya")).toBeInTheDocument();
+    expect(
+      screen.getByText("booking for course-1 as INSTRUCTOR"),
+    ).toBeInTheDocument();
   });
 
-  it("shows a student where they will book", async () => {
-    vi.mocked(fetchOfficeHoursCourse).mockResolvedValue(
+  it("shows a student where they will book, with no profile link", async () => {
+    vi.mocked(getOfficeHoursCourse).mockResolvedValue(
       course(OfficeHoursRole.Student),
     );
 
-    render(await OfficeHoursCoursePage(params));
+    renderCourse();
 
-    expect(screen.getByText("Öğrenci")).toBeInTheDocument();
     expect(
-      screen.queryByRole("link", { name: "Profilim" }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.getByText("booking for course-1 as STUDENT"),
+      await screen.findByText("booking for course-1 as STUDENT"),
     ).toBeInTheDocument();
-    expect(
-      screen.queryByRole("link", { name: "Müsaitliği yönet" }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Profilim" })).toBeNull();
   });
 
-  it("sends someone without an office-hours session to the explanation", async () => {
-    vi.mocked(getOfficeHoursUser).mockResolvedValue(null);
-
-    await expect(OfficeHoursCoursePage(params)).rejects.toThrow(
-      "REDIRECT:/office-hours/launch-error?reason=expired",
+  // No office-hours session, or a course the person never launched from: Moodle has to launch again.
+  it("sends someone it cannot show the course to the explanation", async () => {
+    vi.mocked(getOfficeHoursCourse).mockRejectedValue(
+      new ClientApiError("gone", 401),
     );
-    expect(fetchOfficeHoursCourse).not.toHaveBeenCalled();
-  });
 
-  it("does not show a course the person never launched from", async () => {
-    // BackendResponse types `data` as the course whatever the status, so the 404 carries a course body:
-    // the page must go by the status alone.
-    vi.mocked(fetchOfficeHoursCourse).mockResolvedValue({
-      ...course(OfficeHoursRole.Student),
-      status: 404,
-    });
+    renderCourse();
 
-    await expect(OfficeHoursCoursePage(params)).rejects.toThrow(
-      "REDIRECT:/office-hours/launch-error?reason=expired",
+    await waitFor(() =>
+      expect(replace).toHaveBeenCalledWith(
+        "/office-hours/launch-error?reason=expired",
+      ),
     );
+    expect(screen.queryByRole("heading")).toBeNull();
   });
 });
 

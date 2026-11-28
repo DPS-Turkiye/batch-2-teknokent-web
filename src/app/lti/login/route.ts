@@ -1,39 +1,16 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import { startLtiLogin, type LtiForm } from "@/lib/api/lti";
-import {
-  ltiFailureResponse,
-  ltiRefusalResponse,
-} from "@/lib/server/lti-response";
+import { getPublicBackendUrl } from "@/lib/const";
 
-/** The backend's body is not checked, so a missing or empty link counts as a refusal too. */
-function redirectUrlOf(data: unknown) {
-  return data &&
-    typeof data === "object" &&
-    "redirectUrl" in data &&
-    typeof data.redirectUrl === "string"
-    ? data.redirectUrl
-    : null;
+/**
+ * Moodle's LTI login initiation, at the URL Moodle is set up with. The backend does the work: the browser is sent
+ * on to it unchanged (307 keeps a form POST a POST, with its body), so no server here holds a credential for it.
+ */
+function toBackend(request: NextRequest) {
+  const target = new URL("/api/lti/login", getPublicBackendUrl());
+  target.search = request.nextUrl.search;
+  return NextResponse.redirect(target, 307);
 }
 
-// Moodle may start a launch with a GET or a form POST, so both read the same fields.
-async function initiate(request: NextRequest, form: LtiForm) {
-  try {
-    const response = await startLtiLogin(form);
-    const redirectUrl = redirectUrlOf(response.data);
-    if (response.status !== 200 || !redirectUrl) {
-      return ltiRefusalResponse(request, response.status);
-    }
-    return NextResponse.redirect(redirectUrl, 302);
-  } catch (error) {
-    return ltiFailureResponse(request, error);
-  }
-}
-
-export async function GET(request: NextRequest) {
-  return initiate(request, Object.fromEntries(request.nextUrl.searchParams));
-}
-
-export async function POST(request: NextRequest) {
-  return initiate(request, Object.fromEntries(await request.formData()));
-}
+export const GET = toBackend;
+export const POST = toBackend;
