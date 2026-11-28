@@ -4,10 +4,7 @@ import createNextIntlPlugin from "next-intl/plugin";
 import { ACADEMICIAN_ROUTES } from "./src/lib/academician-routes";
 import { AppointmentsFilter } from "./src/types/academician-calendar";
 
-// Uploads and CV parsing go from the browser straight to the backend, so its
-// origin has to be reachable. Deployed it is HTTPS and already covered by the
-// blanket source; locally it is plain HTTP on another port, which nothing in
-// the policy allows. 8090 is the ODTÜ edition's backend when both editions run
+// Locally the backend is plain HTTP on another port. 8090 is the ODTÜ edition's backend when both editions run
 // side by side (the backend's dev/editions).
 const LOCAL_BACKEND_ORIGINS = [8080, 8090].flatMap((port) => [
   `http://localhost:${port}`,
@@ -16,7 +13,58 @@ const LOCAL_BACKEND_ORIGINS = [8080, 8090].flatMap((port) => [
   `ws://127.0.0.1:${port}`,
 ]);
 
-export function buildContentSecurityPolicy(isDevelopment: boolean) {
+// What the Firebase SDK calls from the page: sign-in and token refresh (Identity Toolkit, Secure Token), and for
+// push notifications the installation and FCM registration APIs. www.googleapis.com is also the Calendar API that
+// lib/google-calendar reads with the person's own OAuth token (the OAuth consent itself is a popup, not a fetch).
+const GOOGLE_API_ORIGINS = [
+  "https://identitytoolkit.googleapis.com",
+  "https://securetoken.googleapis.com",
+  "https://firebaseinstallations.googleapis.com",
+  "https://fcmregistrations.googleapis.com",
+  "https://www.googleapis.com",
+];
+
+// Presigned S3 URLs from the backend (document previews, the assistant's transcript and report uploads and reads).
+// The AWS SDK presigns virtual-hosted style, https://<bucket>.s3.eu-central-1.amazonaws.com/...
+const OBJECT_STORAGE_ORIGINS = ["https://*.s3.eu-central-1.amazonaws.com"];
+
+/** The build's environment, of which the NEXT_PUBLIC_ backend, realtime and Firebase auth-domain settings are read. */
+type PolicyEnv = Readonly<Record<string, string | undefined>>;
+
+function originOf(url: string | undefined): string | null {
+  if (!url?.trim()) return null;
+  try {
+    const { origin } = new URL(url.trim());
+    return origin === "null" ? null : origin;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The origins the browser may call: the backend over HTTPS and its WebSocket (/ws) twin, the realtime URL when it
+ * is set apart, and Firebase's auth domain. A deployed policy takes only secure origins, so a build left pointing
+ * at a local backend stays closed rather than opening plain HTTP.
+ */
+function backendOrigins(env: PolicyEnv, isDevelopment: boolean): string[] {
+  const backend = originOf(env.NEXT_PUBLIC_BACKEND_URL);
+  const socketTwin = backend?.replace(/^http/, "ws") ?? null;
+  const authDomain = env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN?.trim();
+  const origins = [
+    backend,
+    socketTwin,
+    originOf(env.NEXT_PUBLIC_REALTIME_URL),
+    authDomain ? originOf(`https://${authDomain}`) : null,
+  ].filter((origin): origin is string => origin !== null);
+  return isDevelopment
+    ? origins
+    : origins.filter((origin) => /^(https|wss):\/\//.test(origin));
+}
+
+export function buildContentSecurityPolicy(
+  isDevelopment: boolean,
+  env: PolicyEnv = process.env,
+) {
   // Development builds evaluate modules for hot reload.
   const scriptSrc = [
     "script-src 'self' 'unsafe-inline'",
@@ -28,8 +76,13 @@ export function buildContentSecurityPolicy(isDevelopment: boolean) {
     .filter(Boolean)
     .join(" ");
   const connectSrc = [
-    "connect-src 'self' https: wss:",
-    ...(isDevelopment ? LOCAL_BACKEND_ORIGINS : []),
+    "connect-src 'self'",
+    ...new Set([
+      ...backendOrigins(env, isDevelopment),
+      ...GOOGLE_API_ORIGINS,
+      ...OBJECT_STORAGE_ORIGINS,
+      ...(isDevelopment ? LOCAL_BACKEND_ORIGINS : []),
+    ]),
   ].join(" ");
 
   return [

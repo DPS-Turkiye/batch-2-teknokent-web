@@ -2,13 +2,16 @@ import axios, { type AxiosRequestConfig, type AxiosResponse } from "axios";
 
 import { requireSuccess } from "@/lib/client/api";
 import { getPublicBackendUrl } from "@/lib/const";
-import { currentFirebaseUid, currentIdToken } from "@/lib/firebase/auth";
+import { currentFirebaseLogin, currentFirebaseUid } from "@/lib/firebase/auth";
 import { REQUEST_TIMEOUT_MS, toTransportError } from "@/lib/http-client";
+import { isMarkedSignedOut } from "@/lib/session-signals";
 
 declare module "axios" {
   interface InternalAxiosRequestConfig {
     /** Already sent again once after starting a session; a second 401 is the answer. */
     sessionRetried?: boolean;
+    /** The tab's Firebase login when the call was sent; only that login may start a session to send it again. */
+    sentAsUid?: string | null;
   }
 }
 
@@ -20,7 +23,9 @@ const SESSION_PATH = "/api/auth/session";
  * path only say which of the caller's own things is meant, and the backend refuses any that are not theirs.
  *
  * A call answered 401 starts a session from the tab's Firebase sign-in and is sent once more, so a person who
- * signed in before sessions existed carries on without signing in again.
+ * signed in before sessions existed carries on without signing in again. Never after this browser signed out
+ * (another tab's Firebase login would sign it back in), and never when the tab's login changed since the call was
+ * sent (it would then run as someone else).
  */
 export const backendHttp = axios.create({
   headers: { Accept: "application/json" },
@@ -29,8 +34,11 @@ export const backendHttp = axios.create({
   withCredentials: true,
 });
 
-backendHttp.interceptors.request.use((config) => {
+backendHttp.interceptors.request.use(async (config) => {
   config.baseURL = getPublicBackendUrl();
+  if (!config.headers.has("Authorization") && config.sentAsUid === undefined) {
+    config.sentAsUid = await currentFirebaseUid().catch(() => null);
+  }
   return config;
 });
 
@@ -40,7 +48,9 @@ backendHttp.interceptors.response.use(async (response: AxiosResponse) => {
     response.status !== 401 ||
     config.sessionRetried ||
     config.headers.has("Authorization") ||
-    !(await resumeSession())
+    !config.sentAsUid ||
+    isMarkedSignedOut() ||
+    (await resumeSession()) !== config.sentAsUid
   ) {
     return response;
   }
@@ -68,18 +78,26 @@ export async function startBackendSession(idToken: string, remember = false) {
   return response.status >= 200 && response.status < 300;
 }
 
-/** Signing out: drops the API's session cookie. A failure leaves nothing to undo, so it is not reported. */
+/**
+ * Signing out: drops the API's session cookie. A failure is not reported, since the person can do nothing about
+ * it; the signed-out mark, set before this, still keeps every tab from starting a new session.
+ */
 export async function endBackendSession() {
   await backendHttp.delete(SESSION_PATH).catch(() => undefined);
 }
 
-let resuming: Promise<boolean> | null = null;
+let resuming: Promise<string | null> | null = null;
 
-/** One session start for every call that hit a 401 at the same time. */
-function resumeSession(): Promise<boolean> {
+/**
+ * One session start for every call that hit a 401 at the same time. The Firebase uid the session was started for,
+ * or null when none was.
+ */
+function resumeSession(): Promise<string | null> {
   resuming ??= (async () => {
-    const idToken = await currentIdToken();
-    return idToken ? startBackendSession(idToken) : false;
+    const login = await currentFirebaseLogin().catch(() => null);
+    // Checked again here: a sign-out may have begun while the login was read.
+    if (!login || isMarkedSignedOut()) return null;
+    return (await startBackendSession(login.idToken)) ? login.uid : null;
   })().finally(() => {
     resuming = null;
   });

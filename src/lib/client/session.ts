@@ -20,13 +20,21 @@ import {
   SESSION_REQUIRED,
 } from "@/lib/const";
 import { clientEdition } from "@/lib/edition";
+import { signOutOfFirebase } from "@/lib/firebase/auth";
+import { clearGoogleCalendarAccess } from "@/lib/google-calendar";
 import { readLastWorkspace, saveLastWorkspace } from "@/lib/last-workspace";
+import { clearNeedDraft } from "@/lib/mentor-request-need";
 import {
   clearSignedInHint,
   readSignedInHint,
   writeSignedInHint,
 } from "@/lib/session-hint";
 import { toSession, withWorkspace } from "@/lib/session-model";
+import {
+  isMarkedSignedOut,
+  markSignedIn,
+  markSignedOut,
+} from "@/lib/session-signals";
 
 const ME_PATH = "/api/auth/me";
 const LANGUAGE_PATH = "/api/auth/me/language";
@@ -111,17 +119,13 @@ export async function signIn(
   }
 
   const opened = withRememberedWorkspace(session);
+  markSignedIn();
   rememberSignInChoice(rememberMe);
   writeSignedInHint(opened.role, rememberMe);
   saveAccountTypeCookie(opened);
   return opened;
 }
 
-/**
- * The signed-in session, read from the API on its own cookie (backendHttp starts one from the Firebase sign-in when
- * the cookie is gone). Null when there is none: signed out, or an account that is no longer approved or has no
- * workspace. Any other failure throws, so a hiccup never reads as signed out.
- */
 /** Whether this browser's last sign-in asked to be remembered; read back when a hint has to be written again. */
 const REMEMBER_KEY = "menton_sign_in_remembered";
 
@@ -142,7 +146,15 @@ function signInWasRemembered() {
   }
 }
 
+/**
+ * The signed-in session, read from the API on its own cookie (backendHttp starts one from the Firebase sign-in when
+ * the cookie is gone). Null when there is none: signed out (in this browser since its last sign-in, without asking
+ * the API), or an account that is no longer approved or has no workspace. Any other failure throws, so a hiccup
+ * never reads as signed out.
+ */
 export async function readSession(): Promise<AppSession | null> {
+  // Signed out in this browser, perhaps a moment ago in another tab while the API's cookie is still being dropped.
+  if (isMarkedSignedOut()) return signedOut();
   const response = await backendHttp.get<BackendUser>(ME_PATH);
   if (response.status === 401) return signedOut();
   const user = requireSuccess(response);
@@ -180,8 +192,39 @@ export async function switchSessionWorkspace(
   return switched;
 }
 
-/** Signing out of the API; the Firebase sign-in is ended by the caller. */
-export async function signOut() {
+/** Drops what this tab keeps of the person beyond the session: the proxy's hint, Calendar access, drafts. */
+function forgetSignedInPerson() {
   clearSignedInHint();
+  clearGoogleCalendarAccess();
+  clearNeedDraft();
+}
+
+/**
+ * Ends this tab's Firebase login. A failure is logged rather than thrown: the sign-out is finished locally anyway,
+ * and the signed-out mark keeps the leftover login from starting a session.
+ */
+async function endFirebaseLogin() {
+  try {
+    await signOutOfFirebase();
+  } catch (error) {
+    console.error("Firebase sign-out failed; the signed-out mark stays", error);
+  }
+}
+
+/**
+ * Signs out of this browser. The mark goes first, so no tab answers a 401 by starting a session meanwhile; then
+ * the Firebase login, so nothing is left to start one from; then the API's cookie. The other tabs hear of it
+ * through the mark (see `signOutOfThisTab`).
+ */
+export async function signOut() {
+  markSignedOut();
+  forgetSignedInPerson();
+  await endFirebaseLogin();
   await endBackendSession();
+}
+
+/** Another tab signed the browser out: this tab drops its own Firebase login (kept per tab) and what it holds. */
+export async function signOutOfThisTab() {
+  forgetSignedInPerson();
+  await endFirebaseLogin();
 }

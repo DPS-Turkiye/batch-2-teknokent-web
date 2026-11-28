@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { act, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   SessionProvider,
@@ -8,9 +8,18 @@ import {
   useSession,
 } from "@/components/providers/session-provider";
 import { UserRole } from "@/interfaces/session";
+import { reloadPage } from "@/lib/assign-location";
 import { backendHttp, endBackendSession } from "@/lib/client/backend-http";
-import { signOutOfFirebase } from "@/lib/firebase/auth";
+import {
+  onFirebaseAccountChange,
+  signOutOfFirebase,
+} from "@/lib/firebase/auth";
 import { SIGNED_IN_HINT_COOKIE } from "@/lib/session-hint";
+import {
+  markSignedIn,
+  SIGNED_IN_KEY,
+  SIGNED_OUT_KEY,
+} from "@/lib/session-signals";
 import { backendUser } from "@test/fixtures/session";
 
 vi.mock("@/lib/client/backend-http", async () =>
@@ -19,7 +28,9 @@ vi.mock("@/lib/client/backend-http", async () =>
 vi.mock("@/lib/firebase/auth", () => ({
   currentIdToken: vi.fn(() => Promise.resolve(null)),
   signOutOfFirebase: vi.fn(() => Promise.resolve()),
+  onFirebaseAccountChange: vi.fn((_onChange: () => void) => () => undefined),
 }));
+vi.mock("@/lib/assign-location", () => ({ reloadPage: vi.fn() }));
 
 const navigation = vi.hoisted(() => ({
   pathname: "/dashboard",
@@ -34,7 +45,29 @@ beforeEach(() => {
   navigation.pathname = "/dashboard";
   navigation.replace.mockClear();
   vi.mocked(backendHttp.get).mockReset();
+  vi.mocked(reloadPage).mockClear();
+  vi.mocked(signOutOfFirebase).mockClear();
 });
+
+afterEach(() => {
+  markSignedIn();
+  localStorage.clear();
+});
+
+/** Another tab writing `key` to the shared storage, as this tab's `storage` event reports it. */
+function anotherTabWrites(key: string, value: string) {
+  localStorage.setItem(key, value);
+  act(() => {
+    window.dispatchEvent(new StorageEvent("storage", { key, newValue: value }));
+  });
+}
+
+function answerSessionOf(fullName: string, id: string) {
+  vi.mocked(backendHttp.get).mockResolvedValue({
+    status: 200,
+    data: backendUser({ id, fullName }),
+  });
+}
 
 function SessionLabel() {
   const session = useAppSession();
@@ -141,5 +174,67 @@ describe("SessionProvider signing out", () => {
     await waitFor(() => expect(signOutOfFirebase).toHaveBeenCalled());
     expect(endBackendSession).toHaveBeenCalled();
     expect(document.cookie).not.toContain(SIGNED_IN_HINT_COOKIE);
+  });
+});
+
+describe("SessionProvider and the other tabs", () => {
+  it("signs this tab out when another one signs the browser out", async () => {
+    answerSessionOf("Leyla Aksoy", "user-1");
+    const queryClient = new QueryClient();
+    queryClient.setQueryData(["meetings"], ["Leyla's meeting"]);
+    renderSession(queryClient);
+    expect(await screen.findByText("Leyla Aksoy")).toBeInTheDocument();
+
+    anotherTabWrites(SIGNED_OUT_KEY, String(Date.now()));
+
+    await waitFor(() =>
+      expect(navigation.replace).toHaveBeenCalledWith(
+        "/login?next=%2Fdashboard",
+      ),
+    );
+    // Its own Firebase login (kept per tab without "beni hatırla") would otherwise start a session again.
+    expect(signOutOfFirebase).toHaveBeenCalled();
+    expect(queryClient.getQueryData(["meetings"])).toBeUndefined();
+  });
+
+  it("reloads with nothing cached when another tab signed in as someone else", async () => {
+    answerSessionOf("Leyla Aksoy", "user-1");
+    const queryClient = new QueryClient();
+    renderSession(queryClient);
+    expect(await screen.findByText("Leyla Aksoy")).toBeInTheDocument();
+    queryClient.setQueryData(["meetings"], ["Leyla's meeting"]);
+
+    answerSessionOf("Ayşe Kaya", "user-2");
+    anotherTabWrites(SIGNED_IN_KEY, String(Date.now()));
+
+    await waitFor(() => expect(reloadPage).toHaveBeenCalled());
+    expect(queryClient.getQueryData(["meetings"])).toBeUndefined();
+  });
+
+  it("keeps the page when the other tab signed in as the same person", async () => {
+    answerSessionOf("Leyla Aksoy", "user-1");
+    renderSession(new QueryClient());
+    expect(await screen.findByText("Leyla Aksoy")).toBeInTheDocument();
+
+    anotherTabWrites(SIGNED_IN_KEY, String(Date.now()));
+
+    await waitFor(() => expect(backendHttp.get).toHaveBeenCalledTimes(2));
+    expect(reloadPage).not.toHaveBeenCalled();
+  });
+
+  it("re-reads the session when another account takes over the tab's Firebase login", async () => {
+    let onChange = () => {};
+    vi.mocked(onFirebaseAccountChange).mockImplementationOnce((callback) => {
+      onChange = callback;
+      return () => undefined;
+    });
+    answerSessionOf("Leyla Aksoy", "user-1");
+    renderSession(new QueryClient());
+    expect(await screen.findByText("Leyla Aksoy")).toBeInTheDocument();
+
+    answerSessionOf("Ayşe Kaya", "user-2");
+    act(() => onChange());
+
+    await waitFor(() => expect(reloadPage).toHaveBeenCalled());
   });
 });

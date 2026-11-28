@@ -1,5 +1,5 @@
 import type { InternalAxiosRequestConfig } from "axios";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ClientApiError } from "@/lib/client/api";
 import {
@@ -9,10 +9,11 @@ import {
   startBackendSession,
   withToken,
 } from "@/lib/client/backend-http";
-import { currentFirebaseUid, currentIdToken } from "@/lib/firebase/auth";
+import { currentFirebaseLogin, currentFirebaseUid } from "@/lib/firebase/auth";
+import { markSignedIn, markSignedOut } from "@/lib/session-signals";
 
 vi.mock("@/lib/firebase/auth", () => ({
-  currentIdToken: vi.fn(),
+  currentFirebaseLogin: vi.fn(),
   currentFirebaseUid: vi.fn(),
 }));
 vi.mock("@/lib/const", () => ({
@@ -38,7 +39,10 @@ beforeEach(() => {
   vi.clearAllMocks();
   sent.length = 0;
   answers = {};
-  vi.mocked(currentIdToken).mockResolvedValue("tab-token");
+  vi.mocked(currentFirebaseLogin).mockResolvedValue({
+    uid: "uid-1",
+    idToken: "tab-token",
+  });
   vi.mocked(currentFirebaseUid).mockResolvedValue("uid-1");
   // Answers every request here instead of the network, and keeps what was sent.
   backendHttp.defaults.adapter = (config) => {
@@ -52,6 +56,11 @@ beforeEach(() => {
       config,
     });
   };
+});
+
+afterEach(() => {
+  markSignedIn();
+  localStorage.clear();
 });
 
 const calls = (key: string) =>
@@ -99,12 +108,56 @@ describe("backendHttp", () => {
   });
 
   it("does not start a session when nobody is signed in to Firebase", async () => {
-    vi.mocked(currentIdToken).mockResolvedValue(null);
+    vi.mocked(currentFirebaseUid).mockResolvedValue(null);
+    vi.mocked(currentFirebaseLogin).mockResolvedValue(null);
     answers["GET /api/x"] = { status: 401 };
 
     const response = await backendHttp.get("/api/x");
 
     expect(response.status).toBe(401);
+    expect(calls("POST /api/auth/session")).toHaveLength(0);
+  });
+
+  // Reported: signing out in one tab left another tab's Firebase login (kept per tab without "beni hatırla"), and
+  // that tab's next 401 signed the whole browser back in.
+  it("does not sign the browser back in after it signed out", async () => {
+    markSignedOut();
+    answers["GET /api/x"] = { status: 401 };
+
+    const response = await backendHttp.get("/api/x");
+
+    expect(response.status).toBe(401);
+    expect(calls("POST /api/auth/session")).toHaveLength(0);
+    expect(calls("GET /api/x")).toHaveLength(1);
+  });
+
+  it("resumes again once someone signs in", async () => {
+    markSignedOut();
+    markSignedIn();
+    answers["GET /api/x"] = (count) => ({ status: count === 1 ? 401 : 200 });
+
+    expect((await backendHttp.get("/api/x")).status).toBe(200);
+  });
+
+  it("does not resend a call as someone else when the tab's login changed since it was sent", async () => {
+    vi.mocked(currentFirebaseUid).mockResolvedValueOnce("uid-1");
+    vi.mocked(currentFirebaseLogin).mockResolvedValue({
+      uid: "uid-2",
+      idToken: "other-token",
+    });
+    answers["POST /api/x"] = { status: 401 };
+
+    const response = await backendHttp.post("/api/x", { note: "mine" });
+
+    expect(response.status).toBe(401);
+    expect(calls("POST /api/x")).toHaveLength(1);
+  });
+
+  it("does not resend when Firebase cannot say who is signed in", async () => {
+    vi.mocked(currentFirebaseUid).mockRejectedValue(new Error("no config"));
+    answers["GET /api/x"] = { status: 401 };
+
+    expect((await backendHttp.get("/api/x")).status).toBe(401);
     expect(calls("POST /api/auth/session")).toHaveLength(0);
   });
 

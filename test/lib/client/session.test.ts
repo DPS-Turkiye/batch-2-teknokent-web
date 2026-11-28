@@ -13,6 +13,7 @@ import {
   readSession,
   signIn,
   signOut,
+  signOutOfThisTab,
   switchSessionWorkspace,
 } from "@/lib/client/session";
 import {
@@ -21,15 +22,27 @@ import {
   REGISTRATION_REQUIRED,
   SESSION_REQUIRED,
 } from "@/lib/const";
+import { signOutOfFirebase } from "@/lib/firebase/auth";
 import { Locale } from "@/lib/i18n";
 import { LAST_WORKSPACE_KEY } from "@/lib/last-workspace";
+import { MENTOR_REQUEST_NEED_DRAFT_KEY } from "@/lib/mentor-request-need";
 import { SIGNED_IN_HINT_COOKIE } from "@/lib/session-hint";
+import {
+  isMarkedSignedOut,
+  markSignedIn,
+  markSignedOut,
+} from "@/lib/session-signals";
 import { createMentorResponse } from "@test/fixtures/mentors";
 import { backendUser } from "@test/fixtures/session";
 
 vi.mock("@/lib/client/backend-http", async () =>
   (await import("@test/mocks/backend-http")).backendHttpMock(),
 );
+vi.mock("@/lib/firebase/auth", () => ({
+  signOutOfFirebase: vi.fn(() => Promise.resolve()),
+}));
+
+const CALENDAR_TOKEN_KEY = "metual.googleCalendar.accessToken";
 
 const TOKEN = { headers: { Authorization: "Bearer id-token" } };
 
@@ -72,7 +85,9 @@ beforeEach(() => {
 
 afterEach(() => {
   clearCookies();
+  markSignedIn();
   localStorage.clear();
+  sessionStorage.clear();
 });
 
 describe("signIn", () => {
@@ -91,6 +106,24 @@ describe("signIn", () => {
     });
     expect(cookie(SIGNED_IN_HINT_COOKIE)).toBe(UserRole.Mentee);
     expect(cookie(ACCOUNT_TYPE_COOKIE)).toBeDefined();
+  });
+
+  it("lifts an earlier sign-out's mark, so a lost session can be resumed again", async () => {
+    markSignedOut();
+    answerMe(200);
+
+    await signIn("id-token");
+
+    expect(isMarkedSignedOut()).toBe(false);
+  });
+
+  it("keeps the mark when the sign-in is refused", async () => {
+    markSignedOut();
+    vi.mocked(startBackendSession).mockResolvedValue(false);
+    answerMe(200);
+
+    await expect(signIn("id-token")).rejects.toThrow();
+    expect(isMarkedSignedOut()).toBe(true);
   });
 
   it("saves the screen's language with the token, and signs in even when that fails", async () => {
@@ -295,5 +328,63 @@ describe("signOut", () => {
 
     expect(endBackendSession).toHaveBeenCalled();
     expect(cookie(SIGNED_IN_HINT_COOKIE)).toBeUndefined();
+  });
+
+  // Reported: with the API's cookie dropped first, a call landing before the Firebase sign-out answered 401 and
+  // started a session again from the login still there.
+  it("marks the browser signed out, then ends the Firebase login, then the API's cookie", async () => {
+    const order: string[] = [];
+    vi.mocked(signOutOfFirebase).mockImplementationOnce(async () => {
+      order.push(`firebase (marked: ${isMarkedSignedOut()})`);
+    });
+    vi.mocked(endBackendSession).mockImplementationOnce(async () => {
+      order.push("api");
+    });
+
+    await signOut();
+
+    expect(order).toEqual(["firebase (marked: true)", "api"]);
+  });
+
+  it("finishes and keeps the mark when the Firebase sign-out fails, and says so", async () => {
+    const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.mocked(signOutOfFirebase).mockRejectedValueOnce(new Error("offline"));
+
+    await expect(signOut()).resolves.toBeUndefined();
+
+    expect(endBackendSession).toHaveBeenCalled();
+    expect(isMarkedSignedOut()).toBe(true);
+    expect(logged).toHaveBeenCalled();
+    logged.mockRestore();
+  });
+
+  it("drops the person's Google Calendar access and mentor-request draft", async () => {
+    sessionStorage.setItem(CALENDAR_TOKEN_KEY, "ya29.token");
+    sessionStorage.setItem(MENTOR_REQUEST_NEED_DRAFT_KEY, "{}");
+
+    await signOut();
+
+    expect(sessionStorage.getItem(CALENDAR_TOKEN_KEY)).toBeNull();
+    expect(sessionStorage.getItem(MENTOR_REQUEST_NEED_DRAFT_KEY)).toBeNull();
+  });
+
+  it("reads no session afterwards without asking the API, whose cookie may still be on its way out", async () => {
+    await signOut();
+    answerMe(200);
+
+    await expect(readSession()).resolves.toBeNull();
+    expect(backendHttp.get).not.toHaveBeenCalled();
+  });
+});
+
+describe("signOutOfThisTab", () => {
+  it("ends this tab's own Firebase login and what it holds, leaving the API to the tab that signed out", async () => {
+    sessionStorage.setItem(CALENDAR_TOKEN_KEY, "ya29.token");
+
+    await signOutOfThisTab();
+
+    expect(signOutOfFirebase).toHaveBeenCalled();
+    expect(sessionStorage.getItem(CALENDAR_TOKEN_KEY)).toBeNull();
+    expect(endBackendSession).not.toHaveBeenCalled();
   });
 });
