@@ -9,6 +9,7 @@ import type {
 } from "@/interfaces/email-center";
 import { jsonFitsAmplifyWaf } from "@/lib/amplify-safe-body";
 import { requireSuccess } from "@/lib/client/api";
+import { backendHttp } from "@/lib/client/backend-http";
 import { httpClient } from "@/lib/http-client";
 
 const BASE = "/api/email-center";
@@ -24,13 +25,13 @@ function requireFits(payload: unknown) {
 
 export async function getEmailCenterOptions() {
   return requireSuccess(
-    await httpClient.get<EmailCenterOptions>(`${BASE}/options`),
+    await backendHttp.get<EmailCenterOptions>(`${BASE}/options`),
   );
 }
 
 export async function getEmailTemplates(programId: string) {
   return requireSuccess(
-    await httpClient.get<EmailTemplate[]>(`${BASE}/templates`, {
+    await backendHttp.get<EmailTemplate[]>(`${BASE}/templates`, {
       params: { programId },
     }),
   );
@@ -38,38 +39,40 @@ export async function getEmailTemplates(programId: string) {
 
 export async function getEmailCampaigns() {
   return requireSuccess(
-    await httpClient.get<EmailCampaign[]>(`${BASE}/campaigns`),
+    await backendHttp.get<EmailCampaign[]>(`${BASE}/campaigns`),
   );
 }
 
 export async function getEmailCampaign(id: string) {
   return requireSuccess(
-    await httpClient.get<EmailCampaignDetail>(campaignUrl(id)),
+    await backendHttp.get<EmailCampaignDetail>(campaignUrl(id)),
   );
 }
 
+/** The subject goes trimmed: the backend counts its limit on what it receives. */
 export async function saveEmailDraft(id: string | null, draft: EmailDraft) {
-  requireFits(draft);
+  const body = { ...draft, subject: draft.subject.trim() };
+  requireFits(body);
   return requireSuccess(
     id === null
-      ? await httpClient.post<EmailCampaignDetail>(`${BASE}/campaigns`, draft)
-      : await httpClient.put<EmailCampaignDetail>(campaignUrl(id), draft),
+      ? await backendHttp.post<EmailCampaignDetail>(`${BASE}/campaigns`, body)
+      : await backendHttp.put<EmailCampaignDetail>(campaignUrl(id), body),
   );
 }
 
 export async function removeEmailDraft(id: string) {
-  return requireSuccess(await httpClient.delete<null>(campaignUrl(id)));
+  return requireSuccess(await backendHttp.delete<null>(campaignUrl(id)));
 }
 
 export async function sendEmailTest(id: string) {
   return requireSuccess(
-    await httpClient.post<EmailCampaignDetail>(campaignUrl(id, "/test")),
+    await backendHttp.post<EmailCampaignDetail>(campaignUrl(id, "/test")),
   );
 }
 
 export async function reviewEmailRecipients(id: string) {
   return requireSuccess(
-    await httpClient.post<EmailCampaignDetail>(campaignUrl(id, "/review")),
+    await backendHttp.post<EmailCampaignDetail>(campaignUrl(id, "/review")),
   );
 }
 
@@ -79,7 +82,7 @@ export async function confirmEmailSend(
 ) {
   requireFits(confirmation);
   return requireSuccess(
-    await httpClient.post<EmailCampaignDetail>(
+    await backendHttp.post<EmailCampaignDetail>(
       campaignUrl(id, "/send"),
       confirmation,
     ),
@@ -88,7 +91,7 @@ export async function confirmEmailSend(
 
 export async function stopEmailSend(id: string) {
   return requireSuccess(
-    await httpClient.post<EmailCampaignDetail>(campaignUrl(id, "/stop")),
+    await backendHttp.post<EmailCampaignDetail>(campaignUrl(id, "/stop")),
   );
 }
 

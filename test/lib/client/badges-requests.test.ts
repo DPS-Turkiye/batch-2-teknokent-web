@@ -1,6 +1,7 @@
 import { beforeEach, describe, vi } from "vitest";
 
 import { GateBadgeState } from "@/interfaces/badges";
+import { backendHttp } from "@/lib/client/backend-http";
 import {
   getAdminStudents,
   getMyAchievements,
@@ -15,6 +16,9 @@ import {
   type ClientCall,
 } from "@test/fixtures/client-calls";
 
+vi.mock("@/lib/client/backend-http", async () =>
+  (await import("@test/mocks/backend-http")).backendHttpMock(),
+);
 vi.mock("@/lib/http-client", () => ({
   httpClient: {
     get: vi.fn(),
@@ -70,6 +74,10 @@ const calls: ClientCall[] = [
     method: "post",
     args: [`${BADGES}/awards/a%2F1/revoke`, { reason: "Yanlış verildi" }],
   },
+];
+
+// The admin's student list goes to the backend directly; the backend takes the admin from the session.
+const adminCalls: ClientCall[] = [
   {
     title: "getAdminStudents lists every student when no state is chosen",
     call: () => getAdminStudents(null),
@@ -90,4 +98,5 @@ describe("badges client", () => {
   });
 
   itSendsEachClientCall(calls);
+  itSendsEachClientCall(adminCalls, backendHttp);
 });

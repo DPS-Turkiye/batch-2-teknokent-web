@@ -4,7 +4,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GateBadgeState } from "@/interfaces/badges";
 import {
   awardGateBadge,
-  fetchAdminStudents,
   fetchMyAchievements,
   fetchMyBadges,
   fetchProgramBadgeRoster,
@@ -83,24 +82,6 @@ const cases: RequestCase[] = [
       method: "POST",
       url: `${BADGES_URL}/awards/award%201/revoke`,
       data: { actorId: "coord-1", reason: "Kopya" },
-    },
-  ],
-  [
-    "lists every admin student when no state is picked",
-    () => fetchAdminStudents("admin-1", null),
-    {
-      method: "GET",
-      url: "/api/admin/students",
-      params: { actorId: "admin-1" },
-    },
-  ],
-  [
-    "filters admin students by the picked state",
-    () => fetchAdminStudents("admin-1", GateBadgeState.Active),
-    {
-      method: "GET",
-      url: "/api/admin/students",
-      params: { actorId: "admin-1", state: GateBadgeState.Active },
     },
   ],
 ];

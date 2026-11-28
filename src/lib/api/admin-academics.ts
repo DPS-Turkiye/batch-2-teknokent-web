@@ -11,11 +11,3 @@ export function fetchProgramAcademics(actorId: string, programId: string) {
     params: { actorId },
   });
 }
-
-export function fetchAdminAcademics(actorId: string) {
-  return backendRequest<AdminAcademic[]>({
-    method: HttpMethod.Get,
-    url: "/api/admin/academics",
-    params: { actorId },
-  });
-}

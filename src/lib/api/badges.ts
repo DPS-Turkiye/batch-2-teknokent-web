@@ -72,14 +72,3 @@ export function revokeGateBadge(
     data: { actorId, reason },
   });
 }
-
-export function fetchAdminStudents(
-  actorId: string,
-  state: GateBadgeState | null,
-) {
-  return backendRequest<GateBadgeRow[]>({
-    method: HttpMethod.Get,
-    url: "/api/admin/students",
-    params: state ? { actorId, state } : { actorId },
-  });
-}

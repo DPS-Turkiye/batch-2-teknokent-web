@@ -1,10 +1,7 @@
 import type { AxiosRequestConfig } from "axios";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  fetchAdminAcademics,
-  fetchProgramAcademics,
-} from "@/lib/api/admin-academics";
+import { fetchProgramAcademics } from "@/lib/api/admin-academics";
 import { backendRequest } from "@/lib/server/backend-client";
 
 vi.mock("@/lib/server/backend-client", () => ({
@@ -24,15 +21,6 @@ const cases: RequestCase[] = [
     {
       method: "GET",
       url: "/api/coordinator/programs/prog%2F1/academics",
-      params: { actorId: "admin-1" },
-    },
-  ],
-  [
-    "lists every academic",
-    () => fetchAdminAcademics("admin-1"),
-    {
-      method: "GET",
-      url: "/api/admin/academics",
       params: { actorId: "admin-1" },
     },
   ],
