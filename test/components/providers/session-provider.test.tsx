@@ -5,7 +5,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   SessionProvider,
   useAppSession,
+  useSession,
 } from "@/components/providers/session-provider";
+import { endBackendSession } from "@/lib/client/backend-http";
+import { signOutOfFirebase } from "@/lib/firebase/auth";
 import { httpClient } from "@/lib/http-client";
 
 vi.mock("@/lib/http-client", () => ({
@@ -14,6 +17,13 @@ vi.mock("@/lib/http-client", () => ({
     post: vi.fn(),
     delete: vi.fn(),
   },
+}));
+
+vi.mock("@/lib/client/backend-http", async () =>
+  (await import("@test/mocks/backend-http")).backendHttpMock(),
+);
+vi.mock("@/lib/firebase/auth", () => ({
+  signOutOfFirebase: vi.fn(() => Promise.resolve()),
 }));
 
 const navigation = vi.hoisted(() => ({
@@ -107,5 +117,34 @@ describe("SessionProvider cross-tab freshness", () => {
     );
 
     expect(httpClient.get).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("SessionProvider signing out", () => {
+  function SignOut() {
+    const { logout } = useSession();
+    return (
+      <button type="button" onClick={() => void logout()}>
+        Çıkış
+      </button>
+    );
+  }
+
+  it("ends the app's session, the API's session cookie and the Firebase sign-in", async () => {
+    vi.mocked(httpClient.get).mockResolvedValue({ status: 401 });
+    vi.mocked(httpClient.delete).mockResolvedValue({ status: 204 });
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <SessionProvider>
+          <SignOut />
+        </SessionProvider>
+      </QueryClientProvider>,
+    );
+
+    screen.getByRole("button", { name: "Çıkış" }).click();
+
+    await waitFor(() => expect(signOutOfFirebase).toHaveBeenCalled());
+    expect(httpClient.delete).toHaveBeenCalledWith("/api/session");
+    expect(endBackendSession).toHaveBeenCalled();
   });
 });

@@ -3,6 +3,7 @@ import type { AppSession, BackendUser } from "@/interfaces/session";
 import type { ContactPreference } from "@/interfaces/signup";
 import type { Workspace } from "@/interfaces/workspace";
 import { requireSuccess } from "@/lib/client/api";
+import { startBackendSession } from "@/lib/client/backend-http";
 import { currentIdToken } from "@/lib/firebase/auth";
 import { httpClient } from "@/lib/http-client";
 import type { Locale } from "@/lib/i18n";
@@ -132,14 +133,18 @@ export async function saveLanguage(language: Locale) {
   );
 }
 
+/** Signs in to the app and to the API: the API keeps its own HttpOnly session cookie from here on. */
 export async function createSession(idToken: string, rememberMe = false) {
-  return requireSuccess(
-    await httpClient.post<AppSession>(
+  const [session] = await Promise.all([
+    httpClient.post<AppSession>(
       "/api/session",
       { rememberMe },
       bearer(idToken),
     ),
-  );
+    // A failure here is not fatal: the first API call that finds no session starts one.
+    startBackendSession(idToken, rememberMe).catch(() => false),
+  ]);
+  return requireSuccess(session);
 }
 
 /**

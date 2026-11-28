@@ -6,6 +6,7 @@ import { createContext, useContext, useEffect, type ReactNode } from "react";
 
 import type { AppSession } from "@/interfaces/session";
 import { createSession, refreshSession } from "@/lib/client/auth";
+import { endBackendSession } from "@/lib/client/backend-http";
 import { signOutOfFirebase } from "@/lib/firebase/auth";
 import { httpClient } from "@/lib/http-client";
 import { isPublicPath, loginPathFor } from "@/lib/public-paths";
@@ -70,7 +71,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      await httpClient.delete("/api/session");
+      await Promise.all([
+        httpClient.delete("/api/session"),
+        endBackendSession(),
+      ]);
       await signOutOfFirebase().catch(() => undefined);
     },
     onSuccess: () => {

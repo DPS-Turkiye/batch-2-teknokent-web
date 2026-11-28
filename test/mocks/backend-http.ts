@@ -17,6 +17,8 @@ export function backendHttpMock() {
       delete: vi.fn(),
     },
     signedInUserId: vi.fn(() => Promise.resolve(SIGNED_IN_USER_ID)),
+    startBackendSession: vi.fn(() => Promise.resolve(true)),
+    endBackendSession: vi.fn(() => Promise.resolve()),
     withToken: (idToken?: string) =>
       idToken ? { headers: { Authorization: `Bearer ${idToken}` } } : undefined,
   };

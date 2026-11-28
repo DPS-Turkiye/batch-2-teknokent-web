@@ -12,6 +12,7 @@ import {
   saveLanguage,
   switchWorkspace,
 } from "@/lib/client/auth";
+import { startBackendSession } from "@/lib/client/backend-http";
 import { currentIdToken } from "@/lib/firebase/auth";
 import { httpClient } from "@/lib/http-client";
 import { Locale } from "@/lib/i18n";
@@ -30,6 +31,9 @@ vi.mock("@/lib/http-client", () => ({
   },
 }));
 vi.mock("@/lib/firebase/auth", () => ({ currentIdToken: vi.fn() }));
+vi.mock("@/lib/client/backend-http", async () =>
+  (await import("@test/mocks/backend-http")).backendHttpMock(),
+);
 
 const BEARER = { headers: { Authorization: "Bearer given-token" } };
 const SIGNED_IN = { headers: { Authorization: "Bearer firebase-token" } };
@@ -123,6 +127,26 @@ describe("auth client", () => {
   });
 
   itSendsEachClientCall(calls);
+
+  it("createSession also starts the API's own session cookie, remembered alike", async () => {
+    vi.mocked(httpClient.post).mockResolvedValue({ status: 200, data: {} });
+
+    await createSession("given-token", true);
+
+    expect(startBackendSession).toHaveBeenCalledWith("given-token", true);
+  });
+
+  it("createSession still signs in when the API's session could not start", async () => {
+    vi.mocked(httpClient.post).mockResolvedValue({
+      status: 200,
+      data: { userId: "u" },
+    });
+    vi.mocked(startBackendSession).mockRejectedValueOnce(new Error("offline"));
+
+    await expect(createSession("given-token")).resolves.toEqual({
+      userId: "u",
+    });
+  });
 
   describe("signed out", () => {
     beforeEach(() => {
