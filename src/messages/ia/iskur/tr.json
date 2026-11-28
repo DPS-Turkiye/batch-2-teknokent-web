@@ -272,7 +272,8 @@
       "uploadFailed": "Dosya yüklenemedi.",
       "linkFailed": "Bağlantı eklenemedi.",
       "visibilityFailed": "Görünürlük değiştirilemedi.",
-      "removeFailed": "Kaldırılamadı."
+      "removeFailed": "Kaldırılamadı.",
+      "openFailed": "Dosya açılamadı."
     },
     "availability": {
       "title": "Haftalık müsaitlik"
@@ -380,6 +381,7 @@
       "sharedDocuments": "Paylaşılan belgeler",
       "view": "Görüntüle",
       "viewFile": "{name} dosyasını görüntüle",
+      "openFailed": "Dosya açılamadı.",
       "portfolioLink": "Portfolyo ({host})"
     },
     "dialog": {

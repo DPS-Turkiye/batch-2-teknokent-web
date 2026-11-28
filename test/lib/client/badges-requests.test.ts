@@ -1,6 +1,7 @@
 import { beforeEach, describe, vi } from "vitest";
 
 import { GateBadgeState } from "@/interfaces/badges";
+import { backendHttp } from "@/lib/client/backend-http";
 import {
   getAdminStudents,
   getMyAchievements,
@@ -10,7 +11,6 @@ import {
   postGateBadgeAward,
   postGateBadgeRevoke,
 } from "@/lib/client/badges";
-import { backendHttp } from "@/lib/client/backend-http";
 import {
   itSendsEachClientCall,
   type ClientCall,
@@ -60,7 +60,8 @@ const calls: ClientCall[] = [
     args: [`${BADGES}/awards`, { userId: "u-1" }],
   },
   {
-    title: "postGateBadgeRevoke revokes the encoded award with the trimmed reason",
+    title:
+      "postGateBadgeRevoke revokes the encoded award with the trimmed reason",
     call: () => postGateBadgeRevoke("prog/1", "a/1", "  Yanlış verildi "),
     method: "post",
     args: [`${BADGES}/awards/a%2F1/revoke`, { reason: "Yanlış verildi" }],

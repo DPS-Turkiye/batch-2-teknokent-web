@@ -1,11 +1,11 @@
 import type { AdminIntervention } from "@/interfaces/admin-intervention";
 import { requireSuccess } from "@/lib/client/api";
-import { httpClient } from "@/lib/http-client";
+import { backendHttp } from "@/lib/client/backend-http";
 
 const BASE = "/api/admin/interventions";
 
 export async function listAdminInterventions() {
-  return requireSuccess(await httpClient.get<AdminIntervention[]>(BASE));
+  return requireSuccess(await backendHttp.get<AdminIntervention[]>(BASE));
 }
 
 export async function openAdminIntervention(input: {
@@ -13,14 +13,13 @@ export async function openAdminIntervention(input: {
   action: string;
   note: string;
 }) {
-  return requireSuccess(await httpClient.post<AdminIntervention>(BASE, input));
+  return requireSuccess(await backendHttp.post<AdminIntervention>(BASE, input));
 }
 
 export async function resolveAdminIntervention(id: string) {
   return requireSuccess(
-    await httpClient.put<AdminIntervention>(
+    await backendHttp.put<AdminIntervention>(
       `${BASE}/${encodeURIComponent(id)}/resolve`,
-      {},
     ),
   );
 }

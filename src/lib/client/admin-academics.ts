@@ -13,6 +13,6 @@ export async function getProgramAcademics(programId: string) {
 
 export async function getAdminAcademics() {
   return requireSuccess(
-    await httpClient.get<AdminAcademic[]>("/api/admin/academics"),
+    await backendHttp.get<AdminAcademic[]>("/api/admin/academics"),
   );
 }

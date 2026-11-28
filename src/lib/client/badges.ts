@@ -12,12 +12,16 @@ const programBadges = (programId: string) =>
   `/api/coordinator/programs/${encodeURIComponent(programId)}/badges`;
 
 export async function getMyBadges() {
-  return requireSuccess(await backendHttp.get<BadgeAward[]>("/api/badges/mine"));
+  return requireSuccess(
+    await backendHttp.get<BadgeAward[]>("/api/badges/mine"),
+  );
 }
 
 export async function getMyAchievements() {
   return requireSuccess(
-    await backendHttp.get<AchievementProgress[]>("/api/badges/mine/achievements"),
+    await backendHttp.get<AchievementProgress[]>(
+      "/api/badges/mine/achievements",
+    ),
   );
 }
 

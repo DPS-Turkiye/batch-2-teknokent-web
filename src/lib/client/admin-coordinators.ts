@@ -4,22 +4,24 @@ import type {
   CoordinatorSearchResult,
 } from "@/interfaces/admin-coordinator";
 import { requireSuccess } from "@/lib/client/api";
-import { httpClient } from "@/lib/http-client";
+import { backendHttp } from "@/lib/client/backend-http";
 
 const BASE = "/api/admin/coordinators";
 
 export async function getCoordinatorCandidate(email: string) {
   return requireSuccess(
-    await httpClient.get<CoordinatorCandidate>(`${BASE}/candidate`, {
+    await backendHttp.get<CoordinatorCandidate>(`${BASE}/candidate`, {
       params: { email },
     }),
   );
 }
 
+/** Approved coordinators whose email starts with `q`; with `programId`, those already running it are left out. */
 export async function searchCoordinators(q: string, programId?: string) {
+  const query = q.trim();
   return requireSuccess(
-    await httpClient.get<CoordinatorSearchResult[]>(`${BASE}/search`, {
-      params: programId ? { q, programId } : { q },
+    await backendHttp.get<CoordinatorSearchResult[]>(`${BASE}/search`, {
+      params: programId ? { q: query, programId } : { q: query },
     }),
   );
 }
@@ -28,12 +30,14 @@ export async function addCoordinator(input: {
   fullName: string;
   email: string;
 }) {
-  return requireSuccess(await httpClient.post<CoordinatorAccount>(BASE, input));
+  return requireSuccess(
+    await backendHttp.post<CoordinatorAccount>(BASE, input),
+  );
 }
 
 export async function setCoordinatorAccess(id: string, active: boolean) {
   return requireSuccess(
-    await httpClient.put<CoordinatorAccount>(
+    await backendHttp.put<CoordinatorAccount>(
       `${BASE}/${encodeURIComponent(id)}/access`,
       { active },
     ),
@@ -42,9 +46,8 @@ export async function setCoordinatorAccess(id: string, active: boolean) {
 
 export async function resendCoordinatorPasswordSetup(id: string) {
   return requireSuccess(
-    await httpClient.post<CoordinatorAccount>(
+    await backendHttp.post<CoordinatorAccount>(
       `${BASE}/${encodeURIComponent(id)}/password-setup`,
-      {},
     ),
   );
 }
