@@ -16,8 +16,8 @@ npm run dev             # http://localhost:3000
 
 `.env.example` documents every variable. The important ones:
 
-- `BACKEND_URL`, `BACKEND_USERNAME`, `BACKEND_PASSWORD`: how the server side of this app reaches the backend.
-- `SESSION_PASSWORD`: at least 32 random characters; it encrypts the session cookie.
+- `BACKEND_URL`: the backend; the browser calls it directly (amplify.yml copies it to `NEXT_PUBLIC_BACKEND_URL`).
+  The session is the API's own cookie, so this app needs no backend credential and no session key.
 - `NEXT_PUBLIC_*`: values the browser may see (Firebase web config, the realtime WebSocket URL, feature flags).
 
 Never commit `.env`. Anything prefixed `NEXT_PUBLIC_` ends up in the browser bundle, so it must not be a secret.

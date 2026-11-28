@@ -5,13 +5,13 @@ linted like production code, and CI enforces coverage floors.
 
 ## What to test
 
-| Code                        | Test                                                                                                | Location                              |
-| --------------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------- |
-| Pure logic in `src/lib`     | Unit tests: inputs, edge cases, every branch.                                                       | `test/lib/…`                          |
-| Hooks                       | `renderHook` with a query client: state transitions, what is sent, invalidation, errors.            | `test/hooks/…`                        |
-| Components and pages        | Render, interact with `userEvent`, assert what the user sees and what was called.                   | `test/components/…`, `test/app/…`     |
-| Route handlers              | Auth refusals, the exact backend call (actor from the session), 400s for bad bodies, error mapping. | `test/app/api/…`                      |
-| Browser and backend clients | URL, method, payload, and how failures surface.                                                     | `test/lib/client/…`, `test/lib/api/…` |
+| Code                    | Test                                                                                     | Location                           |
+| ----------------------- | ---------------------------------------------------------------------------------------- | ---------------------------------- |
+| Pure logic in `src/lib` | Unit tests: inputs, edge cases, every branch.                                            | `test/lib/…`                       |
+| Hooks                   | `renderHook` with a query client: state transitions, what is sent, invalidation, errors. | `test/hooks/…`                     |
+| Components and pages    | Render, interact with `userEvent`, assert what the user sees and what was called.        | `test/components/…`, `test/app/…`  |
+| Browser clients         | URL, method, payload, and how failures surface (`backendHttp` mocked).                   | `test/lib/client/…`                |
+| This app's two routes   | The token check, the backend call, error mapping.                                        | `test/app/api/…`, `test/lib/api/…` |
 
 The test file mirrors the source path: `src/lib/meeting-context.ts` → `test/lib/meeting-context.test.ts`. When a
 module's test file grows large, add a second file with a descriptive suffix (`meeting-context-branches.test.ts`).
@@ -64,11 +64,11 @@ the cause rather than casting.
 `getComputedStyle` fallback) and the jest-dom matchers. Add a missing browser API there, once, rather than guarding
 for it in `src`.
 
-## Route handler tests
+## Browser client tests
 
-`test/app/api/body-validation.ts` is a table-driven harness. A route's validation cases are one table: a valid body
-with the exact backend call it must produce, and named invalid bodies that must answer 400 without calling the
-backend. Add a row when you add a field.
+Mock `@/lib/client/backend-http` with `backendHttpMock()` from `@test/mocks/backend-http`, and list a module's calls
+for `itSendsEachClientCall(calls, backendHttp)` from `@test/fixtures/client-calls`: one row per call, with the exact
+method, path and body it must send.
 
 ## Running tests
 

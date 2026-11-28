@@ -2,10 +2,10 @@
 
 ## Where data comes from
 
-- **Server components** read the session and call loaders in `src/lib` on the server, then pass the result down as
-  props. Use this when a page only needs data at request time.
 - **Client components** get data and state only from hooks in `src/hooks`. A hook calls the browser client in
-  `src/lib/client`, which calls this app's `/api/*` routes (never the backend directly).
+  `src/lib/client`, which calls the backend directly through `backendHttp` (see [Calling the backend](backend-calls.md)).
+- **Server components** do not fetch the backend: the session is the API's cookie on its own host, out of this
+  server's sight. A page that needs data is a client component, or renders one.
 
 ## TanStack Query
 

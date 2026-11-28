@@ -11,7 +11,7 @@ these rules are enforced by ESLint or TypeScript; when a check fails, fix the co
 // ✗ The view decides what is overdue (with a string literal) and builds the payload.
 function TaskList({ tasks }: { tasks: ActionItem[] }) {
   const overdue = tasks.filter((task) => task.status !== "COMPLETED" && Date.parse(task.dueDate) < Date.now());
-  const save = () => httpClient.put("/api/action-items", { ids: overdue.map((task) => task.id) });
+  const save = () => backendHttp.put("/api/action-items", { ids: overdue.map((task) => task.id) });
   …
 }
 
@@ -27,9 +27,10 @@ export function overdueItems(items: readonly ActionItem[], now: Date) {
 A view may keep trivial UI state (an open menu, a hovered row). Anything a product person would call a rule (who may
 do what, what counts as late, which items to show, what to send) goes to `src/lib` or a hook.
 
-### Route handlers forward, they do not decide
+### The backend decides access
 
-See [API routes](api-routes.md). A handler authenticates, validates, makes one backend call and maps errors.
+See [Calling the backend](backend-calls.md). The browser never names the caller; what it may see or change is the
+backend's decision. A role check in the browser only hides what the backend would refuse anyway.
 
 ## TypeScript
 
@@ -47,7 +48,7 @@ The compiler runs with `strict`, `noUncheckedIndexedAccess`, `exactOptionalPrope
 - **Model the backend's `null` honestly.** The backend's JSON includes absent values as `null` (Jackson's default). A
   field it may leave empty is `T | null` (or `T | null | undefined` when it can also be missing), never `T` or `T?`.
   When you find a lie, fix the type and let the compiler show you every place that must handle the empty case.
-- **Validate at trust boundaries.** Request bodies: zod in the route handler. `JSON.parse`, `localStorage`, URL params,
+- **Validate at trust boundaries.** `JSON.parse`, `localStorage`, URL params,
   `postMessage`: read as `unknown`, then narrow with a type guard.
 - **Imports.** Type-only imports use `import type` or inline `type` (enforced). Import order is handled by Prettier.
   Use the `@/` alias for `src` and `@test/` in tests, not long relative paths.
@@ -101,9 +102,7 @@ Search before adding a helper (`grep -rn "function format" src/lib`). If two fil
 | Meet links                                      | `normalizeMeetLink`, `meetLinkHref` in `src/lib/meet-link.ts`                                                                                                                                             |
 | Role checks                                     | `hasPermission`, `hasAnyPermission` in `src/lib/permissions.ts`                                                                                                                                           |
 | HTTP verbs                                      | the `HttpMethod` enum in `src/lib/http-method.ts`                                                                                                                                                         |
-| Browser → this app's API                        | `httpClient` (`src/lib/http-client.ts`) with `requireSuccess` (`src/lib/client/api.ts`)                                                                                                                   |
-| Server → backend                                | `backendRequest` (`src/lib/server/backend-client.ts`)                                                                                                                                                     |
-| Route body validation, responses                | `readJsonBody`, `stringOrNullSchema` (`src/lib/server/request-body.ts`); `backendResponse`, `apiErrorResponse`, `apiText` (`src/lib/server/api-response.ts`)                                              |
+| Browser → backend                               | `backendHttp` (`src/lib/client/backend-http.ts`) with `requireSuccess` (`src/lib/client/api.ts`); `signedInUserId()` for the caller's own id                                                              |
 | Object URLs, client-side pagination, inline add | `useObjectUrl`, `useClientPagination`, `useInlineEntry` in `src/hooks`                                                                                                                                    |
 | Toasts                                          | `useToast()` from `src/stores/toast-store.ts`                                                                                                                                                             |
 | Shared UI pieces                                | `src/components/common` (buttons, dialogs, empty states, pagination, steppers…)                                                                                                                           |
@@ -121,7 +120,7 @@ A new general helper goes into the module for its concept (or a new one), gets a
 
 ## React
 
-- Client components start with `"use client"`. Keep pages server components when they only need server data.
+- Client components start with `"use client"`. Keep pages server components when they need nothing from the backend (static content, translations, the edition).
 - Effects synchronize with the outside world (subscriptions, timers, the DOM). Derived values are computed during
   render or with `useMemo`, not copied into state by an effect.
 - Promises are never left floating: `await` them, or mark a deliberate fire-and-forget with `void`.

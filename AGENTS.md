@@ -21,28 +21,27 @@ These rules apply to every change, by people and by coding agents. The reasoning
 
 ## Where code goes
 
-| Layer                | Folder                                     | Owns                                                                                                       |
-| -------------------- | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
-| Views                | `src/app/**/page.tsx`, `src/components/**` | Rendering and wiring events to callbacks. Nothing else.                                                    |
-| Hooks                | `src/hooks/use-*.ts`                       | Screen state, TanStack Query calls, mutations, toasts, derived values for a view.                          |
-| Domain logic         | `src/lib/*.ts`                             | Pure functions: rules, calculations, formatting, mapping. No React, no network. Unit-tested in `test/lib`. |
-| Browser API clients  | `src/lib/client/*.ts`                      | Calls from the browser to this app's own `/api/*` routes through `httpClient` and `requireSuccess`.        |
-| Route handlers (BFF) | `src/app/api/**/route.ts`                  | Session check, body validation, one call to `src/lib/api`, response mapping. Nothing else.                 |
-| Backend clients      | `src/lib/api/*.ts`                         | Server-only calls to the Spring backend through `backendRequest`.                                          |
-| Server helpers       | `src/lib/server/*.ts`                      | Shared server logic: guards, request-body parsing, schemas, response helpers.                              |
-| Contracts and enums  | `src/interfaces/*.ts`                      | Types and enums for domain data and API payloads.                                                          |
-| UI-only types        | `src/types/*.ts`                           | View models and UI enums that never cross the API.                                                         |
-| UI text              | `src/messages/{tr,en}.json`                | Every user-facing string. `tr.json` is the source of truth.                                                |
+| Layer               | Folder                                     | Owns                                                                                                       |
+| ------------------- | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
+| Views               | `src/app/**/page.tsx`, `src/components/**` | Rendering and wiring events to callbacks. Nothing else.                                                    |
+| Hooks               | `src/hooks/use-*.ts`                       | Screen state, TanStack Query calls, mutations, toasts, derived values for a view.                          |
+| Domain logic        | `src/lib/*.ts`                             | Pure functions: rules, calculations, formatting, mapping. No React, no network. Unit-tested in `test/lib`. |
+| Browser API clients | `src/lib/client/*.ts`                      | Calls from the browser straight to the backend through `backendHttp` and `requireSuccess`.                 |
+| This app's routes   | `src/app/api/{health,email-unsubscribe}`   | Only these two, with no session and no credential. Do not add a route that calls the backend for a user.   |
+| Server helpers      | `src/lib/server/*.ts`, `src/lib/api/*.ts`  | Server-only code: account type, edition, and the two routes' schema, backend call and response helpers.    |
+| Contracts and enums | `src/interfaces/*.ts`                      | Types and enums for domain data and API payloads.                                                          |
+| UI-only types       | `src/types/*.ts`                           | View models and UI enums that never cross the API.                                                         |
+| UI text             | `src/messages/{tr,en}.json`                | Every user-facing string. `tr.json` is the source of truth.                                                |
 
 ## Rules
 
 1. **Views have no business logic.** A component renders what a hook gives it and calls the hook's callbacks. Filtering, sorting, status decisions, date math and payload building live in a hook or in `src/lib`. A pure function that a view needs goes to `src/lib` and gets a unit test.
-2. **Route handlers have no business logic.** A handler resolves the session or a guard, validates the body with `readJsonBody(request, schema)` (zod), calls one `src/lib/api` function and returns `backendResponse(...)` or `apiErrorResponse(...)`. Shared server logic goes to `src/lib/server`. See [`docs/api-routes.md`](docs/api-routes.md).
-3. **Identity comes from the session, never from the request.** `actorId` and `userId` sent to the backend are taken from the session. Never forward an id the browser sent as "who is acting".
+2. **The browser calls the backend directly.** Firebase signs the person in and its ID token is traded once for the API's HttpOnly session cookie (`startBackendSession`); every call goes through `backendHttp` (`withCredentials`), which carries it. `withToken(idToken)` is only for onboarding calls made before a session exists. See [`docs/backend-calls.md`](docs/backend-calls.md).
+3. **The backend decides who is calling and what they may do.** Never send who is acting (no `actorId`); an id in a path or body only says which of the caller's own things is meant (`signedInUserId()` for the caller's own id). Never make an access decision in the browser that the backend does not also make.
 4. **Use enums, not string literals, for domain values.** Compare against enum members (`status === MeetingStatus.Completed`), never against `"COMPLETED"`, and never against `String(Enum.X)`. Type fields as the enum. Turn untrusted strings into enums once, at the boundary, with `isEnumValue` or `isOneOf` from `src/lib/enum.ts`. Before adding an enum, search for an existing one; do not create a second enum with the same name. Lint rejects comparing or switching on an UPPER_CASE string literal. When a value is free text on the backend, compare against a named `as const` object (like `HttpMethod` or `MatchingMethod`).
 5. **Reuse before you write.** Search `src/lib` before adding a helper. The common ones are listed in [`docs/coding-standards.md`](docs/coding-standards.md#reuse-before-you-write). One concept has one helper; if two files need the same function, move it to `src/lib` and import it from both.
 6. **No type escape hatches.** No `any`, no `as unknown as T`, no `as never`, no non-null `!` in `src`, no `@ts-ignore` or `@ts-expect-error`. ESLint enforces most of this. Fix the type instead: narrow, guard, or correct the declaration.
-7. **Types tell the truth about the backend.** The backend sends absent values as `null`, so a nullable field is `T | null`, not `T?`. Validate data that crosses a trust boundary (request bodies with zod; parsed JSON as `unknown`, then narrowed).
+7. **Types tell the truth about the backend.** The backend sends absent values as `null`, so a nullable field is `T | null`, not `T?`. Validate data that crosses a trust boundary (parsed JSON, URL params and storage as `unknown`, then narrowed; zod where a shape is checked).
 8. **No hardcoded UI text.** Every string a user can see is a key in `src/messages/tr.json` (and `en.json`). Code, comments and identifiers are in English; UI copy is in Turkish first.
 9. **Editable lists use stable keys.** Rows that can be added, removed or reordered carry a key from `src/lib/keyed-list.ts`, which is stripped before sending. Index keys are only for lists that never reorder or shrink, with a `-- reason`.
 10. **Suppressions need a reason.** `// eslint-disable-next-line rule -- why` only when the rule is genuinely wrong for that line. Unused or reason-less directives fail lint.

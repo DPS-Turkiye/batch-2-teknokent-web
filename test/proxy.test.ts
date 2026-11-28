@@ -133,7 +133,7 @@ describe("proxy", () => {
   });
 
   it("does not send API calls to login", async () => {
-    const response = await request("/api/auth/me");
+    const response = await request("/api/email-unsubscribe");
     expect(response.status).toBe(200);
     expect(response.headers.get("location")).toBeNull();
   });

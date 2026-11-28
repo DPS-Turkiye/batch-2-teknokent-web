@@ -3,14 +3,12 @@ import { getTranslations } from "next-intl/server";
 
 import { AppShell } from "@/components/hoc/app-shell";
 import { StartupApprovalBanner } from "@/components/startup/startup-start-view";
-import { getSessionUser } from "@/lib/session";
 import { AppArea } from "@/types/app-area";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("metadata");
-  // The flag saved in the session at sign-in: the title is not worth asking the backend for.
-  const student = (await getSessionUser())?.individualMentee ?? false;
-  return { title: t(student ? "studentProject" : "startup") };
+  // The account lives on the API's cookie, out of this server's sight, so a student's project page has this title too.
+  return { title: t("startup") };
 }
 
 export default function StartupLayout({
