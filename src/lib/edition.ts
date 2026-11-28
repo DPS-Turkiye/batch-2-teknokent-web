@@ -35,6 +35,14 @@ export function parseEdition(value: string | undefined): Edition {
   throw new Error(`APP_EDITION must be TEKNOKENT or ODTU, not "${value}".`);
 }
 
+/**
+ * The deployment's edition in the browser. NEXT_PUBLIC_APP_EDITION is written next to APP_EDITION at build
+ * (amplify.yml), so both name the same edition; read literally, so Next.js can inline it.
+ */
+export function clientEdition(): Edition {
+  return parseEdition(process.env.NEXT_PUBLIC_APP_EDITION);
+}
+
 function decodedPath(pathname: string) {
   try {
     return decodeURIComponent(pathname);

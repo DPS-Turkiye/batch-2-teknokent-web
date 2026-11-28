@@ -2,12 +2,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { Edition } from "@/interfaces/edition";
 import {
-  IdentityKind,
   UserAccountStatus,
   UserRole,
   type BackendUser,
 } from "@/interfaces/session";
-import { Workspace } from "@/interfaces/workspace";
 
 const cookieJar = vi.hoisted(() => ({
   get: vi.fn(),
@@ -61,16 +59,17 @@ const HOUR_MS = 60 * 60 * 1000;
 const {
   ACCOUNT_RECHECK_MS,
   getSessionIds,
-  getSessionSignedInAt,
   getSessionMentorId,
   getSessionUser,
-  LAST_WORKSPACE_COOKIE,
   refreshSessionUser,
-  saveSessionUser,
-  switchSessionWorkspace,
-  toSession,
 } = await import("@/lib/session");
 const { SessionRequiredError } = await import("@/lib/server/session-error");
+const { toSession: toSessionUnder } = await import("@/lib/session-model");
+
+/** What the server builds from /api/auth/me, under the Teknokent edition these tests run in. */
+function toSession(user: BackendUser) {
+  return toSessionUnder(user, Edition.Teknokent);
+}
 
 function mentee(overrides: Partial<BackendUser> = {}): BackendUser {
   return {
@@ -85,159 +84,8 @@ function mentee(overrides: Partial<BackendUser> = {}): BackendUser {
   };
 }
 
-function mentor(overrides: Partial<BackendUser> = {}): BackendUser {
-  return {
-    id: "00000000-0000-0000-0000-000000000006",
-    email: "ece.demir@teknokent.demo",
-    fullName: "Ece Demir",
-    role: UserRole.Mentor,
-    ...overrides,
-  };
-}
-
 afterEach(() => {
   vi.unstubAllEnvs();
-});
-
-describe("toSession", () => {
-  it("stamps the session with this deployment's edition", () => {
-    vi.stubEnv("APP_EDITION", undefined);
-    expect(toSession(mentee())?.edition).toBe(Edition.Teknokent);
-    vi.stubEnv("APP_EDITION", "ODTU");
-    expect(toSession(mentee())?.edition).toBe(Edition.Odtu);
-  });
-
-  it("builds a mentee session when organization info is present", () => {
-    const session = toSession(mentee());
-    expect(session).toMatchObject({
-      role: UserRole.Mentee,
-      organizationId: "20000000-0000-0000-0000-000000000001",
-      organizationName: "GreenLoop",
-    });
-  });
-
-  it("keeps the sign-in flag of an individual program's student", () => {
-    expect(
-      toSession(mentee({ individualMentee: true }))?.individualMentee,
-    ).toBe(true);
-    expect(toSession(mentee())?.individualMentee).toBeUndefined();
-  });
-
-  it("keeps an ODTÜ student's personal team by id only, flagged, with no name", () => {
-    const session = toSession(
-      mentee({
-        organizationId: "personal-1",
-        organizationName: null,
-        personalOrganization: true,
-        permissions: [UserRole.Mentee],
-        institutionKinds: [IdentityKind.Student],
-      }),
-    );
-    expect(session).toMatchObject({
-      organizationId: "personal-1",
-      personalOrganization: true,
-    });
-    expect(session?.organizationName).toBeUndefined();
-    expect(toSession(mentee())?.personalOrganization).toBeUndefined();
-  });
-
-  it("keeps the team of a research assistant, who is mentored but not primarily a mentee", () => {
-    const session = toSession(
-      mentor({
-        role: UserRole.Academician,
-        jobTitle: null,
-        organizationId: "personal-2",
-        organizationName: null,
-        personalOrganization: true,
-        permissions: [UserRole.Mentee, UserRole.Academician],
-        institutionKinds: [IdentityKind.Student, IdentityKind.Academic],
-      }),
-    );
-    expect(session).toMatchObject({
-      organizationId: "personal-2",
-      personalOrganization: true,
-    });
-  });
-
-  it("signs in a mentee who has no startup yet", () => {
-    const session = toSession(
-      mentee({ organizationId: null, organizationName: null }),
-    );
-    expect(session).not.toBeNull();
-    expect(session?.organizationId).toBeUndefined();
-  });
-
-  it("signs in an ODTÜ academician and keeps what the institution says they are", () => {
-    const session = toSession(
-      mentor({
-        role: UserRole.Academician,
-        jobTitle: null,
-        permissions: [UserRole.Mentee, UserRole.Academician],
-        institutionKinds: [IdentityKind.Student, IdentityKind.Academic],
-      }),
-    );
-    expect(session).toMatchObject({
-      role: UserRole.Academician,
-      jobTitle: "Akademisyen",
-      permissions: [UserRole.Mentee, UserRole.Academician],
-      institutionKinds: [IdentityKind.Student, IdentityKind.Academic],
-    });
-  });
-
-  it("builds a mentor session without requiring an organization", () => {
-    const session = toSession(mentor());
-    expect(session).toEqual({
-      userId: "00000000-0000-0000-0000-000000000006",
-      email: "ece.demir@teknokent.demo",
-      fullName: "Ece Demir",
-      jobTitle: "Mentor",
-      role: UserRole.Mentor,
-      permissions: [UserRole.Mentor],
-      edition: Edition.Teknokent,
-    });
-  });
-
-  it("builds an admin session without requiring an organization", () => {
-    expect(
-      toSession(
-        mentee({
-          role: UserRole.Admin,
-          organizationId: null,
-          organizationName: null,
-          jobTitle: null,
-        }),
-      ),
-    ).toEqual({
-      userId: "10000000-0000-0000-0000-000000000001",
-      email: "mentee@teknokent.demo",
-      fullName: "Deniz Arslan",
-      jobTitle: "Admin",
-      role: UserRole.Admin,
-      permissions: [UserRole.Admin],
-      edition: Edition.Teknokent,
-    });
-  });
-
-  it("builds a coordinator session without requiring an organization", () => {
-    expect(
-      toSession(
-        mentee({
-          role: UserRole.Coordinator,
-          organizationId: null,
-          organizationName: null,
-          jobTitle: null,
-        }),
-      ),
-    ).toEqual({
-      userId: "10000000-0000-0000-0000-000000000001",
-      email: "mentee@teknokent.demo",
-      fullName: "Deniz Arslan",
-      jobTitle: "Koordinatör",
-      role: UserRole.Coordinator,
-      permissions: [UserRole.Coordinator],
-      edition: Edition.Teknokent,
-    });
-  });
 });
 
 describe("getSessionUser", () => {
@@ -481,27 +329,6 @@ describe("refreshSessionUser", () => {
   });
 });
 
-describe("saveSessionUser", () => {
-  it("records when the session was saved", async () => {
-    const before = Date.now();
-    await saveSessionUser(
-      {
-        userId: "founder-1",
-        email: "founder@teknokent.demo",
-        fullName: "Deniz Arslan",
-        jobTitle: "Kurucu",
-        role: UserRole.Mentee,
-      },
-      true,
-    );
-    expect(savedSession.issuedAt).toBeGreaterThanOrEqual(before);
-    expect(savedSession.issuedAt).toBeLessThanOrEqual(Date.now());
-    expect(savedSession.checkedAt).toBe(savedSession.issuedAt);
-    expect(savedSession.persist).toBe(true);
-    expect(savedSession.save).toHaveBeenCalledOnce();
-  });
-});
-
 describe("getSessionIds", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -524,14 +351,6 @@ describe("getSessionIds", () => {
       userId: "founder-1",
       organizationId: "org-1",
     });
-  });
-});
-
-describe("getSessionSignedInAt", () => {
-  it("returns when the sign-in began, for the realtime token", async () => {
-    mockIronSession.issuedAt = 1_762_589_730_123;
-
-    await expect(getSessionSignedInAt()).resolves.toBe(1_762_589_730_123);
   });
 });
 
@@ -571,52 +390,5 @@ describe("getSessionMentorId", () => {
     await expect(getSessionMentorId()).rejects.toBeInstanceOf(
       SessionRequiredError,
     );
-  });
-});
-
-describe("switchSessionWorkspace", () => {
-  const assistant = {
-    ...toSession(
-      mentor({
-        role: UserRole.Academician,
-        permissions: [UserRole.Mentee, UserRole.Academician],
-        institutionKinds: [IdentityKind.Student, IdentityKind.Academic],
-      }),
-    )!,
-    edition: Edition.Odtu,
-  };
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-    vi.stubEnv("APP_EDITION", "ODTU");
-    mockIronSession.user = assistant;
-    mockIronSession.issuedAt = Date.now();
-  });
-
-  it("opens no ODTÜ workspace in the Teknokent edition, even for a cookie stamped ODTU", async () => {
-    vi.stubEnv("APP_EDITION", "TEKNOKENT");
-    await expect(
-      switchSessionWorkspace(Workspace.OdtuStudent),
-    ).resolves.toBeNull();
-    expect(savedSession.save).not.toHaveBeenCalled();
-  });
-
-  it("saves the switch and remembers it for the next sign-in", async () => {
-    await expect(
-      switchSessionWorkspace(Workspace.OdtuStudent),
-    ).resolves.toMatchObject({ activeWorkspace: Workspace.OdtuStudent });
-
-    expect(savedSession.save).toHaveBeenCalledOnce();
-    expect(cookieJar.set).toHaveBeenCalledWith(
-      LAST_WORKSPACE_COOKIE,
-      Workspace.OdtuStudent,
-      expect.objectContaining({ httpOnly: true }),
-    );
-  });
-
-  it("refuses a workspace the account cannot open", async () => {
-    await expect(switchSessionWorkspace(Workspace.Admin)).resolves.toBeNull();
-    expect(savedSession.save).not.toHaveBeenCalled();
-    expect(cookieJar.set).not.toHaveBeenCalled();
   });
 });

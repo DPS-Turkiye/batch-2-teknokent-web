@@ -10,7 +10,7 @@ import {
   MeetingRoomEventType,
   type MeetingTodo,
 } from "@/interfaces/meeting-note";
-import { postRealtimeToken } from "@/lib/client/meeting-notes";
+import { postRealtimeToken } from "@/lib/client/realtime-token";
 import { queryWrapper } from "@test/fixtures/query-wrapper";
 
 type MessageHandler = (message: { body: string }) => void;
@@ -52,7 +52,7 @@ const stomp = vi.hoisted(() => {
 });
 
 vi.mock("@stomp/stompjs", () => ({ Client: stomp.FakeClient }));
-vi.mock("@/lib/client/meeting-notes", () => ({ postRealtimeToken: vi.fn() }));
+vi.mock("@/lib/client/realtime-token", () => ({ postRealtimeToken: vi.fn() }));
 
 const BROKER = "ws://localhost:8080/ws";
 const TOPIC = "/topic/meetings/m-1";

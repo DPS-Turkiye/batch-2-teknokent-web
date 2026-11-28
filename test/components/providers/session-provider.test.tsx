@@ -7,22 +7,17 @@ import {
   useAppSession,
   useSession,
 } from "@/components/providers/session-provider";
-import { endBackendSession } from "@/lib/client/backend-http";
+import { UserRole } from "@/interfaces/session";
+import { backendHttp, endBackendSession } from "@/lib/client/backend-http";
 import { signOutOfFirebase } from "@/lib/firebase/auth";
-import { httpClient } from "@/lib/http-client";
-
-vi.mock("@/lib/http-client", () => ({
-  httpClient: {
-    get: vi.fn(),
-    post: vi.fn(),
-    delete: vi.fn(),
-  },
-}));
+import { SIGNED_IN_HINT_COOKIE } from "@/lib/session-hint";
+import { backendUser } from "@test/fixtures/session";
 
 vi.mock("@/lib/client/backend-http", async () =>
   (await import("@test/mocks/backend-http")).backendHttpMock(),
 );
 vi.mock("@/lib/firebase/auth", () => ({
+  currentIdToken: vi.fn(() => Promise.resolve(null)),
   signOutOfFirebase: vi.fn(() => Promise.resolve()),
 }));
 
@@ -38,7 +33,7 @@ vi.mock("next/navigation", () => ({
 beforeEach(() => {
   navigation.pathname = "/dashboard";
   navigation.replace.mockClear();
-  vi.mocked(httpClient.get).mockReset();
+  vi.mocked(backendHttp.get).mockReset();
 });
 
 function SessionLabel() {
@@ -60,7 +55,7 @@ describe("SessionProvider on a page that needs a session", () => {
   // Reported: a page left open after the session ended kept rendering, with
   // the user shown as "Kullanıcı".
   it("sends a signed-out visitor to login and shows nothing meanwhile", async () => {
-    vi.mocked(httpClient.get).mockResolvedValue({ status: 401 });
+    vi.mocked(backendHttp.get).mockResolvedValue({ status: 401 });
     renderSession(new QueryClient());
 
     await waitFor(() =>
@@ -73,7 +68,7 @@ describe("SessionProvider on a page that needs a session", () => {
 
   it("leaves public pages alone", async () => {
     navigation.pathname = "/login";
-    vi.mocked(httpClient.get).mockResolvedValue({ status: 401 });
+    vi.mocked(backendHttp.get).mockResolvedValue({ status: 401 });
     renderSession(new QueryClient());
 
     expect(await screen.findByText("no session")).toBeInTheDocument();
@@ -81,13 +76,13 @@ describe("SessionProvider on a page that needs a session", () => {
   });
 
   it("does not sign someone out over a failed check", async () => {
-    vi.mocked(httpClient.get).mockResolvedValue({ status: 503 });
+    vi.mocked(backendHttp.get).mockResolvedValue({ status: 503 });
     renderSession(
       new QueryClient({ defaultOptions: { queries: { retry: false } } }),
     );
 
     expect(await screen.findByText("no session")).toBeInTheDocument();
-    await waitFor(() => expect(httpClient.get).toHaveBeenCalled());
+    await waitFor(() => expect(backendHttp.get).toHaveBeenCalled());
     expect(navigation.replace).not.toHaveBeenCalled();
   });
 });
@@ -95,9 +90,9 @@ describe("SessionProvider on a page that needs a session", () => {
 describe("SessionProvider cross-tab freshness", () => {
   it("re-fetches the session on every mount instead of serving a stale cached identity", async () => {
     const queryClient = new QueryClient();
-    vi.mocked(httpClient.get).mockResolvedValueOnce({
+    vi.mocked(backendHttp.get).mockResolvedValueOnce({
       status: 200,
-      data: { fullName: "Leyla Aksoy" },
+      data: backendUser({ fullName: "Leyla Aksoy" }),
     });
 
     const first = renderSession(queryClient);
@@ -106,9 +101,9 @@ describe("SessionProvider cross-tab freshness", () => {
     );
     first.unmount();
 
-    vi.mocked(httpClient.get).mockResolvedValueOnce({
+    vi.mocked(backendHttp.get).mockResolvedValueOnce({
       status: 200,
-      data: { fullName: "Ayşe Kaya" },
+      data: backendUser({ fullName: "Ayşe Kaya" }),
     });
 
     renderSession(queryClient);
@@ -116,7 +111,7 @@ describe("SessionProvider cross-tab freshness", () => {
       expect(screen.getByText("Ayşe Kaya")).toBeInTheDocument(),
     );
 
-    expect(httpClient.get).toHaveBeenCalledTimes(2);
+    expect(backendHttp.get).toHaveBeenCalledTimes(2);
   });
 });
 
@@ -130,9 +125,9 @@ describe("SessionProvider signing out", () => {
     );
   }
 
-  it("ends the app's session, the API's session cookie and the Firebase sign-in", async () => {
-    vi.mocked(httpClient.get).mockResolvedValue({ status: 401 });
-    vi.mocked(httpClient.delete).mockResolvedValue({ status: 204 });
+  it("ends the API's session cookie, the proxy's hint and the Firebase sign-in", async () => {
+    vi.mocked(backendHttp.get).mockResolvedValue({ status: 401 });
+    document.cookie = `${SIGNED_IN_HINT_COOKIE}=${UserRole.Mentee}; path=/`;
     render(
       <QueryClientProvider client={new QueryClient()}>
         <SessionProvider>
@@ -144,7 +139,7 @@ describe("SessionProvider signing out", () => {
     screen.getByRole("button", { name: "Çıkış" }).click();
 
     await waitFor(() => expect(signOutOfFirebase).toHaveBeenCalled());
-    expect(httpClient.delete).toHaveBeenCalledWith("/api/session");
     expect(endBackendSession).toHaveBeenCalled();
+    expect(document.cookie).not.toContain(SIGNED_IN_HINT_COOKIE);
   });
 });

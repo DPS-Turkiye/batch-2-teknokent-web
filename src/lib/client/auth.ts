@@ -3,9 +3,13 @@ import type { AppSession, BackendUser } from "@/interfaces/session";
 import type { ContactPreference } from "@/interfaces/signup";
 import type { Workspace } from "@/interfaces/workspace";
 import { requireSuccess } from "@/lib/client/api";
-import { startBackendSession } from "@/lib/client/backend-http";
+import { backendHttp, withToken } from "@/lib/client/backend-http";
+import {
+  readSession,
+  signIn,
+  switchSessionWorkspace,
+} from "@/lib/client/session";
 import { currentIdToken } from "@/lib/firebase/auth";
-import { httpClient } from "@/lib/http-client";
 import type { Locale } from "@/lib/i18n";
 
 export type FounderRegistration = {
@@ -59,31 +63,28 @@ export type MemberRegistration = {
   phone?: string | undefined;
 };
 
-function bearer(idToken: string) {
-  return { headers: { Authorization: `Bearer ${idToken}` } };
-}
-
 export async function getProgramEligibility(
   programId: string,
   idToken: string,
 ) {
   return requireSuccess(
-    await httpClient.get<ProgramEligibility>(
-      `/api/auth/register/program-eligibility?programId=${encodeURIComponent(programId)}`,
-      bearer(idToken),
+    await backendHttp.get<ProgramEligibility>(
+      "/api/auth/register/program-eligibility",
+      { ...withToken(idToken), params: { programId } },
     ),
   );
 }
 
+// Registration runs before any session exists, so it rides on the Firebase token the sign-up just got.
 export async function registerFounder(
   input: FounderRegistration,
   idToken: string,
 ) {
   return requireSuccess(
-    await httpClient.post<BackendUser>(
+    await backendHttp.post<BackendUser>(
       "/api/auth/register/founder",
       input,
-      bearer(idToken),
+      withToken(idToken),
     ),
   );
 }
@@ -93,10 +94,10 @@ export async function registerMentor(
   idToken: string,
 ) {
   return requireSuccess(
-    await httpClient.post<BackendUser>(
+    await backendHttp.post<BackendUser>(
       "/api/auth/register/mentor",
       input,
-      bearer(idToken),
+      withToken(idToken),
     ),
   );
 }
@@ -106,65 +107,49 @@ export async function registerMember(
   idToken: string,
 ) {
   return requireSuccess(
-    await httpClient.post<BackendUser>(
+    await backendHttp.post<BackendUser>(
       "/api/auth/register/member",
       input,
-      bearer(idToken),
+      withToken(idToken),
     ),
   );
 }
 
+/** The account behind a Firebase sign-in, pending or rejected ones included (the application status page). */
 export async function fetchAccountStatus(idToken: string) {
   return requireSuccess(
-    await httpClient.get<BackendUser>("/api/auth/status", bearer(idToken)),
+    await backendHttp.get<BackendUser>("/api/auth/me", withToken(idToken)),
   );
-}
-
-/** Saves the language for the backend's notifications and e-mails; signed out, there is nobody to save it for. */
-export async function saveLanguage(language: Locale) {
-  const idToken = await currentIdToken();
-  if (!idToken) return;
-  requireSuccess(
-    await httpClient.put(
-      "/api/session/language",
-      { language },
-      bearer(idToken),
-    ),
-  );
-}
-
-/** Signs in to the app and to the API: the API keeps its own HttpOnly session cookie from here on. */
-export async function createSession(idToken: string, rememberMe = false) {
-  const [session] = await Promise.all([
-    httpClient.post<AppSession>(
-      "/api/session",
-      { rememberMe },
-      bearer(idToken),
-    ),
-    // A failure here is not fatal: the first API call that finds no session starts one.
-    startBackendSession(idToken, rememberMe).catch(() => false),
-  ]);
-  return requireSuccess(session);
 }
 
 /**
- * Re-reads the account into the session after something changed what it may do (a badge awarded after sign-in).
- * Null when the browser has no Firebase sign-in to prove who it is.
+ * Saves the language for the backend's notifications and e-mails. The Firebase token reaches a pending account
+ * too, which has no session; signed out entirely, there is nobody to save it for.
  */
-export async function refreshSession(): Promise<AppSession | null> {
+export async function saveLanguage(language: Locale) {
   const idToken = await currentIdToken();
-  if (!idToken) return null;
-  return requireSuccess(
-    await httpClient.post<AppSession>(
-      "/api/session/refresh",
-      {},
-      bearer(idToken),
-    ),
+  const response = await backendHttp.put(
+    "/api/auth/me/language",
+    { language },
+    withToken(idToken ?? undefined),
   );
+  if (response.status === 401) return;
+  requireSuccess(response);
 }
 
-export async function switchWorkspace(workspace: Workspace) {
-  return requireSuccess(
-    await httpClient.post<AppSession>("/api/session/workspace", { workspace }),
-  );
+/** Signs in to the app and to the API: the API keeps its own HttpOnly session cookie from here on. */
+export function createSession(idToken: string, rememberMe = false) {
+  return signIn(idToken, rememberMe);
+}
+
+/**
+ * Re-reads the account from the API after something changed what it may do (a badge awarded after sign-in).
+ * Null when there is no session.
+ */
+export function refreshSession(): Promise<AppSession | null> {
+  return readSession();
+}
+
+export function switchWorkspace(workspace: Workspace) {
+  return switchSessionWorkspace(workspace);
 }

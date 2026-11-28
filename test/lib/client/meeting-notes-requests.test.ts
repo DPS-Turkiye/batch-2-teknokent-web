@@ -8,7 +8,6 @@ import {
   getMeetingTodos,
   patchMeetingTodo,
   postMeetingTodo,
-  postRealtimeToken,
   putJsonToPresignedUrl,
   putMeetingNote,
   putTranscriptToPresignedUrl,
@@ -77,12 +76,6 @@ const calls: ClientCall[] = [
     call: () => removeMeetingTodo("m/1", "t/1"),
     method: "delete",
     args: [`${M}/todos/t%2F1`],
-  },
-  {
-    title: "postRealtimeToken asks for a realtime token",
-    call: () => postRealtimeToken(),
-    method: "post",
-    args: ["/api/realtime/token"],
   },
 ];
 
