@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { EmailAudience } from "@/interfaces/email-center";
+import { backendHttp } from "@/lib/client/backend-http";
 import {
   confirmEmailSend,
   getEmailCampaign,
@@ -17,6 +18,10 @@ import {
 import { httpClient } from "@/lib/http-client";
 import { createAxiosResponse } from "@test/fixtures/health";
 
+vi.mock("@/lib/client/backend-http", async () =>
+  (await import("@test/mocks/backend-http")).backendHttpMock(),
+);
+
 const draft = {
   programId: "p",
   audience: EmailAudience.Mentors,
@@ -26,19 +31,22 @@ const draft = {
 
 beforeEach(() => {
   vi.restoreAllMocks();
+  vi.clearAllMocks();
   for (const method of ["get", "post", "put", "delete"] as const)
-    vi.spyOn(httpClient, method).mockResolvedValue(
+    vi.mocked(backendHttp[method]).mockResolvedValue(
       createAxiosResponse({}, 200),
     );
+  vi.spyOn(httpClient, "post").mockResolvedValue(createAxiosResponse({}, 200));
 });
 
-describe("email center client", () => {
+// The backend takes the sender from the session: nothing here names the caller.
+describe("email center client, straight to the backend", () => {
   it("reads", async () => {
     await getEmailCenterOptions();
     await getEmailCampaigns();
     await getEmailCampaign("a/b");
     await getEmailTemplates("p");
-    expect(vi.mocked(httpClient.get).mock.calls).toEqual([
+    expect(vi.mocked(backendHttp.get).mock.calls).toEqual([
       ["/api/email-center/options"],
       ["/api/email-center/campaigns"],
       ["/api/email-center/campaigns/a%2Fb"],
@@ -46,14 +54,14 @@ describe("email center client", () => {
     ]);
   });
 
-  it("creates a new draft and updates a saved one", async () => {
+  it("creates a new draft and updates a saved one, with the subject trimmed", async () => {
     await saveEmailDraft(null, draft);
-    await saveEmailDraft("id", draft);
-    expect(httpClient.post).toHaveBeenCalledWith(
+    await saveEmailDraft("id", { ...draft, subject: "  Konu " });
+    expect(backendHttp.post).toHaveBeenCalledWith(
       "/api/email-center/campaigns",
       draft,
     );
-    expect(httpClient.put).toHaveBeenCalledWith(
+    expect(backendHttp.put).toHaveBeenCalledWith(
       "/api/email-center/campaigns/id",
       draft,
     );
@@ -70,25 +78,35 @@ describe("email center client", () => {
     await confirmEmailSend("id", confirmation);
     await stopEmailSend("id");
     await removeEmailDraft("id");
-    expect(vi.mocked(httpClient.post).mock.calls).toEqual([
+    expect(vi.mocked(backendHttp.post).mock.calls).toEqual([
       ["/api/email-center/campaigns/id/test"],
       ["/api/email-center/campaigns/id/review"],
       ["/api/email-center/campaigns/id/send", confirmation],
       ["/api/email-center/campaigns/id/stop"],
     ]);
-    expect(httpClient.delete).toHaveBeenCalledWith(
+    expect(backendHttp.delete).toHaveBeenCalledWith(
       "/api/email-center/campaigns/id",
     );
   });
 
-  it("says a text is too long before the hosting drops it", async () => {
+  it("refuses a step the backend refuses", async () => {
+    vi.mocked(backendHttp.post).mockResolvedValue(
+      createAxiosResponse({ message: "Yetkin yok.", code: "FORBIDDEN" }, 403),
+    );
+    await expect(sendEmailTest("id")).rejects.toMatchObject({
+      status: 403,
+      message: "Yetkin yok.",
+    });
+  });
+
+  it("says a text is too long before the firewall drops it", async () => {
     await expect(
       saveEmailDraft(null, { ...draft, bodyHtml: "a".repeat(7_000) }),
     ).rejects.toThrow();
-    expect(httpClient.post).not.toHaveBeenCalled();
+    expect(backendHttp.post).not.toHaveBeenCalled();
   });
 
-  it("unsubscribes with the link's token", async () => {
+  it("unsubscribes through this app's own route, which mail programs also post to", async () => {
     await unsubscribeFromEmails("a-b");
     expect(httpClient.post).toHaveBeenCalledWith(
       "/api/email-unsubscribe?t=a-b",

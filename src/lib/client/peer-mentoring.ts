@@ -13,19 +13,17 @@ import type {
 } from "@/interfaces/peer-mentoring";
 import { UserRole } from "@/interfaces/session";
 import { ClientApiError, requireSuccess } from "@/lib/client/api";
-import { httpClient } from "@/lib/http-client";
+import { backendHttp } from "@/lib/client/backend-http";
+import { peerMentorSearchParams } from "@/lib/peer-mentoring";
+
+// The backend takes the student (or peer mentor) from the session; nothing here names them.
 
 export async function getPeerMentors(
   filter: PeerMentorFilter,
 ): Promise<PeerMentorCard[]> {
   return requireSuccess(
-    await httpClient.get<PeerMentorCard[]>("/api/peer-mentoring/mentors", {
-      params: {
-        category: filter.category ?? undefined,
-        q: filter.query || undefined,
-        subTopic: filter.subTopic ?? undefined,
-        availableThisWeek: filter.availableThisWeek ? true : undefined,
-      },
+    await backendHttp.get<PeerMentorCard[]>("/api/peer-mentoring/mentors", {
+      params: peerMentorSearchParams(filter),
     }),
   );
 }
@@ -36,12 +34,12 @@ export async function getPeerMentor(
 ): Promise<PeerMentorDetail | null> {
   try {
     return requireSuccess(
-      await httpClient.get<PeerMentorDetail>(
+      await backendHttp.get<PeerMentorDetail>(
         `/api/peer-mentoring/mentors/${encodeURIComponent(mentorId)}`,
       ),
     );
   } catch (error) {
-    // The proxy answers 400 only for an id that isn't a uuid, which can't name a listed mentor either.
+    // The backend answers 400 only for an id that isn't a uuid, which can't name a listed mentor either.
     if (
       error instanceof ClientApiError &&
       (error.status === 404 || error.status === 400)
@@ -55,7 +53,7 @@ export async function getPeerMentor(
 /** Mentors per category active in the student's program. */
 export async function getPeerMentorCounts(): Promise<PeerCategoryCount[]> {
   return requireSuccess(
-    await httpClient.get<PeerCategoryCount[]>(
+    await backendHttp.get<PeerCategoryCount[]>(
       "/api/peer-mentoring/mentor-counts",
     ),
   );
@@ -66,7 +64,7 @@ export async function getPeerCategories(
   side: UserRole.Mentee | UserRole.Mentor = UserRole.Mentee,
 ): Promise<PeerTopicCategory[]> {
   return requireSuccess(
-    await httpClient.get<PeerTopicCategory[]>(
+    await backendHttp.get<PeerTopicCategory[]>(
       "/api/peer-mentoring/categories",
       side === UserRole.Mentor
         ? { params: { as: UserRole.Mentor } }
@@ -79,7 +77,7 @@ export async function getPeerMentoringRequests(): Promise<
   PeerMentoringRequest[]
 > {
   return requireSuccess(
-    await httpClient.get<PeerMentoringRequest[]>(
+    await backendHttp.get<PeerMentoringRequest[]>(
       "/api/peer-mentoring/requests",
     ),
   );
@@ -89,7 +87,7 @@ export async function createPeerMentoringRequest(
   input: CreatePeerMentoringRequestInput,
 ): Promise<PeerMentoringRequest> {
   return requireSuccess(
-    await httpClient.post<PeerMentoringRequest>(
+    await backendHttp.post<PeerMentoringRequest>(
       "/api/peer-mentoring/requests",
       input,
     ),
@@ -101,7 +99,7 @@ export async function getReceivedPeerRequests(): Promise<
   PeerMentoringRequest[]
 > {
   return requireSuccess(
-    await httpClient.get<PeerMentoringRequest[]>(
+    await backendHttp.get<PeerMentoringRequest[]>(
       "/api/peer-mentoring/requests",
       { params: { as: UserRole.Mentor } },
     ),
@@ -112,7 +110,7 @@ export async function getReceivedPeerRequests(): Promise<
 export async function getPeerMentorProfile(): Promise<PeerMentorProfile | null> {
   try {
     return requireSuccess(
-      await httpClient.get<PeerMentorProfile>("/api/peer-mentoring/profile"),
+      await backendHttp.get<PeerMentorProfile>("/api/peer-mentoring/profile"),
     );
   } catch (error) {
     if (error instanceof ClientApiError && error.status === 404) return null;
@@ -124,7 +122,7 @@ export async function savePeerMentorProfile(
   input: SavePeerMentorProfileInput,
 ): Promise<PeerMentorProfile> {
   return requireSuccess(
-    await httpClient.put<PeerMentorProfile>(
+    await backendHttp.put<PeerMentorProfile>(
       "/api/peer-mentoring/profile",
       input,
     ),
@@ -135,7 +133,7 @@ export async function savePeerMentorProfile(
 export async function getPeerMentorDraft(): Promise<SavedPeerMentorProfileDraft | null> {
   try {
     return requireSuccess(
-      await httpClient.get<SavedPeerMentorProfileDraft>(
+      await backendHttp.get<SavedPeerMentorProfileDraft>(
         "/api/peer-mentoring/profile/draft",
       ),
     );
@@ -149,7 +147,7 @@ export async function savePeerMentorDraft(
   draft: PeerMentorProfileDraft,
 ): Promise<SavedPeerMentorProfileDraft> {
   return requireSuccess(
-    await httpClient.put<SavedPeerMentorProfileDraft>(
+    await backendHttp.put<SavedPeerMentorProfileDraft>(
       "/api/peer-mentoring/profile/draft",
       { draft },
     ),
@@ -158,6 +156,6 @@ export async function savePeerMentorDraft(
 
 export async function deletePeerMentorDraft(): Promise<void> {
   requireSuccess(
-    await httpClient.delete<undefined>("/api/peer-mentoring/profile/draft"),
+    await backendHttp.delete<undefined>("/api/peer-mentoring/profile/draft"),
   );
 }

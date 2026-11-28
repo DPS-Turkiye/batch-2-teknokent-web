@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PeerTopicCategory } from "@/interfaces/peer-mentoring";
 import { UserRole } from "@/interfaces/session";
+import { backendHttp } from "@/lib/client/backend-http";
 import {
   createPeerMentoringRequest,
   deletePeerMentorDraft,
@@ -16,22 +17,15 @@ import {
   savePeerMentorDraft,
   savePeerMentorProfile,
 } from "@/lib/client/peer-mentoring";
-import { httpClient } from "@/lib/http-client";
 import {
   itSendsEachClientCall,
   type ClientCall,
 } from "@test/fixtures/client-calls";
 import { createMentorResponse } from "@test/fixtures/mentors";
 
-vi.mock("@/lib/http-client", () => ({
-  httpClient: {
-    get: vi.fn(),
-    post: vi.fn(),
-    put: vi.fn(),
-    patch: vi.fn(),
-    delete: vi.fn(),
-  },
-}));
+vi.mock("@/lib/client/backend-http", async () =>
+  (await import("@test/mocks/backend-http")).backendHttpMock(),
+);
 
 const request = {
   mentorId: "peer-1",
@@ -116,6 +110,21 @@ const calls: ClientCall[] = [
     ],
   },
   {
+    title:
+      "getPeerMentors trims the text and leaves out a sub-topic no catalogue id can be",
+    call: () =>
+      getPeerMentors({
+        category: null,
+        query: "  lineer ",
+        subTopic: "x".repeat(65),
+      }),
+    method: "get",
+    args: [
+      "/api/peer-mentoring/mentors",
+      { params: { category: undefined, q: "lineer", subTopic: undefined } },
+    ],
+  },
+  {
     title: "getPeerMentor reads one mentor by id",
     call: () => getPeerMentor("8c5f0f0e-6a3e-4c55-9d2d-2a7c7b1f0a11"),
     method: "get",
@@ -192,36 +201,36 @@ describe("peer mentoring client", () => {
     vi.clearAllMocks();
   });
 
-  itSendsEachClientCall(calls);
+  itSendsEachClientCall(calls, backendHttp);
 
   it("getPeerMentor answers null for a mentor the directory doesn't list or a malformed id", async () => {
-    vi.mocked(httpClient.get).mockResolvedValueOnce(
+    vi.mocked(backendHttp.get).mockResolvedValueOnce(
       createMentorResponse({ message: "Bulunamadı." }, 404),
     );
     await expect(getPeerMentor("someone")).resolves.toBeNull();
 
-    vi.mocked(httpClient.get).mockResolvedValueOnce(
+    vi.mocked(backendHttp.get).mockResolvedValueOnce(
       createMentorResponse({ message: "Geçersiz." }, 400),
     );
     await expect(getPeerMentor("not-a-uuid")).resolves.toBeNull();
   });
 
   it("getPeerMentor still fails on a server error", async () => {
-    vi.mocked(httpClient.get).mockResolvedValueOnce(
+    vi.mocked(backendHttp.get).mockResolvedValueOnce(
       createMentorResponse({ message: "Hata" }, 500),
     );
     await expect(getPeerMentor("someone")).rejects.toThrow();
   });
 
   it("getPeerMentorDraft answers null when there is no draft", async () => {
-    vi.mocked(httpClient.get).mockResolvedValueOnce(
+    vi.mocked(backendHttp.get).mockResolvedValueOnce(
       createMentorResponse({ message: "Taslak yok." }, 404),
     );
     await expect(getPeerMentorDraft()).resolves.toBeNull();
   });
 
   it("getPeerMentorProfile answers null before the wizard has published a profile", async () => {
-    vi.mocked(httpClient.get).mockResolvedValue(
+    vi.mocked(backendHttp.get).mockResolvedValue(
       createMentorResponse({ message: "Profil bulunamadı." }, 404),
     );
 

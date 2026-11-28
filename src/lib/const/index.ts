@@ -63,6 +63,9 @@ export const ACCOUNT_NOT_APPROVED = "ACCOUNT_NOT_APPROVED";
 /** A program-coordinator assignment that already exists; the admin flow treats it as done. */
 export const ALREADY_COORDINATOR = "ALREADY_COORDINATOR";
 export const REGISTRATION_REQUIRED = "REGISTRATION_REQUIRED";
+/** No usable session: signed out, or signed in to an account that has no workspace yet. */
+export const SESSION_REQUIRED = "SESSION_REQUIRED";
+export const FORBIDDEN = "FORBIDDEN";
 
 export const TRANSCRIPT_BOT_LEAD_MS = 60_000;
 export const TRANSCRIPT_BOT_MAX_TIMER_MS = 86_400_000;

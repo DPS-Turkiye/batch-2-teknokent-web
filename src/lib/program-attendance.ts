@@ -13,6 +13,9 @@ import { planDayLabel } from "@/lib/program-week";
 import { attendancePath } from "@/lib/public-paths";
 import { CheckInFailure } from "@/types/attendance";
 
+/** The token in a session QR code's link: base64url, at most the 64 characters the backend stores. */
+export const ATTENDANCE_TOKEN_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
+
 /** The full link a QR code carries; `origin` is this site's (never an outside QR service). */
 export function attendanceLink(origin: string, token: string) {
   return `${origin}${attendancePath(token)}`;

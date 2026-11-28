@@ -6,7 +6,6 @@ import {
   type MeetingNoteDocument,
   type MeetingTodo,
   type PublishAssistantSharePayload,
-  type RealtimeToken,
 } from "@/interfaces/meeting-note";
 import { jsonFitsAmplifyWaf } from "@/lib/amplify-safe-body";
 import { requireSuccess } from "@/lib/client/api";
@@ -18,7 +17,6 @@ import {
   getMeetingNoteDocumentApiUrl,
   getMeetingTodoApiUrl,
   getMeetingTodosApiUrl,
-  REALTIME_TOKEN_API_PATH,
 } from "@/lib/const";
 import { httpClient } from "@/lib/http-client";
 import type { MeetingReport, TranscriptLine } from "@/types/assistant";
@@ -78,12 +76,6 @@ export async function removeMeetingTodo(meetingId: string, todoId: string) {
     await httpClient.delete<MeetingTodo[]>(
       getMeetingTodoApiUrl(meetingId, todoId),
     ),
-  );
-}
-
-export async function postRealtimeToken() {
-  return requireSuccess(
-    await httpClient.post<RealtimeToken>(REALTIME_TOKEN_API_PATH),
   );
 }
 

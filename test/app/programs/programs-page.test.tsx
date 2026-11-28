@@ -1,17 +1,27 @@
+import { render, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import ProgramsPage from "@/app/programs/page";
 import { UserRole, type AppSession } from "@/interfaces/session";
-import { getSessionUser } from "@/lib/session";
+import { appSession } from "@test/fixtures/session";
 
-vi.mock("@/lib/session", () => ({ getSessionUser: vi.fn() }));
+const state = vi.hoisted(() => ({
+  session: null as AppSession | null,
+  isLoading: false,
+  replace: vi.fn(),
+}));
+vi.mock("@/components/providers/session-provider", () => ({
+  useSession: () => ({ session: state.session, isLoading: state.isLoading }),
+}));
 vi.mock("next/navigation", () => ({
-  redirect: (path: string) => {
-    throw new Error("REDIRECT:" + path);
-  },
+  useRouter: () => ({ replace: state.replace }),
+  useParams: () => ({}),
 }));
 
-beforeEach(() => vi.clearAllMocks());
+beforeEach(() => {
+  state.replace.mockClear();
+  state.isLoading = false;
+});
 
 describe("old /programs page", () => {
   it.each([
@@ -20,17 +30,16 @@ describe("old /programs page", () => {
     [UserRole.Mentor, "/mentor-dashboard"],
     [UserRole.Mentee, "/dashboard"],
   ])("sends %s to its current program screen or home", async (role, path) => {
-    vi.mocked(getSessionUser).mockResolvedValue({
-      role,
-      userId: "user-1",
-    } as AppSession);
-    await expect(ProgramsPage()).rejects.toThrow("REDIRECT:" + path);
+    state.session = appSession({ role });
+    render(<ProgramsPage />);
+    await waitFor(() => expect(state.replace).toHaveBeenCalledWith(path));
   });
 
-  it("asks a signed-out visitor to log in first", async () => {
-    vi.mocked(getSessionUser).mockResolvedValue(null);
-    await expect(ProgramsPage()).rejects.toThrow(
-      "REDIRECT:/login?next=%2Fprograms",
-    );
+  // The session provider sends a signed-out visitor to log in; the page itself goes nowhere.
+  it("waits while the session is unknown or missing", () => {
+    state.session = null;
+    state.isLoading = true;
+    render(<ProgramsPage />);
+    expect(state.replace).not.toHaveBeenCalled();
   });
 });

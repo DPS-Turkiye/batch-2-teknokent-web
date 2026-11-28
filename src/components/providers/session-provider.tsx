@@ -6,9 +6,8 @@ import { createContext, useContext, useEffect, type ReactNode } from "react";
 
 import type { AppSession } from "@/interfaces/session";
 import { createSession, refreshSession } from "@/lib/client/auth";
-import { endBackendSession } from "@/lib/client/backend-http";
+import { readSession, signOut } from "@/lib/client/session";
 import { signOutOfFirebase } from "@/lib/firebase/auth";
-import { httpClient } from "@/lib/http-client";
 import { isPublicPath, loginPathFor } from "@/lib/public-paths";
 
 type SessionContextValue = {
@@ -23,20 +22,12 @@ type SessionContextValue = {
 const SessionContext = createContext<SessionContextValue | null>(null);
 export const SESSION_QUERY_KEY = ["session"] as const;
 
-// Only a 401 means signed out; anything else is a hiccup that must not bounce
-// a signed-in person to the login page.
-async function fetchSession(): Promise<AppSession | null> {
-  const response = await httpClient.get<AppSession>("/api/session");
-  if (response.status === 200) return response.data;
-  if (response.status === 401) return null;
-  throw new Error("Oturum bilgisi alınamadı.");
-}
-
 export function SessionProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const sessionQuery = useQuery({
     queryKey: SESSION_QUERY_KEY,
-    queryFn: fetchSession,
+    // Only "no session" is null; anything else throws, so a hiccup never bounces a signed-in person to login.
+    queryFn: readSession,
     staleTime: 0,
     refetchOnWindowFocus: true,
   });
@@ -71,10 +62,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      await Promise.all([
-        httpClient.delete("/api/session"),
-        endBackendSession(),
-      ]);
+      await signOut();
       await signOutOfFirebase().catch(() => undefined);
     },
     onSuccess: () => {

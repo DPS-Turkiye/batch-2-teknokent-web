@@ -11,18 +11,16 @@ import {
 } from "@/interfaces/session";
 import type { Workspace } from "@/interfaces/workspace";
 import { fetchUser } from "@/lib/api/accounts";
-import {
-  hasPermission,
-  permissionsOf,
-  samePermissions,
-} from "@/lib/permissions";
+import { hasPermission, samePermissions } from "@/lib/permissions";
 import {
   currentSessionUser,
+  SESSION_COOKIE,
   SESSION_MAX_AGE_SECONDS,
 } from "@/lib/public-paths";
 import { appEdition } from "@/lib/server/edition";
 import { SessionRequiredError } from "@/lib/server/session-error";
-import { isWorkspace, workspacesOf } from "@/lib/workspaces";
+import { toSession as toSessionModel } from "@/lib/session-model";
+import { workspacesOf } from "@/lib/workspaces";
 
 function sessionOptions(persist = false): SessionOptions {
   const password = process.env.SESSION_PASSWORD;
@@ -31,7 +29,7 @@ function sessionOptions(persist = false): SessionOptions {
   }
 
   return {
-    cookieName: "teknokent_session",
+    cookieName: SESSION_COOKIE,
     password,
     cookieOptions: {
       httpOnly: true,
@@ -42,69 +40,9 @@ function sessionOptions(persist = false): SessionOptions {
   };
 }
 
-const DEFAULT_JOB_TITLE: Partial<Record<UserRole, string>> = {
-  [UserRole.Mentee]: "Mentee",
-  [UserRole.Mentor]: "Mentor",
-  [UserRole.Admin]: "Admin",
-  [UserRole.Coordinator]: "Koordinatör",
-  [UserRole.Academician]: "Akademisyen",
-};
-
-export function toSession(user: BackendUser): AppSession | null {
-  const jobTitle = DEFAULT_JOB_TITLE[user.role];
-  if (!jobTitle) return null;
-  const session: AppSession = {
-    userId: user.id,
-    email: user.email,
-    fullName: user.fullName,
-    jobTitle: user.jobTitle ?? jobTitle,
-    role: user.role,
-    permissions: permissionsOf(user),
-    edition: appEdition(),
-  };
-  if (user.institutionKinds?.length) {
-    session.institutionKinds = user.institutionKinds;
-  }
-  // Whoever is mentored carries their team, a research assistant (primary role ACADEMICIAN) included. Someone who
-  // signed up without a startup has none until they join or create one on /startup.
-  if (session.permissions?.includes(UserRole.Mentee)) {
-    session.organizationId = user.organizationId ?? undefined;
-    session.organizationName = user.organizationName ?? undefined;
-    session.individualMentee = user.individualMentee;
-    if (user.personalOrganization) session.personalOrganization = true;
-  }
-  return session;
-}
-
-/** The workspace last switched to, kept past sign-out so the next sign-in opens it again. */
-export const LAST_WORKSPACE_COOKIE = "menton_last_workspace";
-const LAST_WORKSPACE_MAX_AGE_SECONDS = 60 * 60 * 24 * 180;
-
-export async function lastWorkspace(): Promise<Workspace | undefined> {
-  const saved = (await cookies()).get(LAST_WORKSPACE_COOKIE)?.value;
-  return isWorkspace(saved) ? saved : undefined;
-}
-
-/**
- * Switches the signed-in session to `workspace` if the account can open it. Only the cookie changes: every backend
- * call still checks the account's own permissions, so a switch never widens what the account may do.
- */
-export async function switchSessionWorkspace(
-  workspace: Workspace,
-): Promise<AppSession | null> {
-  const session = await getSessionStore();
-  const user = sessionUserOf(session);
-  if (!user || !workspacesOf(user).includes(workspace)) return null;
-  session.updateConfig(sessionOptions(session.persist === true));
-  session.user = { ...user, activeWorkspace: workspace };
-  await session.save();
-  (await cookies()).set(LAST_WORKSPACE_COOKIE, workspace, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    maxAge: LAST_WORKSPACE_MAX_AGE_SECONDS,
-  });
-  return session.user;
+/** The account's session under this deployment's edition (the model is shared with the browser). */
+function toSession(user: BackendUser): AppSession | null {
+  return toSessionModel(user, appEdition());
 }
 
 /**
@@ -116,8 +54,8 @@ function sessionUserOf(session: SessionData): AppSession | null {
   return user ? { ...user, edition: appEdition() } : null;
 }
 
-export async function getSessionStore(persist = false) {
-  return getIronSession<SessionData>(await cookies(), sessionOptions(persist));
+export async function getSessionStore() {
+  return getIronSession<SessionData>(await cookies(), sessionOptions());
 }
 
 /** How long a signed-in account is trusted before the backend is asked again. */
@@ -195,15 +133,6 @@ export async function getSessionUser() {
   return matches ? user : null;
 }
 
-export async function saveSessionUser(user: AppSession, persist = false) {
-  const session = await getSessionStore(persist);
-  session.user = user;
-  session.issuedAt = Date.now();
-  session.checkedAt = session.issuedAt;
-  session.persist = persist;
-  await session.save();
-}
-
 /**
  * After joining, creating or leaving a startup, so the next re-check does not end
  * the session for a changed organization, and after a badge changes what the user
@@ -241,11 +170,6 @@ export async function getSessionIds() {
     userId: session.userId,
     organizationId: session.organizationId ?? "",
   };
-}
-
-/** When this sign-in began (epoch ms); an admin's sign-in revoke after it ends the session. */
-export async function getSessionSignedInAt() {
-  return (await getSessionStore()).issuedAt;
 }
 
 export async function getSessionMentorId() {

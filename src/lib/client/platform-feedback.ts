@@ -5,11 +5,15 @@ import type {
 } from "@/interfaces/platform-feedback";
 import type { ProgramType } from "@/interfaces/program";
 import { requireSuccess } from "@/lib/client/api";
-import { httpClient } from "@/lib/http-client";
+import { backendHttp } from "@/lib/client/backend-http";
 
+/** `feedback` is already parsed by `platformFeedbackSubmissionSchema` (trimmed, within the limits). */
 export async function submitPlatformFeedback(feedback: SubmitPlatformFeedback) {
   return requireSuccess(
-    await httpClient.post<PlatformFeedback>("/api/platform-feedback", feedback),
+    await backendHttp.post<PlatformFeedback>(
+      "/api/platform-feedback",
+      feedback,
+    ),
   );
 }
 
@@ -19,7 +23,7 @@ export async function getPlatformFeedbackInbox(
   programType: ProgramType | null = null,
 ) {
   return requireSuccess(
-    await httpClient.get<PlatformFeedbackInbox>(
+    await backendHttp.get<PlatformFeedbackInbox>(
       "/api/admin/platform-feedback",
       {
         params: programType
@@ -32,7 +36,7 @@ export async function getPlatformFeedbackInbox(
 
 export async function readPlatformFeedback(id: string) {
   return requireSuccess(
-    await httpClient.patch<PlatformFeedback>(
+    await backendHttp.patch<PlatformFeedback>(
       `/api/admin/platform-feedback/${encodeURIComponent(id)}/read`,
     ),
   );

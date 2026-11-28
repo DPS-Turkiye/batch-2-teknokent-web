@@ -2,8 +2,8 @@ import { AccountType } from "@/interfaces/account-type";
 import type { AppSession } from "@/interfaces/session";
 import { accountTypeOfWorkspace, activeWorkspaceOf } from "@/lib/workspaces";
 
-// Signed in, the account decides (accountTypeOfSession). Signed out, this cookie still picks the wording,
-// e.g. for a developer previewing the ODTÜ texts on public pages.
+// Signed in, the browser writes the session's type here (saveAccountTypeCookie). Signed out, the cookie still
+// picks the wording, e.g. for a developer previewing the ODTÜ texts on public pages.
 export const ACCOUNT_TYPE_COOKIE = "menton_account_type";
 export const ACCOUNT_TYPE_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365;
 
@@ -21,6 +21,15 @@ export function resolveAccountType(
 /** The ODTÜ wording while the account is in an ODTÜ workspace; Teknokent everywhere else. */
 export function accountTypeOfSession(session: AppSession): AccountType {
   return accountTypeOfWorkspace(activeWorkspaceOf(session));
+}
+
+/**
+ * Saves the wording the signed-in session is shown in, for the server's layout, which cannot read the API's
+ * session. Like the signed-out choice it only picks texts; it opens nothing.
+ */
+export function saveAccountTypeCookie(session: AppSession) {
+  if (typeof document === "undefined") return;
+  document.cookie = `${ACCOUNT_TYPE_COOKIE}=${accountTypeOfSession(session)}; path=/; max-age=${ACCOUNT_TYPE_COOKIE_MAX_AGE_SECONDS}; samesite=lax`;
 }
 
 /** A message file's value: a text, a list (of texts or of nested messages), or a nested group. */

@@ -1,8 +1,8 @@
 import type { StartupProcess } from "@/interfaces/startup-process";
 import { requireSuccess } from "@/lib/client/api";
 import { backendHttp } from "@/lib/client/backend-http";
+import { getProgramTeamDetail } from "@/lib/client/coordinator-programs";
 import { ownOrganizationPath } from "@/lib/client/own-organization";
-import { httpClient } from "@/lib/http-client";
 
 export async function getStartupProcess() {
   return requireSuccess(
@@ -39,18 +39,19 @@ export async function withdrawSubmission(assignmentId: string) {
   );
 }
 
-function teamProcessUrl(programId: string, organizationId: string) {
-  return `/api/coordinator/programs/${encodeURIComponent(programId)}/team-details/${encodeURIComponent(organizationId)}/stage`;
-}
-
-/** A coordinator's view of one program team's process, for the Takımlar drawer. */
+/**
+ * A coordinator's view of one program team's process, for the Takımlar drawer. The drawer is for this program's
+ * teams, so the team is looked up in the program first and one outside it answers that lookup's refusal. Who may
+ * read a process at all is the backend's decision on the process endpoint.
+ */
 export async function getTeamProcess(
   programId: string,
   organizationId: string,
 ) {
+  await getProgramTeamDetail(programId, organizationId);
   return requireSuccess(
-    await httpClient.get<StartupProcess>(
-      teamProcessUrl(programId, organizationId),
+    await backendHttp.get<StartupProcess>(
+      `/api/organizations/${encodeURIComponent(organizationId)}/process`,
     ),
   );
 }

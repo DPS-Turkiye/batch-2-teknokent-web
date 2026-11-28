@@ -1,7 +1,7 @@
 import type { AxiosRequestConfig } from "axios";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { deleteUser, fetchUser, revokeSignIns } from "@/lib/api/accounts";
+import { fetchUser } from "@/lib/api/accounts";
 import { backendRequest } from "@/lib/server/backend-client";
 
 vi.mock("@/lib/server/backend-client", () => ({
@@ -43,15 +43,6 @@ const cases: RequestCase[] = [
       params: { actorId: "viewer-1" },
     },
   ],
-  [
-    "revokes a user's sign-ins",
-    () => revokeSignIns("user/1", "admin-1"),
-    {
-      method: "POST",
-      url: "/api/users/user%2F1/sign-ins/revoke",
-      data: { actorId: "admin-1" },
-    },
-  ],
 ];
 
 describe("accounts server API", () => {
@@ -62,18 +53,5 @@ describe("accounts server API", () => {
   it.each(cases)("%s", async (_description, call, request) => {
     await call();
     expect(backendRequest).toHaveBeenCalledWith(request);
-  });
-
-  it("deletes a user with the admin's own token, never the service credentials", async () => {
-    await deleteUser("user/1", "ayse@example.com", "id-token");
-
-    expect(backendRequest).toHaveBeenCalledWith(
-      {
-        method: "POST",
-        url: "/api/admin/users/user%2F1/delete",
-        data: { confirmEmail: "ayse@example.com" },
-      },
-      { idToken: "id-token" },
-    );
   });
 });

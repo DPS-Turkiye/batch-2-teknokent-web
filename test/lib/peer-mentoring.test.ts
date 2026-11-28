@@ -24,10 +24,12 @@ import {
   nextSessionsByRequest,
   offeredSubTopics,
   PEER_REQUEST_STATUS_TONE,
+  PEER_SUB_TOPIC_MAX,
   peerMentorCapacity,
   peerMentorGateState,
   peerMentoringSide,
   peerMentorProfileHref,
+  peerMentorSearchParams,
   peerRequestAvailability,
   splitPeerRequests,
   splitRecommended,
@@ -589,5 +591,42 @@ describe("iskurHomeMode", () => {
     expect(iskurHomeMode(PeerMentorGateState.Earned, true)).toBe(
       IskurHomeMode.Mentor,
     );
+  });
+});
+
+describe("peerMentorSearchParams", () => {
+  it("sends only what narrows the directory", () => {
+    expect(peerMentorSearchParams({ category: null, query: "  " })).toEqual({
+      category: undefined,
+      q: undefined,
+      subTopic: undefined,
+      availableThisWeek: undefined,
+    });
+    expect(
+      peerMentorSearchParams({
+        category: PeerTopicCategory.CareerInternship,
+        query: " staj ",
+        subTopic: " cv ",
+        availableThisWeek: true,
+      }),
+    ).toEqual({
+      category: PeerTopicCategory.CareerInternship,
+      q: "staj",
+      subTopic: "cv",
+      availableThisWeek: true,
+    });
+  });
+
+  it("leaves out a sub-topic longer than any catalogue id", () => {
+    const at = (length: number) =>
+      peerMentorSearchParams({
+        category: null,
+        query: "",
+        subTopic: "x".repeat(length),
+        availableThisWeek: false,
+      });
+    expect(at(PEER_SUB_TOPIC_MAX).subTopic).toHaveLength(PEER_SUB_TOPIC_MAX);
+    expect(at(PEER_SUB_TOPIC_MAX + 1).subTopic).toBeUndefined();
+    expect(at(PEER_SUB_TOPIC_MAX).availableThisWeek).toBeUndefined();
   });
 });
