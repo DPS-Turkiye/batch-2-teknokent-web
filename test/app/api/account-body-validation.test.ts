@@ -7,27 +7,23 @@ import { POST as attendanceRoute } from "@/app/api/attendance/check-in/route";
 import { POST as passwordResetRoute } from "@/app/api/auth/password-reset/route";
 import { POST as registerRoute } from "@/app/api/auth/register/[role]/route";
 import { POST as addBotRoute } from "@/app/api/botapi/route";
-import { POST as institutionCompleteRoute } from "@/app/api/institution-login/[provider]/complete/route";
 import { PUT as onboardingDraftRoute } from "@/app/api/onboarding/draft/route";
 import { POST as decideInvitationRoute } from "@/app/api/programs/[id]/invitations/decide/route";
 import { PUT as activeProgramRoute } from "@/app/api/programs/mine/active/route";
 import { POST as createProgramRoute } from "@/app/api/programs/route";
 import { PUT as languageRoute } from "@/app/api/session/language/route";
 import { PATCH as accountStatusRoute } from "@/app/api/users/[id]/status/route";
-import { InstitutionProvider } from "@/interfaces/institution-login";
 import { UserAccountStatus, UserRole } from "@/interfaces/session";
 import * as accounts from "@/lib/api/accounts";
 import * as adminCoordinators from "@/lib/api/admin-coordinators";
 import * as interventions from "@/lib/api/admin-interventions";
 import * as auth from "@/lib/api/auth";
 import * as authEmail from "@/lib/api/auth-email";
-import * as institutionLogin from "@/lib/api/institution-login";
 import * as onboardingDraft from "@/lib/api/onboarding-draft";
 import * as attendance from "@/lib/api/program-attendance";
 import * as programs from "@/lib/api/programs";
 import * as botapi from "@/lib/botapi";
 import { Locale } from "@/lib/i18n";
-import { INSTITUTION_LOGIN_COOKIE } from "@/lib/server/institution-login-cookie";
 import { requireAdminSession } from "@/lib/server/require-admin";
 import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 import {
@@ -40,7 +36,6 @@ import {
   itChecksTheBody,
   type BodyCase,
 } from "@test/app/api/body-validation";
-import { backendResponse } from "@test/fixtures/route-handlers";
 import { appSession } from "@test/fixtures/session";
 
 vi.mock("@/lib/api/accounts");
@@ -52,7 +47,6 @@ vi.mock("@/lib/api/auth", async (importOriginal) => ({
   saveSignedInLanguage: vi.fn(),
 }));
 vi.mock("@/lib/api/auth-email");
-vi.mock("@/lib/api/institution-login");
 vi.mock("@/lib/api/onboarding-draft");
 vi.mock("@/lib/api/program-attendance");
 vi.mock("@/lib/api/programs");
@@ -153,28 +147,6 @@ const cases: BodyCase[] = [
     },
   },
   {
-    route: "POST /api/institution-login/[provider]/complete",
-    send: (request) =>
-      institutionCompleteRoute(request, {
-        params: Promise.resolve({ provider: InstitutionProvider.Odtu }),
-      }),
-    // Only the browser that started the login may finish it.
-    cookie: `${INSTITUTION_LOGIN_COOKIE}=${encodeURIComponent(
-      JSON.stringify({
-        provider: InstitutionProvider.Odtu,
-        state: "state-1",
-        next: null,
-      }),
-    )}`,
-    valid: { state: "state-1", params: { code: "c-1" } },
-    backend: institutionLogin.finishInstitutionCallback,
-    expected: [InstitutionProvider.Odtu, "state-1", { code: "c-1" }],
-    invalid: {
-      "a missing state": { params: {} },
-      "a parameter that is not text": { state: "state-1", params: { n: 1 } },
-    },
-  },
-  {
     route: "POST /api/botapi",
     send: (request) => addBotRoute(request),
     token: "firebase-token",
@@ -260,14 +232,10 @@ describe.each(cases)("$route", (bodyCase) => {
       interventions,
       auth,
       authEmail,
-      institutionLogin,
       onboardingDraft,
       attendance,
       programs,
       botapi,
-    );
-    vi.mocked(institutionLogin.finishInstitutionCallback).mockResolvedValue(
-      backendResponse({ code: "one-time" }),
     );
   });
 
