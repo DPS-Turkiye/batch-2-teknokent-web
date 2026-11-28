@@ -3,10 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   fetchStudentTraining,
-  fetchTrainingForEditor,
   fetchTrainingQuiz,
   reportVideoWatched,
-  saveTraining,
   submitTrainingAttempt,
 } from "@/lib/api/training";
 import { backendRequest } from "@/lib/server/backend-client";
@@ -22,32 +20,6 @@ type RequestCase = [
 ];
 
 const cases: RequestCase[] = [
-  [
-    "reads the coordinator's training editor for an encoded program",
-    () => fetchTrainingForEditor("coord-1", "prog/1"),
-    {
-      method: "GET",
-      url: "/api/coordinator/programs/prog%2F1/training",
-      params: { actorId: "coord-1" },
-    },
-  ],
-  [
-    "saves the training with the actor added to the body",
-    () =>
-      saveTraining("coord-1", "prog/1", {
-        videoUrl: "https://youtu.be/abc",
-        questions: [],
-      }),
-    {
-      method: "PUT",
-      url: "/api/coordinator/programs/prog%2F1/training",
-      data: {
-        videoUrl: "https://youtu.be/abc",
-        questions: [],
-        actorId: "coord-1",
-      },
-    },
-  ],
   [
     "reads where the student stands with the training",
     () => fetchStudentTraining("student-1"),

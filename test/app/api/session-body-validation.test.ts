@@ -1,7 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { POST as sendMessageRoute } from "@/app/api/coordinator-conversations/[id]/messages/route";
-import { POST as startConversationRoute } from "@/app/api/coordinator-conversations/route";
 import { POST as attachUploadRoute } from "@/app/api/document-requests/[itemId]/uploads/route";
 import { PUT as replaceDocumentRequestsRoute } from "@/app/api/document-requests/route";
 import { POST as declineProposalRoute } from "@/app/api/meeting-proposals/[id]/decline/route";
@@ -27,7 +25,6 @@ import {
   PeerTopicCategory,
   PeerTopicLevel,
 } from "@/interfaces/peer-mentoring";
-import * as conversations from "@/lib/api/coordinator-conversations";
 import * as documentRequests from "@/lib/api/document-requests";
 import * as proposals from "@/lib/api/meeting-proposals";
 import * as meetings from "@/lib/api/meetings";
@@ -54,7 +51,6 @@ import {
 } from "@test/app/api/body-validation";
 import { appSession } from "@test/fixtures/session";
 
-vi.mock("@/lib/api/coordinator-conversations");
 vi.mock("@/lib/api/document-requests");
 vi.mock("@/lib/api/meeting-proposals");
 vi.mock("@/lib/api/meetings");
@@ -96,28 +92,6 @@ const peerProfile = {
 };
 
 const cases: BodyCase[] = [
-  {
-    route: "POST /api/coordinator-conversations",
-    send: (request) => startConversationRoute(request),
-    valid: { programId: "program-1", mentorId: "mentor-1" },
-    backend: conversations.startCoordinatorConversation,
-    expected: [
-      "user-1",
-      { programId: "program-1", organizationId: null, mentorId: "mentor-1" },
-    ],
-    invalid: {
-      "a missing program": { mentorId: "mentor-1" },
-      "a startup id of the wrong type": { programId: "p", organizationId: 5 },
-    },
-  },
-  {
-    route: "POST /api/coordinator-conversations/[id]/messages",
-    send: (request) => sendMessageRoute(request, withId("conversation-1")),
-    valid: { body: "Merhaba" },
-    backend: conversations.sendCoordinatorMessage,
-    expected: ["user-1", "conversation-1", "Merhaba"],
-    invalid: { "a missing text": {} },
-  },
   {
     route: "POST /api/meeting-proposals/[id]/decline",
     send: (request) => declineProposalRoute(request, withId("proposal-1")),
@@ -452,7 +426,6 @@ function signIn() {
   vi.mocked(getSessionMentorId).mockResolvedValue("mentor-1");
   vi.mocked(refreshSessionUser).mockResolvedValue(signedIn);
   answerAllWith200(
-    conversations,
     documentRequests,
     proposals,
     meetings,

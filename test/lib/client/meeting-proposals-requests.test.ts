@@ -11,6 +11,7 @@ import {
   remindMeetingProposal,
   withdrawMeetingProposal,
 } from "@/lib/client/meeting-proposals";
+import { backendHttp } from "@/lib/client/backend-http";
 import {
   itSendsEachClientCall,
   type ClientCall,
@@ -25,6 +26,9 @@ vi.mock("@/lib/http-client", () => ({
     delete: vi.fn(),
   },
 }));
+vi.mock("@/lib/client/backend-http", async () =>
+  (await import("@test/mocks/backend-http")).backendHttpMock(),
+);
 
 const proposal = {
   scheduledAt: "2026-04-01T09:00:00Z",
@@ -34,6 +38,51 @@ const proposal = {
 };
 
 const calls: ClientCall[] = [
+  {
+    title: "getMyMeetingProposals lists the participant's proposals",
+    call: () => getMyMeetingProposals(),
+    method: "get",
+    args: ["/api/meeting-proposals"],
+  },
+  {
+    title:
+      "acceptMeetingProposal posts to the encoded proposal's accept action",
+    call: () => acceptMeetingProposal("p/1"),
+    method: "post",
+    args: ["/api/meeting-proposals/p%2F1/accept"],
+  },
+  {
+    title: "declineMeetingProposal sends the trimmed reason",
+    call: () => declineMeetingProposal("p/1", "  O gün sınavım var  "),
+    method: "post",
+    args: [
+      "/api/meeting-proposals/p%2F1/decline",
+      { reason: "O gün sınavım var" },
+    ],
+  },
+  {
+    title: "declineMeetingProposal sends a blank reason as null",
+    call: () => declineMeetingProposal("p/1", "   "),
+    method: "post",
+    args: ["/api/meeting-proposals/p%2F1/decline", { reason: null }],
+  },
+  {
+    title: "proposeReschedule posts the new time under the encoded meeting",
+    call: () =>
+      proposeReschedule("m/1", {
+        scheduledAt: "2026-04-02T09:00:00Z",
+        durationMinutes: 30,
+      }),
+    method: "post",
+    args: [
+      "/api/meetings/m%2F1/reschedule-proposals",
+      { scheduledAt: "2026-04-02T09:00:00Z", durationMinutes: 30 },
+    ],
+  },
+];
+
+/** Calls that go straight to the backend. */
+const backendCalls: ClientCall[] = [
   {
     title:
       "getCoordinatorMeetingProposals lists every program's proposals with no program",
@@ -80,47 +129,6 @@ const calls: ClientCall[] = [
     args: ["/api/coordinator/meeting-proposals/p%2F1"],
     returnsNothing: true,
   },
-  {
-    title: "getMyMeetingProposals lists the participant's proposals",
-    call: () => getMyMeetingProposals(),
-    method: "get",
-    args: ["/api/meeting-proposals"],
-  },
-  {
-    title:
-      "acceptMeetingProposal posts to the encoded proposal's accept action",
-    call: () => acceptMeetingProposal("p/1"),
-    method: "post",
-    args: ["/api/meeting-proposals/p%2F1/accept"],
-  },
-  {
-    title: "declineMeetingProposal sends the trimmed reason",
-    call: () => declineMeetingProposal("p/1", "  O gün sınavım var  "),
-    method: "post",
-    args: [
-      "/api/meeting-proposals/p%2F1/decline",
-      { reason: "O gün sınavım var" },
-    ],
-  },
-  {
-    title: "declineMeetingProposal sends a blank reason as null",
-    call: () => declineMeetingProposal("p/1", "   "),
-    method: "post",
-    args: ["/api/meeting-proposals/p%2F1/decline", { reason: null }],
-  },
-  {
-    title: "proposeReschedule posts the new time under the encoded meeting",
-    call: () =>
-      proposeReschedule("m/1", {
-        scheduledAt: "2026-04-02T09:00:00Z",
-        durationMinutes: 30,
-      }),
-    method: "post",
-    args: [
-      "/api/meetings/m%2F1/reschedule-proposals",
-      { scheduledAt: "2026-04-02T09:00:00Z", durationMinutes: 30 },
-    ],
-  },
 ];
 
 describe("meeting proposals client", () => {
@@ -129,4 +137,5 @@ describe("meeting proposals client", () => {
   });
 
   itSendsEachClientCall(calls);
+  itSendsEachClientCall(backendCalls, backendHttp);
 });

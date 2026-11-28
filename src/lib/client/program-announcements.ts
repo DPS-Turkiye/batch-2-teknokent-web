@@ -3,14 +3,14 @@ import type {
   ProgramAnnouncement,
 } from "@/interfaces/program-announcement";
 import { requireSuccess } from "@/lib/client/api";
-import { httpClient } from "@/lib/http-client";
+import { backendHttp } from "@/lib/client/backend-http";
 
 const programUrl = (programId: string) =>
   `/api/coordinator/programs/${encodeURIComponent(programId)}/announcements`;
 
 export async function getProgramAnnouncements(programId: string) {
   return requireSuccess(
-    await httpClient.get<ProgramAnnouncement[]>(programUrl(programId)),
+    await backendHttp.get<ProgramAnnouncement[]>(programUrl(programId)),
   );
 }
 
@@ -19,12 +19,12 @@ export async function postProgramAnnouncement(
   input: PostProgramAnnouncementInput,
 ) {
   return requireSuccess(
-    await httpClient.post<ProgramAnnouncement>(programUrl(programId), input),
+    await backendHttp.post<ProgramAnnouncement>(programUrl(programId), input),
   );
 }
 
 export async function getMyAnnouncements() {
   return requireSuccess(
-    await httpClient.get<ProgramAnnouncement[]>("/api/program-announcements"),
+    await backendHttp.get<ProgramAnnouncement[]>("/api/program-announcements"),
   );
 }

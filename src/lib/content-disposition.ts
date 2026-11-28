@@ -15,3 +15,22 @@ export function contentDispositionHeader(
   );
   return `${type}; filename="${ascii || "document"}"; filename*=UTF-8''${encoded}`;
 }
+
+/**
+ * The file name an attachment's Content-Disposition header gives (filename* first, as RFC 6266 says), or null when
+ * the header is missing (a cross-origin response hides it unless the server exposes it) or names nothing.
+ */
+export function attachmentFilename(header: unknown): string | null {
+  if (typeof header !== "string") return null;
+  const extended = /filename\*\s*=\s*UTF-8''([^;]+)/i.exec(header);
+  if (extended?.[1]) {
+    try {
+      return decodeURIComponent(extended[1].trim());
+    } catch {
+      // A malformed escape falls through to the plain name.
+    }
+  }
+  const plain = /filename\s*=\s*"([^"]*)"|filename\s*=\s*([^;]+)/i.exec(header);
+  const name = (plain?.[1] ?? plain?.[2] ?? "").trim();
+  return name || null;
+}

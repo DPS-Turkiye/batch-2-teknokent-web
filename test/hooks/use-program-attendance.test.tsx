@@ -7,6 +7,7 @@ import { useProgramAttendance } from "@/hooks/use-program-attendance";
 import { AttendanceSessionKind } from "@/interfaces/program-attendance";
 import { SessionsExportFormat } from "@/interfaces/program-report";
 import {
+  downloadProgramAttendance,
   getProgramAttendance,
   markSessionAttendance,
 } from "@/lib/client/program-attendance";
@@ -17,6 +18,7 @@ import { createTestQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/program-attendance", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/client/program-attendance")>()),
+  downloadProgramAttendance: vi.fn(),
   getProgramAttendance: vi.fn(),
   markSessionAttendance: vi.fn(),
 }));
@@ -44,7 +46,9 @@ describe("useProgramAttendance", () => {
 
     act(() => result.current.setFrom("2026-11-09"));
     expect(result.current.valid).toBe(false);
-    expect(result.current.exportHref(SessionsExportFormat.Csv)).toBeUndefined();
+    expect(result.current.canExport).toBe(false);
+    act(() => result.current.exportFile(SessionsExportFormat.Csv));
+    expect(downloadProgramAttendance).not.toHaveBeenCalled();
 
     act(() => result.current.setTo("2026-11-12"));
     expect(result.current.valid).toBe(true);
@@ -129,6 +133,30 @@ describe("useProgramAttendance", () => {
       expect(
         useToastStore.getState().toasts.map((toast) => toast.message),
       ).toContain("Bu oturum henüz yapılmadı; katılım işaretlenemez."),
+    );
+  });
+
+  it("asks for the file of the chosen range and toasts why it could not be prepared", async () => {
+    vi.mocked(downloadProgramAttendance).mockRejectedValue(
+      new Error("Katılım bu programda kapalı."),
+    );
+    const { result } = renderHook(() => useProgramAttendance("program-1"), {
+      wrapper,
+    });
+    await waitFor(() => expect(result.current.canExport).toBe(true));
+
+    act(() => result.current.exportFile(SessionsExportFormat.Xlsx));
+
+    await waitFor(() =>
+      expect(downloadProgramAttendance).toHaveBeenCalledWith("program-1", {
+        range: null,
+        format: SessionsExportFormat.Xlsx,
+      }),
+    );
+    await waitFor(() =>
+      expect(
+        useToastStore.getState().toasts.map((toast) => toast.message),
+      ).toContain("Katılım bu programda kapalı."),
     );
   });
 });

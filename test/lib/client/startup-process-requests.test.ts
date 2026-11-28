@@ -1,4 +1,4 @@
-import { beforeEach, describe, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   getStartupProcess,
@@ -6,10 +6,12 @@ import {
   submitAssignment,
   withdrawSubmission,
 } from "@/lib/client/startup-process";
+import { backendHttp } from "@/lib/client/backend-http";
 import {
   itSendsEachClientCall,
   type ClientCall,
 } from "@test/fixtures/client-calls";
+import { createMentorResponse } from "@test/fixtures/mentors";
 
 vi.mock("@/lib/http-client", () => ({
   httpClient: {
@@ -20,8 +22,9 @@ vi.mock("@/lib/http-client", () => ({
     delete: vi.fn(),
   },
 }));
-
-const STAGE = "/api/coordinator/programs/prog%2F1/team-details/org%2F1/stage";
+vi.mock("@/lib/client/backend-http", async () =>
+  (await import("@test/mocks/backend-http")).backendHttpMock(),
+);
 
 const calls: ClientCall[] = [
   {
@@ -55,12 +58,6 @@ const calls: ClientCall[] = [
     method: "delete",
     args: ["/api/startup/process/assignments/as%2F1/submission"],
   },
-  {
-    title: "getTeamProcess reads a program team's process",
-    call: () => getTeamProcess("prog/1", "org/1"),
-    method: "get",
-    args: [STAGE],
-  },
 ];
 
 describe("startup process client", () => {
@@ -69,4 +66,40 @@ describe("startup process client", () => {
   });
 
   itSendsEachClientCall(calls);
+});
+
+describe("getTeamProcess", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("looks the team up in the program, then reads its process from the backend", async () => {
+    vi.mocked(backendHttp.get)
+      .mockResolvedValueOnce(createMentorResponse({ organizationId: "org/1" }))
+      .mockResolvedValueOnce(createMentorResponse({ phase: "Keşif" }));
+
+    await expect(getTeamProcess("prog/1", "org/1")).resolves.toEqual({
+      phase: "Keşif",
+    });
+
+    expect(backendHttp.get).toHaveBeenNthCalledWith(
+      1,
+      "/api/coordinator/programs/prog%2F1/team-details/org%2F1",
+    );
+    expect(backendHttp.get).toHaveBeenNthCalledWith(
+      2,
+      "/api/organizations/org%2F1/process",
+    );
+  });
+
+  it("stops at the program's answer for a team that is not in it", async () => {
+    vi.mocked(backendHttp.get).mockResolvedValueOnce(
+      createMentorResponse({ message: "Bu takım bu programda değil." }, 404),
+    );
+
+    await expect(getTeamProcess("prog/1", "org/9")).rejects.toMatchObject({
+      status: 404,
+    });
+    expect(backendHttp.get).toHaveBeenCalledTimes(1);
+  });
 });

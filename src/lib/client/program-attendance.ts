@@ -1,15 +1,20 @@
-import type {
-  AttendanceExport,
-  AttendanceRange,
-  AttendanceSessionRef,
-  AttendanceStatus,
-  ProgramAttendanceReport,
-  ProgramAttendanceSessions,
-  SessionCheckIn,
-  SessionQr,
+import {
+  AttendanceErrorCode,
+  type AttendanceExport,
+  type AttendanceRange,
+  type AttendanceSessionRef,
+  type AttendanceStatus,
+  type ProgramAttendanceReport,
+  type ProgramAttendanceSessions,
+  type SessionCheckIn,
+  type SessionQr,
 } from "@/interfaces/program-attendance";
-import { requireSuccess } from "@/lib/client/api";
-import { httpClient } from "@/lib/http-client";
+import { clientText } from "@/i18n/client-texts";
+import { ClientApiError, requireSuccess } from "@/lib/client/api";
+import { backendHttp } from "@/lib/client/backend-http";
+import { downloadBackendFile } from "@/lib/client/download";
+import { ATTENDANCE_TOKEN_PATTERN } from "@/lib/program-attendance";
+import { attendanceExportFilename } from "@/lib/report-export";
 
 const MINE = "/api/programs/mine/attendance";
 const CHECK_IN = "/api/attendance/check-in";
@@ -23,12 +28,20 @@ function sessionUrl(programId: string, { week, kind }: AttendanceSessionRef) {
 }
 
 export async function getMyAttendance() {
-  return requireSuccess(await httpClient.get<AttendanceStatus>(MINE));
+  return requireSuccess(await backendHttp.get<AttendanceStatus>(MINE));
 }
 
+/** A link that is not even a token's shape is refused here, like any dead link, without asking the backend. */
 export async function checkInSession(token: string) {
+  if (!ATTENDANCE_TOKEN_PATTERN.test(token)) {
+    throw new ClientApiError(
+      clientText("attendanceQrNotValid"),
+      400,
+      AttendanceErrorCode.QrNotValid,
+    );
+  }
   return requireSuccess(
-    await httpClient.post<SessionCheckIn>(CHECK_IN, { token }),
+    await backendHttp.post<SessionCheckIn>(CHECK_IN, { token }),
   );
 }
 
@@ -37,23 +50,27 @@ export async function getProgramAttendance(
   range: AttendanceRange,
 ) {
   return requireSuccess(
-    await httpClient.get<ProgramAttendanceReport>(reportUrl(programId), {
+    await backendHttp.get<ProgramAttendanceReport>(reportUrl(programId), {
       params: range ?? undefined,
     }),
   );
 }
 
-/** A plain link: the browser downloads the file with the session cookie. */
-export function programAttendanceExportHref(
+/** Fetches the attendance file for the range (the whole program without one) and saves it. */
+export async function downloadProgramAttendance(
   programId: string,
   { range, format }: AttendanceExport,
 ) {
-  return `${reportUrl(programId)}/export?${new URLSearchParams({ ...range, format })}`;
+  await downloadBackendFile(
+    `${reportUrl(programId)}/export`,
+    { ...range, format },
+    attendanceExportFilename(range, format),
+  );
 }
 
 export async function getAttendanceSessions(programId: string) {
   return requireSuccess(
-    await httpClient.get<ProgramAttendanceSessions>(
+    await backendHttp.get<ProgramAttendanceSessions>(
       `${reportUrl(programId)}/sessions`,
     ),
   );
@@ -64,7 +81,7 @@ export async function getSessionQr(
   session: AttendanceSessionRef,
 ) {
   return requireSuccess(
-    await httpClient.post<SessionQr>(`${sessionUrl(programId, session)}/qr`),
+    await backendHttp.post<SessionQr>(`${sessionUrl(programId, session)}/qr`),
   );
 }
 
@@ -73,7 +90,7 @@ export async function regenerateSessionQr(
   session: AttendanceSessionRef,
 ) {
   return requireSuccess(
-    await httpClient.post<SessionQr>(
+    await backendHttp.post<SessionQr>(
       `${sessionUrl(programId, session)}/qr/regenerate`,
     ),
   );
@@ -85,7 +102,7 @@ export async function markSessionAttendance(
   userId: string,
 ) {
   return requireSuccess(
-    await httpClient.put<null>(
+    await backendHttp.put<null>(
       `${sessionUrl(programId, session)}/participants/${encodeURIComponent(userId)}`,
     ),
   );
@@ -97,7 +114,7 @@ export async function unmarkSessionAttendance(
   userId: string,
 ) {
   return requireSuccess(
-    await httpClient.delete<null>(
+    await backendHttp.delete<null>(
       `${sessionUrl(programId, session)}/participants/${encodeURIComponent(userId)}`,
     ),
   );

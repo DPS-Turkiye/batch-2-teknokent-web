@@ -3,12 +3,18 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ProgramSessionsSection } from "@/components/coordinator/program-sessions-section";
-import { getProgramSessions } from "@/lib/client/program-report";
+import { SessionsExportFormat } from "@/interfaces/program-report";
+import {
+  downloadProgramSessions,
+  getProgramSessions,
+} from "@/lib/client/program-report";
+import { useToastStore } from "@/stores/toast-store";
 import { renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/program-report", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/client/program-report")>()),
   getProgramSessions: vi.fn(),
+  downloadProgramSessions: vi.fn(),
 }));
 
 describe("ProgramSessionsSection", () => {
@@ -47,15 +53,31 @@ describe("ProgramSessionsSection", () => {
     expect(
       screen.getByText("Bu aralıkta onaylanmış görüşme yok."),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole("link", { name: "Excel (.xlsx) indir" }),
-    ).toHaveAttribute(
-      "href",
-      "/api/coordinator/programs/program-1/sessions/export?from=2026-11-01&to=2026-11-30&format=XLSX",
+    await userEvent.setup().click(
+      screen.getByRole("button", { name: "Excel (.xlsx) indir" }),
     );
-    expect(screen.getByRole("link", { name: "CSV indir" })).toHaveAttribute(
-      "href",
-      expect.stringContaining("format=CSV"),
+    await waitFor(() =>
+      expect(downloadProgramSessions).toHaveBeenCalledWith("program-1", {
+        from: "2026-11-01",
+        to: "2026-11-30",
+        format: SessionsExportFormat.Xlsx,
+      }),
+    );
+  });
+
+  it("says so when the file cannot be prepared", async () => {
+    vi.mocked(downloadProgramSessions).mockRejectedValue(new Error("down"));
+    renderWithQueryClient(<ProgramSessionsSection programId="program-1" />);
+    await screen.findByText("Zeynep Şahin");
+
+    await userEvent
+      .setup()
+      .click(screen.getByRole("button", { name: "CSV indir" }));
+
+    await waitFor(() =>
+      expect(
+        useToastStore.getState().toasts.map((toast) => toast.message),
+      ).toContain("down"),
     );
   });
 
@@ -73,9 +95,6 @@ describe("ProgramSessionsSection", () => {
         "Bitiş tarihi başlangıçtan önce olamaz.",
       ),
     );
-    expect(screen.getByText("CSV indir")).toHaveAttribute(
-      "aria-disabled",
-      "true",
-    );
+    expect(screen.getByRole("button", { name: "CSV indir" })).toBeDisabled();
   });
 });

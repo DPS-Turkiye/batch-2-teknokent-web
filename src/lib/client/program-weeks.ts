@@ -8,6 +8,7 @@ import type {
   WeekVisibility,
 } from "@/interfaces/program-week";
 import { requireSuccess } from "@/lib/client/api";
+import { backendHttp } from "@/lib/client/backend-http";
 import { httpClient } from "@/lib/http-client";
 
 const planUrl = (programId: string) =>
@@ -15,7 +16,7 @@ const planUrl = (programId: string) =>
 
 export async function getProgramWeekPlan(programId: string) {
   return requireSuccess(
-    await httpClient.get<ProgramWeekPlan>(planUrl(programId)),
+    await backendHttp.get<ProgramWeekPlan>(planUrl(programId)),
   );
 }
 
@@ -25,7 +26,7 @@ export async function saveProgramWeekPlan(
   specialDays: ProgramSpecialDay[],
 ) {
   return requireSuccess(
-    await httpClient.put<ProgramWeekPlan>(planUrl(programId), {
+    await backendHttp.put<ProgramWeekPlan>(planUrl(programId), {
       weeks,
       specialDays,
     }),
@@ -38,7 +39,7 @@ export async function setProgramWeekVisibility(
   visibility: WeekVisibility,
 ) {
   return requireSuccess(
-    await httpClient.put<ProgramPlanWeek>(
+    await backendHttp.put<ProgramPlanWeek>(
       `${planUrl(programId)}/${week}/visibility`,
       { visibility },
     ),
@@ -59,6 +60,6 @@ export async function getProgramWeeksSoFar() {
 
 export async function alignProgramDates(programId: string) {
   return requireSuccess(
-    await httpClient.post<ProgramWeekPlan>(`${planUrl(programId)}/align-dates`),
+    await backendHttp.post<ProgramWeekPlan>(`${planUrl(programId)}/align-dates`),
   );
 }

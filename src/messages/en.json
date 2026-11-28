@@ -1129,7 +1129,10 @@
     "emailTooLong": "The text or the list of people taken off is too long. Shorten the text or choose a narrower group.",
     "uploadStalled": "The upload stopped moving; your connection may be slow or down. Try again.",
     "uploadNoAnswer": "The file was sent but the server did not answer. Check your files before trying again; it may already be there.",
-    "uploadCanceled": "Upload canceled."
+    "uploadCanceled": "Upload canceled.",
+    "alreadyProgramCoordinator": "This person is already a coordinator of this program.",
+    "onlyApprovedCoordinator": "Only an approved coordinator can be assigned to a program.",
+    "attendanceQrNotValid": "This QR code is not valid right now."
   },
   "metadata": {
     "manifestDescription": "Your mentoring meetings, tasks and messages in your pocket.",
@@ -4838,7 +4841,8 @@
       "empty": "No confirmed meetings in this range.",
       "loading": "Loading the report…",
       "downloadXlsx": "Download Excel (.xlsx)",
-      "downloadCsv": "Download CSV"
+      "downloadCsv": "Download CSV",
+      "exportFailed": "Could not prepare the report file."
     },
     "attendanceQr": {
       "title": "Attendance QR codes",
@@ -4875,6 +4879,7 @@
       "wholeProgram": "Whole program",
       "downloadXlsx": "Download Excel",
       "downloadCsv": "Download CSV",
+      "exportFailed": "Could not prepare the attendance file.",
       "rangeInvalid": "Choose a valid date range.",
       "noWeeks": "No session took place in this range.",
       "noParticipants": "This program has no participants yet.",
@@ -6217,8 +6222,6 @@
     "announcementSendFailed": "Could not send the announcement.",
     "programArchiveFailed": "Could not archive the program.",
     "coordinatorsLoadFailed": "Could not load the coordinators.",
-    "alreadyProgramCoordinator": "This person is already a coordinator of this program.",
-    "onlyApprovedCoordinator": "Only an approved coordinator can be assigned to a program.",
     "coordinatorRemoveFailed": "Could not remove the coordinator.",
     "matchesLoadFailed": "Could not load the matches.",
     "matchCreateFailed": "Could not create the match.",

@@ -1,17 +1,25 @@
 "use client";
 
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+} from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import type { SessionsExportFormat } from "@/interfaces/program-report";
+import { ToastTone } from "@/interfaces/toast";
 import {
+  downloadProgramSessions,
   getProgramMeetingFeedback,
   getProgramMeetingRatings,
   getProgramReport,
   getProgramSessions,
-  programSessionsExportHref,
 } from "@/lib/client/program-report";
 import { isoDay } from "@/lib/coordinator-calendar";
+import { errorMessage } from "@/lib/utils";
+import { useToast } from "@/stores/toast-store";
 
 export function useProgramReport(programId: string) {
   return useQuery({
@@ -72,6 +80,8 @@ function currentMonth(now = new Date()) {
 
 /** Sessions and hours per mentor and per mentee for a day range, the current month to start with. */
 export function useProgramSessions(programId: string) {
+  const t = useTranslations("programReport.sessions");
+  const { showToast } = useToast();
   const [range, setRange] = useState(() => currentMonth());
   const valid = Boolean(range.from && range.to) && range.from <= range.to;
   const query = useQuery({
@@ -79,15 +89,26 @@ export function useProgramSessions(programId: string) {
     queryFn: () => getProgramSessions(programId, range.from, range.to),
     enabled: valid,
   });
+  const download = useMutation({
+    mutationFn: (format: SessionsExportFormat) =>
+      downloadProgramSessions(programId, { ...range, format }),
+    onError: (error: Error) => {
+      showToast({
+        message: errorMessage(error, t("exportFailed")),
+        tone: ToastTone.Error,
+      });
+    },
+  });
   return {
     ...range,
     valid,
     query,
     setFrom: (from: string) => setRange((current) => ({ ...current, from })),
     setTo: (to: string) => setRange((current) => ({ ...current, to })),
-    exportHref: (format: SessionsExportFormat) =>
-      valid
-        ? programSessionsExportHref(programId, { ...range, format })
-        : undefined,
+    /** Whether a file can be asked for now: a valid range, and no file on its way. */
+    canExport: valid && !download.isPending,
+    exportFile: (format: SessionsExportFormat) => {
+      if (valid && !download.isPending) download.mutate(format);
+    },
   };
 }

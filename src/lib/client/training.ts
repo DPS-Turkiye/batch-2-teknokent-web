@@ -6,6 +6,7 @@ import type {
   TrainingQuiz,
 } from "@/interfaces/training";
 import { requireSuccess } from "@/lib/client/api";
+import { backendHttp } from "@/lib/client/backend-http";
 import { httpClient } from "@/lib/http-client";
 
 const editorUrl = (programId: string) =>
@@ -13,13 +14,13 @@ const editorUrl = (programId: string) =>
 
 export async function getTrainingForEditor(programId: string) {
   return requireSuccess(
-    await httpClient.get<TrainingModuleForEditor>(editorUrl(programId)),
+    await backendHttp.get<TrainingModuleForEditor>(editorUrl(programId)),
   );
 }
 
 export async function putTraining(programId: string, input: SaveTrainingInput) {
   return requireSuccess(
-    await httpClient.put<TrainingModuleForEditor>(editorUrl(programId), input),
+    await backendHttp.put<TrainingModuleForEditor>(editorUrl(programId), input),
   );
 }
 

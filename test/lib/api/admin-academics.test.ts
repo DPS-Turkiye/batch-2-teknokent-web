@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   fetchAdminAcademics,
-  fetchProgramAcademics,
 } from "@/lib/api/admin-academics";
 import { backendRequest } from "@/lib/server/backend-client";
 
@@ -18,15 +17,6 @@ type RequestCase = [
 ];
 
 const cases: RequestCase[] = [
-  [
-    "lists a program's academics for an encoded program",
-    () => fetchProgramAcademics("admin-1", "prog/1"),
-    {
-      method: "GET",
-      url: "/api/coordinator/programs/prog%2F1/academics",
-      params: { actorId: "admin-1" },
-    },
-  ],
   [
     "lists every academic",
     () => fetchAdminAcademics("admin-1"),

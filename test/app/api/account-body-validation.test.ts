@@ -3,7 +3,6 @@ import { beforeEach, describe, vi } from "vitest";
 import { PUT as coordinatorAccessRoute } from "@/app/api/admin/coordinators/[id]/access/route";
 import { POST as addCoordinatorRoute } from "@/app/api/admin/coordinators/route";
 import { POST as interventionRoute } from "@/app/api/admin/interventions/route";
-import { POST as attendanceRoute } from "@/app/api/attendance/check-in/route";
 import { POST as passwordResetRoute } from "@/app/api/auth/password-reset/route";
 import { POST as registerRoute } from "@/app/api/auth/register/[role]/route";
 import { POST as addBotRoute } from "@/app/api/botapi/route";
@@ -23,7 +22,6 @@ import * as auth from "@/lib/api/auth";
 import * as authEmail from "@/lib/api/auth-email";
 import * as institutionLogin from "@/lib/api/institution-login";
 import * as onboardingDraft from "@/lib/api/onboarding-draft";
-import * as attendance from "@/lib/api/program-attendance";
 import * as programs from "@/lib/api/programs";
 import * as botapi from "@/lib/botapi";
 import { Locale } from "@/lib/i18n";
@@ -54,7 +52,6 @@ vi.mock("@/lib/api/auth", async (importOriginal) => ({
 vi.mock("@/lib/api/auth-email");
 vi.mock("@/lib/api/institution-login");
 vi.mock("@/lib/api/onboarding-draft");
-vi.mock("@/lib/api/program-attendance");
 vi.mock("@/lib/api/programs");
 vi.mock("@/lib/botapi");
 vi.mock("@/lib/server/require-admin");
@@ -211,20 +208,6 @@ const cases: BodyCase[] = [
     expected: ["startup-1", null],
     invalid: { "a program id of the wrong type": { programId: 1 } },
   },
-  {
-    route: "POST /api/attendance/check-in",
-    send: (request) => attendanceRoute(request),
-    valid: { token: "Ab_-".repeat(10) },
-    backend: attendance.checkInSession,
-    expected: ["user-1", "Ab_-".repeat(10)],
-    invalid: {
-      "no token": {},
-      "an empty token": { token: "" },
-      "a token with a path in it": { token: "../../etc" },
-      "a token longer than any code": { token: "A".repeat(65) },
-      "a token sent as a number": { token: 7 },
-    },
-  },
 ];
 
 describe.each(cases)("$route", (bodyCase) => {
@@ -262,7 +245,6 @@ describe.each(cases)("$route", (bodyCase) => {
       authEmail,
       institutionLogin,
       onboardingDraft,
-      attendance,
       programs,
       botapi,
     );
