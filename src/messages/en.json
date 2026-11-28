@@ -1132,7 +1132,16 @@
     "uploadCanceled": "Upload canceled.",
     "alreadyProgramCoordinator": "This person is already a coordinator of this program.",
     "onlyApprovedCoordinator": "Only an approved coordinator can be assigned to a program.",
-    "attendanceQrNotValid": "This QR code is not valid right now."
+    "attendanceQrNotValid": "This QR code is not valid right now.",
+    "session": {
+      "registrationIncomplete": "This account has not finished signing up.",
+      "signInIncomplete": "Could not finish signing in.",
+      "applicationRejected": "Your application was not approved.",
+      "accountAwaitingApproval": "Your account is waiting for a coordinator's approval.",
+      "workspaceNotReady": "The workspace for this account is not ready.",
+      "workspaceNotAvailable": "This account cannot open that workspace.",
+      "sessionUnavailable": "The session service is unavailable."
+    }
   },
   "metadata": {
     "manifestDescription": "Your mentoring meetings, tasks and messages in your pocket.",

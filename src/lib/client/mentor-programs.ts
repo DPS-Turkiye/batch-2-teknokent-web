@@ -1,15 +1,14 @@
 import { requireSuccess } from "@/lib/client/api";
-import { httpClient } from "@/lib/http-client";
+import { backendHttp, withToken } from "@/lib/client/backend-http";
 
+// Mentor onboarding runs before the account is approved, so there is no session; only the Firebase token counts.
 const PATH = "/api/onboarding/mentor-programs";
-
-function bearer(idToken: string) {
-  return { headers: { Authorization: `Bearer ${idToken}` } };
-}
 
 /** The programs the mentor asked for or already belongs to. */
 export async function getMentorPrograms(idToken: string) {
-  return requireSuccess(await httpClient.get<string[]>(PATH, bearer(idToken)));
+  return requireSuccess(
+    await backendHttp.get<string[]>(PATH, withToken(idToken)),
+  );
 }
 
 export async function chooseMentorPrograms(
@@ -17,6 +16,6 @@ export async function chooseMentorPrograms(
   idToken: string,
 ) {
   return requireSuccess(
-    await httpClient.put<string[]>(PATH, { programIds }, bearer(idToken)),
+    await backendHttp.put<string[]>(PATH, { programIds }, withToken(idToken)),
   );
 }

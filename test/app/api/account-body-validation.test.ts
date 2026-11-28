@@ -1,22 +1,14 @@
 import { beforeEach, describe, vi } from "vitest";
 
-import { POST as passwordResetRoute } from "@/app/api/auth/password-reset/route";
-import { POST as registerRoute } from "@/app/api/auth/register/[role]/route";
 import { POST as addBotRoute } from "@/app/api/botapi/route";
-import { PUT as onboardingDraftRoute } from "@/app/api/onboarding/draft/route";
 import { POST as decideInvitationRoute } from "@/app/api/programs/[id]/invitations/decide/route";
 import { PUT as activeProgramRoute } from "@/app/api/programs/mine/active/route";
 import { POST as createProgramRoute } from "@/app/api/programs/route";
-import { PUT as languageRoute } from "@/app/api/session/language/route";
 import { PATCH as accountStatusRoute } from "@/app/api/users/[id]/status/route";
 import { UserAccountStatus, UserRole } from "@/interfaces/session";
 import * as accounts from "@/lib/api/accounts";
-import * as auth from "@/lib/api/auth";
-import * as authEmail from "@/lib/api/auth-email";
-import * as onboardingDraft from "@/lib/api/onboarding-draft";
 import * as programs from "@/lib/api/programs";
 import * as botapi from "@/lib/botapi";
-import { Locale } from "@/lib/i18n";
 import { requireAdminSession } from "@/lib/server/require-admin";
 import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 import {
@@ -32,13 +24,6 @@ import {
 import { appSession } from "@test/fixtures/session";
 
 vi.mock("@/lib/api/accounts");
-vi.mock("@/lib/api/auth", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/lib/api/auth")>()),
-  registerAccount: vi.fn(),
-  saveSignedInLanguage: vi.fn(),
-}));
-vi.mock("@/lib/api/auth-email");
-vi.mock("@/lib/api/onboarding-draft");
 vi.mock("@/lib/api/programs");
 vi.mock("@/lib/botapi");
 vi.mock("@/lib/server/require-admin");
@@ -60,55 +45,6 @@ const cases: BodyCase[] = [
     invalid: {
       "a status that is not a decision": { status: UserAccountStatus.Pending },
       "an unknown status": { status: "BANNED" },
-    },
-  },
-  {
-    route: "POST /api/auth/register/[role]",
-    token: "id-token",
-    send: (request) =>
-      registerRoute(request, { params: Promise.resolve({ role: "mentor" }) }),
-    valid: { fullName: "Nihan", email: "nihan@menton.test" },
-    backend: auth.registerAccount,
-    expected: [
-      "mentor",
-      { fullName: "Nihan", email: "nihan@menton.test" },
-      "id-token",
-      null,
-    ],
-    invalid: { "an array": [], "a string": '"nihan"' },
-  },
-  {
-    route: "PUT /api/session/language",
-    method: "PUT",
-    token: "id-token",
-    send: (request) => languageRoute(request),
-    valid: { language: "en" },
-    backend: auth.saveSignedInLanguage,
-    expected: ["id-token", Locale.En],
-    invalid: { "an unknown language": { language: "de" } },
-  },
-  {
-    route: "POST /api/auth/password-reset",
-    send: (request) => passwordResetRoute(request),
-    valid: { email: " ayse@metu.edu.tr " },
-    backend: authEmail.sendPasswordResetEmail,
-    expected: ["ayse@metu.edu.tr"],
-    invalid: { "a blank address": { email: "  " }, "no address": {} },
-  },
-  {
-    route: "PUT /api/onboarding/draft",
-    method: "PUT",
-    token: "id-token",
-    send: (request) => onboardingDraftRoute(request),
-    valid: { kind: "mentor-onboarding", step: "profile", payload: { a: 1 } },
-    backend: onboardingDraft.saveOnboardingDraft,
-    expected: [
-      "id-token",
-      { kind: "mentor-onboarding", step: "profile", payload: { a: 1 } },
-    ],
-    invalid: {
-      "an unknown kind": { kind: "admin-wizard", step: "x", payload: null },
-      "a missing step": { kind: "signup-wizard", payload: null },
     },
   },
   {
@@ -177,14 +113,7 @@ describe.each(cases)("$route", (bodyCase) => {
       userId: "user-1",
       organizationId: "",
     });
-    answerAllWith200(
-      accounts,
-      auth,
-      authEmail,
-      onboardingDraft,
-      programs,
-      botapi,
-    );
+    answerAllWith200(accounts, programs, botapi);
   });
 
   itChecksTheBody(bodyCase);

@@ -1134,7 +1134,16 @@
     "uploadCanceled": "Yükleme iptal edildi.",
     "alreadyProgramCoordinator": "Bu kişi zaten bu programın koordinatörü.",
     "onlyApprovedCoordinator": "Yalnızca onaylı bir koordinatör programa atanabilir.",
-    "attendanceQrNotValid": "Bu QR şu an geçerli değil."
+    "attendanceQrNotValid": "Bu QR şu an geçerli değil.",
+    "session": {
+      "registrationIncomplete": "Bu hesabın kaydı tamamlanmamış.",
+      "signInIncomplete": "Giriş tamamlanamadı.",
+      "applicationRejected": "Başvurunuz onaylanmadı.",
+      "accountAwaitingApproval": "Hesabınız koordinatör onayı bekliyor.",
+      "workspaceNotReady": "Bu hesap için çalışma alanı hazır değil.",
+      "workspaceNotAvailable": "Bu hesap o çalışma alanını açamıyor.",
+      "sessionUnavailable": "Oturum servisine ulaşılamıyor."
+    }
   },
   "metadata": {
     "manifestDescription": "Mentorluk görüşmelerin, görevlerin ve mesajların cebinde.",
