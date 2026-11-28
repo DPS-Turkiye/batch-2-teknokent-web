@@ -3,11 +3,10 @@ import axios, { AxiosError } from "axios";
 import { ClientApiError, ClientErrorCode } from "@/lib/client/api";
 
 /**
- * Most calls are small JSON round trips through the app's own route handlers.
+ * Most calls are small JSON round trips to the backend.
  * Without a timeout a stalled request never settles, so a screen waiting on one
  * stays on its pending state indefinitely — the reported "Gönderiliyor…" that
- * never resolves. The server-side wrapper already uses 60s for the Next→Spring
- * hop; this covers browser→Next.
+ * never resolves.
  */
 export const REQUEST_TIMEOUT_MS = 30_000;
 

@@ -6,12 +6,10 @@ import {
   deleteOwnStartup,
   getSelfDeletionOptions,
 } from "@/lib/client/self-deletion";
-import { httpClient } from "@/lib/http-client";
 
 vi.mock("@/lib/client/backend-http", async () =>
   (await import("@test/mocks/backend-http")).backendHttpMock(),
 );
-vi.mock("@/lib/http-client", () => ({ httpClient: { delete: vi.fn() } }));
 
 const signed = { headers: { Authorization: "Bearer id-token" } };
 
@@ -20,7 +18,6 @@ describe("self deletion client, straight to the backend on the person's own toke
     vi.clearAllMocks();
     vi.mocked(backendHttp.get).mockResolvedValue({ status: 200, data: {} });
     vi.mocked(backendHttp.post).mockResolvedValue({ status: 200, data: {} });
-    vi.mocked(httpClient.delete).mockResolvedValue({ status: 204, data: "" });
   });
 
   it("reads the options and deletes the startup on the token, naming nobody", async () => {
@@ -36,7 +33,7 @@ describe("self deletion client, straight to the backend on the person's own toke
     expect(endBackendSession).not.toHaveBeenCalled();
   });
 
-  it("ends both sessions once the account is gone", async () => {
+  it("ends the session once the account is gone", async () => {
     await deleteOwnAccount("SİL", "id-token");
 
     expect(backendHttp.post).toHaveBeenCalledWith(
@@ -44,11 +41,10 @@ describe("self deletion client, straight to the backend on the person's own toke
       { confirmation: "SİL" },
       signed,
     );
-    expect(httpClient.delete).toHaveBeenCalledWith("/api/session");
     expect(endBackendSession).toHaveBeenCalled();
   });
 
-  it("keeps the sessions when the backend refuses", async () => {
+  it("keeps the session when the backend refuses", async () => {
     vi.mocked(backendHttp.post).mockResolvedValue({
       status: 403,
       data: { message: "Yeniden giriş yapman gerekiyor." },

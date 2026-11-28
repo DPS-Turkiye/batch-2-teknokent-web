@@ -9,7 +9,6 @@ import {
   endBackendSession,
   withToken,
 } from "@/lib/client/backend-http";
-import { httpClient } from "@/lib/http-client";
 
 // The backend takes who is asking, and how recent the sign-in is, from the Firebase token alone.
 
@@ -23,7 +22,7 @@ export async function getSelfDeletionOptions(idToken: string) {
 }
 
 /**
- * Deletes the signed-in person's account. The account is gone, so its sessions go now too, even if the browser
+ * Deletes the signed-in person's account. The account is gone, so its session goes now too, even if the browser
  * never gets to sign out.
  */
 export async function deleteOwnAccount(confirmation: string, idToken: string) {
@@ -34,10 +33,7 @@ export async function deleteOwnAccount(confirmation: string, idToken: string) {
       withToken(idToken),
     ),
   );
-  await Promise.all([
-    httpClient.delete("/api/session").catch(() => undefined),
-    endBackendSession(),
-  ]);
+  await endBackendSession();
   return result;
 }
 
