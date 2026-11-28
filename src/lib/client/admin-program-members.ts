@@ -4,7 +4,11 @@ import type {
   ProgramTeamMove,
 } from "@/interfaces/admin-overview";
 import { requireSuccess } from "@/lib/client/api";
-import { httpClient } from "@/lib/http-client";
+import { backendHttp } from "@/lib/client/backend-http";
+
+function programPath(programId: string) {
+  return `/api/admin/programs/${encodeURIComponent(programId)}`;
+}
 
 export async function assignToProgram(
   programId: string,
@@ -12,8 +16,8 @@ export async function assignToProgram(
   targetId: string,
 ) {
   requireSuccess(
-    await httpClient.post<void>(
-      `/api/admin/programs/${encodeURIComponent(programId)}/${kind}/${encodeURIComponent(targetId)}`,
+    await backendHttp.post<void>(
+      `${programPath(programId)}/${kind}/${encodeURIComponent(targetId)}`,
     ),
   );
 }
@@ -25,8 +29,8 @@ export async function moveStartupToProgram(
   fromProgramId: string,
 ) {
   return requireSuccess(
-    await httpClient.post<ProgramTeamMove>(
-      `/api/admin/programs/${encodeURIComponent(targetProgramId)}/startups/${encodeURIComponent(organizationId)}/move`,
+    await backendHttp.post<ProgramTeamMove>(
+      `${programPath(targetProgramId)}/startups/${encodeURIComponent(organizationId)}/move`,
       { fromProgramId },
     ),
   );
@@ -38,8 +42,8 @@ export async function removeMentorFromProgram(
   mentorId: string,
 ) {
   return requireSuccess(
-    await httpClient.post<ProgramMentorRemoval>(
-      `/api/admin/programs/${encodeURIComponent(programId)}/mentors/${encodeURIComponent(mentorId)}/remove`,
+    await backendHttp.post<ProgramMentorRemoval>(
+      `${programPath(programId)}/mentors/${encodeURIComponent(mentorId)}/remove`,
     ),
   );
 }

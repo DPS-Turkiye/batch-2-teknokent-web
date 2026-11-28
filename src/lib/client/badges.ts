@@ -6,6 +6,7 @@ import type {
   PublicBadge,
 } from "@/interfaces/badges";
 import { requireSuccess } from "@/lib/client/api";
+import { backendHttp } from "@/lib/client/backend-http";
 import { httpClient } from "@/lib/http-client";
 
 const programBadges = (programId: string) =>
@@ -64,7 +65,7 @@ export async function postGateBadgeRevoke(
 
 export async function getAdminStudents(state: GateBadgeState | null) {
   return requireSuccess(
-    await httpClient.get<GateBadgeRow[]>(
+    await backendHttp.get<GateBadgeRow[]>(
       "/api/admin/students",
       state ? { params: { state } } : undefined,
     ),

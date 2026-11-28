@@ -1,7 +1,6 @@
 import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { GET as adminStudents } from "@/app/api/admin/students/route";
 import { POST as revoke } from "@/app/api/coordinator/programs/[id]/badges/awards/[awardId]/revoke/route";
 import { POST as award } from "@/app/api/coordinator/programs/[id]/badges/awards/route";
 import { GET as roster } from "@/app/api/coordinator/programs/[id]/badges/roster/route";
@@ -12,7 +11,6 @@ import { GateBadgeState } from "@/interfaces/badges";
 import { UserRole, type AppSession } from "@/interfaces/session";
 import {
   awardGateBadge,
-  fetchAdminStudents,
   fetchMyAchievements,
   fetchMyBadges,
   fetchProgramBadgeRoster,
@@ -28,7 +26,6 @@ vi.mock("next-intl/server", () => ({
 vi.mock("@/lib/session", () => ({ getSessionUser: vi.fn() }));
 vi.mock("@/lib/api/badges", () => ({
   awardGateBadge: vi.fn(),
-  fetchAdminStudents: vi.fn(),
   fetchMyAchievements: vi.fn(),
   fetchMyBadges: vi.fn(),
   fetchProgramBadgeRoster: vi.fn(),
@@ -60,7 +57,6 @@ describe("badge routes", () => {
     answerEachWith(
       [
         awardGateBadge,
-        fetchAdminStudents,
         fetchMyAchievements,
         fetchMyBadges,
         fetchProgramBadgeRoster,
@@ -157,20 +153,6 @@ describe("badge routes", () => {
       "p1",
       "a1",
       "Görüşmelere gelmedi",
-    );
-  });
-
-  it("shows the student list to admins only", async () => {
-    vi.mocked(getSessionUser).mockResolvedValue(as(UserRole.Coordinator));
-    expect(
-      (await adminStudents(new NextRequest("http://localhost/x"))).status,
-    ).toBe(403);
-
-    vi.mocked(getSessionUser).mockResolvedValue(as(UserRole.Admin));
-    await adminStudents(new NextRequest("http://localhost/x?state=NONE"));
-    expect(fetchAdminStudents).toHaveBeenCalledWith(
-      "ADMIN-1",
-      GateBadgeState.None,
     );
   });
 });

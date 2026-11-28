@@ -1,8 +1,5 @@
 import { beforeEach, describe, vi } from "vitest";
 
-import { PUT as coordinatorAccessRoute } from "@/app/api/admin/coordinators/[id]/access/route";
-import { POST as addCoordinatorRoute } from "@/app/api/admin/coordinators/route";
-import { POST as interventionRoute } from "@/app/api/admin/interventions/route";
 import { POST as attendanceRoute } from "@/app/api/attendance/check-in/route";
 import { POST as passwordResetRoute } from "@/app/api/auth/password-reset/route";
 import { POST as registerRoute } from "@/app/api/auth/register/[role]/route";
@@ -15,8 +12,6 @@ import { PUT as languageRoute } from "@/app/api/session/language/route";
 import { PATCH as accountStatusRoute } from "@/app/api/users/[id]/status/route";
 import { UserAccountStatus, UserRole } from "@/interfaces/session";
 import * as accounts from "@/lib/api/accounts";
-import * as adminCoordinators from "@/lib/api/admin-coordinators";
-import * as interventions from "@/lib/api/admin-interventions";
 import * as auth from "@/lib/api/auth";
 import * as authEmail from "@/lib/api/auth-email";
 import * as onboardingDraft from "@/lib/api/onboarding-draft";
@@ -39,8 +34,6 @@ import {
 import { appSession } from "@test/fixtures/session";
 
 vi.mock("@/lib/api/accounts");
-vi.mock("@/lib/api/admin-coordinators");
-vi.mock("@/lib/api/admin-interventions");
 vi.mock("@/lib/api/auth", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/api/auth")>()),
   registerAccount: vi.fn(),
@@ -60,31 +53,6 @@ const admin = appSession({ userId: "admin-1", role: UserRole.Admin });
 const withId = (id: string) => ({ params: Promise.resolve({ id }) });
 
 const cases: BodyCase[] = [
-  {
-    route: "POST /api/admin/coordinators",
-    send: (request) => addCoordinatorRoute(request),
-    valid: { fullName: "Ayşe", email: "ayse@metu.edu.tr" },
-    backend: adminCoordinators.addCoordinator,
-    expected: ["admin-1", { fullName: "Ayşe", email: "ayse@metu.edu.tr" }],
-    invalid: { "a missing address": { fullName: "Ayşe" } },
-  },
-  {
-    route: "PUT /api/admin/coordinators/[id]/access",
-    method: "PUT",
-    send: (request) => coordinatorAccessRoute(request, withId("c-1")),
-    valid: { active: false },
-    backend: adminCoordinators.setCoordinatorAccess,
-    expected: ["admin-1", "c-1", false],
-    invalid: { "a flag sent as text": { active: "false" } },
-  },
-  {
-    route: "POST /api/admin/interventions",
-    send: (request) => interventionRoute(request),
-    valid: { mentorshipId: "m-1", action: "NUDGE", note: "" },
-    backend: interventions.openAdminIntervention,
-    expected: ["admin-1", { mentorshipId: "m-1", action: "NUDGE", note: "" }],
-    invalid: { "a missing action": { mentorshipId: "m-1", note: "" } },
-  },
   {
     route: "PATCH /api/users/[id]/status",
     method: "PATCH",
@@ -228,8 +196,6 @@ describe.each(cases)("$route", (bodyCase) => {
     });
     answerAllWith200(
       accounts,
-      adminCoordinators,
-      interventions,
       auth,
       authEmail,
       onboardingDraft,

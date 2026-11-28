@@ -1,6 +1,7 @@
 import type { BackendUser, UserAccountStatus } from "@/interfaces/session";
 import type { UserDeletionResult } from "@/interfaces/user-deletion";
 import { requireSuccess } from "@/lib/client/api";
+import { backendHttp, withToken } from "@/lib/client/backend-http";
 import { httpClient } from "@/lib/http-client";
 
 export type AccountDecision = {
@@ -32,16 +33,20 @@ export async function revokeUserSignIns(userId: string) {
   );
 }
 
+/**
+ * The backend takes the acting admin from their own sign-in alone and refuses the shared service credentials, so
+ * the call carries the admin's Firebase token rather than riding on the session cookie.
+ */
 export async function deleteUserAccount(
   userId: string,
   confirmEmail: string,
   idToken: string,
 ) {
   return requireSuccess(
-    await httpClient.post<UserDeletionResult>(
+    await backendHttp.post<UserDeletionResult>(
       `/api/admin/users/${encodeURIComponent(userId)}/delete`,
-      { confirmEmail },
-      { headers: { Authorization: `Bearer ${idToken}` } },
+      { confirmEmail: confirmEmail.trim() },
+      withToken(idToken),
     ),
   );
 }
