@@ -4,17 +4,17 @@ import type {
   InstitutionRecord,
 } from "@/interfaces/institution";
 import { ClientApiError, requireSuccess } from "@/lib/client/api";
-import { httpClient } from "@/lib/http-client";
+import { backendHttp } from "@/lib/client/backend-http";
 
 export async function fetchInstitutionRecord() {
   return requireSuccess(
-    await httpClient.get<InstitutionRecord>("/api/institution/me"),
+    await backendHttp.get<InstitutionRecord>("/api/institution/me"),
   );
 }
 
 export async function fetchInstitutionAdvisees() {
   return requireSuccess(
-    await httpClient.get<InstitutionPersonSummary[]>(
+    await backendHttp.get<InstitutionPersonSummary[]>(
       "/api/institution/me/advisees",
     ),
   );
@@ -26,7 +26,7 @@ export async function fetchAdviseeProfile(
 ): Promise<AdviseeProfile | null> {
   try {
     return requireSuccess(
-      await httpClient.get<AdviseeProfile>(
+      await backendHttp.get<AdviseeProfile>(
         `/api/institution/me/advisees/${encodeURIComponent(userId)}/profile`,
       ),
     );

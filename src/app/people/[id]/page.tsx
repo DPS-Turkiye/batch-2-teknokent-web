@@ -9,28 +9,10 @@ import { useEffect } from "react";
 import { AppShell } from "@/components/hoc/app-shell";
 import { PersonProfileView } from "@/components/profile/person-profile-view";
 import { useAppSession } from "@/components/providers/session-provider";
-import { UserRole, type BackendUser } from "@/interfaces/session";
-import type { UserProfile } from "@/interfaces/user-profile";
-import { requireSuccess } from "@/lib/client/api";
-import { httpClient } from "@/lib/http-client";
+import { UserRole } from "@/interfaces/session";
+import { getPerson, getPersonProfile } from "@/lib/client/user-profile";
 import { organizationStartupHref } from "@/lib/program-links";
 import { AppArea } from "@/types/app-area";
-
-async function getPerson(userId: string) {
-  return requireSuccess(
-    await httpClient.get<BackendUser>(
-      `/api/users/${encodeURIComponent(userId)}`,
-    ),
-  );
-}
-
-async function getPersonProfile(userId: string) {
-  return requireSuccess(
-    await httpClient.get<UserProfile>(
-      `/api/users/${encodeURIComponent(userId)}/profile`,
-    ),
-  );
-}
 
 export default function PersonProfilePage() {
   const t = useTranslations("personProfile");

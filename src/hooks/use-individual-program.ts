@@ -1,9 +1,19 @@
 "use client";
 
-import { useAppSession } from "@/components/providers/session-provider";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+
+import {
+  useAppSession,
+  useSession,
+} from "@/components/providers/session-provider";
 import { useOrganizationPrograms } from "@/hooks/use-programs";
 import { UserRole } from "@/interfaces/session";
 import { currentOrganizationProgram } from "@/lib/organization-programs";
+import {
+  profileDestination,
+  startupPageRedirect,
+} from "@/lib/startup-page-gate";
 
 /**
  * Whether the signed-in mentee's current program takes students as teams of one (İŞKUR-style), so its screens
@@ -32,4 +42,38 @@ export function useIndividualProgram() {
     isLoading: guess === undefined && programs.isLoading,
     programId: null,
   };
+}
+
+/** The session and whether its program is individual, once both are known; null until then. */
+function useSettledIndividual() {
+  const { session, isLoading } = useSession();
+  const program = useIndividualProgram();
+  const pending = isLoading || (session !== null && program.isLoading);
+  return pending ? null : { session, individual: program.individual };
+}
+
+/**
+ * Sends someone a startup page is not for elsewhere (see startupPageRedirect), once the session and their program
+ * are known. True when the page may render.
+ */
+export function useStartupPageGate(options: { strict: boolean; path: string }) {
+  const router = useRouter();
+  const settled = useSettledIndividual();
+  const destination = settled
+    ? startupPageRedirect({ ...settled, ...options })
+    : null;
+  useEffect(() => {
+    if (destination) router.replace(destination);
+  }, [destination, router]);
+  return settled !== null && destination === null;
+}
+
+/** /profile: sends the person on to their own profile once the session and their program are known. */
+export function useProfileRedirect(web: boolean) {
+  const router = useRouter();
+  const settled = useSettledIndividual();
+  const destination = settled ? profileDestination({ ...settled, web }) : null;
+  useEffect(() => {
+    if (destination) router.replace(destination);
+  }, [destination, router]);
 }

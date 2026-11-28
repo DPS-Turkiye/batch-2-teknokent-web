@@ -1,3 +1,6 @@
+import type { AxiosResponse } from "axios";
+
+import { clientText } from "@/i18n/client-texts";
 import type { NewCoordinatorInput } from "@/interfaces/admin-coordinator";
 import type {
   CoordinatorProgram,
@@ -24,12 +27,13 @@ import type {
   MatchingOverview,
   MatchSuggestions,
 } from "@/interfaces/program-matching";
-import { requireSuccess } from "@/lib/client/api";
-import { httpClient } from "@/lib/http-client";
+import { ClientApiError, requireSuccess } from "@/lib/client/api";
+import { backendHttp } from "@/lib/client/backend-http";
+import { ALREADY_COORDINATOR } from "@/lib/const";
 
 export async function getCoordinatorPrograms() {
   return requireSuccess(
-    await httpClient.get<CoordinatorProgram[]>("/api/coordinator/programs"),
+    await backendHttp.get<CoordinatorProgram[]>("/api/coordinator/programs"),
   );
 }
 
@@ -38,7 +42,7 @@ export async function createCoordinatorProgramEvent(
   input: CreateProgramEventInput,
 ) {
   return requireSuccess(
-    await httpClient.post<ProgramEvent>(
+    await backendHttp.post<ProgramEvent>(
       `/api/coordinator/programs/${encodeURIComponent(programId)}/events`,
       input,
     ),
@@ -50,7 +54,7 @@ const programUrl = (programId: string) =>
 
 export async function getCoordinatorProgram(programId: string) {
   return requireSuccess(
-    await httpClient.get<CoordinatorProgramDetail>(programUrl(programId)),
+    await backendHttp.get<CoordinatorProgramDetail>(programUrl(programId)),
   );
 }
 
@@ -59,7 +63,7 @@ export async function updateCoordinatorProgram(
   input: UpdateProgramDetailsInput,
 ) {
   return requireSuccess(
-    await httpClient.put<CoordinatorProgramDetail>(
+    await backendHttp.put<CoordinatorProgramDetail>(
       programUrl(programId),
       input,
     ),
@@ -72,7 +76,7 @@ export async function replaceCoordinatorProgramPhases(
   syllabusDocumentId: string | null = null,
 ) {
   return requireSuccess(
-    await httpClient.put<CoordinatorProgramDetail>(
+    await backendHttp.put<CoordinatorProgramDetail>(
       `${programUrl(programId)}/phases`,
       { phases, syllabusDocumentId },
     ),
@@ -81,7 +85,7 @@ export async function replaceCoordinatorProgramPhases(
 
 export async function launchCoordinatorProgram(programId: string) {
   return requireSuccess(
-    await httpClient.post<CoordinatorProgramDetail>(
+    await backendHttp.post<CoordinatorProgramDetail>(
       `${programUrl(programId)}/launch`,
       {},
     ),
@@ -93,7 +97,7 @@ export async function setCoordinatorProgramArchived(
   archived: boolean,
 ) {
   return requireSuccess(
-    await httpClient.put<CoordinatorProgramDetail>(
+    await backendHttp.put<CoordinatorProgramDetail>(
       `${programUrl(programId)}/archive`,
       { archived },
     ),
@@ -102,15 +106,46 @@ export async function setCoordinatorProgramArchived(
 
 export async function getProgramCoordinators(programId: string) {
   return requireSuccess(
-    await httpClient.get<CoordinatorRef[]>(
+    await backendHttp.get<CoordinatorRef[]>(
       `${programUrl(programId)}/coordinators`,
     ),
   );
 }
 
+function textField(body: unknown, field: "message" | "code") {
+  if (!body || typeof body !== "object" || !(field in body)) return undefined;
+  const value: unknown = Reflect.get(body, field);
+  return typeof value === "string" ? value : undefined;
+}
+
+/**
+ * The backend refuses a coordinator who already runs the program, or someone who is not an approved coordinator,
+ * in English. Both are shown in the reader's language; the first carries a code Onay treats as done.
+ */
+function requireAssignment(response: AxiosResponse<CoordinatorRef[]>) {
+  if (response.status === 400) {
+    const message = textField(response.data, "message") ?? "";
+    if (message.includes("already runs")) {
+      throw new ClientApiError(
+        clientText("alreadyProgramCoordinator"),
+        400,
+        ALREADY_COORDINATOR,
+      );
+    }
+    if (message.includes("approved coordinator")) {
+      throw new ClientApiError(
+        clientText("onlyApprovedCoordinator"),
+        400,
+        textField(response.data, "code"),
+      );
+    }
+  }
+  return requireSuccess(response);
+}
+
 export async function addProgramCoordinator(programId: string, userId: string) {
-  return requireSuccess(
-    await httpClient.post<CoordinatorRef[]>(
+  return requireAssignment(
+    await backendHttp.post<CoordinatorRef[]>(
       `${programUrl(programId)}/coordinators`,
       { userId },
     ),
@@ -121,8 +156,8 @@ export async function inviteProgramCoordinator(
   programId: string,
   invite: NewCoordinatorInput,
 ) {
-  return requireSuccess(
-    await httpClient.post<CoordinatorRef[]>(
+  return requireAssignment(
+    await backendHttp.post<CoordinatorRef[]>(
       `${programUrl(programId)}/coordinators`,
       { invite },
     ),
@@ -134,7 +169,7 @@ export async function removeProgramCoordinator(
   userId: string,
 ) {
   return requireSuccess(
-    await httpClient.delete<CoordinatorRef[]>(
+    await backendHttp.delete<CoordinatorRef[]>(
       `${programUrl(programId)}/coordinators/${encodeURIComponent(userId)}`,
     ),
   );
@@ -142,7 +177,7 @@ export async function removeProgramCoordinator(
 
 export async function getProgramEligibleEmails(programId: string) {
   return requireSuccess(
-    await httpClient.get<ProgramEligibleEmail[]>(
+    await backendHttp.get<ProgramEligibleEmail[]>(
       `${programUrl(programId)}/eligible-emails`,
     ),
   );
@@ -153,7 +188,7 @@ export async function addProgramEligibleEmails(
   emails: string[],
 ) {
   return requireSuccess(
-    await httpClient.post<ProgramEligibleEmail[]>(
+    await backendHttp.post<ProgramEligibleEmail[]>(
       `${programUrl(programId)}/eligible-emails`,
       { emails },
     ),
@@ -165,7 +200,7 @@ export async function removeProgramEligibleEmail(
   entryId: string,
 ) {
   return requireSuccess(
-    await httpClient.delete<ProgramEligibleEmail[]>(
+    await backendHttp.delete<ProgramEligibleEmail[]>(
       `${programUrl(programId)}/eligible-emails/${encodeURIComponent(entryId)}`,
     ),
   );
@@ -173,7 +208,7 @@ export async function removeProgramEligibleEmail(
 
 export async function createCoordinatorProgram(input: CreateProgramInput) {
   return requireSuccess(
-    await httpClient.post<CoordinatorProgramDetail>(
+    await backendHttp.post<CoordinatorProgramDetail>(
       "/api/coordinator/programs",
       input,
     ),
@@ -182,7 +217,7 @@ export async function createCoordinatorProgram(input: CreateProgramInput) {
 
 export async function getProgramTeams(programId: string) {
   return requireSuccess(
-    await httpClient.get<ProgramTeam[]>(`${programUrl(programId)}/teams`),
+    await backendHttp.get<ProgramTeam[]>(`${programUrl(programId)}/teams`),
   );
 }
 
@@ -191,7 +226,7 @@ export async function addProgramTeams(
   teams: TeamInviteInput[],
 ) {
   return requireSuccess(
-    await httpClient.post<ProgramTeam[]>(`${programUrl(programId)}/teams`, {
+    await backendHttp.post<ProgramTeam[]>(`${programUrl(programId)}/teams`, {
       teams,
     }),
   );
@@ -203,7 +238,7 @@ export async function updateProgramTeam(
   input: TeamInviteInput,
 ) {
   return requireSuccess(
-    await httpClient.put<ProgramTeam[]>(
+    await backendHttp.put<ProgramTeam[]>(
       `${programUrl(programId)}/teams/${encodeURIComponent(inviteId)}`,
       input,
     ),
@@ -212,7 +247,7 @@ export async function updateProgramTeam(
 
 export async function removeProgramTeam(programId: string, inviteId: string) {
   return requireSuccess(
-    await httpClient.delete<ProgramTeam[]>(
+    await backendHttp.delete<ProgramTeam[]>(
       `${programUrl(programId)}/teams/${encodeURIComponent(inviteId)}`,
     ),
   );
@@ -220,7 +255,7 @@ export async function removeProgramTeam(programId: string, inviteId: string) {
 
 export async function sendProgramTeamCode(programId: string, inviteId: string) {
   return requireSuccess(
-    await httpClient.post<ProgramTeam[]>(
+    await backendHttp.post<ProgramTeam[]>(
       `${programUrl(programId)}/teams/${encodeURIComponent(inviteId)}/send-code`,
     ),
   );
@@ -231,7 +266,7 @@ export async function getProgramTeamDetail(
   organizationId: string,
 ) {
   return requireSuccess(
-    await httpClient.get<ProgramTeamDetail>(
+    await backendHttp.get<ProgramTeamDetail>(
       `${programUrl(programId)}/team-details/${encodeURIComponent(organizationId)}`,
     ),
   );
@@ -239,7 +274,7 @@ export async function getProgramTeamDetail(
 
 export async function getProgramTeamPeople(programId: string, query: string) {
   return requireSuccess(
-    await httpClient.get<ProgramTeamPeople>(
+    await backendHttp.get<ProgramTeamPeople>(
       `${programUrl(programId)}/team-people`,
       { params: { q: query } },
     ),
@@ -248,7 +283,7 @@ export async function getProgramTeamPeople(programId: string, query: string) {
 
 export async function getProgramApprovals(programId: string) {
   return requireSuccess(
-    await httpClient.get<ProgramApprovals>(
+    await backendHttp.get<ProgramApprovals>(
       `${programUrl(programId)}/approvals`,
     ),
   );
@@ -261,7 +296,7 @@ export async function decideProgramApproval(
   accepted: boolean,
 ) {
   return requireSuccess(
-    await httpClient.post<ProgramApprovals>(
+    await backendHttp.post<ProgramApprovals>(
       `${programUrl(programId)}/approvals/${kind}/${encodeURIComponent(id)}`,
       { accepted },
     ),
@@ -270,7 +305,7 @@ export async function decideProgramApproval(
 
 export async function getProgramWithoutTeam(programId: string) {
   return requireSuccess(
-    await httpClient.get<ProgramApprovalPerson[]>(
+    await backendHttp.get<ProgramApprovalPerson[]>(
       `${programUrl(programId)}/without-team`,
     ),
   );
@@ -283,15 +318,18 @@ const mentorInviteUrl = (programId: string, inviteId: string) =>
 
 export async function getMentorPool(programId: string) {
   return requireSuccess(
-    await httpClient.get<MentorPoolRow[]>(`${programUrl(programId)}/mentors`),
+    await backendHttp.get<MentorPoolRow[]>(`${programUrl(programId)}/mentors`),
   );
 }
 
 export async function inviteProgramMentor(programId: string, email: string) {
   return requireSuccess(
-    await httpClient.post<MentorPoolRow[]>(`${programUrl(programId)}/mentors`, {
-      email,
-    }),
+    await backendHttp.post<MentorPoolRow[]>(
+      `${programUrl(programId)}/mentors`,
+      {
+        email,
+      },
+    ),
   );
 }
 
@@ -300,13 +338,13 @@ export async function withdrawProgramMentorInvite(
   mentorId: string,
 ) {
   return requireSuccess(
-    await httpClient.delete<MentorPoolRow[]>(mentorUrl(programId, mentorId)),
+    await backendHttp.delete<MentorPoolRow[]>(mentorUrl(programId, mentorId)),
   );
 }
 
 export async function getMentorReview(programId: string, mentorId: string) {
   return requireSuccess(
-    await httpClient.get<MentorPoolReview>(
+    await backendHttp.get<MentorPoolReview>(
       `${mentorUrl(programId, mentorId)}/review`,
     ),
   );
@@ -318,7 +356,7 @@ export async function decideProgramMentor(
   accepted: boolean,
 ) {
   return requireSuccess(
-    await httpClient.post<MentorPoolRow[]>(
+    await backendHttp.post<MentorPoolRow[]>(
       `${mentorUrl(programId, mentorId)}/decision`,
       { accepted },
     ),
@@ -327,7 +365,7 @@ export async function decideProgramMentor(
 
 export async function renewMentorInvite(programId: string, inviteId: string) {
   return requireSuccess(
-    await httpClient.post<MentorPoolRow[]>(
+    await backendHttp.post<MentorPoolRow[]>(
       `${mentorInviteUrl(programId, inviteId)}/renew`,
       {},
     ),
@@ -336,7 +374,7 @@ export async function renewMentorInvite(programId: string, inviteId: string) {
 
 export async function cancelMentorInvite(programId: string, inviteId: string) {
   return requireSuccess(
-    await httpClient.delete<MentorPoolRow[]>(
+    await backendHttp.delete<MentorPoolRow[]>(
       mentorInviteUrl(programId, inviteId),
     ),
   );
@@ -344,7 +382,9 @@ export async function cancelMentorInvite(programId: string, inviteId: string) {
 
 export async function getMatching(programId: string) {
   return requireSuccess(
-    await httpClient.get<MatchingOverview>(`${programUrl(programId)}/matching`),
+    await backendHttp.get<MatchingOverview>(
+      `${programUrl(programId)}/matching`,
+    ),
   );
 }
 
@@ -353,7 +393,7 @@ export async function getMatchSuggestions(
   organizationId: string,
 ) {
   return requireSuccess(
-    await httpClient.get<MatchSuggestions>(
+    await backendHttp.get<MatchSuggestions>(
       `${programUrl(programId)}/matching/${encodeURIComponent(organizationId)}/suggestions`,
     ),
   );
@@ -364,7 +404,7 @@ export async function createMatch(
   input: { organizationId: string; mentorId: string },
 ) {
   return requireSuccess(
-    await httpClient.post<MatchingOverview>(
+    await backendHttp.post<MatchingOverview>(
       `${programUrl(programId)}/matching`,
       input,
     ),

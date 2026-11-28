@@ -1,4 +1,4 @@
-import { beforeEach, describe, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   ProgramEventKind,
@@ -8,6 +8,8 @@ import {
 } from "@/interfaces/coordinator-program";
 import { ProgramType } from "@/interfaces/program";
 import { ApprovalKind } from "@/interfaces/program-approvals";
+import { ClientApiError } from "@/lib/client/api";
+import { backendHttp } from "@/lib/client/backend-http";
 import {
   addProgramCoordinator,
   addProgramEligibleEmails,
@@ -45,20 +47,17 @@ import {
   updateProgramTeam,
   withdrawProgramMentorInvite,
 } from "@/lib/client/coordinator-programs";
+import { ALREADY_COORDINATOR } from "@/lib/const";
+import { clientTextsIn } from "@test/client-texts";
 import {
   itSendsEachClientCall,
   type ClientCall,
 } from "@test/fixtures/client-calls";
+import { createMentorResponse } from "@test/fixtures/mentors";
 
-vi.mock("@/lib/http-client", () => ({
-  httpClient: {
-    get: vi.fn(),
-    post: vi.fn(),
-    put: vi.fn(),
-    patch: vi.fn(),
-    delete: vi.fn(),
-  },
-}));
+vi.mock("@/lib/client/backend-http", async () =>
+  (await import("@test/mocks/backend-http")).backendHttpMock(),
+);
 
 // Ids with a slash and a space prove every path segment is encoded, so an id can never reach another route.
 const PROGRAM = "prog/1 a";
@@ -331,5 +330,62 @@ describe("coordinator programs client", () => {
     vi.clearAllMocks();
   });
 
-  itSendsEachClientCall(calls);
+  itSendsEachClientCall(calls, backendHttp);
+});
+
+describe("adding a program coordinator", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    clientTextsIn("tr");
+  });
+
+  it("names someone who already runs the program in Turkish, with the code Onay treats as done", async () => {
+    vi.mocked(backendHttp.post).mockResolvedValue(
+      createMentorResponse(
+        { message: "This coordinator already runs the program." },
+        400,
+      ),
+    );
+
+    await expect(addProgramCoordinator(PROGRAM, "user-1")).rejects.toEqual(
+      new ClientApiError(
+        "Bu kişi zaten bu programın koordinatörü.",
+        400,
+        ALREADY_COORDINATOR,
+      ),
+    );
+  });
+
+  it("says in Turkish that only an approved coordinator can run a program", async () => {
+    vi.mocked(backendHttp.post).mockResolvedValue(
+      createMentorResponse(
+        {
+          code: "INVALID_REQUEST",
+          message: "Only an approved coordinator can run a program.",
+        },
+        400,
+      ),
+    );
+
+    await expect(
+      inviteProgramCoordinator(PROGRAM, {
+        fullName: "Ayşe Kaya",
+        email: "ayse@example.edu.tr",
+      }),
+    ).rejects.toMatchObject({
+      status: 400,
+      code: "INVALID_REQUEST",
+      message: "Yalnızca onaylı bir koordinatör programa atanabilir.",
+    });
+  });
+
+  it("leaves any other refusal to the usual handling", async () => {
+    vi.mocked(backendHttp.post).mockResolvedValue(
+      createMentorResponse({ message: "Bu program arşivlendi." }, 400),
+    );
+
+    await expect(
+      addProgramCoordinator(PROGRAM, "user-1"),
+    ).rejects.toMatchObject({ status: 400, message: "Bu program arşivlendi." });
+  });
 });

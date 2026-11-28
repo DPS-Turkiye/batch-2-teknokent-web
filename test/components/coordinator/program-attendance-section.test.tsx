@@ -3,7 +3,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ProgramAttendanceSection } from "@/components/coordinator/program-attendance-section";
 import { AttendanceSessionKind } from "@/interfaces/program-attendance";
+import { SessionsExportFormat } from "@/interfaces/program-report";
 import {
+  downloadProgramAttendance,
   getProgramAttendance,
   markSessionAttendance,
   unmarkSessionAttendance,
@@ -13,6 +15,7 @@ import { renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/program-attendance", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/client/program-attendance")>()),
+  downloadProgramAttendance: vi.fn(),
   getProgramAttendance: vi.fn(),
   markSessionAttendance: vi.fn(),
   unmarkSessionAttendance: vi.fn(),
@@ -109,7 +112,7 @@ describe("ProgramAttendanceSection", () => {
     ).toHaveLength(0);
   });
 
-  it("narrows to a date range and keeps the download links on it", async () => {
+  it("narrows to a date range and downloads the file for it", async () => {
     renderWithQueryClient(<ProgramAttendanceSection programId="program-1" />);
     await screen.findByRole("table");
 
@@ -129,14 +132,25 @@ describe("ProgramAttendanceSection", () => {
         to: "2026-11-12",
       }),
     );
-    expect(screen.getByRole("link", { name: "Excel indir" })).toHaveAttribute(
-      "href",
-      "/api/coordinator/programs/program-1/attendance/export?from=2026-11-09&to=2026-11-12&format=XLSX",
+    fireEvent.click(screen.getByRole("button", { name: "Excel indir" }));
+    await waitFor(() =>
+      expect(downloadProgramAttendance).toHaveBeenLastCalledWith("program-1", {
+        range: { from: "2026-11-09", to: "2026-11-12" },
+        format: SessionsExportFormat.Xlsx,
+      }),
     );
     fireEvent.click(screen.getByRole("button", { name: "Tüm program" }));
-    expect(screen.getByRole("link", { name: "CSV indir" })).toHaveAttribute(
-      "href",
-      "/api/coordinator/programs/program-1/attendance/export?format=CSV",
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "CSV indir" }),
+      ).not.toBeDisabled(),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "CSV indir" }));
+    await waitFor(() =>
+      expect(downloadProgramAttendance).toHaveBeenLastCalledWith("program-1", {
+        range: null,
+        format: SessionsExportFormat.Csv,
+      }),
     );
   });
 

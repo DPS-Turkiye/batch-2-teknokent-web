@@ -8,7 +8,7 @@ import { useProgramAttendance } from "@/hooks/use-program-attendance";
 import { SessionsExportFormat } from "@/interfaces/program-report";
 
 const linkClass =
-  "inline-flex h-9 shrink-0 items-center justify-center rounded-full border border-[#e9ecef] bg-white px-3.5 text-[12.5px] font-medium text-[#22262b] aria-disabled:pointer-events-none aria-disabled:text-[#aeb4bc]";
+  "inline-flex h-9 shrink-0 items-center justify-center rounded-full border border-[#e9ecef] bg-white px-3.5 text-[12.5px] font-medium text-[#22262b] aria-disabled:pointer-events-none aria-disabled:text-[#aeb4bc] disabled:pointer-events-none disabled:text-[#aeb4bc]";
 const inputClass =
   "h-9 rounded-xl border border-[#e4e7ea] bg-white px-3 text-[13px] text-[#22262b] outline-none focus:border-[#26a4ff]";
 
@@ -20,8 +20,6 @@ export function ProgramAttendanceSection({ programId }: { programId: string }) {
   const t = useTranslations("programReport.attendance");
   const attendance = useProgramAttendance(programId);
   const data = attendance.query.data;
-  const xlsx = attendance.exportHref(SessionsExportFormat.Xlsx);
-  const csv = attendance.exportHref(SessionsExportFormat.Csv);
 
   return (
     <section className="space-y-4">
@@ -62,12 +60,22 @@ export function ProgramAttendanceSection({ programId }: { programId: string }) {
               {t("wholeProgram")}
             </button>
           ) : null}
-          <a href={xlsx} download aria-disabled={!xlsx} className={linkClass}>
+          <button
+            type="button"
+            disabled={!attendance.canExport}
+            onClick={() => attendance.exportFile(SessionsExportFormat.Xlsx)}
+            className={linkClass}
+          >
             {t("downloadXlsx")}
-          </a>
-          <a href={csv} download aria-disabled={!csv} className={linkClass}>
+          </button>
+          <button
+            type="button"
+            disabled={!attendance.canExport}
+            onClick={() => attendance.exportFile(SessionsExportFormat.Csv)}
+            className={linkClass}
+          >
             {t("downloadCsv")}
-          </a>
+          </button>
         </div>
       </div>
 

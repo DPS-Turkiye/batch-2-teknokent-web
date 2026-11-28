@@ -1135,6 +1135,9 @@
     "uploadStalled": "Yükleme ilerlemiyor; bağlantın yavaş ya da kesilmiş olabilir. Tekrar dene.",
     "uploadNoAnswer": "Dosya gönderildi ama sunucu yanıt vermedi. Tekrar denemeden önce dosyalarına bak; yüklenmiş olabilir.",
     "uploadCanceled": "Yükleme iptal edildi.",
+    "alreadyProgramCoordinator": "Bu kişi zaten bu programın koordinatörü.",
+    "onlyApprovedCoordinator": "Yalnızca onaylı bir koordinatör programa atanabilir.",
+    "attendanceQrNotValid": "Bu QR şu an geçerli değil.",
     "session": {
       "registrationIncomplete": "Bu hesabın kaydı tamamlanmamış.",
       "signInIncomplete": "Giriş tamamlanamadı.",
@@ -4852,7 +4855,8 @@
       "empty": "Bu aralıkta onaylanmış görüşme yok.",
       "loading": "Rapor yükleniyor…",
       "downloadXlsx": "Excel (.xlsx) indir",
-      "downloadCsv": "CSV indir"
+      "downloadCsv": "CSV indir",
+      "exportFailed": "Rapor dosyası hazırlanamadı."
     },
     "attendanceQr": {
       "title": "Yoklama QR kodları",
@@ -4889,6 +4893,7 @@
       "wholeProgram": "Tüm program",
       "downloadXlsx": "Excel indir",
       "downloadCsv": "CSV indir",
+      "exportFailed": "Katılım dosyası hazırlanamadı.",
       "rangeInvalid": "Geçerli bir tarih aralığı seçin.",
       "noWeeks": "Bu aralıkta yapılmış bir oturum yok.",
       "noParticipants": "Bu programda henüz katılımcı yok.",
@@ -6231,8 +6236,6 @@
     "announcementSendFailed": "Duyuru gönderilemedi.",
     "programArchiveFailed": "Program arşivlenemedi.",
     "coordinatorsLoadFailed": "Koordinatörler yüklenemedi.",
-    "alreadyProgramCoordinator": "Bu kişi zaten bu programın koordinatörü.",
-    "onlyApprovedCoordinator": "Yalnızca onaylı bir koordinatör programa atanabilir.",
     "coordinatorRemoveFailed": "Koordinatör çıkarılamadı.",
     "matchesLoadFailed": "Eşleşmeler yüklenemedi.",
     "matchCreateFailed": "Eşleşme oluşturulamadı.",

@@ -1,5 +1,6 @@
 import { beforeEach, describe, vi } from "vitest";
 
+import { backendHttp } from "@/lib/client/backend-http";
 import {
   addOrganizationMember,
   getOrganizationMembers,
@@ -12,15 +13,12 @@ import {
   type ClientCall,
 } from "@test/fixtures/client-calls";
 
-vi.mock("@/lib/http-client", () => ({
-  httpClient: {
-    get: vi.fn(),
-    post: vi.fn(),
-    put: vi.fn(),
-    patch: vi.fn(),
-    delete: vi.fn(),
-  },
-}));
+vi.mock("@/lib/client/backend-http", async () =>
+  (await import("@test/mocks/backend-http")).backendHttpMock(),
+);
+vi.mock("@/lib/client/own-organization", async () =>
+  (await import("@test/mocks/own-organization")).ownOrganizationMock(),
+);
 
 const member = { fullName: "Can Er", email: "can@acme.test" };
 
@@ -29,31 +27,31 @@ const calls: ClientCall[] = [
     title: "getOrganizationMembers lists the user's own team",
     call: () => getOrganizationMembers(),
     method: "get",
-    args: ["/api/organization-members"],
+    args: ["/api/organizations/org%2F1/members"],
   },
   {
     title: "getOrganizationMembersById lists the encoded organization's team",
-    call: () => getOrganizationMembersById("org/1"),
+    call: () => getOrganizationMembersById("org/2"),
     method: "get",
-    args: ["/api/organizations/org%2F1/members"],
+    args: ["/api/organizations/org%2F2/members"],
   },
   {
     title: "addOrganizationMember posts the new member",
     call: () => addOrganizationMember(member),
     method: "post",
-    args: ["/api/organization-members", member],
+    args: ["/api/organizations/org%2F1/members", member],
   },
   {
     title: "getPendingMembers lists teammates who have not joined yet",
     call: () => getPendingMembers(),
     method: "get",
-    args: ["/api/organization-members/pending"],
+    args: ["/api/organizations/org%2F1/pending-members"],
   },
   {
     title: "removePendingMember deletes the encoded pending teammate",
     call: () => removePendingMember("p/1"),
     method: "delete",
-    args: ["/api/organization-members/pending/p%2F1"],
+    args: ["/api/organizations/org%2F1/pending-members/p%2F1"],
     returnsNothing: true,
   },
 ];
@@ -63,5 +61,5 @@ describe("organization members client", () => {
     vi.clearAllMocks();
   });
 
-  itSendsEachClientCall(calls);
+  itSendsEachClientCall(calls, backendHttp);
 });

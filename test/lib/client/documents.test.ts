@@ -2,8 +2,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DocumentKind } from "@/interfaces/startup-document";
 import { ClientApiError } from "@/lib/client/api";
+import { backendHttp } from "@/lib/client/backend-http";
 import {
   isUploadCanceled,
+  listDocuments,
+  listOwnDocuments,
   uploadDocument,
   uploadDocumentWithProgress,
 } from "@/lib/client/documents";
@@ -19,6 +22,10 @@ vi.mock("@/lib/http-client", () => ({
   UPLOAD_RESPONSE_TIMEOUT_MS: 60000,
 }));
 
+vi.mock("@/lib/client/backend-http", async () =>
+  (await import("@test/mocks/backend-http")).backendHttpMock(),
+);
+
 vi.mock("@/lib/firebase/auth", () => ({
   currentIdToken: vi.fn(),
 }));
@@ -31,7 +38,7 @@ describe("uploadDocument", () => {
     vi.mocked(currentIdToken).mockReset();
   });
 
-  it("uploads directly to the backend, not the Next.js proxy", async () => {
+  it("uploads directly to the backend", async () => {
     vi.mocked(httpClient.post).mockResolvedValue({
       status: 201,
       data: {
@@ -51,29 +58,6 @@ describe("uploadDocument", () => {
     });
   });
 
-  it("falls back to the Next.js proxy when the public backend is unreachable", async () => {
-    vi.mocked(httpClient.post)
-      .mockRejectedValueOnce(
-        new ClientApiError("Sunucuya ulaşılamadı.", 0, "NETWORK"),
-      )
-      .mockResolvedValueOnce({
-        status: 201,
-        data: {
-          id: "doc-1",
-          kind: "requested-doc",
-          originalFilename: "cv.pdf",
-          sizeBytes: 2,
-        },
-      });
-
-    await uploadDocument(file, DocumentKind.RequestedDoc, "id-token");
-
-    expect(httpClient.post).toHaveBeenCalledTimes(2);
-    expect(itemAt(vi.mocked(httpClient.post).mock.calls, 1)[0]).toBe(
-      "/api/documents",
-    );
-  });
-
   it("says why the backend refused the file, in Turkish", async () => {
     vi.mocked(httpClient.post).mockResolvedValue({
       status: 400,
@@ -85,27 +69,8 @@ describe("uploadDocument", () => {
     ).rejects.toThrow("Dosya boyut sınırını aşıyor.");
   });
 
-  it("keeps the proxy's refusal instead of blaming the connection", async () => {
-    vi.mocked(httpClient.post)
-      .mockRejectedValueOnce(
-        new ClientApiError("Sunucuya ulaşılamadı.", 0, "NETWORK"),
-      )
-      .mockResolvedValueOnce({
-        status: 400,
-        data: {
-          status: 400,
-          message: "Please upload a PDF, DOCX or XLSX file.",
-        },
-      });
-
-    await expect(
-      uploadDocument(file, DocumentKind.Other, "id-token"),
-    ).rejects.toThrow(
-      "Yalnızca PDF, DOCX, XLSX veya PPTX dosyası yükleyebilirsin.",
-    );
-  });
-
-  it("asks the user to check the connection when neither route answers", async () => {
+  // The app's own upload route is gone, so an unreachable backend is the answer, not a reason to try it.
+  it("asks the user to check the connection when the backend cannot be reached, trying nothing else", async () => {
     vi.mocked(httpClient.post).mockRejectedValue(
       new ClientApiError("Sunucuya ulaşılamadı.", 0, "NETWORK"),
     );
@@ -115,6 +80,7 @@ describe("uploadDocument", () => {
     ).rejects.toThrow(
       "Dosya sunucusuna ulaşılamadı. Bağlantını kontrol edip tekrar dene.",
     );
+    expect(httpClient.post).toHaveBeenCalledTimes(1);
   });
 
   it("resolves a fresh Firebase token when the caller doesn't pass one", async () => {
@@ -226,7 +192,7 @@ describe("upload stall and progress", () => {
     vi.useRealTimers();
   });
 
-  it("gives up an upload that never starts sending after 30 seconds, without trying the proxy", async () => {
+  it("gives up an upload that never starts sending after 30 seconds", async () => {
     pendingPost();
     const upload = uploadDocument(file, DocumentKind.Homework, "id-token");
     // Caught now so the rejection is not unhandled while the clock moves.
@@ -283,7 +249,7 @@ describe("upload stall and progress", () => {
     expect(post.config().timeout).toBe(0);
   });
 
-  it("stops on İptal, without trying the proxy or leaving a timer", async () => {
+  it("stops on İptal, without leaving a timer", async () => {
     pendingPost();
     vi.mocked(currentIdToken).mockResolvedValue("id-token");
     const controller = new AbortController();
@@ -334,6 +300,26 @@ describe("upload stall and progress", () => {
       code: "TIMEOUT",
       message:
         "Dosya gönderildi ama sunucu yanıt vermedi. Tekrar denemeden önce dosyalarına bak; yüklenmiş olabilir.",
+    });
+  });
+});
+
+describe("listing one's own documents", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("reads them from the backend on the session, naming nobody", async () => {
+    vi.mocked(backendHttp.get).mockResolvedValue({ status: 200, data: [] });
+
+    expect(await listOwnDocuments()).toEqual([]);
+    expect(backendHttp.get).toHaveBeenCalledWith("/api/documents");
+  });
+
+  it("reads them on a signup's own token, an account not made yet counting as nothing stored", async () => {
+    vi.mocked(backendHttp.get).mockResolvedValue({ status: 401, data: {} });
+
+    expect(await listDocuments("id-token")).toEqual([]);
+    expect(backendHttp.get).toHaveBeenCalledWith("/api/documents", {
+      headers: { Authorization: "Bearer id-token" },
     });
   });
 });

@@ -17,15 +17,6 @@ import {
 vi.mock("@/lib/client/backend-http", async () =>
   (await import("@test/mocks/backend-http")).backendHttpMock(),
 );
-vi.mock("@/lib/http-client", () => ({
-  httpClient: {
-    get: vi.fn(),
-    post: vi.fn(),
-    put: vi.fn(),
-    patch: vi.fn(),
-    delete: vi.fn(),
-  },
-}));
 
 const training = {
   videoUrl: "https://video.example/intro",
@@ -51,10 +42,6 @@ const calls: ClientCall[] = [
     method: "put",
     args: ["/api/coordinator/programs/prog%2F1/training", training],
   },
-];
-
-/** The student's own training goes straight to the backend; the editor still goes through the app's route. */
-const studentCalls: ClientCall[] = [
   {
     title: "getStudentTraining reads the student's training",
     call: () => getStudentTraining(),
@@ -86,6 +73,5 @@ describe("training client", () => {
     vi.clearAllMocks();
   });
 
-  itSendsEachClientCall(calls);
-  itSendsEachClientCall(studentCalls, backendHttp);
+  itSendsEachClientCall(calls, backendHttp);
 });

@@ -7,24 +7,27 @@ import type {
 } from "@/interfaces/badges";
 import { requireSuccess } from "@/lib/client/api";
 import { backendHttp } from "@/lib/client/backend-http";
-import { httpClient } from "@/lib/http-client";
 
 const programBadges = (programId: string) =>
   `/api/coordinator/programs/${encodeURIComponent(programId)}/badges`;
 
 export async function getMyBadges() {
-  return requireSuccess(await httpClient.get<BadgeAward[]>("/api/me/badges"));
+  return requireSuccess(
+    await backendHttp.get<BadgeAward[]>("/api/badges/mine"),
+  );
 }
 
 export async function getMyAchievements() {
   return requireSuccess(
-    await httpClient.get<AchievementProgress[]>("/api/me/badges/achievements"),
+    await backendHttp.get<AchievementProgress[]>(
+      "/api/badges/mine/achievements",
+    ),
   );
 }
 
 export async function getUserBadges(userId: string) {
   return requireSuccess(
-    await httpClient.get<PublicBadge[]>(
+    await backendHttp.get<PublicBadge[]>(
       `/api/users/${encodeURIComponent(userId)}/badges`,
     ),
   );
@@ -35,7 +38,7 @@ export async function getProgramBadgeRoster(
   state: GateBadgeState | null,
 ) {
   return requireSuccess(
-    await httpClient.get<GateBadgeRow[]>(
+    await backendHttp.get<GateBadgeRow[]>(
       `${programBadges(programId)}/roster`,
       state ? { params: { state } } : undefined,
     ),
@@ -44,7 +47,7 @@ export async function getProgramBadgeRoster(
 
 export async function postGateBadgeAward(programId: string, userId: string) {
   return requireSuccess(
-    await httpClient.post<GateBadgeRow>(`${programBadges(programId)}/awards`, {
+    await backendHttp.post<GateBadgeRow>(`${programBadges(programId)}/awards`, {
       userId,
     }),
   );
@@ -56,9 +59,9 @@ export async function postGateBadgeRevoke(
   reason: string,
 ) {
   return requireSuccess(
-    await httpClient.post<GateBadgeRow>(
+    await backendHttp.post<GateBadgeRow>(
       `${programBadges(programId)}/awards/${encodeURIComponent(awardId)}/revoke`,
-      { reason },
+      { reason: reason.trim() },
     ),
   );
 }

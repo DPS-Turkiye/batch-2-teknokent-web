@@ -1,6 +1,7 @@
 import { beforeEach, describe, vi } from "vitest";
 
 import { MentorLabelColor } from "@/interfaces/mentor-label";
+import { backendHttp } from "@/lib/client/backend-http";
 import {
   createMentorLabel,
   deleteMentorLabel,
@@ -15,15 +16,9 @@ import {
   type ClientCall,
 } from "@test/fixtures/client-calls";
 
-vi.mock("@/lib/http-client", () => ({
-  httpClient: {
-    get: vi.fn(),
-    post: vi.fn(),
-    put: vi.fn(),
-    patch: vi.fn(),
-    delete: vi.fn(),
-  },
-}));
+vi.mock("@/lib/client/backend-http", async () =>
+  (await import("@test/mocks/backend-http")).backendHttpMock(),
+);
 
 const P = "/api/coordinator/programs/prog%2F1%20a";
 const INPUT = { name: "Fintech", color: MentorLabelColor.Green };
@@ -40,6 +35,14 @@ const calls: ClientCall[] = [
     call: () => createMentorLabel("prog/1 a", INPUT),
     method: "post",
     args: [`${P}/mentor-labels`, INPUT],
+  },
+  {
+    title:
+      "createMentorLabel sends the name as the backend saves it, trimmed and with one space inside",
+    call: () =>
+      createMentorLabel("prog/1 a", { ...INPUT, name: "  Yapay   zekâ " }),
+    method: "post",
+    args: [`${P}/mentor-labels`, { ...INPUT, name: "Yapay zekâ" }],
   },
   {
     title: "updateMentorLabel puts the encoded label's name and color",
@@ -78,5 +81,5 @@ describe("mentor labels client", () => {
     vi.clearAllMocks();
   });
 
-  itSendsEachClientCall(calls);
+  itSendsEachClientCall(calls, backendHttp);
 });

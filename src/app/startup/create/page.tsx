@@ -1,7 +1,12 @@
-import { StartupCreateView } from "@/components/startup/startup-create-view";
-import { redirectIndividualMentee } from "@/lib/server/individual-program";
+"use client";
 
-export default async function StartupCreatePage() {
-  await redirectIndividualMentee();
-  return <StartupCreateView />;
+import { StartupCreateView } from "@/components/startup/startup-create-view";
+import { StartupPageGate } from "@/components/startup/startup-page-gate";
+
+export default function StartupCreatePage() {
+  return (
+    <StartupPageGate>
+      <StartupCreateView />
+    </StartupPageGate>
+  );
 }

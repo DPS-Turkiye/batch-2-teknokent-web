@@ -5,7 +5,6 @@ import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
 
 import type { DocumentDownload } from "@/interfaces/startup-document";
-import { documentContentPath } from "@/lib/client/startup-documents";
 
 function isImage(contentType: string) {
   return contentType.startsWith("image/");
@@ -69,8 +68,8 @@ export function DocumentPreviewDialog({
     let created: string | null = null;
 
     async function load() {
-      const source = file.id ? documentContentPath(file.id) : file.url;
-      const response = await fetch(source);
+      // The presigned URL is read straight from storage, which allows this app's origin.
+      const response = await fetch(file.url);
       if (!response.ok) throw new Error("preview failed");
       const blob = await response.blob();
       created = URL.createObjectURL(blob);
@@ -92,8 +91,7 @@ export function DocumentPreviewDialog({
   }, [file]);
 
   const office = isOffice(file.contentType, file.filename);
-  const downloadHref =
-    objectUrl ?? (file.id ? documentContentPath(file.id) : file.url);
+  const downloadHref = objectUrl ?? file.url;
 
   return (
     <div

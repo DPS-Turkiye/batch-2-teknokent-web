@@ -7,6 +7,7 @@ import {
   ClientErrorCode,
   requireSuccess,
 } from "@/lib/client/api";
+import { backendHttp, withToken } from "@/lib/client/backend-http";
 import { getPublicBackendUrl } from "@/lib/const";
 import { currentIdToken } from "@/lib/firebase/auth";
 import {
@@ -84,12 +85,10 @@ function uploaded<T>(response: AxiosResponse<T>) {
 }
 
 /**
- * The Amplify-hosted frontend's own edge blocks any request body over ~8KB on
- * its proxy routes, so an upload goes straight to the backend at `path`
- * instead of through this app's route of the same path. Always resolves a
+ * Uploads the form straight to the backend at `path`, with upload progress and
+ * stall detection that the session-cookie client does not give. Always resolves a
  * fresh Firebase token when the caller doesn't already have one on hand,
- * rather than requiring every call site to plumb it through. Locally, if the
- * public backend is unreachable, falls back to the Next.js proxy.
+ * rather than requiring every call site to plumb it through.
  */
 export async function postUpload<T>(
   path: string,
@@ -158,16 +157,6 @@ export async function postUpload<T>(
     return uploaded(await post(`${getPublicBackendUrl()}${path}`));
   } catch (error) {
     if (
-      !(error instanceof ClientApiError) ||
-      error.code !== ClientErrorCode.Network
-    ) {
-      throw error;
-    }
-  }
-  try {
-    return uploaded(await post(path));
-  } catch (error) {
-    if (
       error instanceof ClientApiError &&
       error.code === ClientErrorCode.Network
     ) {
@@ -222,7 +211,7 @@ export async function uploadDocumentWithProgress(
 /** The signed-in person's own files, newest first, through their session. */
 export async function listOwnDocuments() {
   return requireSuccess(
-    await httpClient.get<StoredDocument[]>("/api/documents"),
+    await backendHttp.get<StoredDocument[]>("/api/documents"),
   );
 }
 
@@ -233,8 +222,9 @@ export async function listOwnDocuments() {
 export async function listDocuments(
   idToken: string,
 ): Promise<StoredDocument[]> {
-  const response = await httpClient.get<StoredDocument[]>("/api/documents", {
-    headers: { Authorization: `Bearer ${idToken}` },
-  });
+  const response = await backendHttp.get<StoredDocument[]>(
+    "/api/documents",
+    withToken(idToken),
+  );
   return response.status === 200 ? response.data : [];
 }

@@ -15,18 +15,9 @@ const HANDLER =
 
 // Answering without a session is deliberate for these handlers.
 const PUBLIC_HANDLERS = new Set([
-  // /invite checks a team code before any login exists; the backend answers only valid + team name, rate-limited.
-  "auth/invite-code/route.ts POST",
-  "auth/password-reset/route.ts POST",
   // The link in a mail, and mail programs' one-click unsubscribe: the random token is the only proof.
   "email-unsubscribe/route.ts POST",
   "health/route.ts GET",
-  // Signing in through an institution happens before there is a session; the backend verifies the login.
-  "institution-login/[provider]/complete/route.ts POST",
-  "institution-login/[provider]/start/route.ts POST",
-  "institution-login/dev-personas/route.ts GET",
-  "programs/names/route.ts GET",
-  "session/route.ts DELETE",
 ]);
 
 const routes = readdirSync(API_DIR, { recursive: true })
@@ -87,7 +78,8 @@ const handlers = routes.flatMap((route) => {
 
 describe("API route auth guard", () => {
   it("finds the route handlers", () => {
-    expect(handlers.length).toBeGreaterThan(100);
+    // Fewer with every area that moves off the BFF; the point is that the scan still finds them.
+    expect(handlers.length).toBeGreaterThan(20);
   });
 
   it("checks the session or a bearer token in every non-public handler", () => {
@@ -95,13 +87,6 @@ describe("API route auth guard", () => {
       .filter(({ id, guarded }) => !guarded && !PUBLIC_HANDLERS.has(id))
       .map(({ id }) => id);
     expect(unguarded).toEqual([]);
-  });
-
-  it("sees the handlers an allowlisted proxy builds", () => {
-    const ids = handlers.map(({ id }) => id);
-    expect(ids).toContain(
-      "office-hours/courses/[courseId]/[...path]/route.ts POST",
-    );
   });
 
   it("lists only public handlers that still exist", () => {

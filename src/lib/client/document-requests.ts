@@ -4,7 +4,7 @@ import type {
   DocumentRequestUpload,
 } from "@/interfaces/document-request";
 import { requireSuccess } from "@/lib/client/api";
-import { httpClient } from "@/lib/http-client";
+import { backendHttp } from "@/lib/client/backend-http";
 
 function scopeParams(scope: DocumentRequestScope) {
   return {
@@ -16,7 +16,7 @@ function scopeParams(scope: DocumentRequestScope) {
 
 export async function listDocumentRequests(scope: DocumentRequestScope) {
   return requireSuccess(
-    await httpClient.get<DocumentRequestItem[]>("/api/document-requests", {
+    await backendHttp.get<DocumentRequestItem[]>("/api/document-requests", {
       params: scopeParams(scope),
     }),
   );
@@ -27,7 +27,7 @@ export async function replaceDocumentRequests(
   titles: string[],
 ) {
   return requireSuccess(
-    await httpClient.put<DocumentRequestItem[]>(
+    await backendHttp.put<DocumentRequestItem[]>(
       "/api/document-requests",
       {
         titles,
@@ -44,7 +44,7 @@ export async function attachDocumentRequestUpload(
   storedDocumentId: string,
 ) {
   return requireSuccess(
-    await httpClient.post<DocumentRequestUpload>(
+    await backendHttp.post<DocumentRequestUpload>(
       `/api/document-requests/${encodeURIComponent(itemId)}/uploads`,
       { storedDocumentId },
     ),
@@ -53,7 +53,7 @@ export async function attachDocumentRequestUpload(
 
 export async function deleteDocumentRequestUpload(uploadId: string) {
   requireSuccess(
-    await httpClient.delete<void>(
+    await backendHttp.delete<void>(
       `/api/document-requests/uploads/${encodeURIComponent(uploadId)}`,
     ),
   );

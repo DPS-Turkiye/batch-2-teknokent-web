@@ -5,17 +5,22 @@ import type {
   OrganizationPendingMember,
 } from "@/interfaces/organization-member";
 import { requireSuccess } from "@/lib/client/api";
-import { httpClient } from "@/lib/http-client";
+import { backendHttp } from "@/lib/client/backend-http";
+import { ownOrganizationPath } from "@/lib/client/own-organization";
 
+/** The signed-in person's own team. */
 export async function getOrganizationMembers() {
   return requireSuccess(
-    await httpClient.get<OrganizationMember[]>("/api/organization-members"),
+    await backendHttp.get<OrganizationMember[]>(
+      await ownOrganizationPath("/members"),
+    ),
   );
 }
 
+/** Another startup's team, for its mentors and staff; the backend refuses anyone else. */
 export async function getOrganizationMembersById(organizationId: string) {
   return requireSuccess(
-    await httpClient.get<OrganizationMember[]>(
+    await backendHttp.get<OrganizationMember[]>(
       `/api/organizations/${encodeURIComponent(organizationId)}/members`,
     ),
   );
@@ -23,15 +28,15 @@ export async function getOrganizationMembersById(organizationId: string) {
 
 export async function addOrganizationMember(input: OrganizationMemberInput) {
   return requireSuccess(
-    await httpClient.post<OrganizationMember>(
-      "/api/organization-members",
+    await backendHttp.post<OrganizationMember>(
+      await ownOrganizationPath("/members"),
       input,
     ),
   );
 }
 
-function memberUrl(memberId: string) {
-  return `/api/organization-members/${encodeURIComponent(memberId)}`;
+function memberPath(memberId: string) {
+  return ownOrganizationPath(`/members/${encodeURIComponent(memberId)}`);
 }
 
 export async function updateOrganizationMember(
@@ -39,26 +44,31 @@ export async function updateOrganizationMember(
   update: OrganizationMemberUpdate,
 ) {
   return requireSuccess(
-    await httpClient.patch<OrganizationMember>(memberUrl(memberId), update),
+    await backendHttp.patch<OrganizationMember>(
+      await memberPath(memberId),
+      update,
+    ),
   );
 }
 
 export async function removeOrganizationMember(memberId: string) {
-  requireSuccess(await httpClient.delete<void>(memberUrl(memberId)));
+  requireSuccess(await backendHttp.delete<void>(await memberPath(memberId)));
 }
 
 export async function getPendingMembers() {
   return requireSuccess(
-    await httpClient.get<OrganizationPendingMember[]>(
-      "/api/organization-members/pending",
+    await backendHttp.get<OrganizationPendingMember[]>(
+      await ownOrganizationPath("/pending-members"),
     ),
   );
 }
 
 export async function removePendingMember(pendingId: string) {
   requireSuccess(
-    await httpClient.delete<void>(
-      `/api/organization-members/pending/${encodeURIComponent(pendingId)}`,
+    await backendHttp.delete<void>(
+      await ownOrganizationPath(
+        `/pending-members/${encodeURIComponent(pendingId)}`,
+      ),
     ),
   );
 }

@@ -12,7 +12,6 @@ import {
   remindMeetingProposal,
   withdrawMeetingProposal,
 } from "@/lib/client/meeting-proposals";
-import { httpClient } from "@/lib/http-client";
 import {
   itSendsEachClientCall,
   type ClientCall,
@@ -21,15 +20,6 @@ import {
 vi.mock("@/lib/client/backend-http", async () =>
   (await import("@test/mocks/backend-http")).backendHttpMock(),
 );
-vi.mock("@/lib/http-client", () => ({
-  httpClient: {
-    get: vi.fn(),
-    post: vi.fn(),
-    put: vi.fn(),
-    patch: vi.fn(),
-    delete: vi.fn(),
-  },
-}));
 
 const proposal = {
   scheduledAt: "2026-04-01T09:00:00Z",
@@ -38,7 +28,6 @@ const proposal = {
   replacesMeetingId: null,
 };
 
-// The coordinator's calls still go through this app's routes.
 const coordinatorCalls: ClientCall[] = [
   {
     title:
@@ -138,6 +127,6 @@ describe("meeting proposals client", () => {
     vi.clearAllMocks();
   });
 
-  itSendsEachClientCall(coordinatorCalls, httpClient);
+  itSendsEachClientCall(coordinatorCalls, backendHttp);
   itSendsEachClientCall(calls, backendHttp);
 });

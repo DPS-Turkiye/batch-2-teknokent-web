@@ -1,30 +1,19 @@
 import { describe, vi } from "vitest";
 
+import { backendHttp } from "@/lib/client/backend-http";
 import {
   readWeeklyProgram,
   saveWeeklyProgram,
 } from "@/lib/client/weekly-program";
+import { UPLOAD_TIMEOUT_MS } from "@/lib/http-client";
 import {
   itSendsEachClientCall,
   type ClientCall,
 } from "@test/fixtures/client-calls";
 
-vi.mock("@/lib/http-client", () => ({
-  UPLOAD_TIMEOUT_MS: 120_000,
-  httpClient: {
-    get: vi.fn(),
-    post: vi.fn(),
-    put: vi.fn(),
-    patch: vi.fn(),
-    delete: vi.fn(),
-  },
-}));
-
-vi.mock("@/lib/client/bearer", () => ({
-  optionalBearerHeader: vi
-    .fn()
-    .mockResolvedValue({ Authorization: "Bearer token-1" }),
-}));
+vi.mock("@/lib/client/backend-http", async () =>
+  (await import("@test/mocks/backend-http")).backendHttpMock(),
+);
 
 const input = {
   documentId: "doc-1",
@@ -46,13 +35,13 @@ const input = {
 const calls: ClientCall[] = [
   {
     title:
-      "readWeeklyProgram reads the encoded program's file with an upload's timeout",
+      "readWeeklyProgram reads the encoded program's file with an upload's timeout, naming nobody",
     call: () => readWeeklyProgram("prog/1", "doc-1"),
     method: "post",
     args: [
       "/api/coordinator/programs/prog%2F1/weekly-program/read",
       { documentId: "doc-1" },
-      { headers: { Authorization: "Bearer token-1" }, timeout: 120_000 },
+      { timeout: UPLOAD_TIMEOUT_MS },
     ],
   },
   {
@@ -64,5 +53,5 @@ const calls: ClientCall[] = [
 ];
 
 describe("weekly program client", () => {
-  itSendsEachClientCall(calls);
+  itSendsEachClientCall(calls, backendHttp);
 });

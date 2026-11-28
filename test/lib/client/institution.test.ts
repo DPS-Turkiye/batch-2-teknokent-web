@@ -1,26 +1,20 @@
 import { describe, expect, it, vi } from "vitest";
 
+import { backendHttp } from "@/lib/client/backend-http";
 import {
   fetchAdviseeProfile,
   fetchInstitutionAdvisees,
   fetchInstitutionRecord,
 } from "@/lib/client/institution";
-import { httpClient } from "@/lib/http-client";
 import {
   itSendsEachClientCall,
   type ClientCall,
 } from "@test/fixtures/client-calls";
 import { createMentorResponse } from "@test/fixtures/mentors";
 
-vi.mock("@/lib/http-client", () => ({
-  httpClient: {
-    get: vi.fn(),
-    post: vi.fn(),
-    put: vi.fn(),
-    patch: vi.fn(),
-    delete: vi.fn(),
-  },
-}));
+vi.mock("@/lib/client/backend-http", async () =>
+  (await import("@test/mocks/backend-http")).backendHttpMock(),
+);
 
 const STUDENT = "0b9e2f4a-1c3d-4e5f-8a6b-7c8d9e0f1a2b";
 
@@ -46,10 +40,10 @@ const calls: ClientCall[] = [
 ];
 
 describe("institution client", () => {
-  itSendsEachClientCall(calls);
+  itSendsEachClientCall(calls, backendHttp);
 
   it("answers no profile for a student who is not the academician's advisee", async () => {
-    vi.mocked(httpClient.get).mockResolvedValue(
+    vi.mocked(backendHttp.get).mockResolvedValue(
       createMentorResponse({ message: "Advisee not found." }, 404),
     );
 
@@ -57,13 +51,13 @@ describe("institution client", () => {
   });
 
   it("keeps the id inside its own path segment", async () => {
-    vi.mocked(httpClient.get).mockResolvedValue(
+    vi.mocked(backendHttp.get).mockResolvedValue(
       createMentorResponse({ interests: { topics: [], subtopics: [] } }),
     );
 
     await fetchAdviseeProfile("../me");
 
-    expect(httpClient.get).toHaveBeenLastCalledWith(
+    expect(backendHttp.get).toHaveBeenLastCalledWith(
       "/api/institution/me/advisees/..%2Fme/profile",
     );
   });

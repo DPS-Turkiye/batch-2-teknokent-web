@@ -24,7 +24,7 @@ describe("DocumentPreviewDialog", () => {
     vi.restoreAllMocks();
   });
 
-  it("loads a PDF through the same-origin content route so the iframe is not blocked", async () => {
+  it("reads a PDF from its short-lived storage link into a local copy for the iframe", async () => {
     render(
       <DocumentPreviewDialog
         file={{
@@ -38,7 +38,7 @@ describe("DocumentPreviewDialog", () => {
     );
 
     expect(screen.getByText("Dosya yükleniyor…")).toBeInTheDocument();
-    expect(fetch).toHaveBeenCalledWith("/api/startup/documents/doc-1/content");
+    expect(fetch).toHaveBeenCalledWith("https://bucket.s3/min.pdf?sig");
 
     await waitFor(() => {
       expect(screen.getByTitle("min.pdf")).toHaveAttribute("src", blobUrl);
