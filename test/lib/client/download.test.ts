@@ -36,11 +36,11 @@ describe("downloadBackendFile", () => {
       createObjectURL: vi.fn(() => "blob:file-1"),
       revokeObjectURL: vi.fn(),
     });
-    vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(
-      function (this: HTMLAnchorElement) {
-        saved.push({ href: this.href, download: this.download });
-      },
-    );
+    vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function (
+      this: HTMLAnchorElement,
+    ) {
+      saved.push({ href: this.href, download: this.download });
+    });
   });
 
   afterEach(() => {

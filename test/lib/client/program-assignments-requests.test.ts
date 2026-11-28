@@ -1,12 +1,12 @@
 import { beforeEach, describe, vi } from "vitest";
 
+import { backendHttp } from "@/lib/client/backend-http";
 import {
   createProgramAssignment,
   deleteProgramAssignment,
   getProgramAssignments,
   updateProgramAssignment,
 } from "@/lib/client/program-assignments";
-import { backendHttp } from "@/lib/client/backend-http";
 import {
   itSendsEachClientCall,
   type ClientCall,

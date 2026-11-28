@@ -5,19 +5,19 @@ import {
   AttendanceSessionKind,
 } from "@/interfaces/program-attendance";
 import { SessionsExportFormat } from "@/interfaces/program-report";
+import { backendHttp } from "@/lib/client/backend-http";
+import { downloadBackendFile } from "@/lib/client/download";
 import {
   checkInSession,
   downloadProgramAttendance,
-  getProgramAttendance,
   getAttendanceSessions,
   getMyAttendance,
+  getProgramAttendance,
   getSessionQr,
   markSessionAttendance,
   regenerateSessionQr,
   unmarkSessionAttendance,
 } from "@/lib/client/program-attendance";
-import { backendHttp } from "@/lib/client/backend-http";
-import { downloadBackendFile } from "@/lib/client/download";
 import {
   itSendsEachClientCall,
   type ClientCall,
@@ -58,7 +58,10 @@ const calls: ClientCall[] = [
   {
     title: "getProgramAttendance narrows to the chosen days",
     call: () =>
-      getProgramAttendance("program-1", { from: "2026-11-09", to: "2026-11-12" }),
+      getProgramAttendance("program-1", {
+        from: "2026-11-09",
+        to: "2026-11-12",
+      }),
     method: "get",
     args: [
       "/api/coordinator/programs/program-1/attendance",
@@ -141,7 +144,11 @@ describe("downloadProgramAttendance", () => {
 
     expect(downloadBackendFile).toHaveBeenCalledWith(
       "/api/coordinator/programs/prog%2F1/attendance/export",
-      { from: "2026-11-09", to: "2026-11-12", format: SessionsExportFormat.Csv },
+      {
+        from: "2026-11-09",
+        to: "2026-11-12",
+        format: SessionsExportFormat.Csv,
+      },
       "katilim-2026-11-09-2026-11-12.csv",
     );
   });

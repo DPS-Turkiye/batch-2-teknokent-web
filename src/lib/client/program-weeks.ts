@@ -60,6 +60,8 @@ export async function getProgramWeeksSoFar() {
 
 export async function alignProgramDates(programId: string) {
   return requireSuccess(
-    await backendHttp.post<ProgramWeekPlan>(`${planUrl(programId)}/align-dates`),
+    await backendHttp.post<ProgramWeekPlan>(
+      `${planUrl(programId)}/align-dates`,
+    ),
   );
 }

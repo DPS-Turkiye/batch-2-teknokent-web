@@ -47,7 +47,10 @@ const calls: ClientCall[] = [
     title: "sendCoordinatorMessage posts the text to the encoded thread",
     call: () => sendCoordinatorMessage("c/1", "Merhaba"),
     method: "post",
-    args: ["/api/coordinator-conversations/c%2F1/messages", { body: "Merhaba" }],
+    args: [
+      "/api/coordinator-conversations/c%2F1/messages",
+      { body: "Merhaba" },
+    ],
   },
 ];
 

@@ -1,6 +1,7 @@
 import { describe, vi } from "vitest";
 
 import { WeekVisibility } from "@/interfaces/program-week";
+import { backendHttp } from "@/lib/client/backend-http";
 import {
   alignProgramDates,
   getProgramThisWeek,
@@ -9,7 +10,6 @@ import {
   saveProgramWeekPlan,
   setProgramWeekVisibility,
 } from "@/lib/client/program-weeks";
-import { backendHttp } from "@/lib/client/backend-http";
 import {
   itSendsEachClientCall,
   type ClientCall,

@@ -27,7 +27,8 @@ const calls: ClientCall[] = [
     args: [`${P}/peer-categories`],
   },
   {
-    title: "replaceProgramPeerCategories puts the whole set, an empty one included",
+    title:
+      "replaceProgramPeerCategories puts the whole set, an empty one included",
     call: () => replaceProgramPeerCategories(PROGRAM, []),
     method: "put",
     args: [`${P}/peer-categories`, { categories: [] }],

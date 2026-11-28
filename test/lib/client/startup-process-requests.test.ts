@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { backendHttp } from "@/lib/client/backend-http";
 import {
   getStartupProcess,
   getTeamProcess,
   submitAssignment,
   withdrawSubmission,
 } from "@/lib/client/startup-process";
-import { backendHttp } from "@/lib/client/backend-http";
 import {
   itSendsEachClientCall,
   type ClientCall,

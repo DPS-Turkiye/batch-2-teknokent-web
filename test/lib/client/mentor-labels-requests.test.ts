@@ -1,6 +1,7 @@
 import { beforeEach, describe, vi } from "vitest";
 
 import { MentorLabelColor } from "@/interfaces/mentor-label";
+import { backendHttp } from "@/lib/client/backend-http";
 import {
   createMentorLabel,
   deleteMentorLabel,
@@ -10,7 +11,6 @@ import {
   setMentorLabels,
   updateMentorLabel,
 } from "@/lib/client/mentor-labels";
-import { backendHttp } from "@/lib/client/backend-http";
 import {
   itSendsEachClientCall,
   type ClientCall,

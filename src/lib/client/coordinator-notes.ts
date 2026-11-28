@@ -19,6 +19,8 @@ export async function addCoordinatorNote(mentorshipId: string, body: string) {
 
 export async function deleteCoordinatorNote(id: string) {
   requireSuccess(
-    await backendHttp.delete(`/api/coordinator/notes/${encodeURIComponent(id)}`),
+    await backendHttp.delete(
+      `/api/coordinator/notes/${encodeURIComponent(id)}`,
+    ),
   );
 }

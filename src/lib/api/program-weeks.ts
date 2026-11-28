@@ -24,4 +24,3 @@ export function fetchProgramWeeksSoFar(actorId: string) {
     params: { actorId },
   });
 }
-

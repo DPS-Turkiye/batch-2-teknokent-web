@@ -27,7 +27,10 @@ export async function createMentorLabel(
   input: MentorLabelInput,
 ) {
   return requireSuccess(
-    await backendHttp.post<MentorLabelBoard>(boardUrl(programId), labelBody(input)),
+    await backendHttp.post<MentorLabelBoard>(
+      boardUrl(programId),
+      labelBody(input),
+    ),
   );
 }
 

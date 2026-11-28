@@ -1,7 +1,7 @@
 import { beforeEach, describe, vi } from "vitest";
 
-import { backendHttp } from "@/lib/client/backend-http";
 import { getProgramAcademics } from "@/lib/client/admin-academics";
+import { backendHttp } from "@/lib/client/backend-http";
 import {
   itSendsEachClientCall,
   type ClientCall,

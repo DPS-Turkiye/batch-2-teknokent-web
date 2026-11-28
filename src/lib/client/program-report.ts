@@ -62,9 +62,12 @@ export async function getProgramSessions(
   to: string,
 ) {
   return requireSuccess(
-    await backendHttp.get<ProgramSessions>(`${programUrl(programId)}/sessions`, {
-      params: { from, to },
-    }),
+    await backendHttp.get<ProgramSessions>(
+      `${programUrl(programId)}/sessions`,
+      {
+        params: { from, to },
+      },
+    ),
   );
 }
 

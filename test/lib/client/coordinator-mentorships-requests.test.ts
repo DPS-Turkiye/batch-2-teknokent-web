@@ -17,7 +17,8 @@ vi.mock("@/lib/client/backend-http", async () =>
 
 const calls: ClientCall[] = [
   {
-    title: "getCoordinatorMentorships lists every program's pairs without a program",
+    title:
+      "getCoordinatorMentorships lists every program's pairs without a program",
     call: () => getCoordinatorMentorships(null),
     method: "get",
     args: ["/api/coordinator/mentorships", { params: undefined }],

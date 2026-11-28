@@ -9,7 +9,7 @@ import {
 import { ProgramType } from "@/interfaces/program";
 import { ApprovalKind } from "@/interfaces/program-approvals";
 import { ClientApiError } from "@/lib/client/api";
-import { ALREADY_COORDINATOR } from "@/lib/const";
+import { backendHttp } from "@/lib/client/backend-http";
 import {
   addProgramCoordinator,
   addProgramEligibleEmails,
@@ -47,13 +47,13 @@ import {
   updateProgramTeam,
   withdrawProgramMentorInvite,
 } from "@/lib/client/coordinator-programs";
-import { backendHttp } from "@/lib/client/backend-http";
+import { ALREADY_COORDINATOR } from "@/lib/const";
+import { clientTextsIn } from "@test/client-texts";
 import {
   itSendsEachClientCall,
   type ClientCall,
 } from "@test/fixtures/client-calls";
 import { createMentorResponse } from "@test/fixtures/mentors";
-import { clientTextsIn } from "@test/client-texts";
 
 vi.mock("@/lib/client/backend-http", async () =>
   (await import("@test/mocks/backend-http")).backendHttpMock(),
@@ -384,8 +384,8 @@ describe("adding a program coordinator", () => {
       createMentorResponse({ message: "Bu program arşivlendi." }, 400),
     );
 
-    await expect(addProgramCoordinator(PROGRAM, "user-1")).rejects.toMatchObject(
-      { status: 400, message: "Bu program arşivlendi." },
-    );
+    await expect(
+      addProgramCoordinator(PROGRAM, "user-1"),
+    ).rejects.toMatchObject({ status: 400, message: "Bu program arşivlendi." });
   });
 });

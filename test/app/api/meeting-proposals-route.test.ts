@@ -1,4 +1,3 @@
-import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { POST as accept } from "@/app/api/meeting-proposals/[id]/accept/route";
@@ -10,10 +9,7 @@ import {
   fetchMyMeetingProposals,
 } from "@/lib/api/meeting-proposals";
 import { getSessionIds } from "@/lib/session";
-import {
-  answerEachWith,
-  backendResponse,
-} from "@test/fixtures/route-handlers";
+import { answerEachWith, backendResponse } from "@test/fixtures/route-handlers";
 
 vi.mock("@/lib/api/meeting-proposals", () => ({
   acceptMeetingProposal: vi.fn(),
@@ -35,8 +31,8 @@ describe("meeting proposal routes", () => {
     for (const fn of [
       acceptMeetingProposal,
       declineMeetingProposal,
-          fetchMyMeetingProposals,
-                ]) {
+      fetchMyMeetingProposals,
+    ]) {
       answerEachWith([fn], ok);
     }
   });

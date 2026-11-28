@@ -19,6 +19,8 @@ export async function replaceProgramPeerCategories(
   categories: PeerTopicCategory[],
 ) {
   return requireSuccess(
-    await backendHttp.put<ProgramPeerCategories>(url(programId), { categories }),
+    await backendHttp.put<ProgramPeerCategories>(url(programId), {
+      categories,
+    }),
   );
 }

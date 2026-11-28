@@ -1,3 +1,4 @@
+import { clientText } from "@/i18n/client-texts";
 import {
   AttendanceErrorCode,
   type AttendanceExport,
@@ -9,7 +10,6 @@ import {
   type SessionCheckIn,
   type SessionQr,
 } from "@/interfaces/program-attendance";
-import { clientText } from "@/i18n/client-texts";
 import { ClientApiError, requireSuccess } from "@/lib/client/api";
 import { backendHttp } from "@/lib/client/backend-http";
 import { downloadBackendFile } from "@/lib/client/download";

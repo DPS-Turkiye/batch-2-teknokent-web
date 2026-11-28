@@ -1,11 +1,11 @@
 import { describe, vi } from "vitest";
 
+import { backendHttp } from "@/lib/client/backend-http";
 import {
   readWeeklyProgram,
   saveWeeklyProgram,
 } from "@/lib/client/weekly-program";
 import { UPLOAD_TIMEOUT_MS } from "@/lib/http-client";
-import { backendHttp } from "@/lib/client/backend-http";
 import {
   itSendsEachClientCall,
   type ClientCall,

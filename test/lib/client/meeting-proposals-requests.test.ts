@@ -1,5 +1,6 @@
 import { beforeEach, describe, vi } from "vitest";
 
+import { backendHttp } from "@/lib/client/backend-http";
 import {
   acceptMeetingProposal,
   declineMeetingProposal,
@@ -11,7 +12,6 @@ import {
   remindMeetingProposal,
   withdrawMeetingProposal,
 } from "@/lib/client/meeting-proposals";
-import { backendHttp } from "@/lib/client/backend-http";
 import {
   itSendsEachClientCall,
   type ClientCall,

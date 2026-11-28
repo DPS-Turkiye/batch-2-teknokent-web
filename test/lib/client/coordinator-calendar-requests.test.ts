@@ -13,7 +13,8 @@ vi.mock("@/lib/client/backend-http", async () =>
 
 const calls: ClientCall[] = [
   {
-    title: "getCoordinatorCalendar reads every program's days without a program",
+    title:
+      "getCoordinatorCalendar reads every program's days without a program",
     call: () =>
       getCoordinatorCalendar({
         from: "2026-11-01",

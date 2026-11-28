@@ -53,7 +53,6 @@ export async function downloadBackendFile(
   requireSuccess(await withReadableFailure(response));
   saveFile(
     response.data,
-    attachmentFilename(response.headers["content-disposition"]) ??
-      fallbackName,
+    attachmentFilename(response.headers["content-disposition"]) ?? fallbackName,
   );
 }

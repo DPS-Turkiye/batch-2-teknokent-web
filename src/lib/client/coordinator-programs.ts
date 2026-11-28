@@ -324,9 +324,12 @@ export async function getMentorPool(programId: string) {
 
 export async function inviteProgramMentor(programId: string, email: string) {
   return requireSuccess(
-    await backendHttp.post<MentorPoolRow[]>(`${programUrl(programId)}/mentors`, {
-      email,
-    }),
+    await backendHttp.post<MentorPoolRow[]>(
+      `${programUrl(programId)}/mentors`,
+      {
+        email,
+      },
+    ),
   );
 }
 
@@ -379,7 +382,9 @@ export async function cancelMentorInvite(programId: string, inviteId: string) {
 
 export async function getMatching(programId: string) {
   return requireSuccess(
-    await backendHttp.get<MatchingOverview>(`${programUrl(programId)}/matching`),
+    await backendHttp.get<MatchingOverview>(
+      `${programUrl(programId)}/matching`,
+    ),
   );
 }
 

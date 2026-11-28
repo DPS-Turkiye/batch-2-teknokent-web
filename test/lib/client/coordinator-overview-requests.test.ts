@@ -13,7 +13,8 @@ vi.mock("@/lib/client/backend-http", async () =>
 
 const calls: ClientCall[] = [
   {
-    title: "getCoordinatorOverview reads every running program without a program",
+    title:
+      "getCoordinatorOverview reads every running program without a program",
     call: () => getCoordinatorOverview(null),
     method: "get",
     args: ["/api/coordinator/overview", { params: undefined }],

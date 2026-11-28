@@ -53,9 +53,9 @@ describe("ProgramSessionsSection", () => {
     expect(
       screen.getByText("Bu aralıkta onaylanmış görüşme yok."),
     ).toBeInTheDocument();
-    await userEvent.setup().click(
-      screen.getByRole("button", { name: "Excel (.xlsx) indir" }),
-    );
+    await userEvent
+      .setup()
+      .click(screen.getByRole("button", { name: "Excel (.xlsx) indir" }));
     await waitFor(() =>
       expect(downloadProgramSessions).toHaveBeenCalledWith("program-1", {
         from: "2026-11-01",
