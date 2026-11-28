@@ -3,8 +3,8 @@
 ## Prerequisites
 
 - Node.js 24 (the version CI and AWS Amplify use) and npm.
-- The Teknokent backend (Spring Boot) running locally, by default on `http://localhost:8080`. This app is a frontend and
-  a thin proxy; almost every screen needs the backend.
+- The Teknokent backend (Spring Boot) running locally, by default on `http://localhost:8080`. The browser calls it
+  directly, so almost every screen needs it.
 
 ## First run
 

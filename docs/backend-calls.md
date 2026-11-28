@@ -1,7 +1,7 @@
 # Calling the backend
 
-The browser calls the Spring backend (`https://api.menton.com.tr`, `NEXT_PUBLIC_BACKEND_URL`) itself. There is no
-backend-for-frontend in between: this app holds no session and no backend credential.
+The browser calls the Spring backend (`https://api.menton.com.tr`, `NEXT_PUBLIC_BACKEND_URL`) itself. Nothing sits
+in between: this app holds no session and no backend credential.
 
 ## Signing in and the session
 

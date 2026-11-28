@@ -111,8 +111,11 @@ The code-facing route and folder names are English. Visible labels and page
 content remain Turkish. The former `/giris` and `/calisma-alani` URLs redirect
 to their English replacements for backward compatibility.
 
-Backend credentials are used only by server-side API routes and are never exposed
-as `NEXT_PUBLIC_*` variables.
+This app holds no backend credential and no session key: the browser calls the
+backend itself, on the API's own HttpOnly session cookie (see
+[docs/backend-calls.md](docs/backend-calls.md)). Locally, open the app on
+`http://localhost:3000`, the same host as the backend: on `127.0.0.1` the page and
+the API are two sites and the session cookie is not sent.
 
 ## End-to-end MVP test
 
@@ -135,12 +138,12 @@ Build settings live in `amplify.yml`. Amplify uses Node 24, runs `npm ci`, write
 
 Set these in the Amplify console (app-level env). `amplify.yml` writes every key into `.env` before `npm run build`:
 
-| Variable                       | Description                                                        |
-| ------------------------------ | ------------------------------------------------------------------ |
-| `APP_URL`                      | Deployed web app URL (`https://main.dxcmjf7esever.amplifyapp.com`) |
-| `BACKEND_URL`                  | CloudFront HTTPS API origin                                        |
-| `NEXT_PUBLIC_REALTIME_URL`     | `wss://<cdn_domain>/ws` — never `ws://` on Amplify HTTPS           |
-| `NEXT_PUBLIC_FIREBASE_*`       | Firebase web app config (same project as backend SSM)              |
-| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Optional Google Calendar OAuth client ID                           |
+| Variable                       | Description                                                   |
+| ------------------------------ | ------------------------------------------------------------- |
+| `APP_URL`                      | Deployed web app URL (`https://menton.com.tr`)                |
+| `BACKEND_URL`                  | The API, called by the browser (`https://api.menton.com.tr`)  |
+| `NEXT_PUBLIC_REALTIME_URL`     | `wss://api.menton.com.tr/ws` — never `ws://` on Amplify HTTPS |
+| `NEXT_PUBLIC_FIREBASE_*`       | Firebase web app config (same project as backend SSM)         |
+| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Optional Google Calendar OAuth client ID                      |
 
 The backend must list the deployed web app's exact origin for CORS with credentials, or the browser cannot send its session cookie.
