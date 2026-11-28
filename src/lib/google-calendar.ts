@@ -96,6 +96,16 @@ function storeAccessToken(token: string, expiresInSeconds?: number) {
   );
 }
 
+/** Signing out: the Calendar access token is the person's own and must not outlive their sign-in in this tab. */
+export function clearGoogleCalendarAccess() {
+  try {
+    sessionStorage.removeItem(ACCESS_TOKEN_KEY);
+    sessionStorage.removeItem(ACCESS_TOKEN_EXPIRES_KEY);
+  } catch {
+    // Blocked storage held nothing.
+  }
+}
+
 export function relayGoogleOAuthTokenFromUrl(): boolean {
   if (typeof window === "undefined") return false;
   if (!window.location.hash.includes("access_token")) return false;

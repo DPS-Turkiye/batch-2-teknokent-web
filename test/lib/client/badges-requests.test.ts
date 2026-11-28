@@ -1,6 +1,7 @@
 import { beforeEach, describe, vi } from "vitest";
 
 import { GateBadgeState } from "@/interfaces/badges";
+import { backendHttp } from "@/lib/client/backend-http";
 import {
   getAdminStudents,
   getMyAchievements,
@@ -15,15 +16,9 @@ import {
   type ClientCall,
 } from "@test/fixtures/client-calls";
 
-vi.mock("@/lib/http-client", () => ({
-  httpClient: {
-    get: vi.fn(),
-    post: vi.fn(),
-    put: vi.fn(),
-    patch: vi.fn(),
-    delete: vi.fn(),
-  },
-}));
+vi.mock("@/lib/client/backend-http", async () =>
+  (await import("@test/mocks/backend-http")).backendHttpMock(),
+);
 
 const BADGES = "/api/coordinator/programs/prog%2F1/badges";
 
@@ -32,13 +27,13 @@ const calls: ClientCall[] = [
     title: "getMyBadges lists the signed-in user's badges",
     call: () => getMyBadges(),
     method: "get",
-    args: ["/api/me/badges"],
+    args: ["/api/badges/mine"],
   },
   {
     title: "getMyAchievements lists the user's achievement progress",
     call: () => getMyAchievements(),
     method: "get",
-    args: ["/api/me/badges/achievements"],
+    args: ["/api/badges/mine/achievements"],
   },
   {
     title: "getUserBadges reads another user's public badges",
@@ -65,8 +60,9 @@ const calls: ClientCall[] = [
     args: [`${BADGES}/awards`, { userId: "u-1" }],
   },
   {
-    title: "postGateBadgeRevoke revokes the encoded award with a reason",
-    call: () => postGateBadgeRevoke("prog/1", "a/1", "Yanlış verildi"),
+    title:
+      "postGateBadgeRevoke revokes the encoded award with the trimmed reason",
+    call: () => postGateBadgeRevoke("prog/1", "a/1", "  Yanlış verildi "),
     method: "post",
     args: [`${BADGES}/awards/a%2F1/revoke`, { reason: "Yanlış verildi" }],
   },
@@ -89,5 +85,5 @@ describe("badges client", () => {
     vi.clearAllMocks();
   });
 
-  itSendsEachClientCall(calls);
+  itSendsEachClientCall(calls, backendHttp);
 });

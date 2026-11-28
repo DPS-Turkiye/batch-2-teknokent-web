@@ -4,14 +4,14 @@ import type {
   UpdateProgramAssignmentInput,
 } from "@/interfaces/program-assignment";
 import { requireSuccess } from "@/lib/client/api";
-import { httpClient } from "@/lib/http-client";
+import { backendHttp } from "@/lib/client/backend-http";
 
 const programUrl = (programId: string) =>
   `/api/coordinator/programs/${encodeURIComponent(programId)}/assignments`;
 
 export async function getProgramAssignments(programId: string) {
   return requireSuccess(
-    await httpClient.get<ProgramAssignment[]>(programUrl(programId)),
+    await backendHttp.get<ProgramAssignment[]>(programUrl(programId)),
   );
 }
 
@@ -20,7 +20,7 @@ export async function createProgramAssignment(
   input: CreateProgramAssignmentInput,
 ) {
   return requireSuccess(
-    await httpClient.post<ProgramAssignment>(programUrl(programId), input),
+    await backendHttp.post<ProgramAssignment>(programUrl(programId), input),
   );
 }
 
@@ -30,7 +30,7 @@ export async function updateProgramAssignment(
   input: UpdateProgramAssignmentInput,
 ) {
   return requireSuccess(
-    await httpClient.put<ProgramAssignment>(
+    await backendHttp.put<ProgramAssignment>(
       `${programUrl(programId)}/${encodeURIComponent(assignmentId)}`,
       input,
     ),
@@ -42,7 +42,7 @@ export async function deleteProgramAssignment(
   assignmentId: string,
 ) {
   requireSuccess(
-    await httpClient.delete<null>(
+    await backendHttp.delete<null>(
       `${programUrl(programId)}/${encodeURIComponent(assignmentId)}`,
     ),
   );

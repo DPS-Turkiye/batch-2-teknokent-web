@@ -1,5 +1,6 @@
 import { beforeEach, describe, vi } from "vitest";
 
+import { backendHttp } from "@/lib/client/backend-http";
 import {
   acceptMeetingProposal,
   declineMeetingProposal,
@@ -16,15 +17,9 @@ import {
   type ClientCall,
 } from "@test/fixtures/client-calls";
 
-vi.mock("@/lib/http-client", () => ({
-  httpClient: {
-    get: vi.fn(),
-    post: vi.fn(),
-    put: vi.fn(),
-    patch: vi.fn(),
-    delete: vi.fn(),
-  },
-}));
+vi.mock("@/lib/client/backend-http", async () =>
+  (await import("@test/mocks/backend-http")).backendHttpMock(),
+);
 
 const proposal = {
   scheduledAt: "2026-04-01T09:00:00Z",
@@ -33,7 +28,7 @@ const proposal = {
   replacesMeetingId: null,
 };
 
-const calls: ClientCall[] = [
+const coordinatorCalls: ClientCall[] = [
   {
     title:
       "getCoordinatorMeetingProposals lists every program's proposals with no program",
@@ -80,6 +75,10 @@ const calls: ClientCall[] = [
     args: ["/api/coordinator/meeting-proposals/p%2F1"],
     returnsNothing: true,
   },
+];
+
+// The mentor's and the team's go to the backend, which takes the caller from the session.
+const calls: ClientCall[] = [
   {
     title: "getMyMeetingProposals lists the participant's proposals",
     call: () => getMyMeetingProposals(),
@@ -128,5 +127,6 @@ describe("meeting proposals client", () => {
     vi.clearAllMocks();
   });
 
-  itSendsEachClientCall(calls);
+  itSendsEachClientCall(coordinatorCalls, backendHttp);
+  itSendsEachClientCall(calls, backendHttp);
 });

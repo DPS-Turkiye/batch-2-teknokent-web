@@ -7,11 +7,21 @@ import type {
   UpdateMentorProfilePayload,
 } from "@/interfaces/mentor";
 import { requireSuccess } from "@/lib/client/api";
-import { httpClient } from "@/lib/http-client";
+import {
+  backendHttp,
+  signedInUserId,
+  withToken,
+} from "@/lib/client/backend-http";
+
+/** The signed-in mentor's own path under /api/mentors; the backend refuses any other mentor's id. */
+async function ownMentorPath(suffix = "", idToken?: string) {
+  const mentorId = await signedInUserId(idToken);
+  return `/api/mentors/${encodeURIComponent(mentorId)}${suffix}`;
+}
 
 export async function getMentorProfile() {
   return requireSuccess(
-    await httpClient.get<MentorProfile>("/api/mentor-profile"),
+    await backendHttp.get<MentorProfile>(await ownMentorPath()),
   );
 }
 
@@ -20,26 +30,26 @@ export async function updateMentorProfile(
   idToken?: string,
 ) {
   return requireSuccess(
-    await httpClient.put<MentorProfile>(
-      "/api/mentor-profile",
+    await backendHttp.put<MentorProfile>(
+      await ownMentorPath("", idToken),
       payload,
-      idToken ? { headers: { Authorization: `Bearer ${idToken}` } } : undefined,
+      withToken(idToken),
     ),
   );
 }
 
 export async function getAvailabilityRules() {
   return requireSuccess(
-    await httpClient.get<MentorAvailabilityRule[]>(
-      "/api/mentor-profile/availability-rules",
+    await backendHttp.get<MentorAvailabilityRule[]>(
+      await ownMentorPath("/availability-rules"),
     ),
   );
 }
 
 export async function getAvailabilitySettings() {
   return requireSuccess(
-    await httpClient.get<MentorAvailabilitySettings>(
-      "/api/mentor-profile/availability-settings",
+    await backendHttp.get<MentorAvailabilitySettings>(
+      await ownMentorPath("/availability-settings"),
     ),
   );
 }
@@ -49,10 +59,10 @@ export async function updateAvailabilitySettings(
   idToken?: string,
 ) {
   return requireSuccess(
-    await httpClient.put<MentorAvailabilitySettings>(
-      "/api/mentor-profile/availability-settings",
+    await backendHttp.put<MentorAvailabilitySettings>(
+      await ownMentorPath("/availability-settings", idToken),
       payload,
-      idToken ? { headers: { Authorization: `Bearer ${idToken}` } } : undefined,
+      withToken(idToken),
     ),
   );
 }
@@ -64,8 +74,8 @@ export async function createAvailabilityRule(payload: {
   slotMinutes: number;
 }) {
   return requireSuccess(
-    await httpClient.post<MentorAvailabilityRule>(
-      "/api/mentor-profile/availability-rules",
+    await backendHttp.post<MentorAvailabilityRule>(
+      await ownMentorPath("/availability-rules"),
       payload,
     ),
   );
@@ -73,16 +83,16 @@ export async function createAvailabilityRule(payload: {
 
 export async function deleteAvailabilityRule(ruleId: string) {
   requireSuccess(
-    await httpClient.delete<void>(
-      `/api/mentor-profile/availability-rules/${encodeURIComponent(ruleId)}`,
+    await backendHttp.delete<void>(
+      await ownMentorPath(`/availability-rules/${encodeURIComponent(ruleId)}`),
     ),
   );
 }
 
 export async function getMentorAvailability() {
   return requireSuccess(
-    await httpClient.get<MentorAvailabilitySlot[]>(
-      "/api/mentor-profile/availability",
+    await backendHttp.get<MentorAvailabilitySlot[]>(
+      await ownMentorPath("/availability"),
     ),
   );
 }
@@ -92,8 +102,8 @@ export async function createAvailabilitySlot(payload: {
   durationMinutes: number;
 }) {
   return requireSuccess(
-    await httpClient.post<MentorAvailabilitySlot>(
-      "/api/mentor-profile/availability",
+    await backendHttp.post<MentorAvailabilitySlot>(
+      await ownMentorPath("/availability"),
       payload,
     ),
   );
@@ -101,8 +111,8 @@ export async function createAvailabilitySlot(payload: {
 
 export async function deleteAvailabilitySlot(slotId: string) {
   requireSuccess(
-    await httpClient.delete<void>(
-      `/api/mentor-profile/availability/${encodeURIComponent(slotId)}`,
+    await backendHttp.delete<void>(
+      await ownMentorPath(`/availability/${encodeURIComponent(slotId)}`),
     ),
   );
 }

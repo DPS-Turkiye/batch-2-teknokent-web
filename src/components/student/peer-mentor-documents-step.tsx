@@ -320,15 +320,14 @@ function FileItem({ item, step }: { item: PeerMentorDocument; step: Step }) {
         <FileText aria-hidden className="size-5 text-text-accent" />
       </span>
       <span className="min-w-0 flex-1">
-        <a
-          href={step.contentHref(item.id)}
-          target="_blank"
-          rel="noopener noreferrer"
+        <button
+          type="button"
+          onClick={() => step.openFile(item.id, name)}
           aria-label={t("viewFile", { name })}
-          className={`block truncate type-label text-text-primary hover:underline ${FOCUS_RING}`}
+          className={`block max-w-full truncate text-left type-label text-text-primary hover:underline ${FOCUS_RING}`}
         >
           {name}
-        </a>
+        </button>
         <span className="block type-caption text-text-secondary">
           {t("fileMeta", { size: formatFileSize(item.sizeBytes ?? 0) })}
         </span>

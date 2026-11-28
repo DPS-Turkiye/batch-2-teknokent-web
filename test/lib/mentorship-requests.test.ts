@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { httpClient } from "@/lib/http-client";
+import { backendHttp } from "@/lib/client/backend-http";
 import {
   MentorshipRequestSubmissionError,
   submitMentorshipRequest,
@@ -13,9 +13,9 @@ import {
 } from "@/types/mentor-request";
 import { createAxiosResponse } from "@test/fixtures/health";
 
-vi.mock("@/lib/http-client", () => ({
-  httpClient: { post: vi.fn() },
-}));
+vi.mock("@/lib/client/backend-http", async () =>
+  (await import("@test/mocks/backend-http")).backendHttpMock(),
+);
 
 const submission: MentorshipRequestSubmission = {
   mentorId: "mentor-1",
@@ -41,11 +41,11 @@ const submission: MentorshipRequestSubmission = {
 
 describe("submitMentorshipRequest", () => {
   beforeEach(() => {
-    vi.mocked(httpClient.post).mockReset();
+    vi.mocked(backendHttp.post).mockReset();
   });
 
   it("posts the request and answers the saved id and status", async () => {
-    vi.mocked(httpClient.post).mockResolvedValue(
+    vi.mocked(backendHttp.post).mockResolvedValue(
       createAxiosResponse({ id: "req-1", status: "PENDING" }, 201),
     );
 
@@ -53,14 +53,14 @@ describe("submitMentorshipRequest", () => {
       id: "req-1",
       status: "PENDING",
     });
-    expect(httpClient.post).toHaveBeenCalledWith(
-      "/api/mentor-requests",
+    expect(backendHttp.post).toHaveBeenCalledWith(
+      "/api/mentorship-requests",
       submission,
     );
   });
 
   it("turns the server's refusal into a submission error carrying its message", async () => {
-    vi.mocked(httpClient.post).mockResolvedValue(
+    vi.mocked(backendHttp.post).mockResolvedValue(
       createAxiosResponse(
         { message: "Bu mentöre zaten talep gönderdiniz." },
         409,
@@ -78,7 +78,7 @@ describe("submitMentorshipRequest", () => {
   });
 
   it("turns a transport failure into a submission error", async () => {
-    vi.mocked(httpClient.post).mockRejectedValue(new Error("Ağ hatası"));
+    vi.mocked(backendHttp.post).mockRejectedValue(new Error("Ağ hatası"));
 
     await expect(submitMentorshipRequest(submission)).rejects.toThrow(
       new MentorshipRequestSubmissionError("Ağ hatası"),
@@ -86,7 +86,7 @@ describe("submitMentorshipRequest", () => {
   });
 
   it("falls back to a generic message for a thrown non-error", async () => {
-    vi.mocked(httpClient.post).mockRejectedValue("boom");
+    vi.mocked(backendHttp.post).mockRejectedValue("boom");
 
     await expect(submitMentorshipRequest(submission)).rejects.toThrow(
       "Talep kaydedilemedi. Lütfen tekrar deneyin.",
@@ -101,7 +101,7 @@ describe("submitMentorshipRequest", () => {
   ])(
     "says the request was saved but unconfirmed for %s",
     async (_label, body) => {
-      vi.mocked(httpClient.post).mockResolvedValue(
+      vi.mocked(backendHttp.post).mockResolvedValue(
         createAxiosResponse(body, 201),
       );
 

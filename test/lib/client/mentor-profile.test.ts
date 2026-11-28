@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { UpdateMentorProfilePayload } from "@/interfaces/mentor";
+import { backendHttp, signedInUserId } from "@/lib/client/backend-http";
 import {
   createAvailabilitySlot,
   deleteAvailabilitySlot,
@@ -8,16 +9,12 @@ import {
   getMentorProfile,
   updateMentorProfile,
 } from "@/lib/client/mentor-profile";
-import { httpClient } from "@/lib/http-client";
 
-vi.mock("@/lib/http-client", () => ({
-  httpClient: {
-    get: vi.fn(),
-    put: vi.fn(),
-    post: vi.fn(),
-    delete: vi.fn(),
-  },
-}));
+vi.mock("@/lib/client/backend-http", async () =>
+  (await import("@test/mocks/backend-http")).backendHttpMock(),
+);
+
+const OWN = "/api/mentors/user%2F1";
 
 const payload: UpdateMentorProfilePayload = {
   professionalTitle: "Mentor",
@@ -34,67 +31,61 @@ const payload: UpdateMentorProfilePayload = {
   specialties: ["Büyüme"],
 };
 
-describe("mentor profile client", () => {
+describe("mentor profile client, straight to the backend", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it("fetches the mentor's own profile", async () => {
-    vi.mocked(httpClient.get).mockResolvedValue({
+    vi.mocked(backendHttp.get).mockResolvedValue({
       status: 200,
       data: { fullName: "Leyla Aksoy" },
     });
 
     await getMentorProfile();
 
-    expect(httpClient.get).toHaveBeenCalledWith("/api/mentor-profile");
+    expect(backendHttp.get).toHaveBeenCalledWith(OWN);
   });
 
   it("sends the full payload when updating the profile", async () => {
-    vi.mocked(httpClient.put).mockResolvedValue({
+    vi.mocked(backendHttp.put).mockResolvedValue({
       status: 200,
       data: {},
     });
 
     await updateMentorProfile(payload);
 
-    expect(httpClient.put).toHaveBeenCalledWith(
-      "/api/mentor-profile",
-      payload,
-      undefined,
-    );
+    expect(backendHttp.put).toHaveBeenCalledWith(OWN, payload, undefined);
   });
 
   it("attaches the bearer token when onboarding saves before approval", async () => {
-    vi.mocked(httpClient.put).mockResolvedValue({
+    vi.mocked(backendHttp.put).mockResolvedValue({
       status: 200,
       data: {},
     });
 
     await updateMentorProfile(payload, "id-token");
 
-    expect(httpClient.put).toHaveBeenCalledWith(
-      "/api/mentor-profile",
-      payload,
-      { headers: { Authorization: "Bearer id-token" } },
-    );
+    expect(backendHttp.put).toHaveBeenCalledWith(OWN, payload, {
+      headers: { Authorization: "Bearer id-token" },
+    });
+    // The mentor's own id is asked with the same token, before any session exists.
+    expect(signedInUserId).toHaveBeenCalledWith("id-token");
   });
 
   it("fetches the mentor's availability slots", async () => {
-    vi.mocked(httpClient.get).mockResolvedValue({
+    vi.mocked(backendHttp.get).mockResolvedValue({
       status: 200,
       data: [],
     });
 
     await getMentorAvailability();
 
-    expect(httpClient.get).toHaveBeenCalledWith(
-      "/api/mentor-profile/availability",
-    );
+    expect(backendHttp.get).toHaveBeenCalledWith(`${OWN}/availability`);
   });
 
   it("creates a new availability slot", async () => {
-    vi.mocked(httpClient.post).mockResolvedValue({
+    vi.mocked(backendHttp.post).mockResolvedValue({
       status: 201,
       data: {},
     });
@@ -104,22 +95,22 @@ describe("mentor profile client", () => {
       durationMinutes: 60,
     });
 
-    expect(httpClient.post).toHaveBeenCalledWith(
-      "/api/mentor-profile/availability",
-      { startsAt: "2026-08-25T10:00:00.000Z", durationMinutes: 60 },
-    );
+    expect(backendHttp.post).toHaveBeenCalledWith(`${OWN}/availability`, {
+      startsAt: "2026-08-25T10:00:00.000Z",
+      durationMinutes: 60,
+    });
   });
 
   it("deletes an availability slot by id", async () => {
-    vi.mocked(httpClient.delete).mockResolvedValue({
+    vi.mocked(backendHttp.delete).mockResolvedValue({
       status: 204,
       data: "",
     });
 
     await deleteAvailabilitySlot("slot-1");
 
-    expect(httpClient.delete).toHaveBeenCalledWith(
-      "/api/mentor-profile/availability/slot-1",
+    expect(backendHttp.delete).toHaveBeenCalledWith(
+      `${OWN}/availability/slot-1`,
     );
   });
 });

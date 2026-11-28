@@ -4,7 +4,13 @@ import {
   ProfileAnalysisType,
   ProfileOcrMode,
 } from "@/interfaces/profile-analysis";
+import { ClientApiError } from "@/lib/client/api";
+import { backendHttp } from "@/lib/client/backend-http";
+import { ownOrganizationId } from "@/lib/client/own-organization";
 import {
+  confirmProfile,
+  createManualProfile,
+  getLatestProfileAnalysis,
   parseCv,
   parseStoredCv,
   readCv,
@@ -24,6 +30,13 @@ vi.mock("@/lib/http-client", () => ({
   UPLOAD_STALL_MS: 20000,
   UPLOAD_RESPONSE_TIMEOUT_MS: 60000,
 }));
+
+vi.mock("@/lib/client/backend-http", async () =>
+  (await import("@test/mocks/backend-http")).backendHttpMock(),
+);
+vi.mock("@/lib/client/own-organization", async () =>
+  (await import("@test/mocks/own-organization")).ownOrganizationMock(),
+);
 
 vi.mock("@/lib/firebase/auth", () => ({
   currentIdToken: vi.fn(),
@@ -204,5 +217,77 @@ describe("profile analysis uploads", () => {
 
     await expect(parseCv(file, true)).rejects.toThrow(/Oturumunuz sona erdi/);
     expect(httpClient.post).not.toHaveBeenCalled();
+  });
+});
+
+describe("the startup's own profile analysis, straight to the backend", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("reads the latest analysis without naming the startup, null when there is none", async () => {
+    vi.mocked(backendHttp.get).mockResolvedValueOnce({
+      status: 200,
+      data: { id: "a-1" },
+    });
+    vi.mocked(backendHttp.get).mockResolvedValueOnce({ status: 404, data: {} });
+
+    expect(await getLatestProfileAnalysis("member/1")).toEqual({ id: "a-1" });
+    expect(await getLatestProfileAnalysis()).toBeNull();
+    expect(backendHttp.get).toHaveBeenNthCalledWith(
+      1,
+      "/api/profile-analyses/latest",
+      { params: { appUserId: "member/1" } },
+    );
+    expect(backendHttp.get).toHaveBeenNthCalledWith(
+      2,
+      "/api/profile-analyses/latest",
+      undefined,
+    );
+  });
+
+  it("saves a manual profile with the member in the query, not the body", async () => {
+    vi.mocked(backendHttp.post).mockResolvedValue({ status: 201, data: {} });
+    const profile = { startup_name: "Döngü" };
+
+    await createManualProfile({
+      profile,
+      profileType: ProfileAnalysisType.Startup,
+      appUserId: "member-1",
+    });
+
+    expect(backendHttp.post).toHaveBeenCalledWith(
+      "/api/profile-analyses/manual",
+      { profile, profileType: ProfileAnalysisType.Startup },
+      { params: { appUserId: "member-1" } },
+    );
+  });
+
+  // As the app's own routes did: without a startup the backend is never asked.
+  it("refuses someone without a startup before asking the backend", async () => {
+    vi.mocked(ownOrganizationId).mockRejectedValue(
+      new ClientApiError("Bu işlem için yetkin yok.", 403, "FORBIDDEN"),
+    );
+
+    await expect(getLatestProfileAnalysis()).rejects.toMatchObject({
+      status: 403,
+    });
+    await expect(
+      createManualProfile({
+        profile: {},
+        profileType: ProfileAnalysisType.Startup,
+      }),
+    ).rejects.toMatchObject({ status: 403 });
+    expect(backendHttp.get).not.toHaveBeenCalled();
+    expect(backendHttp.post).not.toHaveBeenCalled();
+  });
+
+  it("confirms through the startup's own analysis records", async () => {
+    vi.mocked(backendHttp.patch).mockResolvedValue({ status: 200, data: {} });
+
+    await confirmProfile({ id: "a/1", profile: { stage: "mvp" } });
+
+    expect(backendHttp.patch).toHaveBeenCalledWith(
+      "/api/profile-analysis-records/a%2F1",
+      { profile: { stage: "mvp" } },
+    );
   });
 });

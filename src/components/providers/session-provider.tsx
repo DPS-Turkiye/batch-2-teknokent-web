@@ -5,10 +5,12 @@ import { usePathname, useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, type ReactNode } from "react";
 
 import type { AppSession } from "@/interfaces/session";
+import { reloadPage } from "@/lib/assign-location";
 import { createSession, refreshSession } from "@/lib/client/auth";
-import { signOutOfFirebase } from "@/lib/firebase/auth";
-import { httpClient } from "@/lib/http-client";
+import { readSession, signOut, signOutOfThisTab } from "@/lib/client/session";
+import { onFirebaseAccountChange } from "@/lib/firebase/auth";
 import { isPublicPath, loginPathFor } from "@/lib/public-paths";
+import { subscribeToSessionSignals } from "@/lib/session-signals";
 
 type SessionContextValue = {
   isLoading: boolean;
@@ -22,20 +24,23 @@ type SessionContextValue = {
 const SessionContext = createContext<SessionContextValue | null>(null);
 export const SESSION_QUERY_KEY = ["session"] as const;
 
-// Only a 401 means signed out; anything else is a hiccup that must not bounce
-// a signed-in person to the login page.
-async function fetchSession(): Promise<AppSession | null> {
-  const response = await httpClient.get<AppSession>("/api/session");
-  if (response.status === 200) return response.data;
-  if (response.status === 401) return null;
-  throw new Error("Oturum bilgisi alınamadı.");
-}
-
 export function SessionProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const sessionQuery = useQuery({
     queryKey: SESSION_QUERY_KEY,
-    queryFn: fetchSession,
+    // Only "no session" is null; anything else throws, so a hiccup never bounces a signed-in person to login.
+    queryFn: async () => {
+      const shown = queryClient.getQueryData<AppSession | null>(
+        SESSION_QUERY_KEY,
+      );
+      const read = await readSession();
+      // Someone else signed in from another tab: nothing cached or on screen may be shown as theirs.
+      if (shown && read && shown.userId !== read.userId) {
+        queryClient.clear();
+        reloadPage();
+      }
+      return read;
+    },
     staleTime: 0,
     refetchOnWindowFocus: true,
   });
@@ -69,15 +74,32 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   });
 
   const logoutMutation = useMutation({
-    mutationFn: async () => {
-      await httpClient.delete("/api/session");
-      await signOutOfFirebase().catch(() => undefined);
-    },
+    mutationFn: signOut,
     onSuccess: () => {
       queryClient.setQueryData(SESSION_QUERY_KEY, null);
       queryClient.clear();
     },
   });
+
+  // A sign-out in another tab signs this one out too; a sign-in there, or another account taking over the shared
+  // Firebase login, has the session read again (the read reloads the page when it is someone else's now).
+  useEffect(() => {
+    const readAgain = () =>
+      void queryClient.invalidateQueries({ queryKey: SESSION_QUERY_KEY });
+    const stopSignals = subscribeToSessionSignals({
+      onSignedOut: () => {
+        void signOutOfThisTab();
+        queryClient.setQueryData(SESSION_QUERY_KEY, null);
+        queryClient.clear();
+      },
+      onSignedIn: readAgain,
+    });
+    const stopAccountWatch = onFirebaseAccountChange(readAgain);
+    return () => {
+      stopSignals();
+      stopAccountWatch();
+    };
+  }, [queryClient]);
 
   return (
     <SessionContext.Provider

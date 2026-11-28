@@ -503,6 +503,17 @@ export function writeNeedDraft(draft: MentorRequestNeedDraft) {
   }
 }
 
+/** Signing out: the draft is the person's own request and must not show to whoever signs in next in this tab. */
+export function clearNeedDraft() {
+  try {
+    sessionStorage.removeItem(MENTOR_REQUEST_NEED_DRAFT_KEY);
+  } catch {
+    // Blocked storage held nothing.
+  }
+  cachedNeedDraftRaw = undefined;
+  cachedNeedDraft = null;
+}
+
 export function subscribeNeedDraft(onStoreChange: () => void) {
   window.addEventListener("storage", onStoreChange);
   return () => window.removeEventListener("storage", onStoreChange);

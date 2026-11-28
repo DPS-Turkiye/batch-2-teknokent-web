@@ -4,6 +4,7 @@ import {
   canContinueGoalStep,
   canContinueNeedStep,
   canContinueSituationStep,
+  clearNeedDraft,
   expertiseForNeed,
   MENTOR_REQUEST_NEED_DRAFT_KEY,
   messageForNeedGoals,
@@ -151,5 +152,19 @@ describe("mentor-request-need", () => {
       noneSummary: "",
     });
     expect(readNeedDraft()).toBe(readNeedDraft());
+  });
+
+  it("forgets the draft at sign-out", () => {
+    writeNeedDraft({
+      topicId: "team",
+      otherSummary: "",
+      situationId: "focus",
+      noneSummary: "",
+    });
+
+    clearNeedDraft();
+
+    expect(sessionStorage.getItem(MENTOR_REQUEST_NEED_DRAFT_KEY)).toBeNull();
+    expect(readNeedDraft()).toBeNull();
   });
 });

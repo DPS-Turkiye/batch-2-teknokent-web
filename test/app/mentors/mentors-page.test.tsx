@@ -2,23 +2,18 @@ import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import MentorsPage from "@/app/mentors/page";
+import { useAppSession } from "@/components/providers/session-provider";
 import { UserRole } from "@/interfaces/session";
-import { getSessionUser } from "@/lib/session";
+import { appSession } from "@test/fixtures/session";
 
-const redirect = vi.fn((url: string) => {
-  throw new Error(`NEXT_REDIRECT ${url}`);
-});
+const replace = vi.fn();
 
 vi.mock("next/navigation", () => ({
-  redirect: (url: string) => redirect(url),
+  useRouter: () => ({ replace }),
 }));
 
-vi.mock("@/lib/session", () => ({
-  getSessionUser: vi.fn(),
-}));
-
-vi.mock("@/lib/mentors", () => ({
-  loadMentors: async () => ({ mentors: [] }),
+vi.mock("@/components/providers/session-provider", () => ({
+  useAppSession: vi.fn(),
 }));
 
 vi.mock("@/components/hoc/app-shell", () => ({
@@ -31,30 +26,39 @@ vi.mock("@/components/mentors/mentors-directory", () => ({
   MentorsDirectory: () => <p>Mentor dizini</p>,
 }));
 
-function signInAs(role: UserRole) {
-  vi.mocked(getSessionUser).mockResolvedValue({ role } as Awaited<
-    ReturnType<typeof getSessionUser>
-  >);
-}
-
 describe("MentorsPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("sends a mentee to the mentor pool in Mentorluklarım", async () => {
-    signInAs(UserRole.Mentee);
+  it("sends a mentee to the mentor pool in Mentorluklarım", () => {
+    vi.mocked(useAppSession).mockReturnValue(
+      appSession({ role: UserRole.Mentee }),
+    );
 
-    await expect(MentorsPage()).rejects.toThrow("NEXT_REDIRECT");
-    expect(redirect).toHaveBeenCalledWith("/mentorships?tab=mentor-pool");
+    render(<MentorsPage />);
+
+    expect(replace).toHaveBeenCalledWith("/mentorships?tab=mentor-pool");
+    expect(screen.queryByText("Mentor dizini")).not.toBeInTheDocument();
   });
 
-  it("keeps the directory for a coordinator", async () => {
-    signInAs(UserRole.Coordinator);
+  it("keeps the directory for a coordinator", () => {
+    vi.mocked(useAppSession).mockReturnValue(
+      appSession({ role: UserRole.Coordinator }),
+    );
 
-    render(await MentorsPage());
+    render(<MentorsPage />);
 
-    expect(redirect).not.toHaveBeenCalled();
+    expect(replace).not.toHaveBeenCalled();
     expect(screen.getByText("Mentor dizini")).toBeInTheDocument();
+  });
+
+  it("waits for the session before showing anything", () => {
+    vi.mocked(useAppSession).mockReturnValue(null);
+
+    render(<MentorsPage />);
+
+    expect(replace).not.toHaveBeenCalled();
+    expect(screen.queryByText("Mentor dizini")).not.toBeInTheDocument();
   });
 });

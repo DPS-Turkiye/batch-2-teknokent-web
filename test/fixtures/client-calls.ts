@@ -6,7 +6,7 @@ import { createMentorResponse } from "@test/fixtures/mentors";
 
 export type HttpMethod = "get" | "post" | "put" | "patch" | "delete";
 
-/** One `lib/client` function and the exact request it should send through `httpClient`. */
+/** One `lib/client` function and the exact request it should send through its HTTP client. */
 export type ClientCall = {
   title: string;
   call: () => Promise<unknown>;
@@ -24,20 +24,24 @@ const REFUSAL = "Bu programda değişiklik yapma yetkin yok.";
 
 /**
  * Registers, for every call, one test that checks the request it sends and what it answers, and one that
- * checks it turns a refusal into a ClientApiError. Expects the calling file to mock `@/lib/http-client`.
+ * checks it turns a refusal into a ClientApiError. Expects the calling file to mock the client it passes:
+ * `httpClient` (the app's own routes, the default) or `backendHttp` (the backend, called directly).
  */
-export function itSendsEachClientCall(calls: ClientCall[]) {
+export function itSendsEachClientCall(
+  calls: ClientCall[],
+  client: Pick<typeof httpClient, HttpMethod> = httpClient,
+) {
   it.each(calls)(
     "$title, answering the server's body",
     async ({ call, method, args, returnsNothing }) => {
-      vi.mocked(httpClient[method]).mockResolvedValue(
+      vi.mocked(client[method]).mockResolvedValue(
         createMentorResponse(SERVER_BODY),
       );
 
       const answer = await call();
 
-      expect(httpClient[method]).toHaveBeenCalledTimes(1);
-      expect(httpClient[method]).toHaveBeenCalledWith(...args);
+      expect(client[method]).toHaveBeenCalledTimes(1);
+      expect(client[method]).toHaveBeenCalledWith(...args);
       expect(answer).toEqual(returnsNothing ? undefined : SERVER_BODY);
     },
   );
@@ -45,7 +49,7 @@ export function itSendsEachClientCall(calls: ClientCall[]) {
   it.each(calls)(
     "$title, rejecting with the server's reason when it refuses",
     async ({ call, method }) => {
-      vi.mocked(httpClient[method]).mockResolvedValue(
+      vi.mocked(client[method]).mockResolvedValue(
         createMentorResponse({ message: REFUSAL, code: "FORBIDDEN" }, 403),
       );
 

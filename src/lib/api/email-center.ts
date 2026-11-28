@@ -1,122 +1,32 @@
+import axios from "axios";
+import { getLocale } from "next-intl/server";
 import "server-only";
 
-import type {
-  EmailCampaign,
-  EmailCampaignDetail,
-  EmailCenterOptions,
-  EmailConfirmation,
-  EmailDraft,
-  EmailTemplate,
-} from "@/interfaces/email-center";
-import { HttpMethod } from "@/lib/http-method";
-import { backendRequest } from "@/lib/server/backend-client";
+import { getBackendUrl } from "@/lib/const";
+import type { BackendResponse } from "@/lib/server/api-response";
 
-const BASE = "/api/email-center";
-
-function campaignUrl(id: string, step = "") {
-  return `${BASE}/campaigns/${encodeURIComponent(id)}${step}`;
-}
-
-export function fetchEmailCenterOptions(actorId: string) {
-  return backendRequest<EmailCenterOptions>({
-    method: HttpMethod.Get,
-    url: `${BASE}/options`,
-    params: { actorId },
-  });
-}
-
-export function fetchEmailTemplates(actorId: string, programId: string) {
-  return backendRequest<EmailTemplate[]>({
-    method: HttpMethod.Get,
-    url: `${BASE}/templates`,
-    params: { actorId, programId },
-  });
-}
-
-export function fetchEmailCampaigns(actorId: string) {
-  return backendRequest<EmailCampaign[]>({
-    method: HttpMethod.Get,
-    url: `${BASE}/campaigns`,
-    params: { actorId },
-  });
-}
-
-export function fetchEmailCampaign(actorId: string, id: string) {
-  return backendRequest<EmailCampaignDetail>({
-    method: HttpMethod.Get,
-    url: campaignUrl(id),
-    params: { actorId },
-  });
-}
-
-export function createEmailCampaign(actorId: string, draft: EmailDraft) {
-  return backendRequest<EmailCampaignDetail>({
-    method: HttpMethod.Post,
-    url: `${BASE}/campaigns`,
-    data: { ...draft, actorId },
-  });
-}
-
-export function updateEmailCampaign(
-  actorId: string,
-  id: string,
-  draft: EmailDraft,
-) {
-  return backendRequest<EmailCampaignDetail>({
-    method: HttpMethod.Put,
-    url: campaignUrl(id),
-    data: { ...draft, actorId },
-  });
-}
-
-export function deleteEmailCampaign(actorId: string, id: string) {
-  return backendRequest<null>({
-    method: HttpMethod.Delete,
-    url: campaignUrl(id),
-    params: { actorId },
-  });
-}
-
-export function testEmailCampaign(actorId: string, id: string) {
-  return backendRequest<EmailCampaignDetail>({
-    method: HttpMethod.Post,
-    url: campaignUrl(id, "/test"),
-    data: { actorId },
-  });
-}
-
-export function reviewEmailCampaign(actorId: string, id: string) {
-  return backendRequest<EmailCampaignDetail>({
-    method: HttpMethod.Post,
-    url: campaignUrl(id, "/review"),
-    data: { actorId },
-  });
-}
-
-export function sendEmailCampaign(
-  actorId: string,
-  id: string,
-  confirmation: EmailConfirmation,
-) {
-  return backendRequest<EmailCampaignDetail>({
-    method: HttpMethod.Post,
-    url: campaignUrl(id, "/send"),
-    data: { ...confirmation, actorId },
-  });
-}
-
-export function stopEmailCampaign(actorId: string, id: string) {
-  return backendRequest<EmailCampaignDetail>({
-    method: HttpMethod.Post,
-    url: campaignUrl(id, "/stop"),
-    data: { actorId },
-  });
-}
-
-export function unsubscribeEmail(token: string) {
-  return backendRequest<null>({
-    method: HttpMethod.Post,
-    url: `${BASE}/unsubscribe`,
-    data: { token },
-  });
+/**
+ * Mail programs post here from the link in a mail (List-Unsubscribe-Post), so it stays a route of this app. The
+ * backend path is public: the link's token is the only proof, so no credential and no session cookie go with it.
+ */
+export async function unsubscribeEmail(
+  token: string,
+): Promise<BackendResponse<null>> {
+  const response = await axios.post<null>(
+    `${getBackendUrl()}/api/email-center/unsubscribe`,
+    { token },
+    {
+      headers: {
+        Accept: "application/json",
+        "Accept-Language": await getLocale(),
+      },
+      timeout: 15000,
+      validateStatus: () => true,
+    },
+  );
+  return {
+    data: response.data,
+    headers: response.headers,
+    status: response.status,
+  };
 }

@@ -3,19 +3,16 @@ import type {
   FounderChangeResult,
 } from "@/interfaces/founder-change";
 import { requireSuccess } from "@/lib/client/api";
-import { bearerHeader } from "@/lib/client/bearer";
-import { httpClient } from "@/lib/http-client";
+import { backendHttp } from "@/lib/client/backend-http";
 
-// The backend changes a founder only on the caller's own sign-in, so both calls carry the Firebase token.
+// The backend changes a founder only on the caller\'s own sign-in, which the API session cookie carries.
 function founderPath(organizationId: string) {
   return `/api/organizations/${encodeURIComponent(organizationId)}/founder`;
 }
 
 export async function getFounderChangeOptions(organizationId: string) {
   return requireSuccess(
-    await httpClient.get<FounderChangeOptions>(founderPath(organizationId), {
-      headers: await bearerHeader(),
-    }),
+    await backendHttp.get<FounderChangeOptions>(founderPath(organizationId)),
   );
 }
 
@@ -24,10 +21,8 @@ export async function changeFounder(
   newFounderId: string,
 ) {
   return requireSuccess(
-    await httpClient.post<FounderChangeResult>(
-      founderPath(organizationId),
-      { newFounderId },
-      { headers: await bearerHeader() },
-    ),
+    await backendHttp.post<FounderChangeResult>(founderPath(organizationId), {
+      newFounderId,
+    }),
   );
 }

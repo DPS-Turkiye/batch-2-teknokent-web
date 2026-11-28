@@ -14,6 +14,7 @@ import {
 import { ToastTone } from "@/interfaces/toast";
 import {
   deletePeerMentorDocument,
+  downloadPeerMentorDocument,
   getOwnPeerMentorDocuments,
   getPeerMentorDocuments,
   updatePeerMentorDocumentVisibility,
@@ -39,6 +40,7 @@ vi.mock("@/lib/client/peer-mentor-documents", async (importOriginal) => ({
   getPeerMentorDocuments: vi.fn(),
   updatePeerMentorDocumentVisibility: vi.fn(),
   deletePeerMentorDocument: vi.fn(),
+  downloadPeerMentorDocument: vi.fn(),
 }));
 
 function wrapper({ children }: { children: ReactNode }) {
@@ -90,6 +92,31 @@ describe("usePeerMentorDocumentsStep", () => {
     );
   });
 
+  it("saves a file on Görüntüle and toasts when it cannot", async () => {
+    vi.mocked(downloadPeerMentorDocument)
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(new Error("404"));
+    const { result } = renderHook(
+      () => usePeerMentorDocumentsStep({ topics: [], linkedinUrl: "" }),
+      { wrapper },
+    );
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    act(() => result.current.openFile("cv-1", "cv.pdf"));
+    await waitFor(() =>
+      expect(downloadPeerMentorDocument).toHaveBeenCalledWith("cv-1", "cv.pdf"),
+    );
+    expect(showToast).not.toHaveBeenCalled();
+
+    act(() => result.current.openFile("cv-1", "cv.pdf"));
+    await waitFor(() =>
+      expect(showToast).toHaveBeenCalledWith({
+        message: "Dosya açılamadı.",
+        tone: ToastTone.Error,
+      }),
+    );
+  });
+
   it("leaves a card's pieces alone when they already have the picked visibility", async () => {
     vi.mocked(updatePeerMentorDocumentVisibility).mockResolvedValue(
       peerFileFixture(),
@@ -118,7 +145,7 @@ describe("usePeerMentorDocumentsStep", () => {
 });
 
 describe("usePeerMentorSharedDocuments", () => {
-  it("gives the profile its files with where to open them, and the links", async () => {
+  it("gives the profile its files and links, and saves a file on Görüntüle", async () => {
     vi.mocked(getPeerMentorDocuments).mockResolvedValue([
       peerFileFixture(),
       peerLinkFixture(),
@@ -134,7 +161,6 @@ describe("usePeerMentorSharedDocuments", () => {
         id: peerFileFixture().id,
         name: "Transkript_2026_Guz.pdf",
         evidenceType: PeerEvidenceType.Transcript,
-        href: `/api/peer-mentoring/documents/${peerFileFixture().id}/content`,
       },
     ]);
     expect(result.current.links).toEqual([
@@ -144,5 +170,16 @@ describe("usePeerMentorSharedDocuments", () => {
         host: "github.com",
       },
     ]);
+
+    vi.mocked(downloadPeerMentorDocument).mockRejectedValueOnce(new Error("x"));
+    act(() =>
+      result.current.openFile(peerFileFixture().id, "Transkript_2026_Guz.pdf"),
+    );
+    await waitFor(() =>
+      expect(showToast).toHaveBeenCalledWith({
+        message: "Dosya açılamadı.",
+        tone: ToastTone.Error,
+      }),
+    );
   });
 });

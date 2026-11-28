@@ -5,9 +5,9 @@ import {
   apiErrorResponse,
   apiText,
   backendResponse,
+  invalidRequest,
 } from "@/lib/server/api-response";
-import type { BackendResponse } from "@/lib/server/backend-client";
-import { SessionRequiredError } from "@/lib/server/session-error";
+import { backendResponse as answer } from "@test/fixtures/route-handlers";
 import type { MessageNamespace, TestLocale } from "@test/i18n";
 
 const reader = vi.hoisted((): { locale: TestLocale } => ({ locale: "tr" }));
@@ -26,62 +26,43 @@ afterEach(() => {
   reader.locale = "tr";
 });
 
-function fakeResponse<T>(
-  status: number,
-  data: T,
-  headers: Record<string, string> = {},
-): BackendResponse<T> {
-  return { status, data, headers };
-}
-
 describe("backendResponse", () => {
   it("forwards a normal JSON body as-is", async () => {
-    const response = backendResponse(fakeResponse(200, { ok: true }));
+    const response = backendResponse(answer({ ok: true }));
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ ok: true });
   });
 
-  it("returns a bodyless response for 204 No Content instead of throwing", () => {
-    expect(() => backendResponse(fakeResponse(204, ""))).not.toThrow();
+  it("answers an empty JSON object for a body the backend left out", async () => {
+    const response = backendResponse(answer(null, 400));
 
-    const response = backendResponse(fakeResponse(204, ""));
-    expect(response.status).toBe(204);
-    expect(response.body).toBeNull();
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({});
   });
 
-  it("returns a bodyless response for 304 Not Modified", () => {
-    expect(() => backendResponse(fakeResponse(304, ""))).not.toThrow();
+  it.each([204, 304])(
+    "returns a bodyless response for %i instead of throwing",
+    (status) => {
+      const response = backendResponse(answer("", status));
 
-    const response = backendResponse(fakeResponse(304, ""));
-    expect(response.status).toBe(304);
-    expect(response.body).toBeNull();
-  });
+      expect(response.status).toBe(status);
+      expect(response.body).toBeNull();
+    },
+  );
 });
 
-describe("apiErrorResponse", () => {
-  it("maps a missing session to 401 instead of a 502 backend failure", async () => {
-    const response = await apiErrorResponse(new SessionRequiredError(), {
-      message: "Dashboard service is unavailable.",
-    });
-
-    expect(response.status).toBe(401);
-    expect(await response.json()).toEqual({
-      code: "SESSION_REQUIRED",
-      message: "Etkin oturum bulunamadı.",
-    });
-  });
-
-  it("writes the session error in the caller's language", async () => {
+describe("invalidRequest", () => {
+  it("answers 400 with the route's text in the caller's language", async () => {
     reader.locale = "en";
 
-    const response = await apiErrorResponse(new SessionRequiredError(), {
-      message: "unused",
-    });
+    const response = await invalidRequest("invalidRequestBody");
 
-    expect(await response.json()).toEqual({
-      code: "SESSION_REQUIRED",
-      message: "You are not signed in.",
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({
+      code: "INVALID_REQUEST",
+      message: "The request body could not be read.",
+      fields: [],
     });
   });
 });
@@ -90,25 +71,25 @@ describe("apiErrorResponse for a backend that does not answer", () => {
   it("reports a timeout as 504, not a bad gateway", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
 
-    const response = await apiErrorResponse(
+    const response = apiErrorResponse(
       new AxiosError("timeout of 15000ms exceeded", AxiosError.ECONNABORTED),
-      { message: "Aksiyonlar yüklenemedi." },
+      { message: "Abonelik iptal edilemedi." },
     );
 
     expect(response.status).toBe(504);
     expect(await response.json()).toEqual({
       code: "BACKEND_TIMEOUT",
-      message: "Aksiyonlar yüklenemedi.",
+      message: "Abonelik iptal edilemedi.",
     });
   });
 
-  it("keeps 502 for a backend that cannot be reached", async () => {
+  it.each([
+    ["a backend that cannot be reached", new AxiosError("x", "ECONNREFUSED")],
+    ["a thrown non-error", "boom"],
+  ])("keeps 502 for %s", async (_, error) => {
     vi.spyOn(console, "error").mockImplementation(() => {});
 
-    const response = await apiErrorResponse(
-      new AxiosError("connect ECONNREFUSED", "ECONNREFUSED"),
-      { message: "Aksiyonlar yüklenemedi." },
-    );
+    const response = apiErrorResponse(error, { message: "m" });
 
     expect(response.status).toBe(502);
     expect((await response.json()).code).toBe("BACKEND_UNAVAILABLE");
@@ -117,10 +98,8 @@ describe("apiErrorResponse for a backend that does not answer", () => {
 
 describe("apiText", () => {
   it("gives a route's own error text in the caller's language", async () => {
-    expect(await apiText("programNameRequired")).toBe("Program adı gerekli.");
+    expect(await apiText("unsubscribeFailed")).toBe("İşlem tamamlanamadı.");
     reader.locale = "en";
-    expect(await apiText("programNameRequired")).toBe(
-      "A program name is required.",
-    );
+    expect(await apiText("unsubscribeFailed")).toBe("That did not work.");
   });
 });

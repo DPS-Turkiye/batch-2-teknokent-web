@@ -3,14 +3,14 @@ import type {
   ProposeMeetingInput,
 } from "@/interfaces/meeting-proposal";
 import { requireSuccess } from "@/lib/client/api";
-import { httpClient } from "@/lib/http-client";
+import { backendHttp } from "@/lib/client/backend-http";
 
 const COORDINATOR_BASE = "/api/coordinator/meeting-proposals";
 const BASE = "/api/meeting-proposals";
 
 export async function getCoordinatorMeetingProposals(programId: string | null) {
   return requireSuccess(
-    await httpClient.get<MeetingProposal[]>(COORDINATOR_BASE, {
+    await backendHttp.get<MeetingProposal[]>(COORDINATOR_BASE, {
       params: programId ? { programId } : undefined,
     }),
   );
@@ -18,7 +18,7 @@ export async function getCoordinatorMeetingProposals(programId: string | null) {
 
 export async function getMentorshipMeetingProposals(mentorshipId: string) {
   return requireSuccess(
-    await httpClient.get<MeetingProposal[]>(COORDINATOR_BASE, {
+    await backendHttp.get<MeetingProposal[]>(COORDINATOR_BASE, {
       params: { mentorshipId },
     }),
   );
@@ -29,7 +29,7 @@ export async function proposeMeeting(
   input: ProposeMeetingInput,
 ) {
   return requireSuccess(
-    await httpClient.post<MeetingProposal>(
+    await backendHttp.post<MeetingProposal>(
       `/api/coordinator/mentorships/${encodeURIComponent(mentorshipId)}/meeting-proposals`,
       input,
     ),
@@ -38,7 +38,7 @@ export async function proposeMeeting(
 
 export async function remindMeetingProposal(id: string) {
   requireSuccess(
-    await httpClient.post(
+    await backendHttp.post(
       `${COORDINATOR_BASE}/${encodeURIComponent(id)}/remind`,
     ),
   );
@@ -46,17 +46,17 @@ export async function remindMeetingProposal(id: string) {
 
 export async function withdrawMeetingProposal(id: string) {
   requireSuccess(
-    await httpClient.delete(`${COORDINATOR_BASE}/${encodeURIComponent(id)}`),
+    await backendHttp.delete(`${COORDINATOR_BASE}/${encodeURIComponent(id)}`),
   );
 }
 
 export async function getMyMeetingProposals() {
-  return requireSuccess(await httpClient.get<MeetingProposal[]>(BASE));
+  return requireSuccess(await backendHttp.get<MeetingProposal[]>(BASE));
 }
 
 export async function acceptMeetingProposal(id: string) {
   return requireSuccess(
-    await httpClient.post<MeetingProposal>(
+    await backendHttp.post<MeetingProposal>(
       `${BASE}/${encodeURIComponent(id)}/accept`,
     ),
   );
@@ -64,7 +64,7 @@ export async function acceptMeetingProposal(id: string) {
 
 export async function declineMeetingProposal(id: string, reason: string) {
   return requireSuccess(
-    await httpClient.post<MeetingProposal>(
+    await backendHttp.post<MeetingProposal>(
       `${BASE}/${encodeURIComponent(id)}/decline`,
       { reason: reason.trim() || null },
     ),
@@ -76,7 +76,7 @@ export async function proposeReschedule(
   input: { scheduledAt: string; durationMinutes: number },
 ) {
   return requireSuccess(
-    await httpClient.post<MeetingProposal>(
+    await backendHttp.post<MeetingProposal>(
       `/api/meetings/${encodeURIComponent(meetingId)}/reschedule-proposals`,
       input,
     ),

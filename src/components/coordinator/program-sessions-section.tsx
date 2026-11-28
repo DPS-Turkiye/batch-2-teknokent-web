@@ -10,7 +10,7 @@ import {
 } from "@/interfaces/program-report";
 
 const linkClass =
-  "inline-flex h-9 shrink-0 items-center justify-center rounded-full border border-[#e9ecef] bg-white px-3.5 text-[12.5px] font-medium text-[#22262b] aria-disabled:pointer-events-none aria-disabled:text-[#aeb4bc]";
+  "inline-flex h-9 shrink-0 items-center justify-center rounded-full border border-[#e9ecef] bg-white px-3.5 text-[12.5px] font-medium text-[#22262b] aria-disabled:pointer-events-none aria-disabled:text-[#aeb4bc] disabled:pointer-events-none disabled:text-[#aeb4bc]";
 const inputClass =
   "h-9 rounded-xl border border-[#e4e7ea] bg-white px-3 text-[13px] text-[#22262b] outline-none focus:border-[#26a4ff]";
 
@@ -76,8 +76,6 @@ export function ProgramSessionsSection({ programId }: { programId: string }) {
   const t = useTranslations("programReport.sessions");
   const sessions = useProgramSessions(programId);
   const data = sessions.query.data;
-  const xlsx = sessions.exportHref(SessionsExportFormat.Xlsx);
-  const csv = sessions.exportHref(SessionsExportFormat.Csv);
 
   return (
     <section className="space-y-4">
@@ -109,12 +107,22 @@ export function ProgramSessionsSection({ programId }: { programId: string }) {
               className={inputClass}
             />
           </label>
-          <a href={xlsx} download aria-disabled={!xlsx} className={linkClass}>
+          <button
+            type="button"
+            disabled={!sessions.canExport}
+            onClick={() => sessions.exportFile(SessionsExportFormat.Xlsx)}
+            className={linkClass}
+          >
             {t("downloadXlsx")}
-          </a>
-          <a href={csv} download aria-disabled={!csv} className={linkClass}>
+          </button>
+          <button
+            type="button"
+            disabled={!sessions.canExport}
+            onClick={() => sessions.exportFile(SessionsExportFormat.Csv)}
+            className={linkClass}
+          >
             {t("downloadCsv")}
-          </a>
+          </button>
         </div>
       </div>
 

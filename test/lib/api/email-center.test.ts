@@ -1,126 +1,45 @@
+import axios from "axios";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { EmailAudience } from "@/interfaces/email-center";
-import {
-  createEmailCampaign,
-  deleteEmailCampaign,
-  fetchEmailCampaign,
-  fetchEmailCampaigns,
-  fetchEmailCenterOptions,
-  fetchEmailTemplates,
-  reviewEmailCampaign,
-  sendEmailCampaign,
-  stopEmailCampaign,
-  testEmailCampaign,
-  unsubscribeEmail,
-  updateEmailCampaign,
-} from "@/lib/api/email-center";
-import { backendRequest } from "@/lib/server/backend-client";
-import { backendResponse } from "@test/fixtures/route-handlers";
+import { unsubscribeEmail } from "@/lib/api/email-center";
+import { getBackendUrl } from "@/lib/const";
+import { itemAt } from "@test/fixtures/list-assertions";
 
-vi.mock("@/lib/server/backend-client", () => ({ backendRequest: vi.fn() }));
-
-const draft = {
-  programId: "p",
-  audience: EmailAudience.Mentors,
-  subject: "Konu",
-  bodyHtml: "<p>a</p>",
-};
-const confirmation = { reviewDigest: "d", untickedIds: [], expectedCount: 1 };
-const BASE = "/api/email-center";
+vi.mock("axios", () => ({ default: { post: vi.fn() } }));
 
 beforeEach(() => {
-  vi.mocked(backendRequest).mockReset().mockResolvedValue(backendResponse({}));
+  vi.mocked(axios.post)
+    .mockReset()
+    .mockResolvedValue({ status: 204, data: null, headers: { a: "b" } });
 });
 
 describe("email center backend calls", () => {
-  it.each([
-    [
-      () => fetchEmailCenterOptions("me"),
-      { method: "GET", url: `${BASE}/options`, params: { actorId: "me" } },
-    ],
-    [
-      () => fetchEmailTemplates("me", "p"),
-      {
-        method: "GET",
-        url: `${BASE}/templates`,
-        params: { actorId: "me", programId: "p" },
-      },
-    ],
-    [
-      () => fetchEmailCampaigns("me"),
-      { method: "GET", url: `${BASE}/campaigns`, params: { actorId: "me" } },
-    ],
-    [
-      () => fetchEmailCampaign("me", "a/b"),
-      {
-        method: "GET",
-        url: `${BASE}/campaigns/a%2Fb`,
-        params: { actorId: "me" },
-      },
-    ],
-    [
-      () => createEmailCampaign("me", draft),
-      {
-        method: "POST",
-        url: `${BASE}/campaigns`,
-        data: { ...draft, actorId: "me" },
-      },
-    ],
-    [
-      () => updateEmailCampaign("me", "id", draft),
-      {
-        method: "PUT",
-        url: `${BASE}/campaigns/id`,
-        data: { ...draft, actorId: "me" },
-      },
-    ],
-    [
-      () => deleteEmailCampaign("me", "id"),
-      {
-        method: "DELETE",
-        url: `${BASE}/campaigns/id`,
-        params: { actorId: "me" },
-      },
-    ],
-    [
-      () => testEmailCampaign("me", "id"),
-      {
-        method: "POST",
-        url: `${BASE}/campaigns/id/test`,
-        data: { actorId: "me" },
-      },
-    ],
-    [
-      () => reviewEmailCampaign("me", "id"),
-      {
-        method: "POST",
-        url: `${BASE}/campaigns/id/review`,
-        data: { actorId: "me" },
-      },
-    ],
-    [
-      () => sendEmailCampaign("me", "id", confirmation),
-      {
-        method: "POST",
-        url: `${BASE}/campaigns/id/send`,
-        data: { ...confirmation, actorId: "me" },
-      },
-    ],
-    [
-      () => stopEmailCampaign("me", "id"),
-      {
-        method: "POST",
-        url: `${BASE}/campaigns/id/stop`,
-        data: { actorId: "me" },
-      },
-    ],
-    [
-      () => unsubscribeEmail("t"),
-      { method: "POST", url: `${BASE}/unsubscribe`, data: { token: "t" } },
-    ],
-  ])("asks for exactly what is needed (%#)", async (call, expected) => {
-    await call();
-    expect(backendRequest).toHaveBeenCalledWith(expected);
+  it("unsubscribes with the link's token alone, without any credential", async () => {
+    const response = await unsubscribeEmail("t");
+
+    const [url, body, config] = itemAt(vi.mocked(axios.post).mock.calls, 0);
+    expect(url).toBe(`${getBackendUrl()}/api/email-center/unsubscribe`);
+    expect(body).toEqual({ token: "t" });
+    expect(config).not.toHaveProperty("auth");
+    expect(config).not.toHaveProperty("withCredentials");
+    expect(config?.headers).toEqual({
+      Accept: "application/json",
+      "Accept-Language": "tr",
+    });
+    expect(response).toEqual({ status: 204, data: null, headers: { a: "b" } });
+  });
+
+  it("hands a refusal back instead of throwing", async () => {
+    vi.mocked(axios.post).mockResolvedValue({
+      status: 400,
+      data: { code: "INVALID_TOKEN" },
+      headers: {},
+    });
+
+    await expect(unsubscribeEmail("t")).resolves.toMatchObject({
+      status: 400,
+    });
+    const config = itemAt(vi.mocked(axios.post).mock.calls, 0)[2];
+    expect(config?.validateStatus?.(500)).toBe(true);
   });
 });

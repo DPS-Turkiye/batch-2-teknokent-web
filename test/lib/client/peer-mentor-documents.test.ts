@@ -4,39 +4,40 @@ import {
   PeerDocumentVisibility,
   PeerEvidenceType,
 } from "@/interfaces/peer-mentor-documents";
+import { ClientApiError } from "@/lib/client/api";
+import { backendHttp } from "@/lib/client/backend-http";
 import { postUpload } from "@/lib/client/documents";
 import {
   addPeerMentorLink,
   deletePeerMentorDocument,
+  downloadPeerMentorDocument,
   getOwnPeerMentorDocuments,
   getPeerMentorDocuments,
-  peerMentorDocumentContentHref,
   updatePeerMentorDocumentVisibility,
   uploadPeerMentorDocument,
 } from "@/lib/client/peer-mentor-documents";
-import { httpClient } from "@/lib/http-client";
 import { itemAt } from "@test/fixtures/list-assertions";
 import {
   peerFileFixture,
   peerLinkFixture,
 } from "@test/fixtures/peer-mentor-documents";
 
-vi.mock("@/lib/http-client", () => ({
-  httpClient: { get: vi.fn(), post: vi.fn(), patch: vi.fn(), delete: vi.fn() },
-}));
+vi.mock("@/lib/client/backend-http", async () =>
+  (await import("@test/mocks/backend-http")).backendHttpMock(),
+);
 vi.mock("@/lib/client/documents", () => ({ postUpload: vi.fn() }));
 
 beforeEach(() => vi.clearAllMocks());
 
 describe("peer mentor documents client", () => {
   it("lists the mentor's own documents", async () => {
-    vi.mocked(httpClient.get).mockResolvedValue({
+    vi.mocked(backendHttp.get).mockResolvedValue({
       status: 200,
       data: [peerFileFixture()],
     });
 
     expect(await getOwnPeerMentorDocuments()).toEqual([peerFileFixture()]);
-    expect(httpClient.get).toHaveBeenCalledWith(
+    expect(backendHttp.get).toHaveBeenCalledWith(
       "/api/peer-mentoring/profile/documents",
     );
   });
@@ -59,15 +60,18 @@ describe("peer mentor documents client", () => {
   });
 
   it("adds a link, changes visibility and deletes", async () => {
-    vi.mocked(httpClient.post).mockResolvedValue({
+    vi.mocked(backendHttp.post).mockResolvedValue({
       status: 201,
       data: peerLinkFixture(),
     });
-    vi.mocked(httpClient.patch).mockResolvedValue({
+    vi.mocked(backendHttp.patch).mockResolvedValue({
       status: 200,
       data: peerFileFixture(),
     });
-    vi.mocked(httpClient.delete).mockResolvedValue({ status: 204, data: null });
+    vi.mocked(backendHttp.delete).mockResolvedValue({
+      status: 204,
+      data: null,
+    });
     const input = {
       url: "https://github.com/mertdemir",
       visibility: PeerDocumentVisibility.Profile,
@@ -80,21 +84,21 @@ describe("peer mentor documents client", () => {
     );
     await deletePeerMentorDocument("doc 1");
 
-    expect(httpClient.post).toHaveBeenCalledWith(
+    expect(backendHttp.post).toHaveBeenCalledWith(
       "/api/peer-mentoring/profile/links",
       input,
     );
-    expect(httpClient.patch).toHaveBeenCalledWith(
+    expect(backendHttp.patch).toHaveBeenCalledWith(
       "/api/peer-mentoring/profile/documents/doc%201",
       { visibility: PeerDocumentVisibility.VerificationOnly },
     );
-    expect(httpClient.delete).toHaveBeenCalledWith(
+    expect(backendHttp.delete).toHaveBeenCalledWith(
       "/api/peer-mentoring/profile/documents/doc%201",
     );
   });
 
   it("reads a mentor's shared documents as none when the backend hides them", async () => {
-    vi.mocked(httpClient.get)
+    vi.mocked(backendHttp.get)
       .mockResolvedValueOnce({ status: 200, data: [peerLinkFixture()] })
       .mockResolvedValueOnce({ status: 404, data: { message: "not found" } })
       .mockResolvedValueOnce({ status: 500, data: { message: "boom" } });
@@ -104,14 +108,85 @@ describe("peer mentor documents client", () => {
     ]);
     expect(await getPeerMentorDocuments("mentor-1")).toEqual([]);
     await expect(getPeerMentorDocuments("mentor-1")).rejects.toThrow();
-    expect(httpClient.get).toHaveBeenCalledWith(
+    expect(backendHttp.get).toHaveBeenCalledWith(
       "/api/peer-mentoring/mentors/mentor-1/documents",
     );
   });
 
-  it("opens a file through the app's own route", () => {
-    expect(peerMentorDocumentContentHref("doc-1")).toBe(
-      "/api/peer-mentoring/documents/doc-1/content",
+  it("saves a file from the backend as a download, never as a page of this origin", async () => {
+    vi.mocked(backendHttp.get).mockResolvedValue({
+      status: 200,
+      data: new Blob(["<html>"]),
+      headers: { "content-type": "text/html" },
+    });
+    const urls = stubObjectUrls();
+    const click = vi
+      .spyOn(HTMLAnchorElement.prototype, "click")
+      .mockImplementation(function (this: HTMLAnchorElement) {
+        expect(this.href).toBe("blob:peer-file");
+        expect(this.download).toBe("Transkript.pdf");
+      });
+
+    await downloadPeerMentorDocument("doc 1", "Transkript.pdf");
+
+    expect(backendHttp.get).toHaveBeenCalledWith(
+      "/api/peer-mentoring/documents/doc%201/content",
+      { responseType: "blob", headers: { Accept: "*/*" } },
     );
+    expect(click).toHaveBeenCalledTimes(1);
+    expect(urls.types).toEqual(["application/octet-stream"]);
+    expect(urls.revoked).toEqual(["blob:peer-file"]);
+    expect(document.querySelector("a[download]")).toBeNull();
+    click.mockRestore();
+    urls.restore();
+  });
+
+  it("keeps a PDF a PDF and saves nothing when the backend refuses", async () => {
+    vi.mocked(backendHttp.get)
+      .mockResolvedValueOnce({
+        status: 200,
+        data: new Blob(["%PDF"]),
+        headers: { "content-type": "application/pdf" },
+      })
+      .mockResolvedValueOnce({ status: 404, data: new Blob([]), headers: {} });
+    const urls = stubObjectUrls();
+    const click = vi
+      .spyOn(HTMLAnchorElement.prototype, "click")
+      .mockImplementation(() => undefined);
+
+    await downloadPeerMentorDocument("doc-1", "cv.pdf");
+    await expect(
+      downloadPeerMentorDocument("doc-2", "cv.pdf"),
+    ).rejects.toBeInstanceOf(ClientApiError);
+
+    expect(urls.types).toEqual(["application/pdf"]);
+    expect(click).toHaveBeenCalledTimes(1);
+    click.mockRestore();
+    urls.restore();
   });
 });
+
+/** jsdom has no object URLs; these record what would have been made of each blob. */
+function stubObjectUrls() {
+  const original = {
+    create: URL.createObjectURL,
+    revoke: URL.revokeObjectURL,
+  };
+  const types: string[] = [];
+  const revoked: string[] = [];
+  URL.createObjectURL = (object: Blob | MediaSource) => {
+    if (object instanceof Blob) types.push(object.type);
+    return "blob:peer-file";
+  };
+  URL.revokeObjectURL = (url: string) => {
+    revoked.push(url);
+  };
+  return {
+    types,
+    revoked,
+    restore: () => {
+      URL.createObjectURL = original.create;
+      URL.revokeObjectURL = original.revoke;
+    },
+  };
+}

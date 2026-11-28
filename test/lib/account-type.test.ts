@@ -5,10 +5,12 @@ import { Edition } from "@/interfaces/edition";
 import { IdentityKind, UserRole } from "@/interfaces/session";
 import { Workspace } from "@/interfaces/workspace";
 import {
+  ACCOUNT_TYPE_COOKIE,
   accountTypeOfSession,
   isAccountType,
   mergeMessages,
   resolveAccountType,
+  saveAccountTypeCookie,
 } from "@/lib/account-type";
 import enBase from "@/messages/en.json";
 import odtuEn from "@/messages/odtu/en.json";
@@ -64,6 +66,24 @@ describe("accountTypeOfSession", () => {
         activeWorkspace: Workspace.GirisimMentee,
       }),
     ).toBe(AccountType.Teknokent);
+  });
+});
+
+describe("saveAccountTypeCookie", () => {
+  it("writes the session's wording for the server's layout", () => {
+    saveAccountTypeCookie({
+      userId: "u-1",
+      email: "ayse@odtu-dev.invalid",
+      fullName: "Ayşe",
+      jobTitle: "Mentee",
+      role: UserRole.Mentee,
+      institutionKinds: [IdentityKind.Student],
+      edition: Edition.Odtu,
+    });
+    expect(document.cookie).toContain(
+      `${ACCOUNT_TYPE_COOKIE}=${AccountType.Odtu}`,
+    );
+    document.cookie = `${ACCOUNT_TYPE_COOKIE}=; path=/; max-age=0`;
   });
 });
 

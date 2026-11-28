@@ -1,123 +1,53 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, vi } from "vitest";
 
-import {
-  ProgramMemberKind,
-  type ProgramMentorRemoval,
-  type ProgramTeamMove,
-} from "@/interfaces/admin-overview";
+import { ProgramMemberKind } from "@/interfaces/admin-overview";
 import {
   assignToProgram,
   moveStartupToProgram,
   removeMentorFromProgram,
 } from "@/lib/client/admin-program-members";
-import { ClientApiError } from "@/lib/client/api";
-import { httpClient } from "@/lib/http-client";
-import { createAxiosResponse } from "@test/fixtures/health";
+import { backendHttp } from "@/lib/client/backend-http";
+import {
+  itSendsEachClientCall,
+  type ClientCall,
+} from "@test/fixtures/client-calls";
 
-vi.mock("@/lib/http-client", () => ({
-  httpClient: { post: vi.fn() },
-}));
+vi.mock("@/lib/client/backend-http", async () =>
+  (await import("@test/mocks/backend-http")).backendHttpMock(),
+);
 
-const move: ProgramTeamMove = {
-  id: "move-1",
-  organizationId: "org 1",
-  fromProgramId: "program-1",
-  fromProgramName: "Ön Kuluçka 2026",
-  toProgramId: "prog/2",
-  toProgramName: "Kuluçka 2026",
-  movedAt: "2026-11-13T12:00:00Z",
-  withdrawnRequests: 0,
-};
-
-const removal: ProgramMentorRemoval = {
-  id: "removal-1",
-  mentorId: "mentor 1",
-  programId: "prog/1",
-  programName: "Kuluçka 2026",
-  removedAt: "2026-11-13T12:00:00Z",
-  withdrawnRequests: 1,
-};
-
-describe("admin program members client", () => {
-  beforeEach(() => {
-    vi.mocked(httpClient.post).mockReset();
-  });
-
-  it("assigns a member under the kind's path segment", async () => {
-    vi.mocked(httpClient.post).mockResolvedValue(
-      createAxiosResponse(undefined, 204),
-    );
-
-    await assignToProgram("prog/2", ProgramMemberKind.Mentors, "mentor 1");
-
-    expect(httpClient.post).toHaveBeenCalledWith(
-      "/api/admin/programs/prog%2F2/mentors/mentor%201",
-    );
-  });
-
-  it("moves a startup into the program in the path, naming the one it leaves", async () => {
-    vi.mocked(httpClient.post).mockResolvedValue(
-      createAxiosResponse(move, 200),
-    );
-
-    await expect(
-      moveStartupToProgram("prog/2", "org 1", "program-1"),
-    ).resolves.toEqual(move);
-
-    expect(httpClient.post).toHaveBeenCalledWith(
+const calls: ClientCall[] = [
+  {
+    title: "assignToProgram puts a member in under the kind's path segment",
+    call: () =>
+      assignToProgram("prog/2", ProgramMemberKind.Mentors, "mentor 1"),
+    method: "post",
+    args: ["/api/admin/programs/prog%2F2/mentors/mentor%201"],
+    returnsNothing: true,
+  },
+  {
+    title:
+      "moveStartupToProgram moves a startup into the program in the path, naming the one it leaves",
+    call: () => moveStartupToProgram("prog/2", "org 1", "program-1"),
+    method: "post",
+    args: [
       "/api/admin/programs/prog%2F2/startups/org%201/move",
       { fromProgramId: "program-1" },
-    );
+    ],
+  },
+  {
+    title:
+      "removeMentorFromProgram takes a mentor out of the program in the path",
+    call: () => removeMentorFromProgram("prog/1", "mentor 1"),
+    method: "post",
+    args: ["/api/admin/programs/prog%2F1/mentors/mentor%201/remove"],
+  },
+];
+
+describe("admin program members client, straight to the backend", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
   });
 
-  it("surfaces the backend's reason when the move is refused", async () => {
-    vi.mocked(httpClient.post).mockResolvedValue(
-      createAxiosResponse(
-        { code: "INVALID_REQUEST", message: "Takım zaten bu programda." },
-        400,
-      ),
-    );
-
-    await expect(
-      moveStartupToProgram("program-2", "org-1", "program-1"),
-    ).rejects.toThrow(
-      new ClientApiError("Takım zaten bu programda.", 400, "INVALID_REQUEST"),
-    );
-  });
-
-  it("removes a mentor from the program in the path", async () => {
-    vi.mocked(httpClient.post).mockResolvedValue(
-      createAxiosResponse(removal, 200),
-    );
-
-    await expect(
-      removeMentorFromProgram("prog/1", "mentor 1"),
-    ).resolves.toEqual(removal);
-
-    expect(httpClient.post).toHaveBeenCalledWith(
-      "/api/admin/programs/prog%2F1/mentors/mentor%201/remove",
-    );
-  });
-
-  it("surfaces the backend's reason when the removal is refused", async () => {
-    vi.mocked(httpClient.post).mockResolvedValue(
-      createAxiosResponse(
-        {
-          code: "INVALID_REQUEST",
-          message: "Mentor bu programda kayıtlı değil.",
-        },
-        400,
-      ),
-    );
-
-    await expect(
-      removeMentorFromProgram("program-1", "mentor-1"),
-    ).rejects.toThrow(
-      new ClientApiError(
-        "Mentor bu programda kayıtlı değil.",
-        400,
-        "INVALID_REQUEST",
-      ),
-    );
-  });
+  itSendsEachClientCall(calls, backendHttp);
 });

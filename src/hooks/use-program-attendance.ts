@@ -12,9 +12,9 @@ import type {
 import type { SessionsExportFormat } from "@/interfaces/program-report";
 import { ToastTone } from "@/interfaces/toast";
 import {
+  downloadProgramAttendance,
   getProgramAttendance,
   markSessionAttendance,
-  programAttendanceExportHref,
   unmarkSessionAttendance,
 } from "@/lib/client/program-attendance";
 import {
@@ -76,6 +76,16 @@ export function useProgramAttendance(programId: string) {
       });
     },
   });
+  const download = useMutation({
+    mutationFn: (format: SessionsExportFormat) =>
+      downloadProgramAttendance(programId, { range, format }),
+    onError: (error: Error) => {
+      showToast({
+        message: errorMessage(error, t("exportFailed")),
+        tone: ToastTone.Error,
+      });
+    },
+  });
   const data = query.data;
   const enabled = data?.attendanceEnabled ?? false;
 
@@ -94,10 +104,11 @@ export function useProgramAttendance(programId: string) {
     setFrom: (from: string) => setDays((current) => ({ ...current, from })),
     setTo: (to: string) => setDays((current) => ({ ...current, to })),
     clear: () => setDays({ from: "", to: "" }),
-    exportHref: (format: SessionsExportFormat) =>
-      valid
-        ? programAttendanceExportHref(programId, { range, format })
-        : undefined,
+    /** Whether a file can be asked for now: a valid range, and no file on its way. */
+    canExport: valid && !download.isPending,
+    exportFile: (format: SessionsExportFormat) => {
+      if (valid && !download.isPending) download.mutate(format);
+    },
     /** "Eğitim 16 Kas", "Workshop 18 Kas", "Haftalık (eski)": a column's name under its week. */
     sessionLabel,
     /**

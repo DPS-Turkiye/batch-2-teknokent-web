@@ -3,11 +3,10 @@ import axios, { AxiosError } from "axios";
 import { ClientApiError, ClientErrorCode } from "@/lib/client/api";
 
 /**
- * Most calls are small JSON round trips through the app's own route handlers.
+ * Most calls are small JSON round trips to the backend.
  * Without a timeout a stalled request never settles, so a screen waiting on one
  * stays on its pending state indefinitely — the reported "Gönderiliyor…" that
- * never resolves. The server-side wrapper already uses 60s for the Next→Spring
- * hop; this covers browser→Next.
+ * never resolves.
  */
 export const REQUEST_TIMEOUT_MS = 30_000;
 
@@ -23,7 +22,7 @@ export const UPLOAD_STALL_MS = 20_000;
 /** Before the first byte goes out (DNS, TLS, the CORS preflight) a weak line is allowed a little longer. */
 export const UPLOAD_CONNECT_MS = 30_000;
 
-/** Once the whole file is sent, the wait for the stored answer; CloudFront gives the backend 60 s. */
+/** Once the whole file is sent, the wait for the stored answer from the backend. */
 export const UPLOAD_RESPONSE_TIMEOUT_MS = 60_000;
 
 export const httpClient = axios.create({
@@ -40,7 +39,7 @@ export const httpClient = axios.create({
  * request, or no network at all. Axios words those for developers ("timeout of
  * 30000ms exceeded"); this turns them into something a user can act on.
  */
-httpClient.interceptors.response.use(undefined, (error: unknown) => {
+export function toTransportError(error: unknown): never {
   if (error instanceof AxiosError) {
     if (
       error.code === AxiosError.ECONNABORTED ||
@@ -61,4 +60,6 @@ httpClient.interceptors.response.use(undefined, (error: unknown) => {
     }
   }
   throw error;
-});
+}
+
+httpClient.interceptors.response.use(undefined, toTransportError);

@@ -9,28 +9,22 @@ import {
   generateMeetingReport,
   stopMeetingBot,
 } from "@/lib/assistant";
+import { backendHttp } from "@/lib/client/backend-http";
 import {
   getBotApiUrl,
   getMeetingBotApiUrl,
   getMeetingReportApiUrl,
   getTranscriptApiUrl,
 } from "@/lib/const";
-import { currentIdToken } from "@/lib/firebase/auth";
-import { httpClient } from "@/lib/http-client";
 import { createAxiosResponse } from "@test/fixtures/health";
 
-vi.mock("@/lib/http-client", () => ({
+vi.mock("@/lib/client/backend-http", async () =>
+  (await import("@test/mocks/backend-http")).backendHttpMock(),
+);
+vi.mock("@/lib/http-client", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/http-client")>()),
   UPLOAD_TIMEOUT_MS: 120_000,
-  httpClient: {
-    post: vi.fn(),
-    get: vi.fn(),
-    delete: vi.fn(),
-  },
 }));
-
-vi.mock("@/lib/firebase/auth", () => ({ currentIdToken: vi.fn() }));
-
-const signedIn = { headers: { Authorization: "Bearer firebase-token" } };
 
 function createAxiosError<T>(data: T, status: number) {
   return new AxiosError(
@@ -45,7 +39,6 @@ function createAxiosError<T>(data: T, status: number) {
 describe("assistant lib", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(currentIdToken).mockResolvedValue("firebase-token");
   });
 
   it("addMeetingBot posts meeting url and returns data", async () => {
@@ -56,22 +49,20 @@ describe("assistant lib", () => {
       status: "joining",
       title: "Mentor Bot",
     };
-    vi.mocked(httpClient.post).mockResolvedValue(
+    vi.mocked(backendHttp.post).mockResolvedValue(
       createAxiosResponse(payload, 201),
     );
 
     const result = await addMeetingBot("https://meet.google.com/abc-defg-hij");
 
-    expect(httpClient.post).toHaveBeenCalledWith(
-      getBotApiUrl(),
-      { meetingUrl: "https://meet.google.com/abc-defg-hij" },
-      signedIn,
-    );
+    expect(backendHttp.post).toHaveBeenCalledWith(getBotApiUrl(), {
+      meetingUrl: "https://meet.google.com/abc-defg-hij",
+    });
     expect(result).toEqual(payload);
   });
 
   it("addMeetingBot throws when the BFF returns an error status", async () => {
-    vi.mocked(httpClient.post).mockResolvedValue(
+    vi.mocked(backendHttp.post).mockResolvedValue(
       createAxiosResponse(
         { message: "Meeting assistant service is unavailable." },
         502,
@@ -84,7 +75,7 @@ describe("assistant lib", () => {
   });
 
   it("addMeetingBot throws on error status", async () => {
-    vi.mocked(httpClient.post).mockRejectedValue(
+    vi.mocked(backendHttp.post).mockRejectedValue(
       createAxiosError({ detail: "bad link" }, 400),
     );
 
@@ -97,21 +88,20 @@ describe("assistant lib", () => {
     const segments = [
       { id: "s1", speaker: "Ayşe", text: "Merhaba", at: "01:05" },
     ];
-    vi.mocked(httpClient.get).mockResolvedValue(
+    vi.mocked(backendHttp.get).mockResolvedValue(
       createAxiosResponse({ segments }, 200),
     );
 
     const result = await fetchTranscript("google_meet", "abc-defg-hij");
 
-    expect(httpClient.get).toHaveBeenCalledWith(
+    expect(backendHttp.get).toHaveBeenCalledWith(
       getTranscriptApiUrl("google_meet", "abc-defg-hij"),
-      signedIn,
     );
     expect(result).toEqual(segments);
   });
 
   it("fetchTranscript throws on error status", async () => {
-    vi.mocked(httpClient.get).mockRejectedValue(
+    vi.mocked(backendHttp.get).mockRejectedValue(
       createAxiosError({ detail: "missing" }, 404),
     );
 
@@ -121,20 +111,19 @@ describe("assistant lib", () => {
   });
 
   it("stopMeetingBot calls delete with generated url", async () => {
-    vi.mocked(httpClient.delete).mockResolvedValue(
+    vi.mocked(backendHttp.delete).mockResolvedValue(
       createAxiosResponse({}, 204),
     );
 
     await stopMeetingBot("google_meet", "abc-defg-hij");
 
-    expect(httpClient.delete).toHaveBeenCalledWith(
+    expect(backendHttp.delete).toHaveBeenCalledWith(
       getMeetingBotApiUrl("google_meet", "abc-defg-hij"),
-      signedIn,
     );
   });
 
   it("stopMeetingBot uses fallback message on network failures", async () => {
-    vi.mocked(httpClient.delete).mockRejectedValue(new AxiosError("Network"));
+    vi.mocked(backendHttp.delete).mockRejectedValue(new AxiosError("Network"));
 
     await expect(stopMeetingBot("google_meet", "abc-defg-hij")).rejects.toThrow(
       "Toplantı asistanı durdurulamadı. (ağ hatası)",
@@ -154,22 +143,22 @@ describe("assistant lib", () => {
       nextSteps: ["Backlog netlestir"],
       model: "gpt-5.4",
     };
-    vi.mocked(httpClient.post).mockResolvedValue(
+    vi.mocked(backendHttp.post).mockResolvedValue(
       createAxiosResponse(report, 200),
     );
 
     const result = await generateMeetingReport("google_meet", "abc-defg-hij");
 
-    expect(httpClient.post).toHaveBeenCalledWith(
+    expect(backendHttp.post).toHaveBeenCalledWith(
       getMeetingReportApiUrl("google_meet", "abc-defg-hij"),
       undefined,
-      { timeout: 120_000, ...signedIn },
+      { timeout: 120_000 },
     );
     expect(result).toEqual(report);
   });
 
   it("maps CloudFront HTML 403 to a Turkish error", async () => {
-    vi.mocked(httpClient.post).mockRejectedValue(
+    vi.mocked(backendHttp.post).mockRejectedValue(
       createAxiosError(
         "<html><h1>403 ERROR</h1>Generated by cloudfront (CloudFront)</html>",
         403,
@@ -182,7 +171,7 @@ describe("assistant lib", () => {
   });
 
   it("generateMeetingReport prefers provider detail message", async () => {
-    vi.mocked(httpClient.post).mockRejectedValue(
+    vi.mocked(backendHttp.post).mockRejectedValue(
       createAxiosError({ detail: "invalid api key" }, 401),
     );
 
@@ -192,28 +181,53 @@ describe("assistant lib", () => {
   });
 
   it("generateMeetingReport uses fallback message when response has no detail", async () => {
-    vi.mocked(httpClient.post).mockRejectedValue(createAxiosError({}, 502));
+    vi.mocked(backendHttp.post).mockRejectedValue(createAxiosError({}, 502));
 
     await expect(
       generateMeetingReport("google_meet", "abc-defg-hij"),
     ).rejects.toThrow("Toplantı raporu oluşturulamadı. (502)");
   });
 
-  it("asks to sign in again and sends nothing without a Firebase session", async () => {
-    vi.mocked(currentIdToken).mockResolvedValue(null);
+  // The backend's own refusal texts are English and internal; the reader gets ours.
+  it.each([
+    [401, {}, "Oturumunuz sona erdi. Lütfen tekrar giriş yapın."],
+    [
+      403,
+      { message: "Forbidden" },
+      "Bu toplantının asistanını yalnızca toplantının katılımcıları kullanabilir.",
+    ],
+    [
+      404,
+      { message: "Not found" },
+      "Bu bağlantıya ait bir görüşme bulunamadı. Asistan yalnızca takvimdeki görüşmeler için kullanılabilir.",
+    ],
+    [
+      409,
+      { detail: "All recording slots are in use." },
+      "Şu anda tüm kayıt yerleri dolu. Bir toplantı bitince tekrar dene.",
+    ],
+  ])(
+    "explains a %i from the backend in the reader's words",
+    async (status, body, text) => {
+      vi.mocked(backendHttp.post).mockResolvedValue(
+        createAxiosResponse(body, status),
+      );
 
-    await expect(
-      fetchTranscript("google_meet", "abc-defg-hij"),
-    ).rejects.toThrow("Oturumunuz sona erdi. Lütfen tekrar giriş yapın.");
-    await expect(
-      generateMeetingReport("google_meet", "abc-defg-hij"),
-    ).rejects.toThrow("Oturumunuz sona erdi. Lütfen tekrar giriş yapın.");
-    expect(httpClient.get).not.toHaveBeenCalled();
-    expect(httpClient.post).not.toHaveBeenCalled();
+      await expect(
+        addMeetingBot("https://meet.google.com/abc-defg-hij"),
+      ).rejects.toThrow(text);
+    },
+  );
+
+  it("sends nothing for a link that is not a URL", async () => {
+    await expect(addMeetingBot("toplantı")).rejects.toThrow(
+      "Toplantı asistanı gönderilemedi.",
+    );
+    expect(backendHttp.post).not.toHaveBeenCalled();
   });
 
   it("fetchMeetingBotStatus reads the bot's state with the caller's token", async () => {
-    vi.mocked(httpClient.get).mockResolvedValue(
+    vi.mocked(backendHttp.get).mockResolvedValue(
       createAxiosResponse(
         {
           platform: "google_meet",
@@ -229,14 +243,13 @@ describe("assistant lib", () => {
     await expect(
       fetchMeetingBotStatus("google_meet", "abc-defg-hij"),
     ).resolves.toMatchObject({ state: MeetingBotState.Active });
-    expect(httpClient.get).toHaveBeenCalledWith(
+    expect(backendHttp.get).toHaveBeenCalledWith(
       getMeetingBotApiUrl("google_meet", "abc-defg-hij"),
-      signedIn,
     );
   });
 
   it("fetchMeetingBotStatus refuses an answer that is not a bot state", async () => {
-    vi.mocked(httpClient.get).mockResolvedValue(
+    vi.mocked(backendHttp.get).mockResolvedValue(
       createAxiosResponse({ segments: [] }, 200),
     );
 
@@ -246,7 +259,7 @@ describe("assistant lib", () => {
   });
 
   it("fetchMeetingBotStatus hides the backend's English error", async () => {
-    vi.mocked(httpClient.get).mockRejectedValue(
+    vi.mocked(backendHttp.get).mockRejectedValue(
       createAxiosError({ detail: "Failed to read bot state" }, 502),
     );
 

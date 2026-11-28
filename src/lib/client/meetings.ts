@@ -1,21 +1,33 @@
 import type { MeetingItem, MeetingStatus } from "@/interfaces/meeting";
-import type { UserRole } from "@/interfaces/session";
 import { requireSuccess } from "@/lib/client/api";
-import { httpClient } from "@/lib/http-client";
+import { backendHttp, signedInUserId } from "@/lib/client/backend-http";
 
-/** `as` picks the side for an account that mentors and is mentored; omitted, the primary role decides. */
-export async function getMeetings(as?: UserRole.Mentor | UserRole.Mentee) {
+/**
+ * The caller's meetings on their primary side: their own as a mentor, or their team's. The backend takes both
+ * from the session.
+ */
+export async function getMeetings() {
+  return requireSuccess(await backendHttp.get<MeetingItem[]>("/api/meetings"));
+}
+
+/** A meeting of the caller's own team, without a mentor. */
+export async function postMeeting(payload: Record<string, unknown>) {
   return requireSuccess(
-    await httpClient.get<MeetingItem[]>(
-      "/api/meetings",
-      as ? { params: { as } } : undefined,
-    ),
+    await backendHttp.post<MeetingItem>("/api/meetings", payload),
   );
 }
 
-export async function postMeeting(payload: Record<string, unknown>) {
+/**
+ * A mentor's own meeting, with the startup named by `mentorshipRequestId`, `programId` + `organizationId` or
+ * `organizationId`; the backend checks the mentor may plan with it and copies a program meeting to its other
+ * mentors.
+ */
+export async function postMentorMeeting(payload: Record<string, unknown>) {
   return requireSuccess(
-    await httpClient.post<MeetingItem>("/api/meetings", payload),
+    await backendHttp.post<MeetingItem>("/api/meetings", {
+      ...payload,
+      mentorId: await signedInUserId(),
+    }),
   );
 }
 
@@ -44,14 +56,14 @@ export type MeetingFeedbackItem = {
 
 /** Which of these meetings the signed-in user has already rated. */
 export async function getRatedMeetingIds(meetingIds: string[]) {
-  const response = await httpClient.get<string[]>("/api/meetings/feedback", {
+  const response = await backendHttp.get<string[]>("/api/meetings/feedback", {
     params: { meetingIds: meetingIds.join(",") },
   });
   return requireSuccess(response);
 }
 
 export async function getMeetingFeedback(meetingId: string) {
-  const response = await httpClient.get<MeetingFeedbackItem>(
+  const response = await backendHttp.get<MeetingFeedbackItem>(
     `/api/meetings/${encodeURIComponent(meetingId)}/feedback`,
   );
   // Not rated yet: 204 from the backend, 404 from releases before it.
@@ -64,7 +76,7 @@ export async function postMeetingFeedback(
   payload: MeetingFeedbackPayload,
 ) {
   return requireSuccess(
-    await httpClient.post<MeetingFeedbackItem>(
+    await backendHttp.post<MeetingFeedbackItem>(
       `/api/meetings/${encodeURIComponent(meetingId)}/feedback`,
       payload,
     ),
@@ -73,7 +85,7 @@ export async function postMeetingFeedback(
 
 export async function updateMeeting(id: string, payload: UpdateMeetingPayload) {
   return requireSuccess(
-    await httpClient.patch<MeetingItem>(
+    await backendHttp.patch<MeetingItem>(
       `/api/meetings/${encodeURIComponent(id)}`,
       payload,
     ),
@@ -84,14 +96,14 @@ export async function setMeetingHeld(id: string, held: boolean) {
   const url = `/api/meetings/${encodeURIComponent(id)}/held`;
   return requireSuccess(
     held
-      ? await httpClient.post<MeetingItem>(url)
-      : await httpClient.delete<MeetingItem>(url),
+      ? await backendHttp.post<MeetingItem>(url)
+      : await backendHttp.delete<MeetingItem>(url),
   );
 }
 
 export async function markMeetingNoShow(id: string, note: string) {
   return requireSuccess(
-    await httpClient.post<MeetingItem>(
+    await backendHttp.post<MeetingItem>(
       `/api/meetings/${encodeURIComponent(id)}/no-show`,
       { note },
     ),
@@ -100,7 +112,7 @@ export async function markMeetingNoShow(id: string, note: string) {
 
 export async function clearMeetingNoShow(id: string) {
   return requireSuccess(
-    await httpClient.delete<MeetingItem>(
+    await backendHttp.delete<MeetingItem>(
       `/api/meetings/${encodeURIComponent(id)}/no-show`,
     ),
   );
@@ -108,7 +120,7 @@ export async function clearMeetingNoShow(id: string) {
 
 export async function getMeetingRoom(id: string) {
   return requireSuccess(
-    await httpClient.get<MeetingItem[]>(
+    await backendHttp.get<MeetingItem[]>(
       `/api/meetings/${encodeURIComponent(id)}/room`,
     ),
   );
@@ -119,7 +131,7 @@ export async function postMeetingGuest(
   payload: { organizationId?: string; mentorId?: string; programId?: string },
 ) {
   return requireSuccess(
-    await httpClient.post<MeetingItem>(
+    await backendHttp.post<MeetingItem>(
       `/api/meetings/${encodeURIComponent(id)}/guests`,
       payload,
     ),
@@ -128,6 +140,6 @@ export async function postMeetingGuest(
 
 export async function deleteMeeting(id: string) {
   requireSuccess(
-    await httpClient.delete<void>(`/api/meetings/${encodeURIComponent(id)}`),
+    await backendHttp.delete<void>(`/api/meetings/${encodeURIComponent(id)}`),
   );
 }

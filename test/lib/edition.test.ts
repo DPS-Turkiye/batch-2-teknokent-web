@@ -1,7 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { Edition } from "@/interfaces/edition";
-import { editionOf, isPathOpenIn, parseEdition } from "@/lib/edition";
+import {
+  clientEdition,
+  editionOf,
+  isPathOpenIn,
+  parseEdition,
+} from "@/lib/edition";
 
 const ODTU_PAGES = [
   "/student",
@@ -91,5 +96,14 @@ describe("editionOf", () => {
     expect(editionOf({ edition: Edition.Odtu })).toBe(Edition.Odtu);
     expect(editionOf({})).toBe(Edition.Teknokent);
     expect(editionOf(null)).toBe(Edition.Teknokent);
+  });
+});
+
+describe("clientEdition", () => {
+  it("reads the edition the build gave the browser, Teknokent when unset", () => {
+    vi.stubEnv("NEXT_PUBLIC_APP_EDITION", "ODTU");
+    expect(clientEdition()).toBe(Edition.Odtu);
+    vi.stubEnv("NEXT_PUBLIC_APP_EDITION", "");
+    expect(clientEdition()).toBe(Edition.Teknokent);
   });
 });

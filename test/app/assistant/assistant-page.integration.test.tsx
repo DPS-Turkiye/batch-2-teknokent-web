@@ -6,6 +6,7 @@ import AssistantPage from "@/app/assistant/page";
 import { useAiFeatures } from "@/hooks/use-ai-features";
 import { useMeetings } from "@/hooks/use-meetings";
 import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
+import { backendHttp } from "@/lib/client/backend-http";
 import {
   getAssistantShareApiUrl,
   getBotApiUrl,
@@ -15,7 +16,6 @@ import {
   TRANSCRIPT_POLL_MS,
 } from "@/lib/const";
 import { currentIdToken } from "@/lib/firebase/auth";
-import { httpClient } from "@/lib/http-client";
 import { aiFeatures } from "@test/fixtures/ai-features";
 import { createAxiosResponse } from "@test/fixtures/health";
 import { successQuery } from "@test/mocks/query-results";
@@ -50,16 +50,12 @@ const refused = vi.fn();
 
 vi.mock("@/lib/firebase/auth", () => ({ currentIdToken: vi.fn() }));
 
-const signedIn = { headers: { Authorization: "Bearer firebase-token" } };
-
-vi.mock("@/lib/http-client", () => ({
+vi.mock("@/lib/client/backend-http", async () =>
+  (await import("@test/mocks/backend-http")).backendHttpMock(),
+);
+vi.mock("@/lib/http-client", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/http-client")>()),
   UPLOAD_TIMEOUT_MS: 120_000,
-  httpClient: {
-    post: vi.fn(),
-    get: vi.fn(),
-    delete: vi.fn(),
-    patch: vi.fn(),
-  },
 }));
 
 const refetchMeetings = vi.fn();
@@ -85,10 +81,10 @@ describe("AssistantPage integration", () => {
     sessionStorage.clear();
     vi.mocked(useMeetings).mockReturnValue(meetingsQuery([sprintReview]));
     vi.mocked(currentIdToken).mockResolvedValue("firebase-token");
-    vi.mocked(httpClient.get).mockResolvedValue(
+    vi.mocked(backendHttp.get).mockResolvedValue(
       createAxiosResponse({ segments: [] }, 200),
     );
-    vi.mocked(httpClient.patch).mockResolvedValue(
+    vi.mocked(backendHttp.patch).mockResolvedValue(
       createAxiosResponse({ id: "meeting-1" }, 200),
     );
     vi.mocked(useAiFeatures).mockReturnValue(aiFeatures());
@@ -113,7 +109,7 @@ describe("AssistantPage integration", () => {
   it("adds a meeting from UI through assistant lib client", async () => {
     const user = userEvent.setup();
 
-    vi.mocked(httpClient.post).mockImplementation(async (url: string) => {
+    vi.mocked(backendHttp.post).mockImplementation(async (url: string) => {
       if (url === getBotApiUrl()) {
         return createAxiosResponse(
           {
@@ -138,11 +134,9 @@ describe("AssistantPage integration", () => {
     await user.click(screen.getByRole("button", { name: "Bot ekle" }));
 
     await waitFor(() => {
-      expect(httpClient.post).toHaveBeenCalledWith(
-        getBotApiUrl(),
-        { meetingUrl: "https://meet.google.com/abc-defg-hij" },
-        signedIn,
-      );
+      expect(backendHttp.post).toHaveBeenCalledWith(getBotApiUrl(), {
+        meetingUrl: "https://meet.google.com/abc-defg-hij",
+      });
     });
 
     expect(screen.getAllByText("Yeni Test Toplantisi").length).toBeGreaterThan(
@@ -150,16 +144,15 @@ describe("AssistantPage integration", () => {
     );
 
     await waitFor(() => {
-      expect(httpClient.get).toHaveBeenCalledWith(
+      expect(backendHttp.get).toHaveBeenCalledWith(
         getTranscriptApiUrl("google_meet", "abc-defg-hij"),
-        signedIn,
       );
     });
   });
 
   it("tells the host to admit the bot while it waits in the Meet lobby", async () => {
     const user = userEvent.setup();
-    vi.mocked(httpClient.post).mockResolvedValue(
+    vi.mocked(backendHttp.post).mockResolvedValue(
       createAxiosResponse(
         {
           id: "51",
@@ -171,7 +164,7 @@ describe("AssistantPage integration", () => {
         201,
       ),
     );
-    vi.mocked(httpClient.get).mockImplementation(async (url: string) =>
+    vi.mocked(backendHttp.get).mockImplementation(async (url: string) =>
       url === getMeetingBotApiUrl("google_meet", "abc-defg-hij")
         ? createAxiosResponse(
             {
@@ -218,11 +211,11 @@ describe("AssistantPage integration", () => {
       { id: "s1", speaker: "Ayşe", text: "Merhaba", at: "00:10" },
     ];
 
-    vi.mocked(httpClient.get).mockResolvedValue(
+    vi.mocked(backendHttp.get).mockResolvedValue(
       createAxiosResponse({ segments }, 200),
     );
 
-    vi.mocked(httpClient.post).mockImplementation(async (url: string) => {
+    vi.mocked(backendHttp.post).mockImplementation(async (url: string) => {
       if (url === getBotApiUrl()) {
         return createAxiosResponse(
           {
@@ -259,7 +252,7 @@ describe("AssistantPage integration", () => {
       throw new Error(`Unexpected POST URL: ${url}`);
     });
 
-    vi.mocked(httpClient.delete).mockResolvedValue(
+    vi.mocked(backendHttp.delete).mockResolvedValue(
       createAxiosResponse({}, 204),
     );
 
@@ -280,17 +273,16 @@ describe("AssistantPage integration", () => {
     await user.click(screen.getByRole("button", { name: "Asistanı durdur" }));
 
     await waitFor(() => {
-      expect(httpClient.delete).toHaveBeenCalledWith(
+      expect(backendHttp.delete).toHaveBeenCalledWith(
         getMeetingBotApiUrl("google_meet", "abc-defg-hij"),
-        signedIn,
       );
     });
 
     await waitFor(() => {
-      expect(httpClient.post).toHaveBeenCalledWith(
+      expect(backendHttp.post).toHaveBeenCalledWith(
         getMeetingReportApiUrl("google_meet", "abc-defg-hij"),
         undefined,
-        { timeout: 120_000, ...signedIn },
+        { timeout: 120_000 },
       );
     });
 
@@ -304,7 +296,7 @@ describe("AssistantPage integration", () => {
       aiFeatures({ meetingReport: false }),
     );
     const user = userEvent.setup();
-    vi.mocked(httpClient.get).mockResolvedValue(
+    vi.mocked(backendHttp.get).mockResolvedValue(
       createAxiosResponse(
         {
           segments: [
@@ -314,7 +306,7 @@ describe("AssistantPage integration", () => {
         200,
       ),
     );
-    vi.mocked(httpClient.post).mockImplementation(async (url: string) => {
+    vi.mocked(backendHttp.post).mockImplementation(async (url: string) => {
       if (url === getBotApiUrl()) {
         return createAxiosResponse(
           {
@@ -329,7 +321,7 @@ describe("AssistantPage integration", () => {
       }
       throw new Error(`Unexpected POST URL: ${url}`);
     });
-    vi.mocked(httpClient.delete).mockResolvedValue(
+    vi.mocked(backendHttp.delete).mockResolvedValue(
       createAxiosResponse({}, 204),
     );
 
@@ -346,7 +338,7 @@ describe("AssistantPage integration", () => {
     });
     await user.click(screen.getByRole("button", { name: "Asistanı durdur" }));
     await waitFor(() => {
-      expect(httpClient.delete).toHaveBeenCalled();
+      expect(backendHttp.delete).toHaveBeenCalled();
     });
 
     expect(
@@ -355,7 +347,7 @@ describe("AssistantPage integration", () => {
       ),
     ).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Rapor üret" })).toBeNull();
-    expect(httpClient.post).not.toHaveBeenCalledWith(
+    expect(backendHttp.post).not.toHaveBeenCalledWith(
       getMeetingReportApiUrl("google_meet", "abc-defg-hij"),
       undefined,
       expect.anything(),
@@ -365,7 +357,7 @@ describe("AssistantPage integration", () => {
   it("does not generate a report after stop when the transcript is empty", async () => {
     const user = userEvent.setup();
 
-    vi.mocked(httpClient.post).mockImplementation(async (url: string) => {
+    vi.mocked(backendHttp.post).mockImplementation(async (url: string) => {
       if (url === getBotApiUrl()) {
         return createAxiosResponse(
           {
@@ -380,7 +372,7 @@ describe("AssistantPage integration", () => {
       }
       throw new Error(`Unexpected POST URL: ${url}`);
     });
-    vi.mocked(httpClient.delete).mockResolvedValue(
+    vi.mocked(backendHttp.delete).mockResolvedValue(
       createAxiosResponse({}, 204),
     );
 
@@ -401,13 +393,12 @@ describe("AssistantPage integration", () => {
     await user.click(screen.getByRole("button", { name: "Asistanı durdur" }));
 
     await waitFor(() => {
-      expect(httpClient.delete).toHaveBeenCalledWith(
+      expect(backendHttp.delete).toHaveBeenCalledWith(
         getMeetingBotApiUrl("google_meet", "abc-defg-hij"),
-        signedIn,
       );
     });
 
-    expect(httpClient.post).not.toHaveBeenCalledWith(
+    expect(backendHttp.post).not.toHaveBeenCalledWith(
       getMeetingReportApiUrl("google_meet", "abc-defg-hij"),
       undefined,
       expect.anything(),
@@ -434,7 +425,7 @@ describe("AssistantPage integration", () => {
 
     vi.mocked(useMeetings).mockReturnValue(meetingsQuery([liveMeeting]));
 
-    vi.mocked(httpClient.get).mockImplementation(async (url: string) => {
+    vi.mocked(backendHttp.get).mockImplementation(async (url: string) => {
       if (url.includes("assistant-share")) {
         return createAxiosResponse(
           { meetingId: "meeting-1", transcript: null, report: null },
@@ -443,7 +434,7 @@ describe("AssistantPage integration", () => {
       }
       return createAxiosResponse({ segments: [] }, 200);
     });
-    vi.mocked(httpClient.delete).mockResolvedValue(
+    vi.mocked(backendHttp.delete).mockResolvedValue(
       createAxiosResponse({}, 204),
     );
 
@@ -452,10 +443,13 @@ describe("AssistantPage integration", () => {
 
     await user.click(screen.getByRole("button", { name: "Asistanı durdur" }));
     await waitFor(() => {
-      expect(httpClient.patch).toHaveBeenCalledWith("/api/meetings/meeting-1", {
-        status: "COMPLETED",
-        transcriptBotDispatched: true,
-      });
+      expect(backendHttp.patch).toHaveBeenCalledWith(
+        "/api/meetings/meeting-1",
+        {
+          status: "COMPLETED",
+          transcriptBotDispatched: true,
+        },
+      );
     });
     expect(refetchMeetings).toHaveBeenCalled();
 
@@ -473,7 +467,7 @@ describe("AssistantPage integration", () => {
 
     const transcriptCalls = () =>
       vi
-        .mocked(httpClient.get)
+        .mocked(backendHttp.get)
         .mock.calls.filter(
           ([url]) => url === getTranscriptApiUrl("google_meet", "abc-defg-hij"),
         ).length;
@@ -505,7 +499,7 @@ describe("AssistantPage integration", () => {
       ]),
     );
 
-    vi.mocked(httpClient.get).mockImplementation(async (url: string) => {
+    vi.mocked(backendHttp.get).mockImplementation(async (url: string) => {
       if (url.includes("assistant-share")) {
         return createAxiosResponse(
           { meetingId: "meeting-1", transcript: null, report: null },
@@ -514,10 +508,10 @@ describe("AssistantPage integration", () => {
       }
       return createAxiosResponse({ segments: [] }, 200);
     });
-    vi.mocked(httpClient.delete).mockResolvedValue(
+    vi.mocked(backendHttp.delete).mockResolvedValue(
       createAxiosResponse({}, 204),
     );
-    vi.mocked(httpClient.patch).mockResolvedValue(
+    vi.mocked(backendHttp.patch).mockResolvedValue(
       createAxiosResponse({ message: "Meeting could not be updated." }, 502),
     );
 
@@ -548,7 +542,7 @@ describe("AssistantPage integration", () => {
       ]),
     );
 
-    vi.mocked(httpClient.get).mockImplementation(async (url: string) => {
+    vi.mocked(backendHttp.get).mockImplementation(async (url: string) => {
       if (url === getAssistantShareApiUrl("meeting-1")) {
         return createAxiosResponse(
           {
@@ -611,7 +605,7 @@ describe("AssistantPage integration", () => {
       ]),
     );
 
-    vi.mocked(httpClient.get).mockImplementation(async (url: string) => {
+    vi.mocked(backendHttp.get).mockImplementation(async (url: string) => {
       if (url.includes("assistant-share")) {
         return createAxiosResponse(
           { meetingId: "meeting-1", transcript: null, report: null },
@@ -620,7 +614,7 @@ describe("AssistantPage integration", () => {
       }
       return createAxiosResponse({ segments }, 200);
     });
-    vi.mocked(httpClient.post).mockImplementation(async (url: string) => {
+    vi.mocked(backendHttp.post).mockImplementation(async (url: string) => {
       if (url === getBotApiUrl()) {
         return createAxiosResponse(
           {
@@ -653,7 +647,7 @@ describe("AssistantPage integration", () => {
       }
       throw new Error(`Unexpected POST URL: ${url}`);
     });
-    vi.mocked(httpClient.delete).mockResolvedValue(
+    vi.mocked(backendHttp.delete).mockResolvedValue(
       createAxiosResponse({}, 204),
     );
 
@@ -668,13 +662,13 @@ describe("AssistantPage integration", () => {
     await user.click(screen.getByRole("button", { name: "Asistanı durdur" }));
 
     await waitFor(() => {
-      expect(httpClient.post).toHaveBeenCalledWith(
+      expect(backendHttp.post).toHaveBeenCalledWith(
         getMeetingReportApiUrl("google_meet", "abc-defg-hij"),
         undefined,
-        { timeout: 120_000, ...signedIn },
+        { timeout: 120_000 },
       );
     });
-    expect(httpClient.post).not.toHaveBeenCalledWith(
+    expect(backendHttp.post).not.toHaveBeenCalledWith(
       getAssistantShareApiUrl("meeting-1"),
       expect.anything(),
     );
@@ -693,7 +687,7 @@ describe("AssistantPage integration", () => {
     );
 
     await waitFor(() => {
-      expect(httpClient.post).toHaveBeenCalledWith(
+      expect(backendHttp.post).toHaveBeenCalledWith(
         getAssistantShareApiUrl("meeting-1"),
         {
           kind: "TRANSCRIPT",

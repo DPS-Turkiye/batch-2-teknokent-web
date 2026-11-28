@@ -1,5 +1,6 @@
 import { requireSuccess } from "@/lib/client/api";
-import { httpClient } from "@/lib/http-client";
+import { backendHttp } from "@/lib/client/backend-http";
+import { ownOrganizationPath } from "@/lib/client/own-organization";
 
 export type OrganizationInvite = {
   organizationId: string;
@@ -8,12 +9,17 @@ export type OrganizationInvite = {
 
 export async function getInviteCode() {
   return requireSuccess(
-    await httpClient.get<OrganizationInvite>("/api/organizations/invite-code"),
+    await backendHttp.get<OrganizationInvite>(
+      await ownOrganizationPath("/invite-code"),
+    ),
   );
 }
 
 export async function rotateInviteCode() {
   return requireSuccess(
-    await httpClient.post<OrganizationInvite>("/api/organizations/invite-code"),
+    await backendHttp.post<OrganizationInvite>(
+      await ownOrganizationPath("/invite-code"),
+      {},
+    ),
   );
 }

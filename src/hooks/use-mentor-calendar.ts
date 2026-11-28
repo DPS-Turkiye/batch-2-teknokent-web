@@ -34,8 +34,8 @@ import {
 import {
   deleteMeeting,
   getMeetings,
-  postMeeting,
   postMeetingGuest,
+  postMentorMeeting,
 } from "@/lib/client/meetings";
 import {
   createAvailabilityRule,
@@ -116,7 +116,7 @@ export function useMentorCalendar() {
   const regularMentorships = regularMentorshipsQuery.data ?? [];
 
   const createMeeting = useMutation({
-    mutationFn: postMeeting,
+    mutationFn: postMentorMeeting,
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["meetings"] });
       void queryClient.invalidateQueries({ queryKey: ["meeting-room"] });

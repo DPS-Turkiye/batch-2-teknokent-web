@@ -7,16 +7,18 @@ import type {
   OfficeHoursSlot,
 } from "@/interfaces/office-hours";
 import { requireSuccess } from "@/lib/client/api";
-import { httpClient } from "@/lib/http-client";
+import { backendHttp } from "@/lib/client/backend-http";
+import { officeHoursUserPath } from "@/lib/client/office-hours-session";
 
+/** One of the session's own courses on the backend. */
 function coursePath(courseId: string, path: string) {
-  return `/api/office-hours/courses/${encodeURIComponent(courseId)}/${path}`;
+  return officeHoursUserPath(`courses/${encodeURIComponent(courseId)}/${path}`);
 }
 
 export async function getCourseInstructors(courseId: string) {
   return requireSuccess(
-    await httpClient.get<OfficeHoursPerson[]>(
-      coursePath(courseId, "instructors"),
+    await backendHttp.get<OfficeHoursPerson[]>(
+      await coursePath(courseId, "instructors"),
     ),
   );
 }
@@ -26,8 +28,8 @@ export async function getInstructorSlots(
   instructorId: string,
 ) {
   return requireSuccess(
-    await httpClient.get<OfficeHoursSlot[]>(
-      coursePath(
+    await backendHttp.get<OfficeHoursSlot[]>(
+      await coursePath(
         courseId,
         `instructors/${encodeURIComponent(instructorId)}/slots`,
       ),
@@ -37,16 +39,16 @@ export async function getInstructorSlots(
 
 export async function getOfficeHoursRequests(courseId: string) {
   return requireSuccess(
-    await httpClient.get<OfficeHoursRequest[]>(
-      coursePath(courseId, "requests"),
+    await backendHttp.get<OfficeHoursRequest[]>(
+      await coursePath(courseId, "requests"),
     ),
   );
 }
 
 export async function getOfficeHoursMeetings(courseId: string) {
   return requireSuccess(
-    await httpClient.get<OfficeHoursMeeting[]>(
-      coursePath(courseId, "meetings"),
+    await backendHttp.get<OfficeHoursMeeting[]>(
+      await coursePath(courseId, "meetings"),
     ),
   );
 }
@@ -56,8 +58,8 @@ export async function createOfficeHoursRequest(
   payload: CreateOfficeHoursRequestPayload,
 ) {
   return requireSuccess(
-    await httpClient.post<OfficeHoursRequest>(
-      coursePath(courseId, "requests"),
+    await backendHttp.post<OfficeHoursRequest>(
+      await coursePath(courseId, "requests"),
       payload,
     ),
   );
@@ -75,8 +77,8 @@ export async function actOnOfficeHoursRequest(
   action: OfficeHoursRequestAction,
 ) {
   return requireSuccess(
-    await httpClient.post<OfficeHoursRequest>(
-      coursePath(
+    await backendHttp.post<OfficeHoursRequest>(
+      await coursePath(
         courseId,
         `requests/${encodeURIComponent(requestId)}/${action.kind}`,
       ),

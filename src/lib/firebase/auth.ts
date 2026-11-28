@@ -3,6 +3,7 @@ import {
   browserLocalPersistence,
   browserSessionPersistence,
   createUserWithEmailAndPassword,
+  onAuthStateChanged,
   sendEmailVerification,
   sendPasswordResetEmail,
   setPersistence,
@@ -204,6 +205,45 @@ export async function currentSignedInAccount(): Promise<
   if (!account) return null;
   const { uid, email, fullName, verified } = account;
   return { email, fullName, verified, otg: uid.startsWith(OTG_UID_PREFIX) };
+}
+
+/** The Firebase uid signed in to this tab, once Firebase has restored any saved session; null when nobody is. */
+export async function currentFirebaseUid(): Promise<string | null> {
+  const auth = firebaseAuth();
+  await auth.authStateReady();
+  return auth.currentUser?.uid ?? null;
+}
+
+/** The tab's Firebase login and a token of that same login, so the two never belong to different people. */
+export async function currentFirebaseLogin(): Promise<{
+  uid: string;
+  idToken: string;
+} | null> {
+  const auth = firebaseAuth();
+  await auth.authStateReady();
+  const user = auth.currentUser;
+  return user ? { uid: user.uid, idToken: await user.getIdToken() } : null;
+}
+
+/**
+ * Calls `onChange` when the tab's Firebase login is replaced by another account's without signing out first: with
+ * "beni hatırla" Firebase shares its login across tabs, so another tab signing in as someone else lands here.
+ * Returns the unsubscribe.
+ */
+export function onFirebaseAccountChange(onChange: () => void): () => void {
+  let auth;
+  try {
+    auth = firebaseAuth();
+  } catch {
+    // Firebase not configured (tests, a build without its settings): no login can change.
+    return () => undefined;
+  }
+  let last: string | null = null;
+  return onAuthStateChanged(auth, (user) => {
+    const uid = user?.uid ?? null;
+    if (last && uid && uid !== last) onChange();
+    last = uid;
+  });
 }
 
 export async function currentIdToken(): Promise<string | null> {

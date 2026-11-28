@@ -3,19 +3,16 @@ import type {
   MemberTeamMoveResult,
 } from "@/interfaces/team-move";
 import { requireSuccess } from "@/lib/client/api";
-import { bearerHeader } from "@/lib/client/bearer";
-import { httpClient } from "@/lib/http-client";
+import { backendHttp } from "@/lib/client/backend-http";
 
-// The backend moves people only on the caller's own sign-in, so both calls carry the Firebase token.
+// The backend moves people only on the caller\'s own sign-in, which the API session cookie carries.
 function teamMovePath(userId: string) {
   return `/api/users/${encodeURIComponent(userId)}/team-move`;
 }
 
 export async function getTeamMoveOptions(userId: string) {
   return requireSuccess(
-    await httpClient.get<MemberTeamMoveOptions>(teamMovePath(userId), {
-      headers: await bearerHeader(),
-    }),
+    await backendHttp.get<MemberTeamMoveOptions>(teamMovePath(userId)),
   );
 }
 
@@ -24,10 +21,8 @@ export async function moveMemberToTeam(
   targetOrganizationId: string,
 ) {
   return requireSuccess(
-    await httpClient.post<MemberTeamMoveResult>(
-      teamMovePath(userId),
-      { targetOrganizationId },
-      { headers: await bearerHeader() },
-    ),
+    await backendHttp.post<MemberTeamMoveResult>(teamMovePath(userId), {
+      targetOrganizationId,
+    }),
   );
 }

@@ -1,6 +1,7 @@
 import { beforeEach, describe, vi } from "vitest";
 
 import { UserRole } from "@/interfaces/session";
+import { backendHttp } from "@/lib/client/backend-http";
 import {
   acceptProposedMentorSlot,
   getAlternativeMentors,
@@ -17,18 +18,13 @@ import {
   itSendsEachClientCall,
   type ClientCall,
 } from "@test/fixtures/client-calls";
+import { SIGNED_IN_USER_ID } from "@test/mocks/backend-http";
 
-vi.mock("@/lib/http-client", () => ({
-  httpClient: {
-    get: vi.fn(),
-    post: vi.fn(),
-    put: vi.fn(),
-    patch: vi.fn(),
-    delete: vi.fn(),
-  },
-}));
+vi.mock("@/lib/client/backend-http", async () =>
+  (await import("@test/mocks/backend-http")).backendHttpMock(),
+);
 
-const R = "/api/mentor-requests/r%2F1";
+const R = "/api/mentorship-requests/r%2F1";
 
 const calls: ClientCall[] = [
   {
@@ -41,12 +37,13 @@ const calls: ClientCall[] = [
       }),
     method: "get",
     args: [
-      "/api/mentor-requests",
+      "/api/mentorship-requests",
       { params: { tab: MentorshipWorkspaceTab.History, page: 2, size: 20 } },
     ],
   },
   {
-    title: "getMentorRequestsPage pages a mentor's tab with the role param",
+    title:
+      "getMentorRequestsPage pages a mentor's tab, naming the signed-in mentor",
     call: () =>
       getMentorRequestsPage({
         role: UserRole.Mentor,
@@ -56,10 +53,10 @@ const calls: ClientCall[] = [
       }),
     method: "get",
     args: [
-      "/api/mentor-requests",
+      "/api/mentorship-requests",
       {
         params: {
-          role: UserRole.Mentor,
+          mentorId: SIGNED_IN_USER_ID,
           tab: MentorshipWorkspaceTab.Requests,
           page: 0,
           size: 10,
@@ -78,7 +75,7 @@ const calls: ClientCall[] = [
       }),
     method: "get",
     args: [
-      "/api/mentor-requests",
+      "/api/mentorship-requests",
       { params: { tab: MentorshipWorkspaceTab.Active, page: 0, size: 10 } },
     ],
   },
@@ -104,7 +101,7 @@ const calls: ClientCall[] = [
     title: "withdrawMentorRequest patches the withdrawal",
     call: () => withdrawMentorRequest("r/1"),
     method: "patch",
-    args: [`${R}/withdrawal`, {}],
+    args: [`${R}/withdrawal`],
   },
   {
     title: "getMentorAvailability reads the request's mentor slots",
@@ -141,5 +138,5 @@ describe("mentor requests client (workspace calls)", () => {
     vi.clearAllMocks();
   });
 
-  itSendsEachClientCall(calls);
+  itSendsEachClientCall(calls, backendHttp);
 });

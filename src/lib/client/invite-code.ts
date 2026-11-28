@@ -1,9 +1,12 @@
 import type { InviteCodeCheck } from "@/interfaces/invite-code";
 import { requireSuccess } from "@/lib/client/api";
-import { httpClient } from "@/lib/http-client";
+import { backendHttp } from "@/lib/client/backend-http";
 
+/** /invite checks the code before any login exists; the backend answers only valid and the team's name. */
 export async function checkInviteCode(code: string) {
   return requireSuccess(
-    await httpClient.post<InviteCodeCheck>("/api/auth/invite-code", { code }),
+    await backendHttp.post<InviteCodeCheck>("/api/auth/invite-code/check", {
+      code: code.trim(),
+    }),
   );
 }

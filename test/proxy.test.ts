@@ -1,79 +1,20 @@
-import { sealData } from "iron-session";
 import { NextRequest } from "next/server";
-import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { UserRole } from "@/interfaces/session";
 import { proxy } from "@/proxy";
 
-const PASSWORD = "a-test-session-password-of-32-chars!";
-
-let signedIn = "";
-let empty = "";
-let coordinator = "";
-let expired = "";
-let beforeIssuedAt = "";
-
-const HOUR_MS = 60 * 60 * 1000;
-const MENTEE = {
-  userId: "user-1",
-  email: "gulse@dongu.app",
-  fullName: "Gülse Buran",
-  jobTitle: "Kurucu",
-  role: UserRole.Mentee,
-  organizationId: "org-1",
-  organizationName: "Döngü",
-};
+// The browser's hint (lib/session-hint), all the proxy can see of a sign-in.
+const signedIn = `menton_signed_in=${UserRole.Mentee}`;
+const coordinator = `menton_signed_in=${UserRole.Coordinator}`;
 
 const IPHONE =
   "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1";
 const IPAD =
   "Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1";
 
-// Env stubs are undone after every test (vitest.config unstubEnvs), so the password is set for each one.
-beforeEach(() => {
-  vi.stubEnv("SESSION_PASSWORD", PASSWORD);
-});
-
-beforeAll(async () => {
-  signedIn = `teknokent_session=${await sealData(
-    { user: MENTEE, issuedAt: Date.now() },
-    { password: PASSWORD },
-  )}`;
-  empty = `teknokent_session=${await sealData({}, { password: PASSWORD })}`;
-  expired = `teknokent_session=${await sealData(
-    { user: MENTEE, issuedAt: Date.now() - 13 * HOUR_MS },
-    { password: PASSWORD },
-  )}`;
-  beforeIssuedAt = `teknokent_session=${await sealData(
-    { user: MENTEE },
-    { password: PASSWORD },
-  )}`;
-  coordinator = `teknokent_session=${await sealData(
-    {
-      user: {
-        userId: "user-2",
-        email: "burcu@teknokent.org",
-        fullName: "Burcu Şen",
-        jobTitle: "Koordinatör",
-        role: UserRole.Coordinator,
-      },
-      issuedAt: Date.now(),
-    },
-    { password: PASSWORD },
-  )}`;
-});
-afterAll(() => vi.unstubAllEnvs());
-
-function request(
+// Async, so a refused edition arrives as a rejection like any other answer.
+async function request(
   path: string,
   cookie?: string,
   userAgent?: string,
@@ -87,9 +28,9 @@ function request(
   );
 }
 
-function clearsTheCookie(response: Response) {
+function clearsTheHint(response: Response) {
   return (response.headers.get("set-cookie") ?? "").includes(
-    "teknokent_session=;",
+    "menton_signed_in=;",
   );
 }
 
@@ -114,36 +55,48 @@ describe("proxy", () => {
     );
   });
 
-  // Reported: a stranger saw /profile as "Kullanıcı". A cookie that is present
-  // but holds no user is not a session.
-  it("sends a visitor with a cookie that holds no session to login, and clears it", async () => {
-    for (const cookie of [empty, "teknokent_session=not-a-seal"]) {
+  // A hint naming no known role is no sign-in; it is dropped so the next page load does not read it again.
+  it("sends a visitor with a hint that names nobody to login, and clears it", async () => {
+    for (const cookie of ["menton_signed_in=", "menton_signed_in=ROOT"]) {
       const response = await request("/profile", cookie);
       expect(response.status).toBe(307);
       expect(response.headers.get("location")).toBe(
         "http://localhost:3000/login?next=%2Fprofile",
       );
-      expect(clearsTheCookie(response)).toBe(true);
+      expect(clearsTheHint(response)).toBe(true);
     }
   });
 
-  // A sealed cookie never expires on its own, so a copied one would sign in forever.
-  it("treats a session older than 12 hours, or one without a sign-in time, as signed out", async () => {
-    for (const cookie of [expired, beforeIssuedAt]) {
-      const response = await request("/profile", cookie);
-      expect(response.status).toBe(307);
-      expect(response.headers.get("location")).toBe(
-        "http://localhost:3000/login?next=%2Fprofile",
-      );
-      expect(clearsTheCookie(response)).toBe(true);
-    }
-  });
-
-  it("lets a visitor with a dead cookie reach login instead of bouncing them away", async () => {
-    const response = await request("/login", empty);
+  // The API's session cookie lives on the API's host; an old app cookie on this one opens nothing.
+  // Signed in before the API had its own session: the page loads, resumes the API session from the Firebase
+  // sign-in and writes the hint (or sends them to log in), instead of bouncing everyone to login after the release.
+  it("lets someone with the old app session cookie and no hint load a protected page", async () => {
+    const response = await request("/profile", "teknokent_session=sealed");
     expect(response.status).toBe(200);
     expect(response.headers.get("location")).toBeNull();
-    expect(clearsTheCookie(response)).toBe(true);
+  });
+
+  it("does not take the old app session cookie as proof enough to leave login", async () => {
+    const response = await request("/login", "teknokent_session=sealed");
+    expect(response.status).toBe(200);
+    expect(response.headers.get("location")).toBeNull();
+  });
+
+  it("drops the old app session cookie once the hint is there", async () => {
+    const response = await request(
+      "/profile",
+      `${signedIn}; teknokent_session=sealed`,
+    );
+    expect(response.headers.get("set-cookie") ?? "").toContain(
+      "teknokent_session=;",
+    );
+  });
+
+  it("lets a visitor with a dead hint reach login instead of bouncing them away", async () => {
+    const response = await request("/login", "menton_signed_in=ROOT");
+    expect(response.status).toBe(200);
+    expect(response.headers.get("location")).toBeNull();
+    expect(clearsTheHint(response)).toBe(true);
   });
 
   it("sends a signed-in visitor away from login", async () => {
@@ -193,11 +146,11 @@ describe("proxy", () => {
     const response = await request("/dashboard", signedIn);
     expect(response.status).toBe(200);
     expect(response.headers.get("location")).toBeNull();
-    expect(clearsTheCookie(response)).toBe(false);
+    expect(clearsTheHint(response)).toBe(false);
   });
 
   it("does not send API calls to login", async () => {
-    const response = await request("/api/session");
+    const response = await request("/api/email-unsubscribe");
     expect(response.status).toBe(200);
     expect(response.headers.get("location")).toBeNull();
   });

@@ -1,6 +1,7 @@
 import { beforeEach, describe, vi } from "vitest";
 
 import { OfficeHoursRequestStatus } from "@/interfaces/office-hours";
+import { backendHttp } from "@/lib/client/backend-http";
 import {
   actOnOfficeHoursRequest,
   createOfficeHoursRequest,
@@ -14,17 +15,15 @@ import {
   type ClientCall,
 } from "@test/fixtures/client-calls";
 
-vi.mock("@/lib/http-client", () => ({
-  httpClient: {
-    get: vi.fn(),
-    post: vi.fn(),
-    put: vi.fn(),
-    patch: vi.fn(),
-    delete: vi.fn(),
-  },
+vi.mock("@/lib/client/backend-http", async () =>
+  (await import("@test/mocks/backend-http")).backendHttpMock(),
+);
+vi.mock("@/lib/client/office-hours-session", () => ({
+  officeHoursUserPath: (suffix: string) =>
+    Promise.resolve(`/api/office-hours/users/oh-1/${suffix}`),
 }));
 
-const COURSE = "/api/office-hours/courses/c%2F1";
+const COURSE = "/api/office-hours/users/oh-1/courses/c%2F1";
 const booking = {
   instructorId: "i-1",
   topic: "Ödev 3",
@@ -99,5 +98,5 @@ describe("office hours booking client", () => {
     vi.clearAllMocks();
   });
 
-  itSendsEachClientCall(calls);
+  itSendsEachClientCall(calls, backendHttp);
 });

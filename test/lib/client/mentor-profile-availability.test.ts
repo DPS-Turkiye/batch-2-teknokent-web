@@ -1,6 +1,7 @@
 import { beforeEach, describe, vi } from "vitest";
 
 import { Weekday } from "@/interfaces/mentor";
+import { backendHttp } from "@/lib/client/backend-http";
 import {
   createAvailabilityRule,
   deleteAvailabilityRule,
@@ -13,18 +14,12 @@ import {
   type ClientCall,
 } from "@test/fixtures/client-calls";
 
-vi.mock("@/lib/http-client", () => ({
-  httpClient: {
-    get: vi.fn(),
-    post: vi.fn(),
-    put: vi.fn(),
-    patch: vi.fn(),
-    delete: vi.fn(),
-  },
-}));
+vi.mock("@/lib/client/backend-http", async () =>
+  (await import("@test/mocks/backend-http")).backendHttpMock(),
+);
 
-const RULES = "/api/mentor-profile/availability-rules";
-const SETTINGS = "/api/mentor-profile/availability-settings";
+const RULES = "/api/mentors/user%2F1/availability-rules";
+const SETTINGS = "/api/mentors/user%2F1/availability-settings";
 const rule = {
   dayOfWeek: Weekday.Monday,
   startTime: "09:00",
@@ -88,5 +83,5 @@ describe("mentor profile client (availability rules and settings)", () => {
     vi.clearAllMocks();
   });
 
-  itSendsEachClientCall(calls);
+  itSendsEachClientCall(calls, backendHttp);
 });

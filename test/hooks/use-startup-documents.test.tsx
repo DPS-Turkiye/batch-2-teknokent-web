@@ -94,9 +94,7 @@ describe("startup document hooks", () => {
     expect(
       screen.getByRole("dialog", { name: "canvas.pdf" }),
     ).toBeInTheDocument();
-    expect(fetch).toHaveBeenCalledWith(
-      "/api/startup/documents/canvas-1/content",
-    );
+    expect(fetch).toHaveBeenCalledWith("https://bucket.s3/canvas.pdf?sig");
     expect(await screen.findByTitle("canvas.pdf")).toHaveAttribute(
       "src",
       "blob:http://localhost/preview",

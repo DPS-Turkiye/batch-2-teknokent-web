@@ -6,3 +6,8 @@ export function assignLocation(url: string) {
 export function replaceLocation(url: string) {
   window.location.replace(url);
 }
+
+/** Loads the current page again, from the server, with nothing kept in memory. */
+export function reloadPage() {
+  window.location.reload();
+}

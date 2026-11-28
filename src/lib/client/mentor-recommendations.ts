@@ -2,7 +2,7 @@ import type { MentorProfile } from "@/interfaces/mentor";
 import { MatchingMethod } from "@/interfaces/mentorship-request";
 import type { StartupContext } from "@/interfaces/startup";
 import { requireSuccess } from "@/lib/client/api";
-import { httpClient } from "@/lib/http-client";
+import { backendHttp } from "@/lib/client/backend-http";
 import type {
   MentorMeetingMode,
   MentorRequestUrgency,
@@ -32,7 +32,7 @@ export type RecommendationSpecification = {
 export async function getMentorRecommendations(
   specification: RecommendationSpecification,
 ) {
-  const response = await httpClient.post<MentorProfile[]>(
+  const response = await backendHttp.post<MentorProfile[]>(
     "/api/mentor-recommendations",
     {
       supportArea: specification.supportArea,

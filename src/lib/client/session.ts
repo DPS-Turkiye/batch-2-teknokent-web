@@ -1,0 +1,230 @@
+import { clientLocale, clientText } from "@/i18n/client-texts";
+import {
+  UserAccountStatus,
+  type AppSession,
+  type BackendUser,
+} from "@/interfaces/session";
+import type { Workspace } from "@/interfaces/workspace";
+import { saveAccountTypeCookie } from "@/lib/account-type";
+import { ClientApiError, requireSuccess } from "@/lib/client/api";
+import {
+  backendHttp,
+  endBackendSession,
+  startBackendSession,
+  withToken,
+} from "@/lib/client/backend-http";
+import {
+  ACCOUNT_NOT_APPROVED,
+  FORBIDDEN,
+  REGISTRATION_REQUIRED,
+  SESSION_REQUIRED,
+} from "@/lib/const";
+import { clientEdition } from "@/lib/edition";
+import { signOutOfFirebase } from "@/lib/firebase/auth";
+import { clearGoogleCalendarAccess } from "@/lib/google-calendar";
+import { readLastWorkspace, saveLastWorkspace } from "@/lib/last-workspace";
+import { clearNeedDraft } from "@/lib/mentor-request-need";
+import {
+  clearSignedInHint,
+  readSignedInHint,
+  writeSignedInHint,
+} from "@/lib/session-hint";
+import { toSession, withWorkspace } from "@/lib/session-model";
+import {
+  isMarkedSignedOut,
+  markSignedIn,
+  markSignedOut,
+} from "@/lib/session-signals";
+
+const ME_PATH = "/api/auth/me";
+const LANGUAGE_PATH = "/api/auth/me/language";
+
+/** The session with the workspace last switched to in this browser, when the account can still open it. */
+function withRememberedWorkspace(session: AppSession): AppSession {
+  const remembered = readLastWorkspace();
+  return (remembered && withWorkspace(session, remembered)) ?? session;
+}
+
+function isApproved(user: BackendUser) {
+  return (
+    (user.status ?? UserAccountStatus.Approved) === UserAccountStatus.Approved
+  );
+}
+
+function signedOut(): null {
+  clearSignedInHint();
+  return null;
+}
+
+/**
+ * Signs in to the API: checks the Firebase sign-in's account, then trades the token for the API's HttpOnly session
+ * cookie. A pending, rejected or half-registered account gets no session; the codes it is refused with are what the
+ * login screens route on (lib/account-not-ready).
+ */
+export async function signIn(
+  idToken: string,
+  rememberMe = false,
+): Promise<AppSession> {
+  const response = await backendHttp.get<BackendUser>(
+    ME_PATH,
+    withToken(idToken),
+  );
+  if (response.status === 401) {
+    throw new ClientApiError(
+      clientText("session.registrationIncomplete"),
+      401,
+      REGISTRATION_REQUIRED,
+    );
+  }
+  if (response.status !== 200) {
+    throw new ClientApiError(
+      clientText("session.signInIncomplete"),
+      response.status,
+      SESSION_REQUIRED,
+    );
+  }
+
+  // Before the approval check, so a pending applicant's decision notification is in their language too. Only that
+  // wording depends on it, so a failed save must not block sign-in.
+  await backendHttp
+    .put(LANGUAGE_PATH, { language: clientLocale() }, withToken(idToken))
+    .catch(() => undefined);
+
+  const user = response.data;
+  if (!isApproved(user)) {
+    throw new ClientApiError(
+      clientText(
+        user.status === UserAccountStatus.Rejected
+          ? "session.applicationRejected"
+          : "session.accountAwaitingApproval",
+      ),
+      403,
+      ACCOUNT_NOT_APPROVED,
+    );
+  }
+  const session = toSession(user, clientEdition());
+  if (!session) {
+    throw new ClientApiError(
+      clientText("session.workspaceNotReady"),
+      409,
+      SESSION_REQUIRED,
+    );
+  }
+  if (!(await startBackendSession(idToken, rememberMe))) {
+    throw new ClientApiError(
+      clientText("session.sessionUnavailable"),
+      503,
+      SESSION_REQUIRED,
+    );
+  }
+
+  const opened = withRememberedWorkspace(session);
+  markSignedIn();
+  rememberSignInChoice(rememberMe);
+  writeSignedInHint(opened.role, rememberMe);
+  saveAccountTypeCookie(opened);
+  return opened;
+}
+
+/** Whether this browser's last sign-in asked to be remembered; read back when a hint has to be written again. */
+const REMEMBER_KEY = "menton_sign_in_remembered";
+
+function rememberSignInChoice(remember: boolean) {
+  try {
+    if (remember) localStorage.setItem(REMEMBER_KEY, "1");
+    else localStorage.removeItem(REMEMBER_KEY);
+  } catch {
+    // Storage blocked (private mode): the hint then ends with the browser, which is the safe side.
+  }
+}
+
+function signInWasRemembered() {
+  try {
+    return localStorage.getItem(REMEMBER_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * The signed-in session, read from the API on its own cookie (backendHttp starts one from the Firebase sign-in when
+ * the cookie is gone). Null when there is none: signed out (in this browser since its last sign-in, without asking
+ * the API), or an account that is no longer approved or has no workspace. Any other failure throws, so a hiccup
+ * never reads as signed out.
+ */
+export async function readSession(): Promise<AppSession | null> {
+  // Signed out in this browser, perhaps a moment ago in another tab while the API's cookie is still being dropped.
+  if (isMarkedSignedOut()) return signedOut();
+  const response = await backendHttp.get<BackendUser>(ME_PATH);
+  if (response.status === 401) return signedOut();
+  const user = requireSuccess(response);
+  const session = isApproved(user) ? toSession(user, clientEdition()) : null;
+  if (!session) return signedOut();
+
+  const opened = withRememberedWorkspace(session);
+  // A session resumed without a sign-in on this page (another tab, an older sign-in) gets its hint back, kept as
+  // long as this browser's last sign-in asked for ("beni hatırla"), or until the browser closes when not known.
+  if (readSignedInHint() !== opened.role) {
+    writeSignedInHint(opened.role, signInWasRemembered());
+  }
+  saveAccountTypeCookie(opened);
+  return opened;
+}
+
+/** Opens `workspace` if the account can, and remembers it for the next sign-in in this browser. */
+export async function switchSessionWorkspace(
+  workspace: Workspace,
+): Promise<AppSession> {
+  const session = await readSession();
+  if (!session) {
+    throw new ClientApiError(clientText("http401"), 401, SESSION_REQUIRED);
+  }
+  const switched = withWorkspace(session, workspace);
+  if (!switched) {
+    throw new ClientApiError(
+      clientText("session.workspaceNotAvailable"),
+      403,
+      FORBIDDEN,
+    );
+  }
+  saveLastWorkspace(workspace);
+  saveAccountTypeCookie(switched);
+  return switched;
+}
+
+/** Drops what this tab keeps of the person beyond the session: the proxy's hint, Calendar access, drafts. */
+function forgetSignedInPerson() {
+  clearSignedInHint();
+  clearGoogleCalendarAccess();
+  clearNeedDraft();
+}
+
+/**
+ * Ends this tab's Firebase login. A failure is logged rather than thrown: the sign-out is finished locally anyway,
+ * and the signed-out mark keeps the leftover login from starting a session.
+ */
+async function endFirebaseLogin() {
+  try {
+    await signOutOfFirebase();
+  } catch (error) {
+    console.error("Firebase sign-out failed; the signed-out mark stays", error);
+  }
+}
+
+/**
+ * Signs out of this browser. The mark goes first, so no tab answers a 401 by starting a session meanwhile; then
+ * the Firebase login, so nothing is left to start one from; then the API's cookie. The other tabs hear of it
+ * through the mark (see `signOutOfThisTab`).
+ */
+export async function signOut() {
+  markSignedOut();
+  forgetSignedInPerson();
+  await endFirebaseLogin();
+  await endBackendSession();
+}
+
+/** Another tab signed the browser out: this tab drops its own Firebase login (kept per tab) and what it holds. */
+export async function signOutOfThisTab() {
+  forgetSignedInPerson();
+  await endFirebaseLogin();
+}

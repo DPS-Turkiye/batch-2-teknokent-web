@@ -5,7 +5,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { PeerMentorPublicProfile } from "@/components/student/peer-mentor-public-profile";
 import { BadgeCode, BadgeKind } from "@/interfaces/badges";
 import { PeerEvidenceType } from "@/interfaces/peer-mentor-documents";
-import { getPeerMentorDocuments } from "@/lib/client/peer-mentor-documents";
+import {
+  downloadPeerMentorDocument,
+  getPeerMentorDocuments,
+} from "@/lib/client/peer-mentor-documents";
 import { getPeerMentor } from "@/lib/client/peer-mentoring";
 import {
   peerFileFixture,
@@ -40,6 +43,7 @@ vi.mock("@/lib/client/peer-mentor-documents", async (importOriginal) => ({
     typeof import("@/lib/client/peer-mentor-documents")
   >()),
   getPeerMentorDocuments: vi.fn(async () => []),
+  downloadPeerMentorDocument: vi.fn(async () => undefined),
 }));
 vi.mock("@/lib/client/student-profile-completion", async (importOriginal) => ({
   ...(await importOriginal<
@@ -258,13 +262,14 @@ describe("PeerMentorPublicProfile", () => {
     });
     expect(within(shared).getByText("CV_DenizKaya.pdf")).toBeVisible();
     expect(within(shared).getByText("CV")).toBeVisible();
-    expect(
-      within(shared).getByRole("link", {
+    await userEvent.click(
+      within(shared).getByRole("button", {
         name: "CV_DenizKaya.pdf dosyasını görüntüle",
       }),
-    ).toHaveAttribute(
-      "href",
-      "/api/peer-mentoring/documents/8a0e2f4c-0000-4000-8000-000000000003/content",
+    );
+    expect(downloadPeerMentorDocument).toHaveBeenCalledWith(
+      "8a0e2f4c-0000-4000-8000-000000000003",
+      "CV_DenizKaya.pdf",
     );
     const links = screen.getByRole("region", { name: "Bağlantılar" });
     expect(

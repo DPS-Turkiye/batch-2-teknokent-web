@@ -6,6 +6,16 @@ import nextConfig, {
   securityHeaders,
 } from "../next.config";
 
+function connectSources(policy: string) {
+  return (
+    policy
+      .split("; ")
+      .find((part) => part.startsWith("connect-src "))
+      ?.split(" ")
+      .slice(1) ?? []
+  );
+}
+
 describe("browser security headers", () => {
   it("protects every route against framing, content sniffing, and unsafe embeds", async () => {
     const configured = await nextConfig.headers?.();
@@ -27,11 +37,60 @@ describe("browser security headers", () => {
   });
 
   it("lets the browser reach the local backend during development", () => {
-    const policy = buildContentSecurityPolicy(true);
-
-    expect(policy).toContain(
-      "connect-src 'self' https: wss: http://localhost:8080 http://127.0.0.1:8080 ws://localhost:8080 ws://127.0.0.1:8080 http://localhost:8090 http://127.0.0.1:8090 ws://localhost:8090 ws://127.0.0.1:8090",
+    const sources = connectSources(
+      buildContentSecurityPolicy(true, {
+        NEXT_PUBLIC_BACKEND_URL: "http://localhost:8080",
+      }),
     );
+
+    expect(sources).toEqual(
+      expect.arrayContaining([
+        "http://localhost:8080",
+        "http://127.0.0.1:8080",
+        "ws://localhost:8080",
+        "ws://127.0.0.1:8080",
+        "http://localhost:8090",
+        "http://127.0.0.1:8090",
+        "ws://localhost:8090",
+        "ws://127.0.0.1:8090",
+      ]),
+    );
+    expect(new Set(sources).size).toBe(sources.length);
+  });
+
+  // It was "https: wss:": a script injected into the page could send what it read to any host.
+  it("lets the page call only the origins it uses", () => {
+    const sources = connectSources(
+      buildContentSecurityPolicy(false, {
+        NEXT_PUBLIC_BACKEND_URL: "https://api.menton.com.tr/",
+        NEXT_PUBLIC_REALTIME_URL: "wss://api.menton.com.tr/ws",
+        NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: "menton-app.firebaseapp.com",
+      }),
+    );
+
+    expect(sources).toEqual([
+      "'self'",
+      "https://api.menton.com.tr",
+      "wss://api.menton.com.tr",
+      "https://menton-app.firebaseapp.com",
+      "https://identitytoolkit.googleapis.com",
+      "https://securetoken.googleapis.com",
+      "https://firebaseinstallations.googleapis.com",
+      "https://fcmregistrations.googleapis.com",
+      "https://www.googleapis.com",
+      "https://*.s3.eu-central-1.amazonaws.com",
+    ]);
+  });
+
+  it("allows a realtime host set apart from the backend", () => {
+    const sources = connectSources(
+      buildContentSecurityPolicy(false, {
+        NEXT_PUBLIC_BACKEND_URL: "https://api.menton.com.tr",
+        NEXT_PUBLIC_REALTIME_URL: "wss://realtime.menton.com.tr/ws",
+      }),
+    );
+
+    expect(sources).toContain("wss://realtime.menton.com.tr");
   });
 
   it("allows eval only in development, for hot reload", () => {
@@ -42,9 +101,12 @@ describe("browser security headers", () => {
   });
 
   it("keeps plain-HTTP backend origins out of the deployed policy", () => {
-    const policy = buildContentSecurityPolicy(false);
+    const policy = buildContentSecurityPolicy(false, {
+      NEXT_PUBLIC_BACKEND_URL: "http://localhost:8080",
+      NEXT_PUBLIC_REALTIME_URL: "ws://127.0.0.1:8080/ws",
+    });
 
-    expect(policy).toContain("connect-src 'self' https: wss:;");
+    expect(connectSources(policy)).not.toContain("https:");
     expect(policy).not.toContain("localhost");
     expect(policy).not.toContain("127.0.0.1");
   });

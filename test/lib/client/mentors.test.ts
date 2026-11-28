@@ -1,14 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { backendHttp } from "@/lib/client/backend-http";
 import { getMentors } from "@/lib/client/mentors";
-import { httpClient } from "@/lib/http-client";
 import { mentorProfile } from "@test/fixtures/mentors";
 
-vi.mock("@/lib/http-client", () => ({
-  httpClient: {
-    get: vi.fn(),
-  },
-}));
+vi.mock("@/lib/client/backend-http", async () =>
+  (await import("@test/mocks/backend-http")).backendHttpMock(),
+);
 
 describe("getMentors", () => {
   beforeEach(() => {
@@ -16,12 +14,12 @@ describe("getMentors", () => {
   });
 
   it("loads the approved mentor directory from the BFF", async () => {
-    vi.mocked(httpClient.get).mockResolvedValue({
+    vi.mocked(backendHttp.get).mockResolvedValue({
       status: 200,
       data: [mentorProfile],
     });
 
     await expect(getMentors()).resolves.toEqual([mentorProfile]);
-    expect(httpClient.get).toHaveBeenCalledWith("/api/mentors");
+    expect(backendHttp.get).toHaveBeenCalledWith("/api/mentors");
   });
 });

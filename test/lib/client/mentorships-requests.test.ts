@@ -1,6 +1,8 @@
-import { beforeEach, describe, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { MentorshipStatus } from "@/interfaces/coordinator-mentorship";
 import { UserRole } from "@/interfaces/session";
+import { backendHttp } from "@/lib/client/backend-http";
 import {
   addRegularMentorshipGoal,
   deleteRegularMentorship,
@@ -17,16 +19,12 @@ import {
   itSendsEachClientCall,
   type ClientCall,
 } from "@test/fixtures/client-calls";
+import { createMentorResponse } from "@test/fixtures/mentors";
+import { SIGNED_IN_USER_ID } from "@test/mocks/backend-http";
 
-vi.mock("@/lib/http-client", () => ({
-  httpClient: {
-    get: vi.fn(),
-    post: vi.fn(),
-    put: vi.fn(),
-    patch: vi.fn(),
-    delete: vi.fn(),
-  },
-}));
+vi.mock("@/lib/client/backend-http", async () =>
+  (await import("@test/mocks/backend-http")).backendHttpMock(),
+);
 
 const start = {
   organizationId: "org-1",
@@ -37,16 +35,21 @@ const start = {
 
 const calls: ClientCall[] = [
   {
-    title: "getRegularMentorships reads a mentee's mentorships with no role",
+    title:
+      "getRegularMentorships reads the team's running mentorships, naming no team",
     call: () => getRegularMentorships(),
     method: "get",
-    args: ["/api/mentorships", { params: undefined }],
+    args: ["/api/mentorships", { params: { activeOnly: true } }],
   },
   {
-    title: "getRegularMentorships reads a mentor's mentorships with the role",
+    title:
+      "getRegularMentorships reads the signed-in mentor's running mentorships",
     call: () => getRegularMentorships(UserRole.Mentor),
     method: "get",
-    args: ["/api/mentorships", { params: { role: UserRole.Mentor } }],
+    args: [
+      "/api/mentorships",
+      { params: { activeOnly: true, mentorId: SIGNED_IN_USER_ID } },
+    ],
   },
   {
     title: "getRegularMentorship reads one encoded mentorship",
@@ -55,10 +58,10 @@ const calls: ClientCall[] = [
     args: ["/api/mentorships/ms%2F1"],
   },
   {
-    title: "startRegularMentorship posts the new mentorship",
+    title: "startRegularMentorship posts the new running mentorship",
     call: () => startRegularMentorship(start),
     method: "post",
-    args: ["/api/mentorships", start],
+    args: ["/api/mentorships", { ...start, status: MentorshipStatus.Active }],
   },
   {
     title:
@@ -124,12 +127,6 @@ const calls: ClientCall[] = [
       { weekStart: "2026-03-02", completed: false },
     ],
   },
-  {
-    title: "searchOrganizations lists the startups a mentor may pick",
-    call: () => searchOrganizations(),
-    method: "get",
-    args: ["/api/mentorships/organizations"],
-  },
 ];
 
 describe("regular mentorships client", () => {
@@ -137,5 +134,29 @@ describe("regular mentorships client", () => {
     vi.clearAllMocks();
   });
 
-  itSendsEachClientCall(calls);
+  itSendsEachClientCall(calls, backendHttp);
+
+  it("lists the startups a mentor may pick, by name only", async () => {
+    vi.mocked(backendHttp.get).mockResolvedValue(
+      createMentorResponse([
+        { id: "org-1", name: "Kargo AI", sector: "Lojistik" },
+      ]),
+    );
+
+    await expect(searchOrganizations()).resolves.toEqual([
+      { id: "org-1", name: "Kargo AI" },
+    ]);
+    expect(backendHttp.get).toHaveBeenCalledWith("/api/organizations");
+  });
+
+  it("keeps the days a week between one and seven", async () => {
+    vi.mocked(backendHttp.post).mockResolvedValue(createMentorResponse({}));
+
+    await startRegularMentorship({ ...start, daysPerWeek: 9 });
+
+    expect(backendHttp.post).toHaveBeenCalledWith(
+      "/api/mentorships",
+      expect.objectContaining({ daysPerWeek: 7 }),
+    );
+  });
 });
