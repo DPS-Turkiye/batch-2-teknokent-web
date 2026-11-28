@@ -1,56 +1,23 @@
 import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { PATCH as patchActionItem } from "@/app/api/action-items/[id]/route";
-import { GET as listActionItems } from "@/app/api/action-items/route";
-import { POST as reportRoute } from "@/app/api/botapi/report/route";
-import {
-  POST as addBotRoute,
-  DELETE as stopBotRoute,
-} from "@/app/api/botapi/route";
 import { GET as listDocumentRequestsRoute } from "@/app/api/document-requests/route";
-import { POST as recommendMentorsRoute } from "@/app/api/mentor-recommendations/route";
-import { GET as getMentorRequest } from "@/app/api/mentor-requests/[id]/route";
 import { PATCH as confirmProfile } from "@/app/api/profile-analysis/[id]/confirmation/route";
-import { GET as transcriptRoute } from "@/app/api/transcriptapi/route";
 import { UserRole } from "@/interfaces/session";
-import { fetchActionItems, updateActionItem } from "@/lib/api/action-items";
 import { fetchDocumentRequests } from "@/lib/api/document-requests";
-import { recommendMentors } from "@/lib/api/mentor-recommendations";
-import { fetchMentorRequest } from "@/lib/api/mentor-requests";
 import { confirmStartupProfileRecord } from "@/lib/api/profile-analysis-records";
-import {
-  createMeetingBot,
-  generateMeetingReportBackend,
-  stopMeetingBotBackend,
-} from "@/lib/botapi";
 import { HttpMethod } from "@/lib/http-method";
 import { SessionRequiredError } from "@/lib/server/session-error";
 import { getSessionIds, getSessionUser } from "@/lib/session";
-import { fetchMeetingTranscript } from "@/lib/transcriptapi";
 
 vi.mock("@/lib/session", () => ({
   getSessionIds: vi.fn(),
   getSessionMentorId: vi.fn(),
   getSessionUser: vi.fn(),
 }));
-vi.mock("@/lib/botapi", () => ({
-  createMeetingBot: vi.fn(),
-  generateMeetingReportBackend: vi.fn(),
-  stopMeetingBotBackend: vi.fn(),
-}));
-vi.mock("@/lib/transcriptapi", () => ({ fetchMeetingTranscript: vi.fn() }));
 vi.mock("@/lib/api/document-requests", () => ({
   fetchDocumentRequests: vi.fn(),
 }));
-vi.mock("@/lib/api/action-items", () => ({
-  fetchActionItems: vi.fn(),
-  updateActionItem: vi.fn(),
-}));
-vi.mock("@/lib/api/mentor-recommendations", () => ({
-  recommendMentors: vi.fn(),
-}));
-vi.mock("@/lib/api/mentor-requests", () => ({ fetchMentorRequest: vi.fn() }));
 vi.mock("@/lib/api/profile-analysis-records", () => ({
   confirmStartupProfileRecord: vi.fn(),
 }));
@@ -78,84 +45,12 @@ function request(
   });
 }
 
-// The assistant routes also need the caller's own Firebase token.
-const bearer = { authorization: "Bearer firebase-token" };
-
 const cases = [
-  {
-    name: "GET /api/mentor-requests/[id]",
-    call: () => getMentorRequest(request(HttpMethod.Get), params),
-    backend: fetchMentorRequest,
-  },
-  {
-    name: "GET /api/action-items",
-    call: () => listActionItems(request(HttpMethod.Get)),
-    backend: fetchActionItems,
-  },
-  {
-    name: "PATCH /api/action-items/[id]",
-    call: () =>
-      patchActionItem(
-        request(HttpMethod.Patch, { requestId: "req-1" }),
-        params,
-      ),
-    backend: updateActionItem,
-  },
   {
     name: "PATCH /api/profile-analysis/[id]/confirmation",
     call: () =>
       confirmProfile(request(HttpMethod.Patch, { profile: {} }), params),
     backend: confirmStartupProfileRecord,
-  },
-  {
-    name: "POST /api/mentor-recommendations",
-    call: () => recommendMentorsRoute(request(HttpMethod.Post, {})),
-    backend: recommendMentors,
-  },
-  {
-    name: "POST /api/botapi",
-    call: () =>
-      addBotRoute(
-        request(
-          HttpMethod.Post,
-          { meetingUrl: "https://meet.google.com/abc-defg-hij" },
-          bearer,
-        ),
-      ),
-    backend: createMeetingBot,
-  },
-  {
-    name: "DELETE /api/botapi",
-    call: () =>
-      stopBotRoute(
-        new NextRequest(
-          "http://localhost/x?platform=google_meet&nativeMeetingId=abc-defg-hij",
-          { method: HttpMethod.Delete, headers: bearer },
-        ),
-      ),
-    backend: stopMeetingBotBackend,
-  },
-  {
-    name: "POST /api/botapi/report",
-    call: () =>
-      reportRoute(
-        new NextRequest(
-          "http://localhost/x?platform=google_meet&nativeMeetingId=abc-defg-hij",
-          { method: HttpMethod.Post, headers: bearer },
-        ),
-      ),
-    backend: generateMeetingReportBackend,
-  },
-  {
-    name: "GET /api/transcriptapi",
-    call: () =>
-      transcriptRoute(
-        new NextRequest(
-          "http://localhost/x?platform=google_meet&nativeMeetingId=abc-defg-hij",
-          { headers: bearer },
-        ),
-      ),
-    backend: fetchMeetingTranscript,
   },
   {
     name: "GET /api/document-requests",

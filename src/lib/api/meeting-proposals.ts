@@ -7,7 +7,6 @@ import type {
 import { backendRequest } from "@/lib/server/backend-client";
 
 const COORDINATOR_BASE = "/api/coordinator/meeting-proposals";
-const BASE = "/api/meeting-proposals";
 
 export function fetchCoordinatorMeetingProposals(
   actorId: string,
@@ -49,45 +48,5 @@ export function withdrawMeetingProposal(actorId: string, id: string) {
     method: "DELETE",
     url: `${COORDINATOR_BASE}/${encodeURIComponent(id)}`,
     params: { actorId },
-  });
-}
-
-export function fetchMyMeetingProposals(actorId: string) {
-  return backendRequest<MeetingProposal[]>({
-    method: "GET",
-    url: BASE,
-    params: { actorId },
-  });
-}
-
-export function acceptMeetingProposal(actorId: string, id: string) {
-  return backendRequest<MeetingProposal>({
-    method: "POST",
-    url: `${BASE}/${encodeURIComponent(id)}/accept`,
-    params: { actorId },
-  });
-}
-
-export function declineMeetingProposal(
-  actorId: string,
-  id: string,
-  reason: string | null,
-) {
-  return backendRequest<MeetingProposal>({
-    method: "POST",
-    url: `${BASE}/${encodeURIComponent(id)}/decline`,
-    data: { actorId, reason },
-  });
-}
-
-export function proposeReschedule(
-  actorId: string,
-  meetingId: string,
-  input: { scheduledAt: string; durationMinutes: number },
-) {
-  return backendRequest<MeetingProposal>({
-    method: "POST",
-    url: `/api/meetings/${encodeURIComponent(meetingId)}/reschedule-proposals`,
-    data: { ...input, actorId },
   });
 }

@@ -1,6 +1,6 @@
 import type { MentorEvidence } from "@/interfaces/mentor";
 import { requireSuccess } from "@/lib/client/api";
-import { httpClient } from "@/lib/http-client";
+import { backendHttp } from "@/lib/client/backend-http";
 import type {
   MentorMeetingMode,
   MentorRequestUrgency,
@@ -57,8 +57,9 @@ export async function submitMentorshipRequest(
   let responseBody: unknown;
   try {
     responseBody = requireSuccess(
-      await httpClient.post<MentorshipRequestSubmissionResponse>(
-        "/api/mentor-requests",
+      // The requester and their startup are the caller's own: the backend takes both from the session.
+      await backendHttp.post<MentorshipRequestSubmissionResponse>(
+        "/api/mentorship-requests",
         request,
       ),
     );

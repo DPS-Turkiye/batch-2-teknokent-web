@@ -1,46 +1,53 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { UserRole } from "@/interfaces/session";
+import { backendHttp } from "@/lib/client/backend-http";
 import {
   deleteMeeting,
   getMeetingFeedback,
   getMeetingRoom,
   getMeetings,
+  postMeeting,
   postMeetingFeedback,
   postMeetingGuest,
+  postMentorMeeting,
   setMeetingHeld,
 } from "@/lib/client/meetings";
-import { httpClient } from "@/lib/http-client";
 import {
   itSendsEachClientCall,
   type ClientCall,
 } from "@test/fixtures/client-calls";
 import { createMentorResponse } from "@test/fixtures/mentors";
+import { SIGNED_IN_USER_ID } from "@test/mocks/backend-http";
 
-vi.mock("@/lib/http-client", () => ({
-  httpClient: {
-    get: vi.fn(),
-    post: vi.fn(),
-    put: vi.fn(),
-    patch: vi.fn(),
-    delete: vi.fn(),
-  },
-}));
+vi.mock("@/lib/client/backend-http", async () =>
+  (await import("@test/mocks/backend-http")).backendHttpMock(),
+);
 
 const feedback = { ratings: [5, 4], benefits: ["Yol haritası"] };
 
 const calls: ClientCall[] = [
   {
-    title: "getMeetings lets the primary role decide when no side is given",
+    title:
+      "getMeetings names no side: the backend takes the caller's primary one",
     call: () => getMeetings(),
     method: "get",
-    args: ["/api/meetings", undefined],
+    args: ["/api/meetings"],
   },
   {
-    title: "getMeetings asks for the mentee side of a two-sided account",
-    call: () => getMeetings(UserRole.Mentee),
-    method: "get",
-    args: ["/api/meetings", { params: { as: UserRole.Mentee } }],
+    title: "postMeeting plans a meeting of the caller's own team",
+    call: () => postMeeting({ scheduledAt: "2099-01-05T10:00:00Z" }),
+    method: "post",
+    args: ["/api/meetings", { scheduledAt: "2099-01-05T10:00:00Z" }],
+  },
+  {
+    title:
+      "postMentorMeeting names the signed-in mentor, which the backend checks",
+    call: () => postMentorMeeting({ organizationId: "org-1" }),
+    method: "post",
+    args: [
+      "/api/meetings",
+      { organizationId: "org-1", mentorId: SIGNED_IN_USER_ID },
+    ],
   },
   {
     title: "postMeetingFeedback posts the ratings for the encoded meeting",
@@ -86,10 +93,10 @@ describe("meetings client", () => {
     vi.clearAllMocks();
   });
 
-  itSendsEachClientCall(calls);
+  itSendsEachClientCall(calls, backendHttp);
 
   it("getMeetingFeedback reads a 404 from older backends as not rated yet", async () => {
-    vi.mocked(httpClient.get).mockResolvedValue(
+    vi.mocked(backendHttp.get).mockResolvedValue(
       createMentorResponse({ message: "Not found" }, 404),
     );
 
@@ -97,7 +104,7 @@ describe("meetings client", () => {
   });
 
   it("getMeetingFeedback still rejects when the server fails", async () => {
-    vi.mocked(httpClient.get).mockResolvedValue(createMentorResponse({}, 500));
+    vi.mocked(backendHttp.get).mockResolvedValue(createMentorResponse({}, 500));
 
     await expect(getMeetingFeedback("m-1")).rejects.toMatchObject({
       status: 500,

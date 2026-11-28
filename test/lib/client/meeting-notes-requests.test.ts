@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { MeetingAssistantShare } from "@/interfaces/meeting-note";
+import { backendHttp } from "@/lib/client/backend-http";
 import {
   getAssistantShare,
   getMeetingNote,
@@ -14,7 +15,6 @@ import {
   removeMeetingTodo,
   type TranscriptUploadUrl,
 } from "@/lib/client/meeting-notes";
-import { httpClient } from "@/lib/http-client";
 import type { TranscriptLine } from "@/types/assistant";
 import {
   itSendsEachClientCall,
@@ -22,15 +22,9 @@ import {
 } from "@test/fixtures/client-calls";
 import { createMentorResponse } from "@test/fixtures/mentors";
 
-vi.mock("@/lib/http-client", () => ({
-  httpClient: {
-    get: vi.fn(),
-    post: vi.fn(),
-    put: vi.fn(),
-    patch: vi.fn(),
-    delete: vi.fn(),
-  },
-}));
+vi.mock("@/lib/client/backend-http", async () =>
+  (await import("@test/mocks/backend-http")).backendHttpMock(),
+);
 
 const M = "/api/meetings/m%2F1";
 
@@ -115,13 +109,13 @@ describe("meeting notes client", () => {
     vi.unstubAllGlobals();
   });
 
-  itSendsEachClientCall(calls);
+  itSendsEachClientCall(calls, backendHttp);
 
   describe("getAssistantShare", () => {
     it("keeps an inline transcript and leaves a missing report empty, fetching nothing", async () => {
       const fetchMock = vi.fn<typeof fetch>();
       vi.stubGlobal("fetch", fetchMock);
-      vi.mocked(httpClient.get).mockResolvedValue(
+      vi.mocked(backendHttp.get).mockResolvedValue(
         createMentorResponse(share({ transcript: [line] })),
       );
 
@@ -139,7 +133,7 @@ describe("meeting notes client", () => {
           async () => new Response("denied", { status: 403 }),
         ),
       );
-      vi.mocked(httpClient.get).mockResolvedValue(
+      vi.mocked(backendHttp.get).mockResolvedValue(
         createMentorResponse(
           share({ transcriptUrl: "https://s3.example/transcript" }),
         ),

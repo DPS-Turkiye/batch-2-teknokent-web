@@ -1,15 +1,17 @@
-import { getTranslations } from "next-intl/server";
+"use client";
+
+import { useTranslations } from "next-intl";
 
 import { Avatar } from "@/components/common/avatar";
 import { PrimaryButton } from "@/components/common/primary-button";
 import { SecondaryButton } from "@/components/common/secondary-button";
 import { AppShell } from "@/components/hoc/app-shell";
+import { useMentors } from "@/hooks/use-mentors";
+import { useOptionLabel } from "@/hooks/use-option-label";
+import type { MentorProfile } from "@/interfaces/mentor";
 import { mentorProfileHref } from "@/lib/mentor-profile-request";
-import { loadMentors } from "@/lib/mentors";
 
-export const dynamic = "force-dynamic";
-
-type Mentor = Awaited<ReturnType<typeof loadMentors>>["mentors"][number];
+type Mentor = MentorProfile;
 type OptionLabel = (
   group: "mentorTopic" | "meetingFormat",
   value: string,
@@ -33,18 +35,12 @@ const comparisonRows = [
   ["style", (mentor: Mentor) => mentor.mentoringStyle],
 ] as const;
 
-export default async function MentorComparisonPage() {
-  const [t, tOption, { mentors, error }] = await Promise.all([
-    getTranslations("mentorCompare"),
-    getTranslations("optionValues"),
-    loadMentors(),
-  ]);
-  // Same fallback as useOptionLabel: values the list doesn't know show as stored.
-  const optionLabel: OptionLabel = (group, value) => {
-    const key = `${group}.${value}` as Parameters<typeof tOption>[0];
-    return tOption.has(key) ? tOption(key) : value;
-  };
-  const visibleMentors = mentors.slice(0, 3);
+export default function MentorComparisonPage() {
+  const t = useTranslations("mentorCompare");
+  const optionLabel: OptionLabel = useOptionLabel();
+  const mentorsQuery = useMentors();
+  const error = mentorsQuery.isError;
+  const visibleMentors = (mentorsQuery.data ?? []).slice(0, 3);
 
   return (
     <AppShell title={t("title")} backHref="/mentor-request?step=4">

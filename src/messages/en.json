@@ -1107,7 +1107,10 @@
       "stopFailed": "Couldn't stop the meeting assistant.",
       "transcriptFailed": "Couldn't get the meeting transcript.",
       "botStateFailed": "Could not read the bot's status.",
-      "reportFailed": "Couldn't create the meeting report."
+      "reportFailed": "Couldn't create the meeting report.",
+      "meetingForbidden": "Only this meeting's participants can use its assistant.",
+      "meetingNotFound": "There is no meeting for this link. The assistant works only for meetings in the calendar.",
+      "recordingSlotsFull": "All recording slots are busy right now. Try again when a meeting ends."
     },
     "coordinatorEvent": {
       "pickProgram": "Choose a program.",

@@ -311,7 +311,6 @@ describe("MentorMentorshipsWorkspace", () => {
     expect(logMentorshipMeeting).toHaveBeenCalledWith(
       "req-1",
       expect.objectContaining({
-        mentorId: "mentor-1",
         durationMinutes: 45,
         meetLink: "https://meet.google.com/abc-defg-hij",
         transcribeRequested: false,

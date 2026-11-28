@@ -1109,7 +1109,10 @@
       "stopFailed": "Toplantı asistanı durdurulamadı.",
       "transcriptFailed": "Toplantı transkripti alınamadı.",
       "botStateFailed": "Botun durumu okunamadı.",
-      "reportFailed": "Toplantı raporu oluşturulamadı."
+      "reportFailed": "Toplantı raporu oluşturulamadı.",
+      "meetingForbidden": "Bu toplantının asistanını yalnızca toplantının katılımcıları kullanabilir.",
+      "meetingNotFound": "Bu bağlantıya ait bir görüşme bulunamadı. Asistan yalnızca takvimdeki görüşmeler için kullanılabilir.",
+      "recordingSlotsFull": "Şu anda tüm kayıt yerleri dolu. Bir toplantı bitince tekrar dene."
     },
     "coordinatorEvent": {
       "pickProgram": "Bir program seçin.",

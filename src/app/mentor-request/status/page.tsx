@@ -151,7 +151,6 @@ function RequestStatusContent() {
       if (startsAt) {
         try {
           await logMentorshipMeeting(request.id, {
-            mentorId: request.mentorId,
             scheduledAt: startsAt,
             durationMinutes: MENTORSHIP_MEETING_DURATION_MINUTES,
             status: MeetingStatus.Scheduled,

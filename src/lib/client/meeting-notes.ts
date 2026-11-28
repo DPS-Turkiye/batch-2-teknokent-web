@@ -9,6 +9,7 @@ import {
 } from "@/interfaces/meeting-note";
 import { jsonFitsAmplifyWaf } from "@/lib/amplify-safe-body";
 import { requireSuccess } from "@/lib/client/api";
+import { backendHttp } from "@/lib/client/backend-http";
 import {
   getAssistantShareApiUrl,
   getAssistantShareReportUploadApiUrl,
@@ -18,18 +19,18 @@ import {
   getMeetingTodoApiUrl,
   getMeetingTodosApiUrl,
 } from "@/lib/const";
-import { httpClient } from "@/lib/http-client";
+import { publishAssistantShareBodySchema } from "@/lib/notes-schemas";
 import type { MeetingReport, TranscriptLine } from "@/types/assistant";
 
 export async function getMeetingNote(meetingId: string) {
   return requireSuccess(
-    await httpClient.get<MeetingNote>(getMeetingNoteApiUrl(meetingId)),
+    await backendHttp.get<MeetingNote>(getMeetingNoteApiUrl(meetingId)),
   );
 }
 
 export async function getMeetingNoteDocument(meetingId: string) {
   return requireSuccess(
-    await httpClient.get<MeetingNoteDocument>(
+    await backendHttp.get<MeetingNoteDocument>(
       getMeetingNoteDocumentApiUrl(meetingId),
     ),
   );
@@ -40,19 +41,22 @@ export async function putMeetingNote(
   payload: { content: string },
 ) {
   return requireSuccess(
-    await httpClient.put<MeetingNote>(getMeetingNoteApiUrl(meetingId), payload),
+    await backendHttp.put<MeetingNote>(
+      getMeetingNoteApiUrl(meetingId),
+      payload,
+    ),
   );
 }
 
 export async function getMeetingTodos(meetingId: string) {
   return requireSuccess(
-    await httpClient.get<MeetingTodo[]>(getMeetingTodosApiUrl(meetingId)),
+    await backendHttp.get<MeetingTodo[]>(getMeetingTodosApiUrl(meetingId)),
   );
 }
 
 export async function postMeetingTodo(meetingId: string, title: string) {
   return requireSuccess(
-    await httpClient.post<MeetingTodo[]>(getMeetingTodosApiUrl(meetingId), {
+    await backendHttp.post<MeetingTodo[]>(getMeetingTodosApiUrl(meetingId), {
       title,
     }),
   );
@@ -64,7 +68,7 @@ export async function patchMeetingTodo(
   payload: { title?: string | undefined; done?: boolean | undefined },
 ) {
   return requireSuccess(
-    await httpClient.patch<MeetingTodo[]>(
+    await backendHttp.patch<MeetingTodo[]>(
       getMeetingTodoApiUrl(meetingId, todoId),
       payload,
     ),
@@ -73,7 +77,7 @@ export async function patchMeetingTodo(
 
 export async function removeMeetingTodo(meetingId: string, todoId: string) {
   return requireSuccess(
-    await httpClient.delete<MeetingTodo[]>(
+    await backendHttp.delete<MeetingTodo[]>(
       getMeetingTodoApiUrl(meetingId, todoId),
     ),
   );
@@ -81,7 +85,7 @@ export async function removeMeetingTodo(meetingId: string, todoId: string) {
 
 export async function getAssistantShare(meetingId: string) {
   const share = requireSuccess(
-    await httpClient.get<MeetingAssistantShare>(
+    await backendHttp.get<MeetingAssistantShare>(
       getAssistantShareApiUrl(meetingId),
     ),
   );
@@ -108,10 +112,13 @@ export async function postAssistantShare(
   meetingId: string,
   payload: PublishAssistantSharePayload,
 ) {
+  // The lines and the report are tidied as the backend stores them: blank speakers named, empty items dropped.
+  const body = publishAssistantShareBodySchema.safeParse(payload);
+  if (!body.success) throw new Error(clientText("assistant.sendFailed"));
   return requireSuccess(
-    await httpClient.post<MeetingAssistantShare>(
+    await backendHttp.post<MeetingAssistantShare>(
       getAssistantShareApiUrl(meetingId),
-      payload,
+      body.data,
     ),
   );
 }
@@ -125,7 +132,7 @@ export type TranscriptUploadUrl = {
 
 export async function createTranscriptUpload(meetingId: string) {
   return requireSuccess(
-    await httpClient.post<TranscriptUploadUrl>(
+    await backendHttp.post<TranscriptUploadUrl>(
       getAssistantShareTranscriptUploadApiUrl(meetingId),
       {},
     ),
@@ -134,7 +141,7 @@ export async function createTranscriptUpload(meetingId: string) {
 
 export async function createReportUpload(meetingId: string) {
   return requireSuccess(
-    await httpClient.post<TranscriptUploadUrl>(
+    await backendHttp.post<TranscriptUploadUrl>(
       getAssistantShareReportUploadApiUrl(meetingId),
       {},
     ),

@@ -73,11 +73,16 @@ export const TRANSCRIPT_POLL_MS = 5_000;
 export const CALENDAR_MEETING_DURATION_MINUTES = 60;
 export const MENTORSHIP_MEETING_DURATION_MINUTES = 45;
 
-export const BOT_API_PATH = "/api/botapi";
-export const TRANSCRIPT_API_PATH = "/api/transcriptapi";
+/** The backend's meeting assistant: it checks the signed-in caller against the meeting. */
+export const BOT_API_PATH = "/api/assistant/bots";
+export const TRANSCRIPT_API_PATH = "/api/assistant/transcripts";
 
 export function getBotApiUrl(): string {
   return BOT_API_PATH;
+}
+
+function meetingSegment(platform: string, nativeMeetingId: string) {
+  return `${encodeURIComponent(platform)}/${encodeURIComponent(nativeMeetingId)}`;
 }
 
 /** The meeting's bot: GET reads its state, DELETE stops it. */
@@ -85,26 +90,21 @@ export function getMeetingBotApiUrl(
   platform: string,
   nativeMeetingId: string,
 ): string {
-  const q = new URLSearchParams({ platform, nativeMeetingId });
-  return `${BOT_API_PATH}?${q.toString()}`;
+  return `${BOT_API_PATH}/${meetingSegment(platform, nativeMeetingId)}`;
 }
 
 export function getTranscriptApiUrl(
   platform: string,
   nativeMeetingId: string,
 ): string {
-  const q = new URLSearchParams({ platform, nativeMeetingId });
-  return `${TRANSCRIPT_API_PATH}?${q.toString()}`;
+  return `${TRANSCRIPT_API_PATH}/${meetingSegment(platform, nativeMeetingId)}`;
 }
-
-export const MEETING_REPORT_API_PATH = "/api/botapi/report";
 
 export function getMeetingReportApiUrl(
   platform: string,
   nativeMeetingId: string,
 ): string {
-  const q = new URLSearchParams({ platform, nativeMeetingId });
-  return `${MEETING_REPORT_API_PATH}?${q.toString()}`;
+  return `${getMeetingBotApiUrl(platform, nativeMeetingId)}/report`;
 }
 
 export const DEFAULT_REALTIME_URL = "ws://localhost:8080/ws";

@@ -1,4 +1,4 @@
-import { beforeEach, describe, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ActionItemStatus } from "@/interfaces/action-item";
 import {
@@ -7,33 +7,28 @@ import {
   getActionItemsForRequests,
   getOrganizationActionItems,
 } from "@/lib/client/action-items";
+import { backendHttp } from "@/lib/client/backend-http";
 import {
   itSendsEachClientCall,
   type ClientCall,
 } from "@test/fixtures/client-calls";
 
-vi.mock("@/lib/http-client", () => ({
-  httpClient: {
-    get: vi.fn(),
-    post: vi.fn(),
-    put: vi.fn(),
-    patch: vi.fn(),
-    delete: vi.fn(),
-  },
-}));
+vi.mock("@/lib/client/backend-http", async () =>
+  (await import("@test/mocks/backend-http")).backendHttpMock(),
+);
 
 const calls: ClientCall[] = [
   {
     title: "getActionItems reads one request's action items",
     call: () => getActionItems("req-1"),
     method: "get",
-    args: ["/api/action-items", { params: { requestId: "req-1" } }],
+    args: ["/api/actions", { params: { mentorshipRequestId: "req-1" } }],
   },
   {
     title: "getActionItemsForRequests asks for every request in one call",
     call: () => getActionItemsForRequests(["req-1", "req-2"]),
     method: "get",
-    args: ["/api/action-items", { params: { requestIds: "req-1,req-2" } }],
+    args: ["/api/actions", { params: { mentorshipRequestIds: "req-1,req-2" } }],
   },
   {
     title: "changeActionItemStatus patches only the status, not the id",
@@ -43,13 +38,14 @@ const calls: ClientCall[] = [
         status: ActionItemStatus.Completed,
       }),
     method: "patch",
-    args: ["/api/action-items/item-1", { status: ActionItemStatus.Completed }],
+    args: ["/api/actions/item-1", { status: ActionItemStatus.Completed }],
   },
   {
-    title: "getOrganizationActionItems reads the whole startup's action items",
+    title:
+      "getOrganizationActionItems reads the caller's own startup's items, naming none",
     call: () => getOrganizationActionItems(),
     method: "get",
-    args: ["/api/action-items", { params: { scope: "organization" } }],
+    args: ["/api/actions"],
   },
 ];
 
@@ -58,5 +54,10 @@ describe("action items client", () => {
     vi.clearAllMocks();
   });
 
-  itSendsEachClientCall(calls);
+  itSendsEachClientCall(calls, backendHttp);
+
+  it("asks for nothing when there are no requests", async () => {
+    await expect(getActionItemsForRequests([])).resolves.toEqual([]);
+    expect(backendHttp.get).not.toHaveBeenCalled();
+  });
 });

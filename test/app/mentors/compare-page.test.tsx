@@ -1,32 +1,21 @@
-import { render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 
 import MentorComparisonPage from "@/app/mentors/compare/page";
+import { getMentors } from "@/lib/client/mentors";
 import { mentorProfileHref } from "@/lib/mentor-profile-request";
 import { mentorProfile } from "@test/fixtures/mentors";
-import type { MessageNamespace, TestLocale } from "@test/i18n";
+import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
-const page = vi.hoisted((): { locale: TestLocale } => ({ locale: "tr" }));
+vi.mock("@/lib/client/mentors", () => ({ getMentors: vi.fn() }));
 
-vi.mock("next-intl/server", async () => {
-  const { translatorIn } = await import("@test/translators");
-  return {
-    getTranslations: async (namespace: MessageNamespace) =>
-      translatorIn(page.locale, namespace),
-  };
-});
-
-vi.mock("@/lib/mentors", () => ({
-  loadMentors: async () => ({
-    mentors: [
-      {
-        ...mentorProfile,
-        specialties: ["Büyüme", "MVP testi"],
-        meetingMode: "Yüz yüze",
-      },
-    ],
-  }),
-}));
+vi.mocked(getMentors).mockResolvedValue([
+  {
+    ...mentorProfile,
+    specialties: ["Büyüme", "MVP testi"],
+    meetingMode: "Yüz yüze",
+  },
+]);
 
 vi.mock("@/components/hoc/app-shell", () => ({
   AppShell: ({ children }: { children: React.ReactNode }) => (
@@ -35,12 +24,9 @@ vi.mock("@/components/hoc/app-shell", () => ({
 }));
 
 describe("MentorComparisonPage", () => {
-  afterEach(() => {
-    page.locale = "tr";
-  });
-
   it("sends profile actions to the new mentor profile page", async () => {
-    render(await MentorComparisonPage());
+    renderWithQueryClient(<MentorComparisonPage />);
+    await screen.findByRole("link", { name: "Profili Görüntüle" });
 
     const profileHref = mentorProfileHref(mentorProfile.id);
     expect(
@@ -53,10 +39,13 @@ describe("MentorComparisonPage", () => {
   });
 
   it("shows saved option values in English, keeping unknown ones as stored", async () => {
-    page.locale = "en";
-    render(await MentorComparisonPage());
+    renderWithQueryClient(
+      <InLocale locale="en">
+        <MentorComparisonPage />
+      </InLocale>,
+    );
 
-    expect(screen.getByText("Meeting format")).toBeInTheDocument();
+    expect(await screen.findByText("Meeting format")).toBeInTheDocument();
     expect(screen.getByText("In person")).toBeInTheDocument();
     expect(screen.getByText("Growth, MVP testi")).toBeInTheDocument();
   });

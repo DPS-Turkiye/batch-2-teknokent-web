@@ -9,7 +9,7 @@ import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import { Weekday } from "@/interfaces/mentor";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { CalendarFilter } from "@/lib/calendar";
-import { getMeetings, postMeeting } from "@/lib/client/meetings";
+import { getMeetings, postMentorMeeting } from "@/lib/client/meetings";
 import {
   getAvailabilityRules,
   getMentorAvailability,
@@ -45,7 +45,7 @@ vi.mock("@/lib/client/mentorships", () => ({
 vi.mock("@/lib/client/programs", () => ({ getMemberProgramEvents: vi.fn() }));
 vi.mock("@/lib/client/meetings", () => ({
   getMeetings: vi.fn(),
-  postMeeting: vi.fn(),
+  postMentorMeeting: vi.fn(),
   postMeetingGuest: vi.fn(),
   deleteMeeting: vi.fn(),
 }));
@@ -247,7 +247,9 @@ describe("useMentorCalendar", () => {
   });
 
   it("creates meetings as scheduled", async () => {
-    vi.mocked(postMeeting).mockResolvedValue(meeting("created", at(22, 10)));
+    vi.mocked(postMentorMeeting).mockResolvedValue(
+      meeting("created", at(22, 10)),
+    );
     const { result } = await renderCalendar();
 
     await act(() =>
@@ -258,7 +260,7 @@ describe("useMentorCalendar", () => {
       }),
     );
 
-    expect(vi.mocked(postMeeting).mock.calls[0]?.[0]).toEqual({
+    expect(vi.mocked(postMentorMeeting).mock.calls[0]?.[0]).toEqual({
       scheduledAt: at(22, 10),
       durationMinutes: 30,
       agenda: "Yol haritası",

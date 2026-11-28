@@ -1,7 +1,6 @@
 import { beforeEach, describe, vi } from "vitest";
 
 import { POST as attendanceRoute } from "@/app/api/attendance/check-in/route";
-import { POST as addBotRoute } from "@/app/api/botapi/route";
 import { POST as decideInvitationRoute } from "@/app/api/programs/[id]/invitations/decide/route";
 import { PUT as activeProgramRoute } from "@/app/api/programs/mine/active/route";
 import { POST as createProgramRoute } from "@/app/api/programs/route";
@@ -10,7 +9,6 @@ import { UserAccountStatus, UserRole } from "@/interfaces/session";
 import * as accounts from "@/lib/api/accounts";
 import * as attendance from "@/lib/api/program-attendance";
 import * as programs from "@/lib/api/programs";
-import * as botapi from "@/lib/botapi";
 import { requireAdminSession } from "@/lib/server/require-admin";
 import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 import {
@@ -28,7 +26,6 @@ import { appSession } from "@test/fixtures/session";
 vi.mock("@/lib/api/accounts");
 vi.mock("@/lib/api/program-attendance");
 vi.mock("@/lib/api/programs");
-vi.mock("@/lib/botapi");
 vi.mock("@/lib/server/require-admin");
 vi.mock("@/lib/server/require-coordinator");
 vi.mock("@/lib/server/require-program-access");
@@ -49,18 +46,6 @@ const cases: BodyCase[] = [
       "a status that is not a decision": { status: UserAccountStatus.Pending },
       "an unknown status": { status: "BANNED" },
     },
-  },
-  {
-    route: "POST /api/botapi",
-    send: (request) => addBotRoute(request),
-    token: "firebase-token",
-    valid: { meetingUrl: " https://meet.google.com/abc-defg-hij " },
-    backend: botapi.createMeetingBot,
-    expected: [
-      { meetingUrl: "https://meet.google.com/abc-defg-hij" },
-      "firebase-token",
-    ],
-    invalid: { "a link that is not a URL": { meetingUrl: "toplantı" } },
   },
   {
     route: "POST /api/programs",
@@ -130,7 +115,7 @@ describe.each(cases)("$route", (bodyCase) => {
       userId: "user-1",
       organizationId: "",
     });
-    answerAllWith200(accounts, attendance, programs, botapi);
+    answerAllWith200(accounts, attendance, programs);
   });
 
   itChecksTheBody(bodyCase);

@@ -60,15 +60,15 @@ describe("meeting API URLs", () => {
     );
   });
 
-  it("puts the platform and the provider's meeting id in the bot routes' query", () => {
+  it("puts the platform and the provider's meeting id in the backend assistant's path", () => {
     expect(getMeetingBotApiUrl("google_meet", "abc def")).toBe(
-      "/api/botapi?platform=google_meet&nativeMeetingId=abc+def",
+      "/api/assistant/bots/google_meet/abc%20def",
     );
     expect(getTranscriptApiUrl("zoom", "1&2")).toBe(
-      "/api/transcriptapi?platform=zoom&nativeMeetingId=1%262",
+      "/api/assistant/transcripts/zoom/1%262",
     );
     expect(getMeetingReportApiUrl("teams", "x")).toBe(
-      "/api/botapi/report?platform=teams&nativeMeetingId=x",
+      "/api/assistant/bots/teams/x/report",
     );
   });
 });

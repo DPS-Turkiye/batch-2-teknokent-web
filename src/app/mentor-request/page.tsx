@@ -1,33 +1,37 @@
-import { getTranslations } from "next-intl/server";
-import { redirect } from "next/navigation";
-import { Suspense } from "react";
+"use client";
+
+import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
+import { Suspense, useEffect } from "react";
 
 import { MentorRequestFlow } from "@/components/mentor-request/mentor-request-flow";
-import { loadMentors } from "@/lib/mentors";
-import { getSessionUser } from "@/lib/session";
-import { loadStartupContext } from "@/lib/startup-profile";
+import { useSession } from "@/components/providers/session-provider";
+import { useStartupContext } from "@/hooks/use-mentor-pages";
+import { useMentors } from "@/hooks/use-mentors";
 
-export const dynamic = "force-dynamic";
+export default function MentorRequestPage() {
+  const t = useTranslations("loadErrors");
+  const router = useRouter();
+  const { isLoading: sessionLoading, session } = useSession();
+  const organizationId = session?.organizationId;
+  const mentors = useMentors({ enabled: Boolean(organizationId) });
+  const startup = useStartupContext(organizationId);
 
-export default async function MentorRequestPage() {
-  const session = await getSessionUser();
-  if (!session) redirect("/login");
-  // Someone who signed up without a startup is told on Startup'ım how to get one.
-  if (!session.organizationId) redirect("/startup");
-  const [t, { mentors, error: mentorError }, { startup, error: startupError }] =
-    await Promise.all([
-      getTranslations("loadErrors"),
-      loadMentors(),
-      loadStartupContext(session.organizationId),
-    ]);
+  useEffect(() => {
+    if (sessionLoading) return;
+    if (!session) router.replace("/login");
+    // Someone who signed up without a startup is told on Startup'ım how to get one.
+    else if (!organizationId) router.replace("/startup");
+  }, [organizationId, router, session, sessionLoading]);
 
+  if (!organizationId || mentors.isPending || !startup.startup) return null;
   return (
     <Suspense>
       <MentorRequestFlow
-        mentors={mentors}
-        mentorLoadError={mentorError ? t("mentors") : undefined}
-        startup={startup}
-        startupLoadError={startupError ? t(startupError) : undefined}
+        mentors={mentors.data ?? []}
+        mentorLoadError={mentors.isError ? t("mentors") : undefined}
+        startup={startup.startup}
+        startupLoadError={startup.error ? t(startup.error) : undefined}
       />
     </Suspense>
   );

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AMPLIFY_SAFE_JSON_CHARS } from "@/lib/amplify-safe-body";
+import { backendHttp } from "@/lib/client/backend-http";
 import {
   getAssistantShare,
   publishReportShare,
@@ -8,15 +9,11 @@ import {
   type TranscriptUploadUrl,
 } from "@/lib/client/meeting-notes";
 import { getAssistantShareApiUrl } from "@/lib/const";
-import { httpClient } from "@/lib/http-client";
 import type { MeetingReport, TranscriptLine } from "@/types/assistant";
 
-vi.mock("@/lib/http-client", () => ({
-  httpClient: {
-    post: vi.fn(),
-    get: vi.fn(),
-  },
-}));
+vi.mock("@/lib/client/backend-http", async () =>
+  (await import("@test/mocks/backend-http")).backendHttpMock(),
+);
 
 function line(text: string): TranscriptLine {
   return { id: "s1", speaker: "Ayşe", text, at: "00:10" };
@@ -47,7 +44,7 @@ describe("publishTranscriptShare", () => {
   });
 
   it("uploads to S3 then publishes the key", async () => {
-    vi.mocked(httpClient.post)
+    vi.mocked(backendHttp.post)
       .mockResolvedValueOnce({ status: 200, data: transcriptUpload() })
       .mockResolvedValueOnce({
         status: 200,
@@ -59,7 +56,7 @@ describe("publishTranscriptShare", () => {
     const lines = [line("Merhaba")];
     await publishTranscriptShare("meeting-1", lines);
 
-    expect(httpClient.post).toHaveBeenNthCalledWith(
+    expect(backendHttp.post).toHaveBeenNthCalledWith(
       1,
       "/api/meetings/meeting-1/assistant-share/transcript-upload",
       {},
@@ -69,7 +66,7 @@ describe("publishTranscriptShare", () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(lines),
     });
-    expect(httpClient.post).toHaveBeenNthCalledWith(
+    expect(backendHttp.post).toHaveBeenNthCalledWith(
       2,
       getAssistantShareApiUrl("meeting-1"),
       { kind: "TRANSCRIPT_S3" },
@@ -77,7 +74,7 @@ describe("publishTranscriptShare", () => {
   });
 
   it("falls back to an Amplify post when S3 is unavailable and the body is small", async () => {
-    vi.mocked(httpClient.post)
+    vi.mocked(backendHttp.post)
       .mockRejectedValueOnce(new Error("no s3"))
       .mockResolvedValueOnce({
         status: 200,
@@ -86,7 +83,7 @@ describe("publishTranscriptShare", () => {
 
     await publishTranscriptShare("meeting-1", [line("Merhaba")]);
 
-    expect(httpClient.post).toHaveBeenLastCalledWith(
+    expect(backendHttp.post).toHaveBeenLastCalledWith(
       getAssistantShareApiUrl("meeting-1"),
       {
         kind: "TRANSCRIPT",
@@ -96,13 +93,13 @@ describe("publishTranscriptShare", () => {
   });
 
   it("does not fall back when a large transcript cannot be uploaded", async () => {
-    vi.mocked(httpClient.post).mockRejectedValue(new Error("no s3"));
+    vi.mocked(backendHttp.post).mockRejectedValue(new Error("no s3"));
     const lines = [line("x".repeat(AMPLIFY_SAFE_JSON_CHARS))];
 
     await expect(publishTranscriptShare("meeting-1", lines)).rejects.toThrow(
       "no s3",
     );
-    expect(httpClient.post).toHaveBeenCalledTimes(1);
+    expect(backendHttp.post).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -128,7 +125,7 @@ describe("publishReportShare", () => {
   }
 
   it("uploads to S3 then publishes the key", async () => {
-    vi.mocked(httpClient.post)
+    vi.mocked(backendHttp.post)
       .mockResolvedValueOnce({ status: 200, data: reportUpload() })
       .mockResolvedValueOnce({
         status: 200,
@@ -140,7 +137,7 @@ describe("publishReportShare", () => {
     const body = report("Kısa özet");
     await publishReportShare("meeting-1", body);
 
-    expect(httpClient.post).toHaveBeenNthCalledWith(
+    expect(backendHttp.post).toHaveBeenNthCalledWith(
       1,
       "/api/meetings/meeting-1/assistant-share/report-upload",
       {},
@@ -150,7 +147,7 @@ describe("publishReportShare", () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
-    expect(httpClient.post).toHaveBeenNthCalledWith(
+    expect(backendHttp.post).toHaveBeenNthCalledWith(
       2,
       getAssistantShareApiUrl("meeting-1"),
       { kind: "REPORT_S3" },
@@ -158,7 +155,7 @@ describe("publishReportShare", () => {
   });
 
   it("falls back to an Amplify post when S3 is unavailable and the body is small", async () => {
-    vi.mocked(httpClient.post)
+    vi.mocked(backendHttp.post)
       .mockRejectedValueOnce(new Error("no s3"))
       .mockResolvedValueOnce({
         status: 200,
@@ -167,7 +164,7 @@ describe("publishReportShare", () => {
 
     await publishReportShare("meeting-1", report("Kısa özet"));
 
-    expect(httpClient.post).toHaveBeenLastCalledWith(
+    expect(backendHttp.post).toHaveBeenLastCalledWith(
       getAssistantShareApiUrl("meeting-1"),
       {
         kind: "REPORT",
@@ -184,7 +181,7 @@ describe("getAssistantShare", () => {
   });
 
   it("loads transcript and report from S3 URLs", async () => {
-    vi.mocked(httpClient.get).mockResolvedValue({
+    vi.mocked(backendHttp.get).mockResolvedValue({
       status: 200,
       data: {
         meetingId: "meeting-1",

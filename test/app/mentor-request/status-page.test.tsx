@@ -344,7 +344,6 @@ describe("RequestStatusPage", () => {
     expect(logMentorshipMeeting).toHaveBeenCalledWith(
       "request-1",
       expect.objectContaining({
-        mentorId: "mentor-1",
         durationMinutes: 45,
       }),
     );

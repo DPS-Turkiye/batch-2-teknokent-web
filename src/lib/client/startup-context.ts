@@ -1,0 +1,120 @@
+import type { StartupContext } from "@/interfaces/startup";
+import { backendHttp } from "@/lib/client/backend-http";
+
+type OrganizationResponse = {
+  id: string;
+  name: string;
+  description?: string | null;
+  sector?: string | null;
+  maturity?: string | null;
+};
+
+type ProfileAnalysisResponse = {
+  sourceFilename?: string;
+  profile?: unknown;
+};
+
+function profileObject(value: unknown): Record<string, unknown> {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    return value as Record<string, unknown>;
+  }
+  if (typeof value !== "string") return {};
+  try {
+    const parsed = JSON.parse(value) as unknown;
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+      ? (parsed as Record<string, unknown>)
+      : {};
+  } catch {
+    return {};
+  }
+}
+
+function text(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function textList(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : [];
+}
+
+/** Keys of `loadErrors`; the page shows the text in its own language. */
+export enum StartupContextError {
+  ProfileUnavailable = "profileUnavailable",
+  Failed = "startup",
+}
+
+/**
+ * What mentor matching knows about the caller's startup: its confirmed pitch-deck profile, else what it gave at
+ * signup. `fallbackName` names it when nothing loads.
+ */
+export async function loadStartupContext(
+  organizationId: string,
+  fallbackName: string,
+): Promise<{
+  startup: StartupContext;
+  error?: StartupContextError | undefined;
+}> {
+  try {
+    const [organizationResponse, profileResponse] = await Promise.all([
+      backendHttp.get<OrganizationResponse>(
+        `/api/organizations/${encodeURIComponent(organizationId)}`,
+      ),
+      backendHttp.get<ProfileAnalysisResponse>(
+        "/api/profile-analyses/latest/confirmed",
+        { params: { organizationId } },
+      ),
+    ]);
+
+    if (organizationResponse.status !== 200) {
+      throw new Error(
+        `Organization API returned HTTP ${organizationResponse.status}`,
+      );
+    }
+
+    const organization = organizationResponse.data;
+    const analysis =
+      profileResponse.status === 200 ? profileResponse.data : null;
+    const profile = profileObject(analysis?.profile);
+    const sectors = textList(profile.sectors);
+    const confirmedProfile = analysis !== null;
+
+    return {
+      startup: {
+        organizationId: organization.id,
+        name: text(profile.startup_name) || organization.name,
+        summary:
+          text(profile.startup_summary) ||
+          organization.description?.trim() ||
+          "",
+        // A startup that never confirmed a pitch-deck profile still has the sector and stage from signup.
+        sector: sectors.join(", ") || text(organization.sector),
+        stage: text(profile.stage) || text(organization.maturity),
+        teamSize:
+          typeof profile.team_size === "number" ? profile.team_size : undefined,
+        technologies: textList(profile.technologies),
+        confirmedProfile,
+        sourceFilename: analysis?.sourceFilename,
+      },
+      error:
+        profileResponse.status === 200 || profileResponse.status === 404
+          ? undefined
+          : StartupContextError.ProfileUnavailable,
+    };
+  } catch (error) {
+    console.error("Startup context failed to load", error);
+    return {
+      startup: {
+        organizationId,
+        name: fallbackName,
+        summary: "",
+        sector: "",
+        stage: "",
+        technologies: [],
+        confirmedProfile: false,
+      },
+      error: StartupContextError.Failed,
+    };
+  }
+}

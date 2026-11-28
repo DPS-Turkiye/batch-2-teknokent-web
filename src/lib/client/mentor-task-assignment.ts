@@ -4,15 +4,15 @@ import type {
   TaskAssignee,
 } from "@/interfaces/mentor-task-assignment";
 import { requireSuccess } from "@/lib/client/api";
-import { httpClient } from "@/lib/http-client";
+import { backendHttp } from "@/lib/client/backend-http";
 
 function requestUrl(requestId: string) {
-  return `/api/mentor-requests/${encodeURIComponent(requestId)}`;
+  return `/api/mentorship-requests/${encodeURIComponent(requestId)}`;
 }
 
 export async function getTaskAssignees(requestId: string) {
   return requireSuccess(
-    await httpClient.get<TaskAssignee[]>(
+    await backendHttp.get<TaskAssignee[]>(
       `${requestUrl(requestId)}/task-assignees`,
     ),
   );
@@ -23,6 +23,6 @@ export async function assignMentorshipTask(
   input: AssignMentorshipTaskInput,
 ) {
   return requireSuccess(
-    await httpClient.post<ActionItem>(`${requestUrl(requestId)}/tasks`, input),
+    await backendHttp.post<ActionItem>(`${requestUrl(requestId)}/tasks`, input),
   );
 }

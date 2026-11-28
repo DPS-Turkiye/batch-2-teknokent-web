@@ -3,9 +3,11 @@ import type {
   ProposeMeetingInput,
 } from "@/interfaces/meeting-proposal";
 import { requireSuccess } from "@/lib/client/api";
+import { backendHttp } from "@/lib/client/backend-http";
 import { httpClient } from "@/lib/http-client";
 
 const COORDINATOR_BASE = "/api/coordinator/meeting-proposals";
+// The coordinator's calls still go through this app's routes; the mentor's and the team's go to the backend.
 const BASE = "/api/meeting-proposals";
 
 export async function getCoordinatorMeetingProposals(programId: string | null) {
@@ -51,12 +53,12 @@ export async function withdrawMeetingProposal(id: string) {
 }
 
 export async function getMyMeetingProposals() {
-  return requireSuccess(await httpClient.get<MeetingProposal[]>(BASE));
+  return requireSuccess(await backendHttp.get<MeetingProposal[]>(BASE));
 }
 
 export async function acceptMeetingProposal(id: string) {
   return requireSuccess(
-    await httpClient.post<MeetingProposal>(
+    await backendHttp.post<MeetingProposal>(
       `${BASE}/${encodeURIComponent(id)}/accept`,
     ),
   );
@@ -64,7 +66,7 @@ export async function acceptMeetingProposal(id: string) {
 
 export async function declineMeetingProposal(id: string, reason: string) {
   return requireSuccess(
-    await httpClient.post<MeetingProposal>(
+    await backendHttp.post<MeetingProposal>(
       `${BASE}/${encodeURIComponent(id)}/decline`,
       { reason: reason.trim() || null },
     ),
@@ -76,7 +78,7 @@ export async function proposeReschedule(
   input: { scheduledAt: string; durationMinutes: number },
 ) {
   return requireSuccess(
-    await httpClient.post<MeetingProposal>(
+    await backendHttp.post<MeetingProposal>(
       `/api/meetings/${encodeURIComponent(meetingId)}/reschedule-proposals`,
       input,
     ),
