@@ -9,6 +9,7 @@ import type {
   SessionQr,
 } from "@/interfaces/program-attendance";
 import { requireSuccess } from "@/lib/client/api";
+import { backendHttp } from "@/lib/client/backend-http";
 import { httpClient } from "@/lib/http-client";
 
 const MINE = "/api/programs/mine/attendance";
@@ -23,7 +24,7 @@ function sessionUrl(programId: string, { week, kind }: AttendanceSessionRef) {
 }
 
 export async function getMyAttendance() {
-  return requireSuccess(await httpClient.get<AttendanceStatus>(MINE));
+  return requireSuccess(await backendHttp.get<AttendanceStatus>(MINE));
 }
 
 export async function checkInSession(token: string) {

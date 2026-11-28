@@ -2,8 +2,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { POST as sendMessageRoute } from "@/app/api/coordinator-conversations/[id]/messages/route";
 import { POST as startConversationRoute } from "@/app/api/coordinator-conversations/route";
-import { POST as attachUploadRoute } from "@/app/api/document-requests/[itemId]/uploads/route";
-import { PUT as replaceDocumentRequestsRoute } from "@/app/api/document-requests/route";
 import { POST as declineProposalRoute } from "@/app/api/meeting-proposals/[id]/decline/route";
 import { POST as feedbackRoute } from "@/app/api/meetings/[id]/feedback/route";
 import { POST as rescheduleRoute } from "@/app/api/meetings/[id]/reschedule-proposals/route";
@@ -13,14 +11,8 @@ import { POST as addGoalRoute } from "@/app/api/mentorships/[id]/goals/route";
 import { PATCH as updateMentorshipRoute } from "@/app/api/mentorships/[id]/route";
 import { PUT as weekCheckRoute } from "@/app/api/mentorships/[id]/week-checks/route";
 import { POST as startMentorshipRoute } from "@/app/api/mentorships/route";
-import { PATCH as updateMemberRoute } from "@/app/api/organization-members/[memberId]/route";
-import { POST as addMemberRoute } from "@/app/api/organization-members/route";
-import { POST as joinStartupRoute } from "@/app/api/organizations/join/route";
 import { PUT as peerProfileRoute } from "@/app/api/peer-mentoring/profile/route";
 import { POST as peerRequestRoute } from "@/app/api/peer-mentoring/requests/route";
-import { POST as shareDocumentRoute } from "@/app/api/startup/documents/[id]/shares/route";
-import { PUT as submitAssignmentRoute } from "@/app/api/startup/process/assignments/[id]/submission/route";
-import { POST as leaveTeamRoute } from "@/app/api/team-changes/leave/route";
 import { POST as trainingAttemptRoute } from "@/app/api/training/peer/attempts/route";
 import {
   PeerExperienceKind,
@@ -28,17 +20,12 @@ import {
   PeerTopicLevel,
 } from "@/interfaces/peer-mentoring";
 import * as conversations from "@/lib/api/coordinator-conversations";
-import * as documentRequests from "@/lib/api/document-requests";
 import * as proposals from "@/lib/api/meeting-proposals";
 import * as meetings from "@/lib/api/meetings";
 import * as mentorRequests from "@/lib/api/mentor-requests";
 import * as mentorships from "@/lib/api/mentorships";
-import * as organization from "@/lib/api/organization";
-import * as members from "@/lib/api/organization-members";
 import * as peerMentoring from "@/lib/api/peer-mentoring";
-import * as startupDocuments from "@/lib/api/startup-documents";
 import * as startupProcess from "@/lib/api/startup-process";
-import * as teamChanges from "@/lib/api/team-changes";
 import * as training from "@/lib/api/training";
 import {
   getSessionIds,
@@ -55,17 +42,12 @@ import {
 import { appSession } from "@test/fixtures/session";
 
 vi.mock("@/lib/api/coordinator-conversations");
-vi.mock("@/lib/api/document-requests");
 vi.mock("@/lib/api/meeting-proposals");
 vi.mock("@/lib/api/meetings");
 vi.mock("@/lib/api/mentor-requests");
 vi.mock("@/lib/api/mentorships");
-vi.mock("@/lib/api/organization");
-vi.mock("@/lib/api/organization-members");
 vi.mock("@/lib/api/peer-mentoring");
-vi.mock("@/lib/api/startup-documents");
 vi.mock("@/lib/api/startup-process");
-vi.mock("@/lib/api/team-changes");
 vi.mock("@/lib/api/training");
 vi.mock("@/lib/session");
 
@@ -249,94 +231,6 @@ const cases: BodyCase[] = [
     },
   },
   {
-    route: "POST /api/team-changes/leave",
-    send: (request) => leaveTeamRoute(request),
-    valid: { successorId: "user-2" },
-    backend: teamChanges.leaveTeam,
-    expected: ["org-1", "user-1", "user-2"],
-    invalid: { "a successor of the wrong type": { successorId: 2 } },
-  },
-  {
-    route: "POST /api/organization-members",
-    send: (request) => addMemberRoute(request),
-    valid: { fullName: "Deniz", email: "deniz@kavsak.co" },
-    backend: members.createOrganizationMember,
-    expected: [
-      "org-1",
-      "user-1",
-      { fullName: "Deniz", email: "deniz@kavsak.co" },
-    ],
-    invalid: {
-      "a missing address": { fullName: "Deniz" },
-      "a job title of the wrong type": {
-        fullName: "Deniz",
-        email: "deniz@kavsak.co",
-        jobTitle: null,
-      },
-    },
-  },
-  {
-    route: "PATCH /api/organization-members/[memberId]",
-    method: "PATCH",
-    send: (request) =>
-      updateMemberRoute(request, {
-        params: Promise.resolve({ memberId: "member-1" }),
-      }),
-    valid: { fullName: "Deniz", jobTitle: "CTO" },
-    backend: members.updateOrganizationMember,
-    expected: [
-      "org-1",
-      "member-1",
-      "user-1",
-      { fullName: "Deniz", jobTitle: "CTO" },
-    ],
-    invalid: { "a name of the wrong type": { fullName: 5 } },
-  },
-  {
-    route: "POST /api/startup/documents/[id]/shares",
-    send: (request) => shareDocumentRoute(request, withId("doc-1")),
-    valid: { mentorId: "mentor-1" },
-    backend: startupDocuments.shareStartupDocument,
-    expected: ["doc-1", "user-1", "mentor-1"],
-    invalid: { "a missing mentor": {} },
-  },
-  {
-    route: "PUT /api/startup/process/assignments/[id]/submission",
-    method: "PUT",
-    send: (request) => submitAssignmentRoute(request, withId("assignment-1")),
-    valid: { documentId: "doc-1" },
-    backend: startupProcess.submitProcessAssignment,
-    expected: ["org-1", "assignment-1", "user-1", "doc-1"],
-    invalid: { "a document id that is not text": { documentId: 42 } },
-  },
-  {
-    route: "PUT /api/document-requests",
-    method: "PUT",
-    url: "http://localhost/api/document-requests?meetingId=meeting-1",
-    send: (request) => replaceDocumentRequestsRoute(request),
-    valid: { titles: ["Pitch deck"] },
-    backend: documentRequests.replaceDocumentRequests,
-    expected: [
-      { meetingId: "meeting-1" },
-      { actorId: "mentor-1", titles: ["Pitch deck"] },
-    ],
-    invalid: {
-      "a title that is not a string": { titles: ["Pitch deck", 1] },
-      "no titles (which would clear the list)": {},
-    },
-  },
-  {
-    route: "POST /api/document-requests/[itemId]/uploads",
-    send: (request) =>
-      attachUploadRoute(request, {
-        params: Promise.resolve({ itemId: "item-1" }),
-      }),
-    valid: { storedDocumentId: "stored-1" },
-    backend: documentRequests.attachDocumentRequestUpload,
-    expected: ["item-1", { actorId: "user-1", storedDocumentId: "stored-1" }],
-    invalid: { "a document id of the wrong type": { storedDocumentId: 5 } },
-  },
-  {
     route: "PUT /api/peer-mentoring/profile",
     method: "PUT",
     send: (request) => peerProfileRoute(request),
@@ -421,14 +315,6 @@ const cases: BodyCase[] = [
     },
   },
   {
-    route: "POST /api/organizations/join",
-    send: (request) => joinStartupRoute(request),
-    valid: { inviteCode: "KAVSAK-26" },
-    backend: organization.joinStartup,
-    expected: ["user-1", "KAVSAK-26", null],
-    invalid: { "a code of the wrong type": { inviteCode: 2026 } },
-  },
-  {
     route: "POST /api/meetings/[id]/feedback (handed on as it came)",
     send: (request) => feedbackRoute(request, withId("meeting-1")),
     valid: { rating: 5, comment: "Faydalı" },
@@ -453,17 +339,12 @@ function signIn() {
   vi.mocked(refreshSessionUser).mockResolvedValue(signedIn);
   answerAllWith200(
     conversations,
-    documentRequests,
     proposals,
     meetings,
     mentorRequests,
     mentorships,
-    organization,
-    members,
     peerMentoring,
-    startupDocuments,
     startupProcess,
-    teamChanges,
     training,
   );
 }

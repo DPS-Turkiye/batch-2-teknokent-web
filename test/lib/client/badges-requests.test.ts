@@ -1,6 +1,7 @@
 import { beforeEach, describe, vi } from "vitest";
 
 import { GateBadgeState } from "@/interfaces/badges";
+import { backendHttp } from "@/lib/client/backend-http";
 import {
   getAdminStudents,
   getMyAchievements,
@@ -15,6 +16,9 @@ import {
   type ClientCall,
 } from "@test/fixtures/client-calls";
 
+vi.mock("@/lib/client/backend-http", async () =>
+  (await import("@test/mocks/backend-http")).backendHttpMock(),
+);
 vi.mock("@/lib/http-client", () => ({
   httpClient: {
     get: vi.fn(),
@@ -28,24 +32,6 @@ vi.mock("@/lib/http-client", () => ({
 const BADGES = "/api/coordinator/programs/prog%2F1/badges";
 
 const calls: ClientCall[] = [
-  {
-    title: "getMyBadges lists the signed-in user's badges",
-    call: () => getMyBadges(),
-    method: "get",
-    args: ["/api/me/badges"],
-  },
-  {
-    title: "getMyAchievements lists the user's achievement progress",
-    call: () => getMyAchievements(),
-    method: "get",
-    args: ["/api/me/badges/achievements"],
-  },
-  {
-    title: "getUserBadges reads another user's public badges",
-    call: () => getUserBadges("u/1"),
-    method: "get",
-    args: ["/api/users/u%2F1/badges"],
-  },
   {
     title: "getProgramBadgeRoster lists everyone when no state is chosen",
     call: () => getProgramBadgeRoster("prog/1", null),
@@ -84,10 +70,32 @@ const calls: ClientCall[] = [
   },
 ];
 
+const backendCalls: ClientCall[] = [
+  {
+    title: "getMyBadges lists the signed-in user's badges",
+    call: () => getMyBadges(),
+    method: "get",
+    args: ["/api/badges/mine"],
+  },
+  {
+    title: "getMyAchievements lists the user's achievement progress",
+    call: () => getMyAchievements(),
+    method: "get",
+    args: ["/api/badges/mine/achievements"],
+  },
+  {
+    title: "getUserBadges reads another user's public badges",
+    call: () => getUserBadges("u/1"),
+    method: "get",
+    args: ["/api/users/u%2F1/badges"],
+  },
+];
+
 describe("badges client", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   itSendsEachClientCall(calls);
+  itSendsEachClientCall(backendCalls, backendHttp);
 });

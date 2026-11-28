@@ -1,5 +1,6 @@
 import { beforeEach, describe, vi } from "vitest";
 
+import { backendHttp } from "@/lib/client/backend-http";
 import {
   getStartupProcess,
   getTeamProcess,
@@ -11,6 +12,12 @@ import {
   type ClientCall,
 } from "@test/fixtures/client-calls";
 
+vi.mock("@/lib/client/backend-http", async () =>
+  (await import("@test/mocks/backend-http")).backendHttpMock(),
+);
+vi.mock("@/lib/client/own-organization", async () =>
+  (await import("@test/mocks/own-organization")).ownOrganizationMock(),
+);
 vi.mock("@/lib/http-client", () => ({
   httpClient: {
     get: vi.fn(),
@@ -28,7 +35,7 @@ const calls: ClientCall[] = [
     title: "getStartupProcess reads the startup's own process",
     call: () => getStartupProcess(),
     method: "get",
-    args: ["/api/startup/process"],
+    args: [`/api/organizations/org%2F1/process`],
   },
   {
     title:
@@ -36,7 +43,7 @@ const calls: ClientCall[] = [
     call: () => submitAssignment("as/1", "doc-1"),
     method: "put",
     args: [
-      "/api/startup/process/assignments/as%2F1/submission",
+      "/api/organizations/org%2F1/process/assignments/as%2F1/submission",
       { documentId: "doc-1" },
     ],
   },
@@ -45,7 +52,7 @@ const calls: ClientCall[] = [
     call: () => submitAssignment("as/1", null),
     method: "put",
     args: [
-      "/api/startup/process/assignments/as%2F1/submission",
+      "/api/organizations/org%2F1/process/assignments/as%2F1/submission",
       { documentId: null },
     ],
   },
@@ -53,8 +60,11 @@ const calls: ClientCall[] = [
     title: "withdrawSubmission deletes the encoded assignment's submission",
     call: () => withdrawSubmission("as/1"),
     method: "delete",
-    args: ["/api/startup/process/assignments/as%2F1/submission"],
+    args: ["/api/organizations/org%2F1/process/assignments/as%2F1/submission"],
   },
+];
+
+const proxyCalls: ClientCall[] = [
   {
     title: "getTeamProcess reads a program team's process",
     call: () => getTeamProcess("prog/1", "org/1"),
@@ -68,5 +78,6 @@ describe("startup process client", () => {
     vi.clearAllMocks();
   });
 
-  itSendsEachClientCall(calls);
+  itSendsEachClientCall(calls, backendHttp);
+  itSendsEachClientCall(proxyCalls);
 });

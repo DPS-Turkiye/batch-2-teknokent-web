@@ -4,7 +4,6 @@ import type {
   AttendanceExport,
   AttendanceRange,
   AttendanceSessionRef,
-  AttendanceStatus,
   ProgramAttendanceReport,
   ProgramAttendanceSessions,
   SessionCheckIn,
@@ -13,7 +12,6 @@ import type {
 import { HttpMethod } from "@/lib/http-method";
 import { backendRequest } from "@/lib/server/backend-client";
 
-const MINE = "/api/programs/mine/attendance";
 const CHECK_IN = "/api/attendance/check-in";
 
 function reportUrl(programId: string) {
@@ -22,14 +20,6 @@ function reportUrl(programId: string) {
 
 function sessionUrl(programId: string, { week, kind }: AttendanceSessionRef) {
   return `${reportUrl(programId)}/sessions/${encodeURIComponent(String(week))}/${encodeURIComponent(kind)}`;
-}
-
-export function fetchMyAttendance(actorId: string) {
-  return backendRequest<AttendanceStatus>({
-    method: HttpMethod.Get,
-    url: MINE,
-    params: { actorId },
-  });
 }
 
 /** The token travels in the body, so it stays out of the backend's request logs. */

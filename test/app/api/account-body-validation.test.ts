@@ -9,13 +9,9 @@ import { POST as registerRoute } from "@/app/api/auth/register/[role]/route";
 import { POST as addBotRoute } from "@/app/api/botapi/route";
 import { POST as institutionCompleteRoute } from "@/app/api/institution-login/[provider]/complete/route";
 import { PUT as onboardingDraftRoute } from "@/app/api/onboarding/draft/route";
-import { POST as decideInvitationRoute } from "@/app/api/programs/[id]/invitations/decide/route";
-import { PUT as activeProgramRoute } from "@/app/api/programs/mine/active/route";
-import { POST as createProgramRoute } from "@/app/api/programs/route";
 import { PUT as languageRoute } from "@/app/api/session/language/route";
-import { PATCH as accountStatusRoute } from "@/app/api/users/[id]/status/route";
 import { InstitutionProvider } from "@/interfaces/institution-login";
-import { UserAccountStatus, UserRole } from "@/interfaces/session";
+import { UserRole } from "@/interfaces/session";
 import * as accounts from "@/lib/api/accounts";
 import * as adminCoordinators from "@/lib/api/admin-coordinators";
 import * as interventions from "@/lib/api/admin-interventions";
@@ -90,18 +86,6 @@ const cases: BodyCase[] = [
     backend: interventions.openAdminIntervention,
     expected: ["admin-1", { mentorshipId: "m-1", action: "NUDGE", note: "" }],
     invalid: { "a missing action": { mentorshipId: "m-1", note: "" } },
-  },
-  {
-    route: "PATCH /api/users/[id]/status",
-    method: "PATCH",
-    send: (request) => accountStatusRoute(request, withId("user-9")),
-    valid: { status: UserAccountStatus.Approved },
-    backend: accounts.decideAccountStatus,
-    expected: ["user-9", "admin-1", UserAccountStatus.Approved],
-    invalid: {
-      "a status that is not a decision": { status: UserAccountStatus.Pending },
-      "an unknown status": { status: "BANNED" },
-    },
   },
   {
     route: "POST /api/auth/register/[role]",
@@ -185,31 +169,6 @@ const cases: BodyCase[] = [
       "firebase-token",
     ],
     invalid: { "a link that is not a URL": { meetingUrl: "toplantı" } },
-  },
-  {
-    route: "POST /api/programs",
-    send: (request) => createProgramRoute(request),
-    valid: { name: "  İŞKUR 2027 " },
-    backend: programs.createProgram,
-    expected: ["coordinator-1", "İŞKUR 2027"],
-    invalid: { "a blank name": { name: " " }, "a name of the wrong type": 7 },
-  },
-  {
-    route: "POST /api/programs/[id]/invitations/decide",
-    send: (request) => decideInvitationRoute(request, withId("program-1")),
-    valid: { accepted: true },
-    backend: programs.decideProgramInvitation,
-    expected: ["mentor-1", "program-1", true],
-    invalid: { "no decision": {} },
-  },
-  {
-    route: "PUT /api/programs/mine/active",
-    method: "PUT",
-    send: (request) => activeProgramRoute(request),
-    valid: { programId: null },
-    backend: programs.updateActiveProgram,
-    expected: ["startup-1", null],
-    invalid: { "a program id of the wrong type": { programId: 1 } },
   },
   {
     route: "POST /api/attendance/check-in",

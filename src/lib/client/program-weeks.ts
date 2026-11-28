@@ -8,6 +8,7 @@ import type {
   WeekVisibility,
 } from "@/interfaces/program-week";
 import { requireSuccess } from "@/lib/client/api";
+import { backendHttp } from "@/lib/client/backend-http";
 import { httpClient } from "@/lib/http-client";
 
 const planUrl = (programId: string) =>
@@ -47,13 +48,13 @@ export async function setProgramWeekVisibility(
 
 export async function getProgramThisWeek() {
   return requireSuccess(
-    await httpClient.get<ProgramThisWeek>("/api/programs/mine/this-week"),
+    await backendHttp.get<ProgramThisWeek>("/api/programs/mine/this-week"),
   );
 }
 
 export async function getProgramWeeksSoFar() {
   return requireSuccess(
-    await httpClient.get<ProgramWeeksSoFar>("/api/programs/mine/weeks"),
+    await backendHttp.get<ProgramWeeksSoFar>("/api/programs/mine/weeks"),
   );
 }
 

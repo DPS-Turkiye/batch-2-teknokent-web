@@ -6,24 +6,29 @@ import type {
   PublicBadge,
 } from "@/interfaces/badges";
 import { requireSuccess } from "@/lib/client/api";
+import { backendHttp } from "@/lib/client/backend-http";
 import { httpClient } from "@/lib/http-client";
 
 const programBadges = (programId: string) =>
   `/api/coordinator/programs/${encodeURIComponent(programId)}/badges`;
 
 export async function getMyBadges() {
-  return requireSuccess(await httpClient.get<BadgeAward[]>("/api/me/badges"));
+  return requireSuccess(
+    await backendHttp.get<BadgeAward[]>("/api/badges/mine"),
+  );
 }
 
 export async function getMyAchievements() {
   return requireSuccess(
-    await httpClient.get<AchievementProgress[]>("/api/me/badges/achievements"),
+    await backendHttp.get<AchievementProgress[]>(
+      "/api/badges/mine/achievements",
+    ),
   );
 }
 
 export async function getUserBadges(userId: string) {
   return requireSuccess(
-    await httpClient.get<PublicBadge[]>(
+    await backendHttp.get<PublicBadge[]>(
       `/api/users/${encodeURIComponent(userId)}/badges`,
     ),
   );

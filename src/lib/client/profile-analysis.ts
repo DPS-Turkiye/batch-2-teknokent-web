@@ -4,7 +4,9 @@ import {
   type ProfileOcrMode,
 } from "@/interfaces/profile-analysis";
 import { requireSuccess } from "@/lib/client/api";
+import { backendHttp } from "@/lib/client/backend-http";
 import { bearerHeader } from "@/lib/client/bearer";
+import { ownOrganizationId } from "@/lib/client/own-organization";
 import {
   CV_CONSENT_TEXT_VERSION,
   getPublicBackendUrl,
@@ -16,10 +18,15 @@ async function uploadConfig() {
   return { headers: await bearerHeader(), timeout: UPLOAD_TIMEOUT_MS };
 }
 
+/**
+ * The latest analysis of the signed-in person's own startup (or of `appUserId` on that team); the backend takes the
+ * startup from the session. Someone without a startup is refused here, as the app's own route did.
+ */
 export async function getLatestProfileAnalysis(appUserId?: string) {
-  const query = appUserId ? `?appUserId=${encodeURIComponent(appUserId)}` : "";
-  const response = await httpClient.get<ProfileAnalysis | null>(
-    `/api/profile-analysis${query}`,
+  await ownOrganizationId();
+  const response = await backendHttp.get<ProfileAnalysis | null>(
+    "/api/profile-analyses/latest",
+    appUserId ? { params: { appUserId } } : undefined,
   );
   return response.status === 404 ? null : requireSuccess(response);
 }
@@ -57,10 +64,13 @@ export async function createManualProfile(input: {
   profileType: ProfileAnalysisType;
   appUserId?: string;
 }) {
+  await ownOrganizationId();
+  const { appUserId, ...analysis } = input;
   return requireSuccess(
-    await httpClient.post<ProfileAnalysis>(
-      "/api/profile-analysis/manual",
-      input,
+    await backendHttp.post<ProfileAnalysis>(
+      "/api/profile-analyses/manual",
+      analysis,
+      appUserId ? { params: { appUserId } } : undefined,
     ),
   );
 }
@@ -70,8 +80,8 @@ export async function confirmProfile(input: {
   profile: Record<string, unknown>;
 }) {
   return requireSuccess(
-    await httpClient.patch<ProfileAnalysis>(
-      `/api/profile-analysis/${encodeURIComponent(input.id)}/confirmation`,
+    await backendHttp.patch<ProfileAnalysis>(
+      `/api/profile-analysis-records/${encodeURIComponent(input.id)}`,
       { profile: input.profile },
     ),
   );

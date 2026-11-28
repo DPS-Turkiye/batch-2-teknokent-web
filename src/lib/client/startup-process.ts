@@ -1,10 +1,20 @@
 import type { StartupProcess } from "@/interfaces/startup-process";
 import { requireSuccess } from "@/lib/client/api";
+import { backendHttp } from "@/lib/client/backend-http";
+import { ownOrganizationPath } from "@/lib/client/own-organization";
 import { httpClient } from "@/lib/http-client";
 
 export async function getStartupProcess() {
   return requireSuccess(
-    await httpClient.get<StartupProcess>("/api/startup/process"),
+    await backendHttp.get<StartupProcess>(
+      await ownOrganizationPath("/process"),
+    ),
+  );
+}
+
+function submissionPath(assignmentId: string) {
+  return ownOrganizationPath(
+    `/process/assignments/${encodeURIComponent(assignmentId)}/submission`,
   );
 }
 
@@ -14,18 +24,17 @@ export async function submitAssignment(
   documentId: string | null,
 ) {
   return requireSuccess(
-    await httpClient.put<StartupProcess>(
-      `/api/startup/process/assignments/${encodeURIComponent(assignmentId)}/submission`,
-      { documentId },
-    ),
+    await backendHttp.put<StartupProcess>(await submissionPath(assignmentId), {
+      documentId,
+    }),
   );
 }
 
 /** "Kaldır": takes a handed-in file back while it could still be replaced; the Ödev is open again. */
 export async function withdrawSubmission(assignmentId: string) {
   return requireSuccess(
-    await httpClient.delete<StartupProcess>(
-      `/api/startup/process/assignments/${encodeURIComponent(assignmentId)}/submission`,
+    await backendHttp.delete<StartupProcess>(
+      await submissionPath(assignmentId),
     ),
   );
 }

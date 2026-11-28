@@ -1,6 +1,7 @@
 import { beforeEach, describe, vi } from "vitest";
 
 import { AttendanceSessionKind } from "@/interfaces/program-attendance";
+import { backendHttp } from "@/lib/client/backend-http";
 import {
   checkInSession,
   getAttendanceSessions,
@@ -15,6 +16,9 @@ import {
   type ClientCall,
 } from "@test/fixtures/client-calls";
 
+vi.mock("@/lib/client/backend-http", async () =>
+  (await import("@test/mocks/backend-http")).backendHttpMock(),
+);
 vi.mock("@/lib/http-client", () => ({
   httpClient: {
     get: vi.fn(),
@@ -30,12 +34,6 @@ const session =
   "/api/coordinator/programs/program-1/attendance/sessions/4/WORKSHOP";
 
 const calls: ClientCall[] = [
-  {
-    title: "getMyAttendance reads the caller's week",
-    call: () => getMyAttendance(),
-    method: "get",
-    args: ["/api/programs/mine/attendance"],
-  },
   {
     title: "checkInSession sends only the scanned token, never who is acting",
     call: () => checkInSession("Ab_-9"),
@@ -74,8 +72,18 @@ const calls: ClientCall[] = [
   },
 ];
 
+const backendCalls: ClientCall[] = [
+  {
+    title: "getMyAttendance reads the caller's week",
+    call: () => getMyAttendance(),
+    method: "get",
+    args: ["/api/programs/mine/attendance"],
+  },
+];
+
 describe("program attendance requests", () => {
   beforeEach(() => vi.clearAllMocks());
 
   itSendsEachClientCall(calls);
+  itSendsEachClientCall(backendCalls, backendHttp);
 });

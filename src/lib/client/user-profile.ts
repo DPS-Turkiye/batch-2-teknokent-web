@@ -1,3 +1,4 @@
+import type { BackendUser } from "@/interfaces/session";
 import type { UserProfile, UserProfileInput } from "@/interfaces/user-profile";
 import { requireSuccess } from "@/lib/client/api";
 import {
@@ -30,6 +31,24 @@ export async function saveUserProfile(
       await ownProfilePath(idToken),
       profile,
       withToken(idToken),
+    ),
+  );
+}
+
+/** Someone else's account, for the people they are related to; the backend answers 404 for anyone else. */
+export async function getPerson(userId: string) {
+  return requireSuccess(
+    await backendHttp.get<BackendUser>(
+      `/api/users/${encodeURIComponent(userId)}`,
+    ),
+  );
+}
+
+/** Someone else's profile; contact details only for themselves and admins. */
+export async function getPersonProfile(userId: string) {
+  return requireSuccess(
+    await backendHttp.get<UserProfile>(
+      `/api/users/${encodeURIComponent(userId)}/profile`,
     ),
   );
 }

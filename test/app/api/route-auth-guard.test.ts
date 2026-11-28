@@ -27,7 +27,6 @@ const PUBLIC_HANDLERS = new Set([
   "institution-login/[provider]/complete/route.ts POST",
   "institution-login/[provider]/start/route.ts POST",
   "institution-login/dev-personas/route.ts GET",
-  "programs/names/route.ts GET",
   "session/route.ts DELETE",
 ]);
 

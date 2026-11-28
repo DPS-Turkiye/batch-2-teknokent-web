@@ -5,10 +5,7 @@ import { GateBadgeState } from "@/interfaces/badges";
 import {
   awardGateBadge,
   fetchAdminStudents,
-  fetchMyAchievements,
-  fetchMyBadges,
   fetchProgramBadgeRoster,
-  fetchUserBadges,
   revokeGateBadge,
 } from "@/lib/api/badges";
 import { backendRequest } from "@/lib/server/backend-client";
@@ -26,29 +23,6 @@ type RequestCase = [
 ];
 
 const cases: RequestCase[] = [
-  [
-    "lists the actor's own badges",
-    () => fetchMyBadges("student-1"),
-    {
-      method: "GET",
-      url: "/api/badges/mine",
-      params: { actorId: "student-1" },
-    },
-  ],
-  [
-    "lists the actor's achievement progress",
-    () => fetchMyAchievements("student-1"),
-    {
-      method: "GET",
-      url: "/api/badges/mine/achievements",
-      params: { actorId: "student-1" },
-    },
-  ],
-  [
-    "reads another user's public badges at the encoded path",
-    () => fetchUserBadges("user/2"),
-    { method: "GET", url: "/api/users/user%2F2/badges" },
-  ],
   [
     "lists the whole roster when no state is picked",
     () => fetchProgramBadgeRoster("coord-1", "prog/1", null),

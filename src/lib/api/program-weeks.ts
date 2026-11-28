@@ -4,9 +4,7 @@ import type {
   ProgramPlanWeek,
   ProgramPlanWeekInput,
   ProgramSpecialDay,
-  ProgramThisWeek,
   ProgramWeekPlan,
-  ProgramWeeksSoFar,
   WeekVisibility,
 } from "@/interfaces/program-week";
 import { HttpMethod } from "@/lib/http-method";
@@ -51,24 +49,6 @@ export function setProgramWeekVisibility(
     method: HttpMethod.Put,
     url: `${planUrl(programId)}/${week}/visibility`,
     data: { actorId, visibility },
-  });
-}
-
-/** The caller's own program's running week and its plan. */
-export function fetchProgramThisWeek(actorId: string) {
-  return backendRequest<ProgramThisWeek>({
-    method: HttpMethod.Get,
-    url: "/api/programs/mine/this-week",
-    params: { actorId },
-  });
-}
-
-/** The weeks of the caller's own program reached so far, the running one included. */
-export function fetchProgramWeeksSoFar(actorId: string) {
-  return backendRequest<ProgramWeeksSoFar>({
-    method: HttpMethod.Get,
-    url: "/api/programs/mine/weeks",
-    params: { actorId },
   });
 }
 

@@ -2,7 +2,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { UserProfileInput } from "@/interfaces/user-profile";
 import { backendHttp, signedInUserId } from "@/lib/client/backend-http";
-import { getUserProfile, saveUserProfile } from "@/lib/client/user-profile";
+import {
+  getPerson,
+  getPersonProfile,
+  getUserProfile,
+  saveUserProfile,
+} from "@/lib/client/user-profile";
 
 vi.mock("@/lib/client/backend-http", async () =>
   (await import("@test/mocks/backend-http")).backendHttpMock(),
@@ -67,5 +72,13 @@ describe("user profile client, straight to the backend", () => {
     await expect(saveUserProfile(profile)).rejects.toThrow(
       "Sadece kendi profilini düzenleyebilirsin.",
     );
+  });
+
+  it("reads someone else's account and profile by their encoded id", async () => {
+    await getPerson("u/2");
+    await getPersonProfile("u/2");
+
+    expect(backendHttp.get).toHaveBeenCalledWith("/api/users/u%2F2");
+    expect(backendHttp.get).toHaveBeenCalledWith("/api/users/u%2F2/profile");
   });
 });

@@ -1,22 +1,25 @@
+import { clientText } from "@/i18n/client-texts";
 import type {
   CreateStartupInput,
   StartupProfile,
   StartupProfileInput,
   StartupStatusInput,
 } from "@/interfaces/organization";
-import type { AppSession } from "@/interfaces/session";
-import { requireSuccess } from "@/lib/client/api";
-import { httpClient } from "@/lib/http-client";
+import type { AppSession, BackendUser } from "@/interfaces/session";
+import { ClientApiError, requireSuccess } from "@/lib/client/api";
+import { refreshSession } from "@/lib/client/auth";
+import { backendHttp } from "@/lib/client/backend-http";
+import { ownOrganizationPath } from "@/lib/client/own-organization";
 
 export async function getStartupProfile() {
   return requireSuccess(
-    await httpClient.get<StartupProfile>("/api/organizations/profile"),
+    await backendHttp.get<StartupProfile>(await ownOrganizationPath()),
   );
 }
 
 export async function getOrganizationById(organizationId: string) {
   return requireSuccess(
-    await httpClient.get<StartupProfile>(
+    await backendHttp.get<StartupProfile>(
       `/api/organizations/${encodeURIComponent(organizationId)}`,
     ),
   );
@@ -24,32 +27,54 @@ export async function getOrganizationById(organizationId: string) {
 
 export async function saveStartupProfile(profile: StartupProfileInput) {
   return requireSuccess(
-    await httpClient.put<StartupProfile>("/api/organizations/profile", profile),
+    await backendHttp.put<StartupProfile>(await ownOrganizationPath(), profile),
   );
 }
 
+/**
+ * The backend changed which startup the caller is in; the app's own session reads the account again so it carries
+ * the change, and that session is the answer.
+ */
+export async function sessionAfterTeamChange(): Promise<AppSession> {
+  const session = await refreshSession();
+  if (!session) {
+    throw new ClientApiError(clientText("http401"), 401, "SESSION_REQUIRED");
+  }
+  return session;
+}
+
+/** "Kodum var" on /startup. Answers with the session, now carrying the startup. */
 export async function joinStartup(inviteCode: string) {
-  return requireSuccess(
-    await httpClient.post<AppSession>("/api/organizations/join", {
+  requireSuccess(
+    await backendHttp.post<BackendUser>("/api/organizations/join", {
       inviteCode,
     }),
   );
+  return sessionAfterTeamChange();
 }
 
+/** "Startup'ımı oluştur" on /startup. Answers with the session, now carrying the startup. */
 export async function createStartup(input: CreateStartupInput) {
-  return requireSuccess(
-    await httpClient.post<AppSession>("/api/organizations/mine", input),
+  requireSuccess(
+    await backendHttp.post<BackendUser>("/api/organizations/mine", input),
   );
+  return sessionAfterTeamChange();
 }
 
+/** A rejected startup's founder sends it back to the coordinator. */
 export async function resubmitStartup() {
   return requireSuccess(
-    await httpClient.post<StartupProfile>("/api/organizations/resubmit", {}),
+    await backendHttp.post<StartupProfile>(
+      await ownOrganizationPath("/resubmit"),
+    ),
   );
 }
 
 export async function saveStartupStatus(status: StartupStatusInput) {
   return requireSuccess(
-    await httpClient.put<StartupProfile>("/api/organizations/status", status),
+    await backendHttp.put<StartupProfile>(
+      await ownOrganizationPath("/status"),
+      status,
+    ),
   );
 }

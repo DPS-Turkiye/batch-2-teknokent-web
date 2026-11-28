@@ -1,40 +1,11 @@
 import "server-only";
 
-import type {
-  AchievementProgress,
-  BadgeAward,
-  GateBadgeRow,
-  GateBadgeState,
-  PublicBadge,
-} from "@/interfaces/badges";
+import type { GateBadgeRow, GateBadgeState } from "@/interfaces/badges";
 import { HttpMethod } from "@/lib/http-method";
 import { backendRequest } from "@/lib/server/backend-client";
 
 const programBadges = (programId: string) =>
   `/api/coordinator/programs/${encodeURIComponent(programId)}/badges`;
-
-export function fetchMyBadges(actorId: string) {
-  return backendRequest<BadgeAward[]>({
-    method: HttpMethod.Get,
-    url: "/api/badges/mine",
-    params: { actorId },
-  });
-}
-
-export function fetchMyAchievements(actorId: string) {
-  return backendRequest<AchievementProgress[]>({
-    method: HttpMethod.Get,
-    url: "/api/badges/mine/achievements",
-    params: { actorId },
-  });
-}
-
-export function fetchUserBadges(userId: string) {
-  return backendRequest<PublicBadge[]>({
-    method: HttpMethod.Get,
-    url: `/api/users/${encodeURIComponent(userId)}/badges`,
-  });
-}
 
 export function fetchProgramBadgeRoster(
   actorId: string,

@@ -5,18 +5,12 @@ import { GET as adminStudents } from "@/app/api/admin/students/route";
 import { POST as revoke } from "@/app/api/coordinator/programs/[id]/badges/awards/[awardId]/revoke/route";
 import { POST as award } from "@/app/api/coordinator/programs/[id]/badges/awards/route";
 import { GET as roster } from "@/app/api/coordinator/programs/[id]/badges/roster/route";
-import { GET as myAchievements } from "@/app/api/me/badges/achievements/route";
-import { GET as myBadges } from "@/app/api/me/badges/route";
-import { GET as userBadges } from "@/app/api/users/[id]/badges/route";
 import { GateBadgeState } from "@/interfaces/badges";
 import { UserRole, type AppSession } from "@/interfaces/session";
 import {
   awardGateBadge,
   fetchAdminStudents,
-  fetchMyAchievements,
-  fetchMyBadges,
   fetchProgramBadgeRoster,
-  fetchUserBadges,
   revokeGateBadge,
 } from "@/lib/api/badges";
 import { getSessionUser } from "@/lib/session";
@@ -29,10 +23,7 @@ vi.mock("@/lib/session", () => ({ getSessionUser: vi.fn() }));
 vi.mock("@/lib/api/badges", () => ({
   awardGateBadge: vi.fn(),
   fetchAdminStudents: vi.fn(),
-  fetchMyAchievements: vi.fn(),
-  fetchMyBadges: vi.fn(),
   fetchProgramBadgeRoster: vi.fn(),
-  fetchUserBadges: vi.fn(),
   revokeGateBadge: vi.fn(),
 }));
 
@@ -61,44 +52,11 @@ describe("badge routes", () => {
       [
         awardGateBadge,
         fetchAdminStudents,
-        fetchMyAchievements,
-        fetchMyBadges,
         fetchProgramBadgeRoster,
-        fetchUserBadges,
         revokeGateBadge,
       ],
       ok,
     );
-  });
-
-  it("asks for the signed-in person's own badges and a session for anyone else's", async () => {
-    vi.mocked(getSessionUser).mockResolvedValue(null);
-    expect((await myBadges()).status).toBe(401);
-    expect(
-      (
-        await userBadges(new NextRequest("http://localhost/x"), {
-          params: Promise.resolve({ id: "u9" }),
-        })
-      ).status,
-    ).toBe(401);
-
-    vi.mocked(getSessionUser).mockResolvedValue(as(UserRole.Mentee));
-    await myBadges();
-    expect(fetchMyBadges).toHaveBeenCalledWith("MENTEE-1");
-    await userBadges(new NextRequest("http://localhost/x"), {
-      params: Promise.resolve({ id: "u9" }),
-    });
-    expect(fetchUserBadges).toHaveBeenCalledWith("u9");
-  });
-
-  it("asks for the signed-in person's own achievement progress and nobody else's", async () => {
-    vi.mocked(getSessionUser).mockResolvedValue(null);
-    expect((await myAchievements()).status).toBe(401);
-    expect(fetchMyAchievements).not.toHaveBeenCalled();
-
-    vi.mocked(getSessionUser).mockResolvedValue(as(UserRole.Mentee));
-    expect((await myAchievements()).status).toBe(200);
-    expect(fetchMyAchievements).toHaveBeenCalledWith("MENTEE-1");
   });
 
   it("keeps the roster, awards and revokes to coordinators and admins, as themselves", async () => {

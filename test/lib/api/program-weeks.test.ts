@@ -4,9 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { WeekVisibility } from "@/interfaces/program-week";
 import {
   alignProgramDates,
-  fetchProgramThisWeek,
   fetchProgramWeekPlan,
-  fetchProgramWeeksSoFar,
   replaceProgramWeekPlan,
   setProgramWeekVisibility,
 } from "@/lib/api/program-weeks";
@@ -59,24 +57,6 @@ const cases: RequestCase[] = [
       method: "PUT",
       url: "/api/coordinator/programs/prog%2F1/weeks",
       data: { actorId: "coord-1", weeks: [], specialDays: [specialDay()] },
-    },
-  ],
-  [
-    "reads the caller's own program's running week",
-    () => fetchProgramThisWeek("member-1"),
-    {
-      method: "GET",
-      url: "/api/programs/mine/this-week",
-      params: { actorId: "member-1" },
-    },
-  ],
-  [
-    "reads the weeks the caller's own program has reached",
-    () => fetchProgramWeeksSoFar("member-1"),
-    {
-      method: "GET",
-      url: "/api/programs/mine/weeks",
-      params: { actorId: "member-1" },
     },
   ],
 ];

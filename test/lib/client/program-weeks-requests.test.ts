@@ -1,6 +1,7 @@
 import { describe, vi } from "vitest";
 
 import { WeekVisibility } from "@/interfaces/program-week";
+import { backendHttp } from "@/lib/client/backend-http";
 import {
   getProgramThisWeek,
   getProgramWeeksSoFar,
@@ -11,6 +12,9 @@ import {
   type ClientCall,
 } from "@test/fixtures/client-calls";
 
+vi.mock("@/lib/client/backend-http", async () =>
+  (await import("@test/mocks/backend-http")).backendHttpMock(),
+);
 vi.mock("@/lib/http-client", () => ({
   httpClient: {
     get: vi.fn(),
@@ -23,6 +27,18 @@ vi.mock("@/lib/http-client", () => ({
 
 const calls: ClientCall[] = [
   {
+    title: "setProgramWeekVisibility sets one saved week's setting",
+    call: () => setProgramWeekVisibility("prog/1", 3, WeekVisibility.Hidden),
+    method: "put",
+    args: [
+      "/api/coordinator/programs/prog%2F1/weeks/3/visibility",
+      { visibility: WeekVisibility.Hidden },
+    ],
+  },
+];
+
+const backendCalls: ClientCall[] = [
+  {
     title: "getProgramThisWeek reads the running week",
     call: () => getProgramThisWeek(),
     method: "get",
@@ -34,17 +50,9 @@ const calls: ClientCall[] = [
     method: "get",
     args: ["/api/programs/mine/weeks"],
   },
-  {
-    title: "setProgramWeekVisibility sets one saved week's setting",
-    call: () => setProgramWeekVisibility("prog/1", 3, WeekVisibility.Hidden),
-    method: "put",
-    args: [
-      "/api/coordinator/programs/prog%2F1/weeks/3/visibility",
-      { visibility: WeekVisibility.Hidden },
-    ],
-  },
 ];
 
 describe("program weeks client", () => {
   itSendsEachClientCall(calls);
+  itSendsEachClientCall(backendCalls, backendHttp);
 });

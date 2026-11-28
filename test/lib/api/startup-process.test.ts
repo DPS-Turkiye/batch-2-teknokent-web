@@ -1,11 +1,7 @@
 import type { AxiosRequestConfig } from "axios";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  fetchStartupProcess,
-  submitProcessAssignment,
-  withdrawProcessSubmission,
-} from "@/lib/api/startup-process";
+import { fetchStartupProcess } from "@/lib/api/startup-process";
 import { backendRequest } from "@/lib/server/backend-client";
 
 vi.mock("@/lib/server/backend-client", () => ({
@@ -25,24 +21,6 @@ const cases: RequestCase[] = [
     {
       method: "GET",
       url: "/api/organizations/org%2F1/process",
-      params: { actorId: "member-1" },
-    },
-  ],
-  [
-    "submits a document for an encoded assignment",
-    () => submitProcessAssignment("org/1", "asg 1", "member-1", "doc-1"),
-    {
-      method: "PUT",
-      url: "/api/organizations/org%2F1/process/assignments/asg%201/submission",
-      data: { actorId: "member-1", documentId: "doc-1" },
-    },
-  ],
-  [
-    "withdraws an encoded assignment's handed-in file as the session actor",
-    () => withdrawProcessSubmission("org/1", "asg 1", "member-1"),
-    {
-      method: "DELETE",
-      url: "/api/organizations/org%2F1/process/assignments/asg%201/submission",
       params: { actorId: "member-1" },
     },
   ],

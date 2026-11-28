@@ -6,7 +6,6 @@ import {
   checkInSession,
   exportProgramAttendance,
   fetchAttendanceSessions,
-  fetchMyAttendance,
   fetchProgramAttendance,
   fetchSessionQr,
   markSessionAttendance,
@@ -22,17 +21,11 @@ vi.mock("@/lib/server/backend-client", () => ({ backendRequest: vi.fn() }));
 describe("program attendance server API", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("reads the session user's attendance and checks them in with a code's token", async () => {
-    await fetchMyAttendance("mentee-1");
+  it("checks the session user in with a code's token", async () => {
     await checkInSession("mentee-1", "token-1");
 
-    expect(backendRequest).toHaveBeenNthCalledWith(1, {
-      method: HttpMethod.Get,
-      url: "/api/programs/mine/attendance",
-      params: { actorId: "mentee-1" },
-    });
     // The token goes in the body, out of the request line the backend logs.
-    expect(backendRequest).toHaveBeenNthCalledWith(2, {
+    expect(backendRequest).toHaveBeenNthCalledWith(1, {
       method: HttpMethod.Post,
       url: "/api/attendance/check-in",
       data: { actorId: "mentee-1", token: "token-1" },

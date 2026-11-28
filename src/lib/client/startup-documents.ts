@@ -4,17 +4,22 @@ import type {
   StartupDocument,
 } from "@/interfaces/startup-document";
 import { requireSuccess } from "@/lib/client/api";
-import { httpClient } from "@/lib/http-client";
+import { backendHttp } from "@/lib/client/backend-http";
+import { ownOrganizationPath } from "@/lib/client/own-organization";
 
+/** The signed-in person's own startup's files. */
 export async function getStartupDocuments() {
   return requireSuccess(
-    await httpClient.get<StartupDocument[]>("/api/startup/documents"),
+    await backendHttp.get<StartupDocument[]>(
+      await ownOrganizationPath("/documents"),
+    ),
   );
 }
 
+/** Another startup's files, for its mentors and staff. */
 export async function getOrganizationDocuments(organizationId: string) {
   return requireSuccess(
-    await httpClient.get<StartupDocument[]>(
+    await backendHttp.get<StartupDocument[]>(
       `/api/organizations/${encodeURIComponent(organizationId)}/documents`,
     ),
   );
@@ -22,33 +27,29 @@ export async function getOrganizationDocuments(organizationId: string) {
 
 export async function getStartupDocumentRequests() {
   return requireSuccess(
-    await httpClient.get<DocumentRequestItem[]>(
-      "/api/startup/document-requests",
+    await backendHttp.get<DocumentRequestItem[]>(
+      await ownOrganizationPath("/document-requests"),
     ),
   );
 }
 
+function documentPath(documentId: string) {
+  return `/api/documents/${encodeURIComponent(documentId)}`;
+}
+
+/** A short-lived link the browser opens or reads itself. */
 export async function getDocumentDownloadUrl(documentId: string) {
   return requireSuccess(
-    await httpClient.get<DocumentDownload>(
-      `/api/startup/documents/${encodeURIComponent(documentId)}/download-url`,
+    await backendHttp.get<DocumentDownload>(
+      `${documentPath(documentId)}/download-url`,
     ),
   );
-}
-
-/** Same-origin bytes for the in-app preview (avoids S3 iframe/CSP blocks). */
-export function documentContentPath(documentId: string) {
-  return `/api/startup/documents/${encodeURIComponent(documentId)}/content`;
-}
-
-function documentUrl(documentId: string) {
-  return `/api/startup/documents/${encodeURIComponent(documentId)}`;
 }
 
 export async function shareDocument(documentId: string, mentorId: string) {
   return requireSuccess(
-    await httpClient.post<StartupDocument>(
-      `${documentUrl(documentId)}/shares`,
+    await backendHttp.post<StartupDocument>(
+      `${documentPath(documentId)}/shares`,
       { mentorId },
     ),
   );
@@ -56,12 +57,12 @@ export async function shareDocument(documentId: string, mentorId: string) {
 
 export async function unshareDocument(documentId: string, mentorId: string) {
   return requireSuccess(
-    await httpClient.delete<StartupDocument>(
-      `${documentUrl(documentId)}/shares/${encodeURIComponent(mentorId)}`,
+    await backendHttp.delete<StartupDocument>(
+      `${documentPath(documentId)}/shares/${encodeURIComponent(mentorId)}`,
     ),
   );
 }
 
 export async function deleteDocument(documentId: string) {
-  requireSuccess(await httpClient.delete<void>(documentUrl(documentId)));
+  requireSuccess(await backendHttp.delete<void>(documentPath(documentId)));
 }

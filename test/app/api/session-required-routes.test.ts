@@ -8,17 +8,13 @@ import {
   POST as addBotRoute,
   DELETE as stopBotRoute,
 } from "@/app/api/botapi/route";
-import { GET as listDocumentRequestsRoute } from "@/app/api/document-requests/route";
 import { POST as recommendMentorsRoute } from "@/app/api/mentor-recommendations/route";
 import { GET as getMentorRequest } from "@/app/api/mentor-requests/[id]/route";
-import { PATCH as confirmProfile } from "@/app/api/profile-analysis/[id]/confirmation/route";
 import { GET as transcriptRoute } from "@/app/api/transcriptapi/route";
 import { UserRole } from "@/interfaces/session";
 import { fetchActionItems, updateActionItem } from "@/lib/api/action-items";
-import { fetchDocumentRequests } from "@/lib/api/document-requests";
 import { recommendMentors } from "@/lib/api/mentor-recommendations";
 import { fetchMentorRequest } from "@/lib/api/mentor-requests";
-import { confirmStartupProfileRecord } from "@/lib/api/profile-analysis-records";
 import {
   createMeetingBot,
   generateMeetingReportBackend,
@@ -40,9 +36,6 @@ vi.mock("@/lib/botapi", () => ({
   stopMeetingBotBackend: vi.fn(),
 }));
 vi.mock("@/lib/transcriptapi", () => ({ fetchMeetingTranscript: vi.fn() }));
-vi.mock("@/lib/api/document-requests", () => ({
-  fetchDocumentRequests: vi.fn(),
-}));
 vi.mock("@/lib/api/action-items", () => ({
   fetchActionItems: vi.fn(),
   updateActionItem: vi.fn(),
@@ -51,9 +44,6 @@ vi.mock("@/lib/api/mentor-recommendations", () => ({
   recommendMentors: vi.fn(),
 }));
 vi.mock("@/lib/api/mentor-requests", () => ({ fetchMentorRequest: vi.fn() }));
-vi.mock("@/lib/api/profile-analysis-records", () => ({
-  confirmStartupProfileRecord: vi.fn(),
-}));
 
 const ok = { data: {}, headers: {}, status: 200 };
 const mentee = {
@@ -100,12 +90,6 @@ const cases = [
         params,
       ),
     backend: updateActionItem,
-  },
-  {
-    name: "PATCH /api/profile-analysis/[id]/confirmation",
-    call: () =>
-      confirmProfile(request(HttpMethod.Patch, { profile: {} }), params),
-    backend: confirmStartupProfileRecord,
   },
   {
     name: "POST /api/mentor-recommendations",
@@ -156,14 +140,6 @@ const cases = [
         ),
       ),
     backend: fetchMeetingTranscript,
-  },
-  {
-    name: "GET /api/document-requests",
-    call: () =>
-      listDocumentRequestsRoute(
-        new NextRequest("http://localhost/x?meetingId=meeting-1"),
-      ),
-    backend: fetchDocumentRequests,
   },
 ];
 

@@ -1,7 +1,12 @@
-import { StartupTeamView } from "@/components/startup/startup-team-view";
-import { redirectIndividualMentee } from "@/lib/server/individual-program";
+"use client";
 
-export default async function StartupTeamPage() {
-  await redirectIndividualMentee();
-  return <StartupTeamView />;
+import { StartupPageGate } from "@/components/startup/startup-page-gate";
+import { StartupTeamView } from "@/components/startup/startup-team-view";
+
+export default function StartupTeamPage() {
+  return (
+    <StartupPageGate>
+      <StartupTeamView />
+    </StartupPageGate>
+  );
 }
