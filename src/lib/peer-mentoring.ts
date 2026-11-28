@@ -13,6 +13,7 @@ import {
   PeerExperienceKind,
   PeerMentorGateState,
   type PeerExperienceCard,
+  type PeerMentorFilter,
   type PeerTopicCategory,
   type PeerTopicLevels,
 } from "@/interfaces/peer-mentoring";
@@ -264,6 +265,22 @@ export function peerRequestAvailability(
   if (hasOpenRequest) return PeerRequestAvailability.Requested;
   if (capacityFull) return PeerRequestAvailability.Full;
   return PeerRequestAvailability.Open;
+}
+
+/** Catalogue sub-topic ids are short; a longer one cannot match any, so it is not sent. */
+export const PEER_SUB_TOPIC_MAX = 64;
+
+/** The directory's query: blank text and a sub-topic no catalogue id can be are left out, as is "any week". */
+export function peerMentorSearchParams(filter: PeerMentorFilter) {
+  const q = filter.query.trim();
+  const subTopic = filter.subTopic?.trim();
+  return {
+    category: filter.category ?? undefined,
+    q: q || undefined,
+    subTopic:
+      subTopic && subTopic.length <= PEER_SUB_TOPIC_MAX ? subTopic : undefined,
+    availableThisWeek: filter.availableThisWeek ? true : undefined,
+  };
 }
 
 /** A peer mentor's profile page on the Mentorluk Al side. */

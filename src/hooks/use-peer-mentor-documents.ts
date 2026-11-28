@@ -13,9 +13,9 @@ import { ToastTone } from "@/interfaces/toast";
 import {
   addPeerMentorLink,
   deletePeerMentorDocument,
+  downloadPeerMentorDocument,
   getOwnPeerMentorDocuments,
   getPeerMentorDocuments,
-  peerMentorDocumentContentHref,
   updatePeerMentorDocumentVisibility,
   uploadPeerMentorDocument,
 } from "@/lib/client/peer-mentor-documents";
@@ -145,6 +145,8 @@ export function usePeerMentorDocumentsStep({
     onError: toastError(t("removeFailed")),
   });
 
+  const open = useOpenPeerMentorDocument(t("openFailed"));
+
   return {
     cards,
     required: requiredEvidence(cards),
@@ -158,7 +160,8 @@ export function usePeerMentorDocumentsStep({
     isUploading: upload.isPending,
     isAddingLink: link.isPending,
     isChangingVisibility: visibility.isPending,
-    contentHref: peerMentorDocumentContentHref,
+    /** "Görüntüle": saves the file. */
+    openFile: open,
     /** A saved link as an href, only when it is a web address. */
     linkHref: (url: string | null) => httpUrlOrNull(url),
     pickOtherType: setOtherType,
@@ -211,9 +214,22 @@ export type PeerMentorDocumentsStep = ReturnType<
   typeof usePeerMentorDocumentsStep
 >;
 
+/** Saves one file; a failure says so in a toast, whatever the backend answered. */
+function useOpenPeerMentorDocument(failed: string) {
+  const { showToast } = useToast();
+  const download = useMutation({
+    mutationFn: ({ id, name }: { id: string; name: string }) =>
+      downloadPeerMentorDocument(id, name),
+    onError: () => showToast({ message: failed, tone: ToastTone.Error }),
+  });
+  return (id: string, name: string) => download.mutate({ id, name });
+}
+
 /** A peer mentor's evidence on their profile, as far as the viewer may see it. */
 export function usePeerMentorSharedDocuments(mentorId: string) {
   const tType = useTranslations("iaIskur.wizard.documents.types");
+  const tProfile = useTranslations("iaIskur.take.profile");
+  const open = useOpenPeerMentorDocument(tProfile("openFailed"));
   const documents = useQuery({
     queryKey: [...PEER_MENTOR_DOCUMENTS_QUERY_KEY, "mentor", mentorId],
     queryFn: () => getPeerMentorDocuments(mentorId),
@@ -224,8 +240,9 @@ export function usePeerMentorSharedDocuments(mentorId: string) {
       id: file.id,
       name: file.originalFilename || tType(file.evidenceType),
       evidenceType: file.evidenceType,
-      href: peerMentorDocumentContentHref(file.id),
     })),
     links,
+    /** "Görüntüle": saves the file. */
+    openFile: open,
   };
 }

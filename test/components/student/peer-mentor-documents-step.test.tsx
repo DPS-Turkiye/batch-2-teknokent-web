@@ -12,6 +12,7 @@ import { PeerTopicCategory } from "@/interfaces/peer-mentoring";
 import {
   addPeerMentorLink,
   deletePeerMentorDocument,
+  downloadPeerMentorDocument,
   getOwnPeerMentorDocuments,
   updatePeerMentorDocumentVisibility,
   uploadPeerMentorDocument,
@@ -31,6 +32,7 @@ vi.mock("@/lib/client/peer-mentor-documents", async (importOriginal) => ({
   addPeerMentorLink: vi.fn(),
   updatePeerMentorDocumentVisibility: vi.fn(),
   deletePeerMentorDocument: vi.fn(),
+  downloadPeerMentorDocument: vi.fn(),
 }));
 
 let stored: PeerMentorDocument[] = [];
@@ -121,11 +123,15 @@ describe("PeerMentorDocumentsStep", () => {
 
     expect(await within(transcript).findByText("Yüklendi")).toBeVisible();
     expect(screen.getByText("1 / 2 zorunlu belge yüklendi")).toBeVisible();
-    expect(
-      within(transcript).getByRole("link", {
+    await user.click(
+      within(transcript).getByRole("button", {
         name: "Transkript_2026_Guz.pdf dosyasını görüntüle",
       }),
-    ).toHaveAttribute("href", "/api/peer-mentoring/documents/doc-1/content");
+    );
+    expect(downloadPeerMentorDocument).toHaveBeenCalledWith(
+      "doc-1",
+      "Transkript_2026_Guz.pdf",
+    );
     expect(uploadPeerMentorDocument).toHaveBeenCalledWith(
       expect.any(File),
       PeerEvidenceType.Transcript,

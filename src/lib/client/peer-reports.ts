@@ -11,8 +11,9 @@ import type {
   SavePeerWeeklyReportInput,
 } from "@/interfaces/peer-reports";
 import { requireSuccess } from "@/lib/client/api";
-import { httpClient } from "@/lib/http-client";
+import { backendHttp } from "@/lib/client/backend-http";
 
+/** The signed-in peer mentor's own reports; the backend takes the mentor from the session. */
 const BASE = "/api/peer-mentoring/reports";
 
 function meetingPath(meetingId: string) {
@@ -25,7 +26,7 @@ export async function getPeerReportMeetings(
   to: string,
 ): Promise<PeerReportMeeting[]> {
   return requireSuccess(
-    await httpClient.get<PeerReportMeeting[]>(`${BASE}/meetings`, {
+    await backendHttp.get<PeerReportMeeting[]>(`${BASE}/meetings`, {
       params: { from, to },
     }),
   );
@@ -35,7 +36,7 @@ export async function getPeerMeetingReport(
   meetingId: string,
 ): Promise<PeerMeetingReport> {
   return requireSuccess(
-    await httpClient.get<PeerMeetingReport>(meetingPath(meetingId)),
+    await backendHttp.get<PeerMeetingReport>(meetingPath(meetingId)),
   );
 }
 
@@ -44,7 +45,7 @@ export async function savePeerMeetingReport(
   input: SavePeerMeetingReportInput,
 ): Promise<PeerMeetingReport> {
   return requireSuccess(
-    await httpClient.put<PeerMeetingReport>(meetingPath(meetingId), input),
+    await backendHttp.put<PeerMeetingReport>(meetingPath(meetingId), input),
   );
 }
 
@@ -52,7 +53,7 @@ export async function submitPeerMeetingReport(
   meetingId: string,
 ): Promise<PeerMeetingReport> {
   return requireSuccess(
-    await httpClient.post<PeerMeetingReport>(
+    await backendHttp.post<PeerMeetingReport>(
       `${meetingPath(meetingId)}/submit`,
     ),
   );
@@ -64,7 +65,7 @@ export async function setPeerReportActionDone(
   done: boolean,
 ): Promise<PeerMeetingReport> {
   return requireSuccess(
-    await httpClient.patch<PeerMeetingReport>(
+    await backendHttp.patch<PeerMeetingReport>(
       `${meetingPath(meetingId)}/actions/${encodeURIComponent(actionId)}`,
       { done },
     ),
@@ -75,7 +76,7 @@ export async function getPeerReportWeek(
   weekStart: string,
 ): Promise<PeerReportWeek> {
   return requireSuccess(
-    await httpClient.get<PeerReportWeek>(`${BASE}/days`, {
+    await backendHttp.get<PeerReportWeek>(`${BASE}/days`, {
       params: { week: weekStart },
     }),
   );
@@ -85,7 +86,7 @@ export async function getPeerDailyReport(
   date: string,
 ): Promise<PeerDailyReport> {
   return requireSuccess(
-    await httpClient.get<PeerDailyReport>(
+    await backendHttp.get<PeerDailyReport>(
       `${BASE}/days/${encodeURIComponent(date)}`,
     ),
   );
@@ -96,7 +97,7 @@ export async function savePeerDailyReport(
   input: SavePeerDailyReportInput,
 ): Promise<PeerDailyReport> {
   return requireSuccess(
-    await httpClient.put<PeerDailyReport>(
+    await backendHttp.put<PeerDailyReport>(
       `${BASE}/days/${encodeURIComponent(date)}`,
       input,
     ),
@@ -107,7 +108,7 @@ export async function submitPeerDailyReport(
   date: string,
 ): Promise<PeerDailyReport> {
   return requireSuccess(
-    await httpClient.post<PeerDailyReport>(
+    await backendHttp.post<PeerDailyReport>(
       `${BASE}/days/${encodeURIComponent(date)}/submit`,
     ),
   );
@@ -117,7 +118,7 @@ export async function addPeerActivity(
   input: SavePeerActivityInput,
 ): Promise<PeerActivity> {
   return requireSuccess(
-    await httpClient.post<PeerActivity>(`${BASE}/activities`, input),
+    await backendHttp.post<PeerActivity>(`${BASE}/activities`, input),
   );
 }
 
@@ -126,7 +127,7 @@ export async function updatePeerActivity(
   input: SavePeerActivityInput,
 ): Promise<PeerActivity> {
   return requireSuccess(
-    await httpClient.put<PeerActivity>(
+    await backendHttp.put<PeerActivity>(
       `${BASE}/activities/${encodeURIComponent(activityId)}`,
       input,
     ),
@@ -135,7 +136,7 @@ export async function updatePeerActivity(
 
 export async function deletePeerActivity(activityId: string): Promise<void> {
   requireSuccess(
-    await httpClient.delete(
+    await backendHttp.delete(
       `${BASE}/activities/${encodeURIComponent(activityId)}`,
     ),
   );
@@ -145,7 +146,7 @@ export async function getPeerWeeklyReport(
   weekStart: string,
 ): Promise<PeerWeeklyReport> {
   return requireSuccess(
-    await httpClient.get<PeerWeeklyReport>(
+    await backendHttp.get<PeerWeeklyReport>(
       `${BASE}/weeks/${encodeURIComponent(weekStart)}`,
     ),
   );
@@ -156,7 +157,7 @@ export async function savePeerWeeklyReport(
   input: SavePeerWeeklyReportInput,
 ): Promise<PeerWeeklyReport> {
   return requireSuccess(
-    await httpClient.put<PeerWeeklyReport>(
+    await backendHttp.put<PeerWeeklyReport>(
       `${BASE}/weeks/${encodeURIComponent(weekStart)}`,
       input,
     ),
@@ -167,7 +168,7 @@ export async function submitPeerWeeklyReport(
   weekStart: string,
 ): Promise<PeerWeeklyReport> {
   return requireSuccess(
-    await httpClient.post<PeerWeeklyReport>(
+    await backendHttp.post<PeerWeeklyReport>(
       `${BASE}/weeks/${encodeURIComponent(weekStart)}/submit`,
     ),
   );

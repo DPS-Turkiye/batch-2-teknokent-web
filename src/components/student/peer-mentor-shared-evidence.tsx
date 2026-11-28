@@ -18,7 +18,7 @@ export function PeerMentorSharedEvidence({
 }) {
   const t = useTranslations("iaIskur.take.profile");
   const tType = useTranslations("iaIskur.wizard.documents.types");
-  const { files, links } = usePeerMentorSharedDocuments(mentorId);
+  const { files, links, openFile } = usePeerMentorSharedDocuments(mentorId);
 
   return (
     <>
@@ -47,15 +47,14 @@ export function PeerMentorSharedEvidence({
                     {tType(file.evidenceType)}
                   </span>
                 </span>
-                <a
-                  href={file.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  type="button"
+                  onClick={() => openFile(file.id, file.name)}
                   aria-label={t("viewFile", { name: file.name })}
                   className="inline-flex h-9 shrink-0 items-center rounded-button-sm border border-border-default px-3 type-button-sm text-text-primary hover:bg-background-subtle"
                 >
                   {t("view")}
-                </a>
+                </button>
               </li>
             ))}
           </ul>

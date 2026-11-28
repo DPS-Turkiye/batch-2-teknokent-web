@@ -5,9 +5,12 @@ import type {
   PeerMentorDocument,
 } from "@/interfaces/peer-mentor-documents";
 import { ClientApiError, requireSuccess } from "@/lib/client/api";
+import { backendHttp } from "@/lib/client/backend-http";
 import { postUpload } from "@/lib/client/documents";
-import { httpClient } from "@/lib/http-client";
 
+const PDF = "application/pdf";
+
+// The backend takes the peer mentor (or viewer) from the session and decides who may see which document.
 const PROFILE_DOCUMENTS = "/api/peer-mentoring/profile/documents";
 
 function documentUrl(documentId: string) {
@@ -18,7 +21,7 @@ export async function getOwnPeerMentorDocuments(): Promise<
   PeerMentorDocument[]
 > {
   return requireSuccess(
-    await httpClient.get<PeerMentorDocument[]>(PROFILE_DOCUMENTS),
+    await backendHttp.get<PeerMentorDocument[]>(PROFILE_DOCUMENTS),
   );
 }
 
@@ -38,7 +41,7 @@ export async function addPeerMentorLink(
   input: AddPeerMentorLinkInput,
 ): Promise<PeerMentorDocument> {
   return requireSuccess(
-    await httpClient.post<PeerMentorDocument>(
+    await backendHttp.post<PeerMentorDocument>(
       "/api/peer-mentoring/profile/links",
       input,
     ),
@@ -50,7 +53,7 @@ export async function updatePeerMentorDocumentVisibility(
   visibility: PeerDocumentVisibility,
 ): Promise<PeerMentorDocument> {
   return requireSuccess(
-    await httpClient.patch<PeerMentorDocument>(documentUrl(documentId), {
+    await backendHttp.patch<PeerMentorDocument>(documentUrl(documentId), {
       visibility,
     }),
   );
@@ -59,7 +62,7 @@ export async function updatePeerMentorDocumentVisibility(
 export async function deletePeerMentorDocument(
   documentId: string,
 ): Promise<void> {
-  requireSuccess(await httpClient.delete<null>(documentUrl(documentId)));
+  requireSuccess(await backendHttp.delete<null>(documentUrl(documentId)));
 }
 
 /** What the student may see of a mentor's evidence: nothing (an empty list) when the backend says 404. */
@@ -68,7 +71,7 @@ export async function getPeerMentorDocuments(
 ): Promise<PeerMentorDocument[]> {
   try {
     return requireSuccess(
-      await httpClient.get<PeerMentorDocument[]>(
+      await backendHttp.get<PeerMentorDocument[]>(
         `/api/peer-mentoring/mentors/${encodeURIComponent(mentorId)}/documents`,
       ),
     );
@@ -78,7 +81,28 @@ export async function getPeerMentorDocuments(
   }
 }
 
-/** Where "Görüntüle" opens a file: the app's own route, which checks the session and streams it. */
-export function peerMentorDocumentContentHref(documentId: string) {
-  return `/api/peer-mentoring/documents/${encodeURIComponent(documentId)}/content`;
+/**
+ * "Görüntüle": fetches the file and saves it. It is never opened in this origin: the bytes are handed over as a PDF
+ * or, whatever else the backend might say, as opaque bytes, and always as a download.
+ */
+export async function downloadPeerMentorDocument(
+  documentId: string,
+  filename: string,
+): Promise<void> {
+  const response = await backendHttp.get<Blob>(
+    `/api/peer-mentoring/documents/${encodeURIComponent(documentId)}/content`,
+    { responseType: "blob", headers: { Accept: "*/*" } },
+  );
+  const file = requireSuccess(response);
+  const type =
+    response.headers["content-type"] === PDF ? PDF : "application/octet-stream";
+  const url = URL.createObjectURL(new Blob([file], { type }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.rel = "noopener";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
 }

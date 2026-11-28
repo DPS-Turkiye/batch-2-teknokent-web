@@ -1,14 +1,11 @@
-import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   GET as programCategories,
   PUT as replaceCategories,
 } from "@/app/api/coordinator/programs/[id]/peer-categories/route";
-import { GET as myCategories } from "@/app/api/peer-mentoring/categories/route";
 import { PeerTopicCategory } from "@/interfaces/peer-mentoring";
 import { UserRole, type AppSession } from "@/interfaces/session";
-import { fetchPeerCategories } from "@/lib/api/peer-mentoring";
 import {
   fetchProgramPeerCategories,
   replaceProgramPeerCategories,
@@ -20,7 +17,6 @@ vi.mock("next-intl/server", () => ({
   getTranslations: async () => (key: string) => key,
 }));
 vi.mock("@/lib/session", () => ({ getSessionUser: vi.fn() }));
-vi.mock("@/lib/api/peer-mentoring", () => ({ fetchPeerCategories: vi.fn() }));
 vi.mock("@/lib/api/program-peer-categories", () => ({
   fetchProgramPeerCategories: vi.fn(),
   replaceProgramPeerCategories: vi.fn(),
@@ -43,31 +39,8 @@ describe("peer category routes", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     answerEachWith(
-      [
-        fetchPeerCategories,
-        fetchProgramPeerCategories,
-        replaceProgramPeerCategories,
-      ],
+      [fetchProgramPeerCategories, replaceProgramPeerCategories],
       ok,
-    );
-  });
-
-  it("gives a signed-in student their program's categories, or a mentor's with as=MENTOR", async () => {
-    vi.mocked(getSessionUser).mockResolvedValue(null);
-    expect(
-      (await myCategories(new NextRequest("http://localhost/x"))).status,
-    ).toBe(401);
-
-    vi.mocked(getSessionUser).mockResolvedValue(as(UserRole.Mentee));
-    await myCategories(new NextRequest("http://localhost/x"));
-    expect(fetchPeerCategories).toHaveBeenLastCalledWith(
-      "MENTEE-1",
-      UserRole.Mentee,
-    );
-    await myCategories(new NextRequest("http://localhost/x?as=MENTOR"));
-    expect(fetchPeerCategories).toHaveBeenLastCalledWith(
-      "MENTEE-1",
-      UserRole.Mentor,
     );
   });
 

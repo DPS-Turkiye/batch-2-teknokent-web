@@ -272,7 +272,8 @@
       "uploadFailed": "The file couldn't be uploaded.",
       "linkFailed": "The link couldn't be added.",
       "visibilityFailed": "The visibility couldn't be changed.",
-      "removeFailed": "It couldn't be removed."
+      "removeFailed": "It couldn't be removed.",
+      "openFailed": "Couldn't open the file."
     },
     "availability": {
       "title": "Weekly availability"
@@ -380,6 +381,7 @@
       "sharedDocuments": "Shared documents",
       "view": "View",
       "viewFile": "View {name}",
+      "openFailed": "Couldn't open the file.",
       "portfolioLink": "Portfolio ({host})"
     },
     "dialog": {

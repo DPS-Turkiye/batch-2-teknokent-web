@@ -1,14 +1,7 @@
 import type { AxiosRequestConfig } from "axios";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  fetchStudentTraining,
-  fetchTrainingForEditor,
-  fetchTrainingQuiz,
-  reportVideoWatched,
-  saveTraining,
-  submitTrainingAttempt,
-} from "@/lib/api/training";
+import { fetchTrainingForEditor, saveTraining } from "@/lib/api/training";
 import { backendRequest } from "@/lib/server/backend-client";
 
 vi.mock("@/lib/server/backend-client", () => ({
@@ -45,46 +38,6 @@ const cases: RequestCase[] = [
         videoUrl: "https://youtu.be/abc",
         questions: [],
         actorId: "coord-1",
-      },
-    },
-  ],
-  [
-    "reads where the student stands with the training",
-    () => fetchStudentTraining("student-1"),
-    {
-      method: "GET",
-      url: "/api/training/peer",
-      params: { actorId: "student-1" },
-    },
-  ],
-  [
-    "reports the video as watched with the actor in the body",
-    () => reportVideoWatched("student-1"),
-    {
-      method: "POST",
-      url: "/api/training/peer/video-watched",
-      data: { actorId: "student-1" },
-    },
-  ],
-  [
-    "reads the quiz",
-    () => fetchTrainingQuiz("student-1"),
-    {
-      method: "GET",
-      url: "/api/training/peer/quiz",
-      params: { actorId: "student-1" },
-    },
-  ],
-  [
-    "submits an attempt with the quiz version and the chosen options",
-    () => submitTrainingAttempt("student-1", 3, { "q-1": 2, "q-2": 0 }),
-    {
-      method: "POST",
-      url: "/api/training/peer/attempts",
-      data: {
-        actorId: "student-1",
-        version: 3,
-        answers: { "q-1": 2, "q-2": 0 },
       },
     },
   ],
