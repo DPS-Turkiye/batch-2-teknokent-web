@@ -68,10 +68,27 @@ describe("proxy", () => {
   });
 
   // The API's session cookie lives on the API's host; an old app cookie on this one opens nothing.
-  it("does not count the old app session cookie as a sign-in", async () => {
+  // Signed in before the API had its own session: the page loads, resumes the API session from the Firebase
+  // sign-in and writes the hint (or sends them to log in), instead of bouncing everyone to login after the release.
+  it("lets someone with the old app session cookie and no hint load a protected page", async () => {
     const response = await request("/profile", "teknokent_session=sealed");
-    expect(response.headers.get("location")).toBe(
-      "http://localhost:3000/login?next=%2Fprofile",
+    expect(response.status).toBe(200);
+    expect(response.headers.get("location")).toBeNull();
+  });
+
+  it("does not take the old app session cookie as proof enough to leave login", async () => {
+    const response = await request("/login", "teknokent_session=sealed");
+    expect(response.status).toBe(200);
+    expect(response.headers.get("location")).toBeNull();
+  });
+
+  it("drops the old app session cookie once the hint is there", async () => {
+    const response = await request(
+      "/profile",
+      `${signedIn}; teknokent_session=sealed`,
+    );
+    expect(response.headers.get("set-cookie") ?? "").toContain(
+      "teknokent_session=;",
     );
   });
 

@@ -21,6 +21,9 @@ import {
 } from "@/lib/public-paths";
 import { SIGNED_IN_HINT_COOKIE, signedInHintRole } from "@/lib/session-hint";
 
+/** The Next.js session cookie from before the API had its own session; see signedInBeforeHints. */
+const LEGACY_SESSION_COOKIE = "teknokent_session";
+
 /** Signing in again while already signed in is never what the visitor wants. */
 const SIGNED_OUT_ONLY_PATHS = new Set(["/login", "/signup", MOBILE_LOGIN]);
 
@@ -67,6 +70,11 @@ export function proxy(request: NextRequest) {
   const hint = request.cookies.get(SIGNED_IN_HINT_COOKIE)?.value;
   const role = signedInHintRole(hint);
   const signedIn = role !== null;
+  // People signed in before the API had its own session still carry the old Next.js session cookie and no hint.
+  // Let their page load: it resumes the API session from their Firebase sign-in and writes the hint, or sends
+  // them to log in. Remove once that cookie (12 h at most) can no longer be around.
+  const signedInBeforeHints =
+    !signedIn && request.cookies.has(LEGACY_SESSION_COOKIE);
   const mobile = isMobilePath(pathname);
   const asksForWeb = searchParams.get(PREFER_WEB_PARAM) === "1";
   const savesWebChoice = asksForWeb && isPageLoad(request);
@@ -76,6 +84,9 @@ export function proxy(request: NextRequest) {
   const respond = (response: NextResponse) => {
     if (hint !== undefined && !signedIn) {
       response.cookies.delete(SIGNED_IN_HINT_COOKIE);
+    }
+    if (signedIn && request.cookies.has(LEGACY_SESSION_COOKIE)) {
+      response.cookies.delete(LEGACY_SESSION_COOKIE);
     }
     if (savesWebChoice) {
       response.cookies.set(PREFER_WEB_COOKIE, "1", {
@@ -117,7 +128,7 @@ export function proxy(request: NextRequest) {
     return respond(NextResponse.next());
   }
 
-  if (!signedIn) {
+  if (!signedIn && !signedInBeforeHints) {
     return redirect(loginPathFor(pathname));
   }
 

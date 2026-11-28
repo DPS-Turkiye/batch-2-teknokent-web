@@ -194,6 +194,39 @@ describe("readSession", () => {
     expect(cookie(SIGNED_IN_HINT_COOKIE)).toBe(UserRole.Mentee);
   });
 
+  // The hint must outlive the browser as the sign-in asked, or the proxy would send a remembered person to log in.
+  it("writes a lost hint back as lasting as this browser's last sign-in asked for", async () => {
+    const written: string[] = [];
+    const descriptor = Object.getOwnPropertyDescriptor(
+      Document.prototype,
+      "cookie",
+    )!;
+    const spy = vi
+      .spyOn(document, "cookie", "set")
+      .mockImplementation((value: string) => {
+        written.push(value);
+        descriptor.set!.call(document, value);
+      });
+    answerMe(200);
+
+    const lastHint = () =>
+      written
+        .filter((value) => value.startsWith(`${SIGNED_IN_HINT_COOKIE}=`))
+        .at(-1);
+
+    localStorage.setItem("menton_sign_in_remembered", "1");
+    await readSession();
+    expect(lastHint()).toContain(`${SIGNED_IN_HINT_COOKIE}=${UserRole.Mentee}`);
+    expect(lastHint()).toContain("max-age=");
+
+    document.cookie = `${SIGNED_IN_HINT_COOKIE}=; path=/; max-age=0`;
+    localStorage.removeItem("menton_sign_in_remembered");
+    await readSession();
+    expect(lastHint()).toContain(`${SIGNED_IN_HINT_COOKIE}=${UserRole.Mentee}`);
+    expect(lastHint()).not.toContain("max-age=");
+    spy.mockRestore();
+  });
+
   it("is null on a 401 and drops the hint, so the proxy stops treating the browser as signed in", async () => {
     document.cookie = `${SIGNED_IN_HINT_COOKIE}=${UserRole.Mentee}; path=/`;
     answerMe(401, {});

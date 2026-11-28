@@ -111,6 +111,7 @@ export async function signIn(
   }
 
   const opened = withRememberedWorkspace(session);
+  rememberSignInChoice(rememberMe);
   writeSignedInHint(opened.role, rememberMe);
   saveAccountTypeCookie(opened);
   return opened;
@@ -121,6 +122,26 @@ export async function signIn(
  * the cookie is gone). Null when there is none: signed out, or an account that is no longer approved or has no
  * workspace. Any other failure throws, so a hiccup never reads as signed out.
  */
+/** Whether this browser's last sign-in asked to be remembered; read back when a hint has to be written again. */
+const REMEMBER_KEY = "menton_sign_in_remembered";
+
+function rememberSignInChoice(remember: boolean) {
+  try {
+    if (remember) localStorage.setItem(REMEMBER_KEY, "1");
+    else localStorage.removeItem(REMEMBER_KEY);
+  } catch {
+    // Storage blocked (private mode): the hint then ends with the browser, which is the safe side.
+  }
+}
+
+function signInWasRemembered() {
+  try {
+    return localStorage.getItem(REMEMBER_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
 export async function readSession(): Promise<AppSession | null> {
   const response = await backendHttp.get<BackendUser>(ME_PATH);
   if (response.status === 401) return signedOut();
@@ -129,10 +150,10 @@ export async function readSession(): Promise<AppSession | null> {
   if (!session) return signedOut();
 
   const opened = withRememberedWorkspace(session);
-  // A session resumed without a sign-in on this page (another tab, an older sign-in) gets its hint back; its
-  // lifetime is not known here, so it ends with the browser.
+  // A session resumed without a sign-in on this page (another tab, an older sign-in) gets its hint back, kept as
+  // long as this browser's last sign-in asked for ("beni hatırla"), or until the browser closes when not known.
   if (readSignedInHint() !== opened.role) {
-    writeSignedInHint(opened.role, false);
+    writeSignedInHint(opened.role, signInWasRemembered());
   }
   saveAccountTypeCookie(opened);
   return opened;
